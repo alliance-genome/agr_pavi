@@ -60,18 +60,27 @@ def main(seq_id, seq_strand, seq_regions, fasta_file_path):
     """Main method for sequence retrieval from JBrowse faidx indexed fasta files.
     Returns a single (transcript) sequence made by concatenating all sequence regions requested
     (in specified order)."""
+
     click.echo(f"Received request to retrieve sequences for {seq_id}, strand {seq_strand}, seq_regions {seq_regions}!")
 
-    #Retrieve sequence for each region
     click.echo(f"\nRegion seqs:")
     for region in seq_regions:
+        #If seq_strand is -, ensure seq_start < seq_end (swap as required)
+        if seq_strand == '-' and region['end'] < region['start']:
+            seq_start = region['end']
+            seq_end = region['start']
+
+            region['start'] = seq_start
+            region['end'] = seq_end
+
+        #Retrieve sequence for region
         seq = seq_fns.get_seq(seq_id=seq_id, seq_start=region['start'], seq_end=region['end'], seq_strand=seq_strand,
                             fasta_file_path=fasta_file_path)
         click.echo(seq)
         region['seq'] = seq
 
     #Concatenate all regions into single sequence
-    seq_concat = ''.join(map(lambda region:region['seq'], seq_regions))
+    seq_concat = seq_fns.chain_seq_region_seqs(seq_regions, seq_strand)
     click.echo(f"\nSeq concat: {seq_concat}")
 
 if __name__ == '__main__':
