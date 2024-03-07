@@ -1,5 +1,5 @@
 """
-Module containing all functions used to handle and access faidx files.
+Module containing all functions used to handle and access sequences and sequence files.
 """
 import pysam
 

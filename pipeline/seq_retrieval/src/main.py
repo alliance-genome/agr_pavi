@@ -1,7 +1,7 @@
 import click
 import json
 
-import faidx
+import seq_fns
 
 def validate_strand(ctx, param, value):
     """Returns a normalised version of strings representing a strand.
@@ -65,7 +65,7 @@ def main(seq_id, seq_strand, seq_regions, fasta_file_path):
     #Retrieve sequence for each region
     click.echo(f"\nRegion seqs:")
     for region in seq_regions:
-        seq = faidx.get_seq(seq_id=seq_id, seq_start=region['start'], seq_end=region['end'], seq_strand=seq_strand,
+        seq = seq_fns.get_seq(seq_id=seq_id, seq_start=region['start'], seq_end=region['end'], seq_strand=seq_strand,
                             fasta_file_path=fasta_file_path)
         click.echo(seq)
         region['seq'] = seq
