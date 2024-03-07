@@ -1,6 +1,8 @@
 import click
 import json
 
+import faidx
+
 def validate_strand(ctx, param, value):
     """Returns a normalised version of strings representing a strand.
     Negative strand is normalised to '-', positive strand to '+'.
@@ -50,11 +52,27 @@ def process_seq_regions(ctx, param, value):
               help="The sequence strand to retrieve sequences for.")
 @click.option("--seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions,
               help="A list of sequence regions to retrieve sequences for.")
-def main(seq_id, seq_strand, seq_regions):
-    """Main method for sequence retrieval from JBrowse fastaidx indexed fasta files.
+@click.option("--fasta_file_path", type=click.STRING, required=True,
+              help="""Path to (local) faidx-indexed fasta file.\
+                   Assumes the fasta file is compressed,
+                   and an index file is found at `<fasta_file_path>.gzi`.""")
+def main(seq_id, seq_strand, seq_regions, fasta_file_path):
+    """Main method for sequence retrieval from JBrowse faidx indexed fasta files.
     Returns a single (transcript) sequence made by concatenating all sequence regions requested
     (in specified order)."""
     click.echo(f"Received request to retrieve sequences for {seq_id}, strand {seq_strand}, seq_regions {seq_regions}!")
+
+    #Retrieve sequence for each region
+    click.echo(f"\nRegion seqs:")
+    for region in seq_regions:
+        seq = faidx.get_seq(seq_id=seq_id, seq_start=region['start'], seq_end=region['end'], seq_strand=seq_strand,
+                            fasta_file_path=fasta_file_path)
+        click.echo(seq)
+        region['seq'] = seq
+
+    #Concatenate all regions into single sequence
+    seq_concat = ''.join(map(lambda region:region['seq'], seq_regions))
+    click.echo(f"\nSeq concat: {seq_concat}")
 
 if __name__ == '__main__':
     main()
