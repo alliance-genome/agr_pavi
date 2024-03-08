@@ -59,7 +59,10 @@ def process_seq_regions(ctx, param, value):
                    Assumes additional index files can be found at `<fasta_file_url>.fai`,
                    and at `<fasta_file_url>.gzi` if the fastafile is compressed.
                    Use "file://*" URL for local file or "http(s)://*" for remote files.""")
-def main(seq_id, seq_strand, seq_regions, fasta_file_url: str):
+@click.option("--reuse_local_cache", is_flag=True,
+              help="""When defined and using remote `fasta_file_url`, reused local files
+              if file already exists at destination path, rather than re-downloading and overwritting.""")
+def main(seq_id, seq_strand, seq_regions, fasta_file_url: str, reuse_local_cache: bool):
     """Main method for sequence retrieval from JBrowse faidx indexed fasta files.
     Returns a single (transcript) sequence made by concatenating all sequence regions requested
     (in positional order defined by specified seq_strand)."""
@@ -67,7 +70,7 @@ def main(seq_id, seq_strand, seq_regions, fasta_file_url: str):
     click.echo(f"Received request to retrieve sequences for {seq_id}, strand {seq_strand}, seq_regions {seq_regions}!")
 
     # Fetch the file(s)
-    local_fasta_file_path = data_file_mover.fetch_file(fasta_file_url)
+    local_fasta_file_path = data_file_mover.fetch_file(fasta_file_url, reuse_local_cache=reuse_local_cache)
 
     # Fetch additional faidx index files in addition to fasta file itself
     # (to the same location)
@@ -76,7 +79,7 @@ def main(seq_id, seq_strand, seq_regions, fasta_file_url: str):
         index_files.append(fasta_file_url+'.gzi')
 
     for index_file in index_files:
-        data_file_mover.fetch_file(index_file)
+        data_file_mover.fetch_file(index_file, reuse_local_cache=reuse_local_cache)
 
     click.echo(f"\nRegion seqs:")
     for region in seq_regions:

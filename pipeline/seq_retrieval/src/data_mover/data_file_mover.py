@@ -19,7 +19,7 @@ def is_accessible_url(url: str):
     else:
         return False
 
-def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR):
+def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: bool = False):
     """
     Fetch file from URL, return its local path.
     """
@@ -30,7 +30,7 @@ def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR):
             filepath = url_components.netloc + url_components.path
             local_path = find_local_file(filepath)
         else:
-            local_path = download_from_url(url, dest_dir)
+            local_path = download_from_url(url, dest_dir, reuse_local_cache=reuse_local_cache)
         _stored_files[url] = local_path
     else:
         local_path = _stored_files[url]
@@ -50,7 +50,7 @@ def find_local_file(path: str):
         else:
             return Path(path).resolve()
 
-def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024):
+def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: bool = False):
     url_components = urlparse(url)
     if url_components.scheme in ['http', 'https']:
 
@@ -61,6 +61,13 @@ def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 
 
         filename = unquote(os.path.basename(url_components.path))
         local_file_path = os.path.join(dest_dir, filename)
+
+        if os.path.exists(local_file_path) and os.path.isfile(local_file_path):
+            if reuse_local_cache == True:
+                #Return the local file path without downloading new content
+                return Path(local_file_path).resolve()
+            else:
+                os.remove(local_file_path)
 
         #Download file through streaming to support large files
         response = requests.get(url, stream=True)
