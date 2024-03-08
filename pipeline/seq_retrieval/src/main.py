@@ -1,6 +1,8 @@
 import click
 import json
+from os import path
 
+import data_mover.data_file_mover as data_file_mover
 import seq_fns
 
 def validate_strand(ctx, param, value):
@@ -52,16 +54,29 @@ def process_seq_regions(ctx, param, value):
               help="The sequence strand to retrieve sequences for.")
 @click.option("--seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions,
               help="A list of sequence regions to retrieve sequences for.")
-@click.option("--fasta_file_path", type=click.STRING, required=True,
-              help="""Path to (local) faidx-indexed fasta file.\
-                   Assumes the fasta file is compressed,
-                   and an index file is found at `<fasta_file_path>.gzi`.""")
-def main(seq_id, seq_strand, seq_regions, fasta_file_path):
+@click.option("--fasta_file_url", type=click.STRING, required=True,
+              help="""URL to (faidx-indexed) fasta file to retrieve sequences from.\
+                   Assumes additional index files can be found at `<fasta_file_url>.fai`,
+                   and at `<fasta_file_url>.gzi` if the fastafile is compressed.
+                   Use "file://*" URL for local file or "http(s)://*" for remote files.""")
+def main(seq_id, seq_strand, seq_regions, fasta_file_url: str):
     """Main method for sequence retrieval from JBrowse faidx indexed fasta files.
     Returns a single (transcript) sequence made by concatenating all sequence regions requested
     (in specified order)."""
 
     click.echo(f"Received request to retrieve sequences for {seq_id}, strand {seq_strand}, seq_regions {seq_regions}!")
+
+    # Fetch the file(s)
+    local_fasta_file_path = data_file_mover.fetch_file(fasta_file_url)
+
+    # Fetch additional faidx index files in addition to fasta file itself
+    # (to the same location)
+    index_files = [fasta_file_url+'.fai']
+    if fasta_file_url.endswith('.gz'):
+        index_files.append(fasta_file_url+'.gzi')
+
+    for index_file in index_files:
+        data_file_mover.fetch_file(index_file)
 
     click.echo(f"\nRegion seqs:")
     for region in seq_regions:
@@ -75,7 +90,7 @@ def main(seq_id, seq_strand, seq_regions, fasta_file_path):
 
         #Retrieve sequence for region
         seq = seq_fns.get_seq(seq_id=seq_id, seq_start=region['start'], seq_end=region['end'], seq_strand=seq_strand,
-                            fasta_file_path=fasta_file_path)
+                            fasta_file_path=local_fasta_file_path)
         click.echo(seq)
         region['seq'] = seq
 
