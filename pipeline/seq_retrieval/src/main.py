@@ -62,7 +62,7 @@ def process_seq_regions(ctx, param, value):
 def main(seq_id, seq_strand, seq_regions, fasta_file_url: str):
     """Main method for sequence retrieval from JBrowse faidx indexed fasta files.
     Returns a single (transcript) sequence made by concatenating all sequence regions requested
-    (in specified order)."""
+    (in positional order defined by specified seq_strand)."""
 
     click.echo(f"Received request to retrieve sequences for {seq_id}, strand {seq_strand}, seq_regions {seq_regions}!")
 
