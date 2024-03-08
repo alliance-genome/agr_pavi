@@ -70,11 +70,14 @@ def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 
                 os.remove(local_file_path)
 
         #Download file through streaming to support large files
+        tmp_file_path = f"{local_file_path}.part"
         response = requests.get(url, stream=True)
 
-        with open(local_file_path, mode="wb") as local_file:
+        with open(tmp_file_path, mode="wb") as local_file:
             for chunk in response.iter_content(chunk_size=chunk_size):
                 local_file.write(chunk)
+
+        os.rename(tmp_file_path, local_file_path)
 
         return Path(local_file_path).resolve()
     else:
