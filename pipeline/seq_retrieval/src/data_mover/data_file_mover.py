@@ -8,6 +8,14 @@ from urllib.parse import urlparse, unquote
 
 _stored_files = dict()
 _DEFAULT_DIR = '/tmp/pavi/'
+_reuse_local_cache = False
+
+def set_local_cache_reuse(reuse: bool):
+    """
+    Set _reuse_local_cache (True or False, default False)
+    """
+    global _reuse_local_cache
+    _reuse_local_cache = reuse
 
 def is_accessible_url(url: str):
     """
@@ -19,10 +27,11 @@ def is_accessible_url(url: str):
     else:
         return False
 
-def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: bool = False):
+def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: bool = None):
     """
     Fetch file from URL, return its local path.
     """
+    global _stored_files
     local_path = None
     if url not in _stored_files.keys():
         url_components = urlparse(url)
@@ -50,7 +59,10 @@ def find_local_file(path: str):
         else:
             return Path(path).resolve()
 
-def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: bool = False):
+def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: bool = None):
+    if reuse_local_cache == None:
+        reuse_local_cache = _reuse_local_cache
+
     url_components = urlparse(url)
     if url_components.scheme in ['http', 'https']:
 

@@ -3,7 +3,7 @@ import json
 from os import path
 
 import data_mover.data_file_mover as data_file_mover
-import seq_fns
+from seq_region import SeqRegion, chain_seq_region_seqs
 
 def validate_strand(ctx, param, value):
     """Returns a normalised version of strings representing a strand.
@@ -69,36 +69,19 @@ def main(seq_id, seq_strand, seq_regions, fasta_file_url: str, reuse_local_cache
 
     click.echo(f"Received request to retrieve sequences for {seq_id}, strand {seq_strand}, seq_regions {seq_regions}!")
 
-    # Fetch the file(s)
-    local_fasta_file_path = data_file_mover.fetch_file(fasta_file_url, reuse_local_cache=reuse_local_cache)
+    data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
-    # Fetch additional faidx index files in addition to fasta file itself
-    # (to the same location)
-    index_files = [fasta_file_url+'.fai']
-    if fasta_file_url.endswith('.gz'):
-        index_files.append(fasta_file_url+'.gzi')
-
-    for index_file in index_files:
-        data_file_mover.fetch_file(index_file, reuse_local_cache=reuse_local_cache)
-
-    click.echo(f"\nRegion seqs:")
+    seq_region_objs = []
     for region in seq_regions:
-        #If seq_strand is -, ensure seq_start < seq_end (swap as required)
-        if seq_strand == '-' and region['end'] < region['start']:
-            seq_start = region['end']
-            seq_end = region['start']
+        seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
+                                          fasta_file_url=fasta_file_url))
 
-            region['start'] = seq_start
-            region['end'] = seq_end
-
+    for seq_region in seq_region_objs:
         #Retrieve sequence for region
-        seq = seq_fns.get_seq(seq_id=seq_id, seq_start=region['start'], seq_end=region['end'], seq_strand=seq_strand,
-                            fasta_file_path=local_fasta_file_path)
-        click.echo(seq)
-        region['seq'] = seq
+        seq_region.fetch_seq()
 
     #Concatenate all regions into single sequence
-    seq_concat = seq_fns.chain_seq_region_seqs(seq_regions, seq_strand)
+    seq_concat = chain_seq_region_seqs(seq_region_objs, seq_strand)
     click.echo(f"\nSeq concat: {seq_concat}")
 
 if __name__ == '__main__':
