@@ -5,7 +5,7 @@ from os import path
 import data_mover.data_file_mover as data_file_mover
 from seq_region import SeqRegion, chain_seq_region_seqs
 
-def validate_strand(ctx, param, value):
+def validate_strand_param(ctx, param, value):
     """Returns a normalised version of strings representing a strand.
     Negative strand is normalised to '-', positive strand to '+'.
     Throws a click.BadParameter exception if an unrecognised string was provided."""
@@ -18,7 +18,7 @@ def validate_strand(ctx, param, value):
     else:
         raise click.BadParameter(f"Must be one of {POS_CHOICES} for positive strand, or {NEG_CHOICES} for negative strand.")
 
-def process_seq_regions(ctx, param, value):
+def process_seq_regions_param(ctx, param, value):
     """Parse the seq_regions parameter value and validate it's structure.
     Value is expected to be a JSON-formatted list of sequence regions to retrieve.
     Each region should have:
@@ -50,9 +50,9 @@ def process_seq_regions(ctx, param, value):
 @click.command()
 @click.option("--seq_id", type=click.STRING, required=True,
               help="The sequence ID to retrieve sequences for.")
-@click.option("--seq_strand", type=click.STRING, default='+', callback=validate_strand,
+@click.option("--seq_strand", type=click.STRING, default='+', callback=validate_strand_param,
               help="The sequence strand to retrieve sequences for.")
-@click.option("--seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions,
+@click.option("--seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions_param,
               help="A list of sequence regions to retrieve sequences for.")
 @click.option("--fasta_file_url", type=click.STRING, required=True,
               help="""URL to (faidx-indexed) fasta file to retrieve sequences from.\
