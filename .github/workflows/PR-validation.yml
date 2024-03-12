@@ -7,7 +7,7 @@ on:
 jobs:
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         shell: bash
@@ -24,7 +24,7 @@ jobs:
           make container-image
   pipeline-seq-retrieval-check-python-typing:
     name: pipeline/seq_retrieval check python typing
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         shell: bash
