@@ -11,14 +11,14 @@ _stored_files: typing.Dict[str, str] = dict()
 _DEFAULT_DIR = '/tmp/pavi/'
 _reuse_local_cache = False
 
-def set_local_cache_reuse(reuse: bool):
+def set_local_cache_reuse(reuse: bool) -> None:
     """
     Set _reuse_local_cache (True or False, default False)
     """
     global _reuse_local_cache
     _reuse_local_cache = reuse
 
-def is_accessible_url(url: str):
+def is_accessible_url(url: str) -> bool:
     """
     Returns True when provided `url` is an accessible URL
     """
@@ -47,7 +47,7 @@ def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: typing
 
     return local_path
 
-def find_local_file(path: str):
+def find_local_file(path: str) -> str:
     """
     Find a file locally based on path and return its absolute path.
     If no file was found at given path, throws Exception.
@@ -58,9 +58,9 @@ def find_local_file(path: str):
         if not os.path.isfile(path):
             raise FileNotFoundError(f"Specified path '{path}' exists but is not a file.")
         else:
-            return Path(path).resolve()
+            return str(Path(path).resolve())
 
-def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: typing.Optional[bool] = None):
+def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: typing.Optional[bool] = None) -> str:
     if reuse_local_cache == None:
         reuse_local_cache = _reuse_local_cache
 
@@ -78,7 +78,7 @@ def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 
         if os.path.exists(local_file_path) and os.path.isfile(local_file_path):
             if reuse_local_cache == True:
                 #Return the local file path without downloading new content
-                return Path(local_file_path).resolve()
+                return str(Path(local_file_path).resolve())
             else:
                 os.remove(local_file_path)
 
@@ -92,7 +92,7 @@ def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 
 
         os.rename(tmp_file_path, local_file_path)
 
-        return Path(local_file_path).resolve()
+        return str(Path(local_file_path).resolve())
     else:
         #Currently not supported
         raise ValueError(f"URL with scheme '{url_components.scheme}' is currently not supported.")

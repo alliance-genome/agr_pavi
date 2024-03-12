@@ -77,7 +77,11 @@ class SeqRegion():
 
         self.sequence = seq
 
-def chain_seq_region_seqs(seq_regions: list, seq_strand: str):
+    def get_sequence(self) -> str:
+        """Return SeqRegion's sequence as a string (empty string if `None`)."""
+        return str(self.sequence)
+
+def chain_seq_region_seqs(seq_regions: typing.List[SeqRegion], seq_strand: str) -> str:
     """
     Chain multiple SeqRegions' sequenes together into one continuous sequence.
     SeqRegions are chained together in an order based on the 'start' position of each:
@@ -92,6 +96,6 @@ def chain_seq_region_seqs(seq_regions: list, seq_strand: str):
 
     sorted_regions = seq_regions
     seq_regions.sort(**sort_args)
-    chained_seq = ''.join(map(lambda region : region.sequence, sorted_regions))
+    chained_seq = ''.join(map(lambda region : region.get_sequence(), sorted_regions))
 
     return chained_seq
