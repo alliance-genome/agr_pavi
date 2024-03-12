@@ -95,7 +95,7 @@ def chain_seq_region_seqs(seq_regions: typing.List[SeqRegion], seq_strand: str) 
         sort_args['reverse'] = True
 
     sorted_regions = seq_regions
-    seq_regions.sort(**sort_args)
+    sorted_regions.sort(**sort_args)
     chained_seq = ''.join(map(lambda region : region.get_sequence(), sorted_regions))
 
     return chained_seq
