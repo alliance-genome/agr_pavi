@@ -1,10 +1,11 @@
 import click
+import typing
 import json
 
 import data_mover.data_file_mover as data_file_mover
 from seq_region import SeqRegion, chain_seq_region_seqs
 
-def validate_strand_param(ctx, param, value):
+def validate_strand_param(ctx, param, value) -> typing.Literal['+', '-']:
     """Returns a normalised version of strings representing a strand.
     Negative strand is normalised to '-', positive strand to '+'.
     Throws a click.BadParameter exception if an unrecognised string was provided."""
@@ -17,7 +18,7 @@ def validate_strand_param(ctx, param, value):
     else:
         raise click.BadParameter(f"Must be one of {POS_CHOICES} for positive strand, or {NEG_CHOICES} for negative strand.")
 
-def process_seq_regions_param(ctx, param, value):
+def process_seq_regions_param(ctx, param, value) -> typing.List[typing.Dict[str,typing.Any]]:
     """Parse the seq_regions parameter value and validate it's structure.
     Value is expected to be a JSON-formatted list of sequence regions to retrieve.
     Each region should have:
@@ -61,7 +62,7 @@ def process_seq_regions_param(ctx, param, value):
 @click.option("--reuse_local_cache", is_flag=True,
               help="""When defined and using remote `fasta_file_url`, reused local files
               if file already exists at destination path, rather than re-downloading and overwritting.""")
-def main(seq_id, seq_strand, seq_regions, fasta_file_url: str, reuse_local_cache: bool):
+def main(seq_id: str, seq_strand: str, seq_regions: typing.List, fasta_file_url: str, reuse_local_cache: bool):
     """Main method for sequence retrieval from JBrowse faidx indexed fasta files.
     Returns a single (transcript) sequence made by concatenating all sequence regions requested
     (in positional order defined by specified seq_strand)."""
