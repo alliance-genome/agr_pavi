@@ -1,6 +1,5 @@
 import click
 import json
-from os import path
 
 import data_mover.data_file_mover as data_file_mover
 from seq_region import SeqRegion, chain_seq_region_seqs
