@@ -3,10 +3,11 @@ Moving files to and from remote locations
 """
 import os.path
 from pathlib import Path
+import typing
 import requests
 from urllib.parse import urlparse, unquote
 
-_stored_files = dict()
+_stored_files: typing.Dict[str, str] = dict()
 _DEFAULT_DIR = '/tmp/pavi/'
 _reuse_local_cache = False
 
@@ -27,7 +28,7 @@ def is_accessible_url(url: str):
     else:
         return False
 
-def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: bool = None):
+def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: typing.Optional[bool] = None) -> str:
     """
     Fetch file from URL, return its local path.
     """
@@ -59,7 +60,7 @@ def find_local_file(path: str):
         else:
             return Path(path).resolve()
 
-def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: bool = None):
+def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: typing.Optional[bool] = None):
     if reuse_local_cache == None:
         reuse_local_cache = _reuse_local_cache
 

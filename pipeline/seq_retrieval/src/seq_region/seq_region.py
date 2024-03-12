@@ -2,20 +2,22 @@
 Module containing the SeqRegion class and all methods to handle them.
 SeqRegion class is used to define and retrieve sequence regions.
 """
+import typing
+
 from Bio import Seq #Bio.Seq biopython submodule
 import pysam
 
 from data_mover import data_file_mover
 
 class SeqRegion():
-    seq_id = str
-    start = int
-    end = int
-    strand = str
-    fasta_file_path = str
-    sequence = str
+    seq_id: str
+    start: int
+    end: int
+    strand: str
+    fasta_file_path: str
+    sequence: typing.Optional[str]
 
-    def __init__(self, seq_id: str, start: int, end: int, strand: str, fasta_file_url: str, seq: str = None):
+    def __init__(self, seq_id: str, start: int, end: int, strand: str, fasta_file_url: str, seq: typing.Optional[str] = None):
         """
         Uses 1-based, fully inclusive coordinates
         """
@@ -56,7 +58,7 @@ class SeqRegion():
             self.sequence = seq
 
 
-    def fetch_seq(self):
+    def fetch_seq(self) -> None:
         """Fetch sequence found at `seq_id`:`start`-`end`:`strand`
         by reading from faidx files at `fasta_file_path`.
         Uses 1-based, fully inclusive coordinates."""
@@ -83,7 +85,7 @@ def chain_seq_region_seqs(seq_regions: list, seq_strand: str):
      * Descending order when negative strand
     """
 
-    sort_args = dict(key=lambda region: region.start)
+    sort_args: typing.Dict[str, typing.Any] = dict(key=lambda region: region.start, reverse=False)
 
     if seq_strand == '-':
         sort_args['reverse'] = True
