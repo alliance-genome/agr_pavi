@@ -1,11 +1,18 @@
-.PHONY: check-venv-active
+.PHONY: check-venv-active check-python-typing
 
 container-image:
 	docker build -t agr_pavi/seq_retrieval .
 python-dependencies:
 	pip install -r requirements.txt
+
 python-dependencies-update:
 	pip install -U -r requirements.txt
+
+check-python-typing:
+	pip install -r test/type-testing-requirements.txt
+	mypy --install-types --non-interactive
+	mypy src/main.py
+
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
 	@echo 'No active python virtual environment found.'\
@@ -15,5 +22,9 @@ ifeq ($(VIRTUAL_ENV),)
 else
 	@:
 endif
+
 python-dependencies-dev: check-venv-active python-dependencies
+
 python-dependencies-dev-update: check-venv-active python-dependencies-update
+
+check-python-typing-dev: check-venv-active check-python-typing
