@@ -10,8 +10,7 @@ python-dependencies-update:
 
 check-python-typing:
 	pip install -r test/type-testing-requirements.txt
-	mypy --install-types --non-interactive
-	mypy src/main.py
+	mypy --install-types --non-interactive src/main.py
 
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
