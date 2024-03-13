@@ -1,6 +1,5 @@
 """
-Module containing the SeqRegion class and all methods to handle them.
-SeqRegion class is used to define and retrieve sequence regions.
+Module containing the SeqRegion class and all functions to handle SeqRegion entities.
 """
 import typing
 
@@ -10,16 +9,45 @@ import pysam
 from data_mover import data_file_mover
 
 class SeqRegion():
+    """
+    Defines a DNA sequence region.
+    """
+
     seq_id: str
+    """The sequence identifier found in the fasta file on which the sequence region is located"""
+
     start: int
+    """The start position of the sequence region (1-based, inclusive). Asserted to be `start` < `end`."""
+
     end: int
+    """The end position of the sequence region (1-base, inclusive). Asserted to be `start` < `end`."""
+
     strand: str
+    """The (genomic) strand of the sequence region"""
+
     fasta_file_path: str
+    """Absolute path to (faidx indexed) FASTA file containing the sequences"""
+
     sequence: typing.Optional[str]
+    """the DNA sequence of a sequence region"""
 
     def __init__(self, seq_id: str, start: int, end: int, strand: str, fasta_file_url: str, seq: typing.Optional[str] = None):
         """
-        Uses 1-based, fully inclusive coordinates
+        Initializes a SeqRegion instance
+
+        Args:
+            seq_id: The sequence identifier found in the fasta file on which the sequence region is located
+            start: The start position of the sequence region (1-based, inclusive).\
+                   If negative strand, `start` and `end` are swapped if `end` < `start`.
+            end: The end position of the sequence region (1-base, inclusive).\
+                 If negative strand, `start` and `end` are swapped if `end` < `start`.
+            strand: the (genomic) strand of the sequence region
+            fasta_file_url: Path to local faidx-indexed FASTA file containing the sequences to retrieve (regions of).\
+                            Faidx-index files `fasta_file_url`.fai and `fasta_file_url`.gzi for compressed fasta file must be accessible URLs.
+            seq: optional DNA sequence of the sequence region
+
+        Raises:
+            ValueError: if value of `end` < `start` and `strand` is '+'
         """
         self.seq_id = seq_id
         self.strand = strand
@@ -59,9 +87,12 @@ class SeqRegion():
 
 
     def fetch_seq(self) -> None:
-        """Fetch sequence found at `seq_id`:`start`-`end`:`strand`
+        """
+        Fetch sequence found at `seq_id`:`start`-`end`:`strand`
         by reading from faidx files at `fasta_file_path`.
-        Uses 1-based, fully inclusive coordinates."""
+
+        Stores resulting sequence in `sequence` attribute.
+        """
         try:
             fasta_file = pysam.FastaFile(self.fasta_file_path)
         except ValueError:
@@ -78,15 +109,23 @@ class SeqRegion():
         self.sequence = seq
 
     def get_sequence(self) -> str:
-        """Return SeqRegion's sequence as a string (empty string if `None`)."""
+        """Return `sequence` attribute as a string (empty string if `None`)."""
         return str(self.sequence)
 
 def chain_seq_region_seqs(seq_regions: typing.List[SeqRegion], seq_strand: str) -> str:
     """
     Chain multiple SeqRegions' sequenes together into one continuous sequence.
-    SeqRegions are chained together in an order based on the 'start' position of each:
-     * Ascending order when positive strand
-     * Descending order when negative strand
+
+    SeqRegions are chained together in an order based on the `start` attribute of each:
+     * Ascending order when `seq_strand` is positive strand
+     * Descending order when `seq_strand` is negative strand
+
+    Args:
+        seq_regions: list of SeqRegion objects to chain together
+        seq_strand: sequence strand which defines the chaining order
+
+    Returns:
+        String representing the chained sequence of all input SeqRegions
     """
 
     sort_args: typing.Dict[str, typing.Any] = dict(key=lambda region: region.start, reverse=False)

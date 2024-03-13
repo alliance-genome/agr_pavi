@@ -117,3 +117,8 @@ make check-python-typing-dev
 and all reported errors must be fixed to enable merging each PR into `main`.  
 If the `pipeline/seq_retrieval check python typing` status check fails on a PR in github,
 click the details link and inspect the failing step output for hints on what to fix.
+
+#### Code documentation (docstrings)
+All modules, functions, classes and methods should have their input, attributes and output documented
+through docstrings to make the code easy to read and understand for anyone reading it.
+To ensure this is done in a uniform way accross all code, follow the [Google Python Style Guide on docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
