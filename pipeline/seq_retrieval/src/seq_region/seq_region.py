@@ -106,7 +106,27 @@ class SeqRegion():
             if self.strand == '-':
                 seq = Seq.reverse_complement(seq)
 
-        self.sequence = seq
+        self.set_sequence(seq)
+
+    def set_sequence(self, sequence: str) -> None:
+        """
+        Set the `sequence` attribute.
+
+        Asserts the length of `sequence` matches the expected sequence length for this region.
+
+        Args:
+            sequence: DNA sequence (string)
+
+        Raises:
+            valueError: If the length of `sequence` provided does not match the region length
+        """
+
+        seq_len = len(sequence)
+        expected_len = self.end - self.start + 1
+        if seq_len != expected_len:
+            raise ValueError(f"Sequence length {seq_len} does not equal length expected on region positions {expected_len}.")
+        else:
+            self.sequence = sequence
 
     def get_sequence(self) -> str:
         """Return `sequence` attribute as a string (empty string if `None`)."""
