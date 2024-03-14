@@ -3,11 +3,11 @@ Module used to find, access and copy files at/to/from remote locations
 """
 import os.path
 from pathlib import Path
-import typing
+from typing import Dict, Optional
 import requests
 from urllib.parse import urlparse, unquote
 
-_stored_files: typing.Dict[str, str] = dict()
+_stored_files: Dict[str, str] = dict()
 """Module level memory cache of filepaths for all files accessed through this module."""
 
 _DEFAULT_DIR = '/tmp/pavi/'
@@ -52,7 +52,7 @@ def is_accessible_url(url: str) -> bool:
     else:
         return False
 
-def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: typing.Optional[bool] = None) -> str:
+def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: Optional[bool] = None) -> str:
     """
     Fetch file from URL and return its local path.
 
@@ -104,7 +104,7 @@ def find_local_file(path: str) -> str:
         else:
             return str(Path(path).resolve())
 
-def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: typing.Optional[bool] = None) -> str:
+def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: Optional[bool] = None) -> str:
     """
     Download file from remote URL and return its absolute local path.
 

@@ -1,7 +1,7 @@
 """
 Module containing the SeqRegion class and all functions to handle SeqRegion entities.
 """
-import typing
+from typing import Any, Dict, List, Optional
 
 from Bio import Seq #Bio.Seq biopython submodule
 import pysam
@@ -28,10 +28,10 @@ class SeqRegion():
     fasta_file_path: str
     """Absolute path to (faidx indexed) FASTA file containing the sequences"""
 
-    sequence: typing.Optional[str]
+    sequence: Optional[str]
     """the DNA sequence of a sequence region"""
 
-    def __init__(self, seq_id: str, start: int, end: int, strand: str, fasta_file_url: str, seq: typing.Optional[str] = None):
+    def __init__(self, seq_id: str, start: int, end: int, strand: str, fasta_file_url: str, seq: Optional[str] = None):
         """
         Initializes a SeqRegion instance
 
@@ -132,7 +132,7 @@ class SeqRegion():
         """Return `sequence` attribute as a string (empty string if `None`)."""
         return str(self.sequence)
 
-def chain_seq_region_seqs(seq_regions: typing.List[SeqRegion], seq_strand: str) -> str:
+def chain_seq_region_seqs(seq_regions: List[SeqRegion], seq_strand: str) -> str:
     """
     Chain multiple SeqRegions' sequenes together into one continuous sequence.
 
@@ -148,7 +148,7 @@ def chain_seq_region_seqs(seq_regions: typing.List[SeqRegion], seq_strand: str) 
         String representing the chained sequence of all input SeqRegions
     """
 
-    sort_args: typing.Dict[str, typing.Any] = dict(key=lambda region: region.start, reverse=False)
+    sort_args: Dict[str, Any] = dict(key=lambda region: region.start, reverse=False)
 
     if seq_strand == '-':
         sort_args['reverse'] = True

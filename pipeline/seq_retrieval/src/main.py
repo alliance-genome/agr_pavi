@@ -4,13 +4,13 @@ Main module serving the CLI for PAVI sequence retrieval.
 Retrieves multiple sequence regions and returns them as one chained sequence.
 """
 import click
-import typing
+from typing import Any, Dict, List, Literal
 import json
 
 import data_mover.data_file_mover as data_file_mover
 from seq_region import SeqRegion, chain_seq_region_seqs
 
-def validate_strand_param(ctx, param, value) -> typing.Literal['+', '-']:
+def validate_strand_param(ctx, param, value: str) -> Literal['+', '-']:
     """
     Processes and normalises the value of click input argument `strand`.
 
@@ -29,7 +29,7 @@ def validate_strand_param(ctx, param, value) -> typing.Literal['+', '-']:
     else:
         raise click.BadParameter(f"Must be one of {POS_CHOICES} for positive strand, or {NEG_CHOICES} for negative strand.")
 
-def process_seq_regions_param(ctx, param, value) -> typing.List[typing.Dict[str,typing.Any]]:
+def process_seq_regions_param(ctx, param, value: str) -> List[Dict[str,Any]]:
     """
     Parse the value of click input parameter seq_regions and validate it's structure.
 
@@ -81,7 +81,7 @@ def process_seq_regions_param(ctx, param, value) -> typing.List[typing.Dict[str,
 @click.option("--reuse_local_cache", is_flag=True,
               help="""When defined and using remote `fasta_file_url`, reused local files
               if file already exists at destination path, rather than re-downloading and overwritting.""")
-def main(seq_id: str, seq_strand: str, seq_regions: typing.List, fasta_file_url: str, reuse_local_cache: bool):
+def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, reuse_local_cache: bool):
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
