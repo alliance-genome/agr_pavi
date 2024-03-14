@@ -22,6 +22,7 @@ Module level toggle defining local file cache reuse behaviour.
 Change the value through the `set_local_cache_reuse` function.
 """
 
+
 def set_local_cache_reuse(reuse: bool) -> None:
     """
     Define data_file_mover module-level behaviour on local file cache reuse.
@@ -35,6 +36,7 @@ def set_local_cache_reuse(reuse: bool) -> None:
     """
     global _reuse_local_cache
     _reuse_local_cache = reuse
+
 
 def is_accessible_url(url: str) -> bool:
     """
@@ -51,6 +53,7 @@ def is_accessible_url(url: str) -> bool:
         return True
     else:
         return False
+
 
 def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: Optional[bool] = None) -> str:
     """
@@ -83,6 +86,7 @@ def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: Option
 
     return local_path
 
+
 def find_local_file(path: str) -> str:
     """
     Find a file locally based on path and return its absolute path.
@@ -104,7 +108,8 @@ def find_local_file(path: str) -> str:
         else:
             return str(Path(path).resolve())
 
-def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 1024, reuse_local_cache: Optional[bool] = None) -> str:
+
+def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size: int = 10 * 1024, reuse_local_cache: Optional[bool] = None) -> str:
     """
     Download file from remote URL and return its absolute local path.
 
@@ -125,7 +130,7 @@ def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 
         `ValueError`: if `url` scheme is not supported or `url` is not accessible.
     """
 
-    if reuse_local_cache == None:
+    if reuse_local_cache is None:
         reuse_local_cache = _reuse_local_cache
 
     url_components = urlparse(url)
@@ -140,13 +145,13 @@ def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 
         local_file_path = os.path.join(dest_dir, filename)
 
         if os.path.exists(local_file_path) and os.path.isfile(local_file_path):
-            if reuse_local_cache == True:
-                #Return the local file path without downloading new content
+            if reuse_local_cache is True:
+                # Return the local file path without downloading new content
                 return str(Path(local_file_path).resolve())
             else:
                 os.remove(local_file_path)
 
-        #Download file through streaming to support large files
+        # Download file through streaming to support large files
         tmp_file_path = f"{local_file_path}.part"
         response = requests.get(url, stream=True)
 
@@ -158,5 +163,5 @@ def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size = 10 * 
 
         return str(Path(local_file_path).resolve())
     else:
-        #Currently not supported
+        # Currently not supported
         raise ValueError(f"URL with scheme '{url_components.scheme}' is currently not supported.")

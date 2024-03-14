@@ -10,6 +10,7 @@ import json
 import data_mover.data_file_mover as data_file_mover
 from seq_region import SeqRegion, chain_seq_region_seqs
 
+
 def validate_strand_param(ctx, param, value: str) -> Literal['+', '-']:
     """
     Processes and normalises the value of click input argument `strand`.
@@ -22,14 +23,15 @@ def validate_strand_param(ctx, param, value: str) -> Literal['+', '-']:
     """
     POS_CHOICES = ['+', '+1', 'pos']
     NEG_CHOICES = ['-', '-1', 'neg']
-    if   value in POS_CHOICES:
+    if value in POS_CHOICES:
         return '+'
     elif value in NEG_CHOICES:
         return '-'
     else:
         raise click.BadParameter(f"Must be one of {POS_CHOICES} for positive strand, or {NEG_CHOICES} for negative strand.")
 
-def process_seq_regions_param(ctx, param, value: str) -> List[Dict[str,Any]]:
+
+def process_seq_regions_param(ctx, param, value: str) -> List[Dict[str, Any]]:
     """
     Parse the value of click input parameter seq_regions and validate it's structure.
 
@@ -47,8 +49,8 @@ def process_seq_regions_param(ctx, param, value: str) -> List[Dict[str,Any]]:
     seq_regions = None
     try:
         seq_regions = json.loads(value)
-    except:
-        raise click.BadParameter(f"Must be a valid JSON-formatted string.")
+    except Exception:
+        raise click.BadParameter("Must be a valid JSON-formatted string.")
     else:
         if not isinstance(seq_regions, list):
             raise click.BadParameter("Must be a valid list (JSON-array) of sequence regions to retrieve.")
@@ -65,6 +67,7 @@ def process_seq_regions_param(ctx, param, value: str) -> List[Dict[str,Any]]:
                 raise click.BadParameter(f"'end' property of region {region} is not an integer. All positions must be integers.")
 
         return seq_regions
+
 
 @click.command()
 @click.option("--seq_id", type=click.STRING, required=True,
@@ -96,15 +99,16 @@ def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, r
     seq_region_objs = []
     for region in seq_regions:
         seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
-                                          fasta_file_url=fasta_file_url))
+                                         fasta_file_url=fasta_file_url))
 
     for seq_region in seq_region_objs:
-        #Retrieve sequence for region
+        # Retrieve sequence for region
         seq_region.fetch_seq()
 
-    #Concatenate all regions into single sequence
+    # Concatenate all regions into single sequence
     seq_concat = chain_seq_region_seqs(seq_region_objs, seq_strand)
     click.echo(f"\nSeq concat: {seq_concat}")
+
 
 if __name__ == '__main__':
     main()

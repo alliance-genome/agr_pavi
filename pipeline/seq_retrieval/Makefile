@@ -8,9 +8,14 @@ python-dependencies:
 python-dependencies-update:
 	pip install -U -r requirements.txt
 
-check-python-typing: python-dependencies
+python-test-dependencies:
 	pip install -r tests/requirements.txt
+
+check-python-typing: python-dependencies python-test-dependencies
 	mypy --install-types --non-interactive src/main.py
+
+check-python-style: python-dependencies python-test-dependencies
+	flake8 ./
 
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)

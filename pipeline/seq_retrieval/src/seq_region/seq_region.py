@@ -3,10 +3,11 @@ Module containing the SeqRegion class and all functions to handle SeqRegion enti
 """
 from typing import Any, Dict, List, Optional
 
-from Bio import Seq #Bio.Seq biopython submodule
+from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
 
 from data_mover import data_file_mover
+
 
 class SeqRegion():
     """
@@ -52,7 +53,7 @@ class SeqRegion():
         self.seq_id = seq_id
         self.strand = strand
 
-        #If strand is -, ensure start <= end (swap as required)
+        # If strand is -, ensure start <= end (swap as required)
         if strand == '-':
             if end < start:
                 self.start = end
@@ -60,7 +61,7 @@ class SeqRegion():
             else:
                 self.start = start
                 self.end = end
-        #If strand is +, throw error when end < start (likely user error)
+        # If strand is +, throw error when end < start (likely user error)
         else:
             if end < start:
                 raise ValueError(f"Unexpected position order: end {end} < start {start}.")
@@ -73,18 +74,17 @@ class SeqRegion():
 
         # Fetch additional faidx index files in addition to fasta file itself
         # (to the same location)
-        index_files = [fasta_file_url+'.fai']
+        index_files = [fasta_file_url + '.fai']
         if fasta_file_url.endswith('.gz'):
-            index_files.append(fasta_file_url+'.gzi')
+            index_files.append(fasta_file_url + '.gzi')
 
         for index_file in index_files:
             data_file_mover.fetch_file(index_file)
 
         self.fasta_file_path = local_fasta_file_path
 
-        if seq != None:
+        if seq is not None:
             self.sequence = seq
-
 
     def fetch_seq(self) -> None:
         """
@@ -100,7 +100,7 @@ class SeqRegion():
         except IOError:
             raise IOError(f"Error while reading fasta file or index matching path {self.fasta_file_path}.")
         else:
-            seq = fasta_file.fetch(reference=self.seq_id, start=self.start-1, end=self.end)
+            seq = fasta_file.fetch(reference=self.seq_id, start=(self.start - 1), end=self.end)
             fasta_file.close()
 
             if self.strand == '-':
@@ -131,6 +131,7 @@ class SeqRegion():
     def get_sequence(self) -> str:
         """Return `sequence` attribute as a string (empty string if `None`)."""
         return str(self.sequence)
+
 
 def chain_seq_region_seqs(seq_regions: List[SeqRegion], seq_strand: str) -> str:
     """
