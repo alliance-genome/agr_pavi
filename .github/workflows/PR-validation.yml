@@ -1,0 +1,66 @@
+name: PR validation
+on:
+  pull_request:
+    types: [synchronize, opened, reopened, edited]
+    branches:
+      - main
+jobs:
+  pipeline-seq-retrieval-container-image-build:
+    name: pipeline/seq_retrieval container-image build
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/seq_retrieval/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/seq_retrieval/
+      - name: Build container image
+        run: |
+          make container-image
+  pipeline-seq-retrieval-python-typing-check:
+    name: pipeline/seq_retrieval python typing check
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/seq_retrieval/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/seq_retrieval/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check python typing
+        run: |
+          make check-python-typing
+  pipeline-seq-retrieval-python-style-check:
+    name: pipeline/seq_retrieval python style check
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/seq_retrieval/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/seq_retrieval/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check python style
+        run: |
+          make check-python-style
+  #TODO: add unit testing
+  #TODO: add integration testing
