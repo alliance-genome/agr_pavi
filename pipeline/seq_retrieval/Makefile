@@ -9,7 +9,7 @@ python-dependencies-update:
 	pip install -U -r requirements.txt
 
 check-python-typing: python-dependencies
-	pip install -r test/type-testing-requirements.txt
+	pip install -r tests/requirements.txt
 	mypy --install-types --non-interactive src/main.py
 
 check-venv-active:
