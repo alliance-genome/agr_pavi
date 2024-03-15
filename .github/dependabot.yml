@@ -6,12 +6,8 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
   - package-ecosystem: "pip"
-    directory: "/pipeline/seq_retrieval/" # Location of package manifests
+    directory: "/pipeline/seq_retrieval/"
     schedule:
-      interval: "weekly"
-  - package-ecosystem: "pip"
-    directory: "/pipeline/seq_retrieval/tests/" # Location of package manifests
-    schedule:
-      interval: "weekly"
+      interval: "monthly"
