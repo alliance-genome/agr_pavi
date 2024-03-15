@@ -138,3 +138,16 @@ These style checks are automatically run and enforced as part of the PR validati
 and all reported errors must be fixed to enable merging each PR into `main`.  
 If the `pipeline/seq_retrieval python style check` status check fails on a PR in github,
 click the details link and inspect the failing step output for hints on what to fix.
+
+#### Unit testing
+[Pytest](https://pytest.org/) is being used for unit testing.
+
+To run unit testing locally, run the following command:
+```shell
+make run-unit-tests
+```
+
+All unit tests are automatically run and enforced as part of the PR validation
+and all reported errors must be fixed to enable merging each PR into `main`.  
+If the `pipeline/seq_retrieval unit tests` status check fails on a PR in github,
+click the details link and inspect the failing step output for hints on what to fix.
