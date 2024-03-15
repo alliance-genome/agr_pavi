@@ -17,6 +17,9 @@ check-python-typing: python-dependencies python-test-dependencies
 check-python-style: python-dependencies python-test-dependencies
 	flake8 ./
 
+run-unit-tests: python-dependencies python-test-dependencies
+	python -m pytest
+
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
 	@echo 'No active python virtual environment found.'\

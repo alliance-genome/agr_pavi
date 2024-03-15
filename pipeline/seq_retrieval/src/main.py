@@ -84,7 +84,9 @@ def process_seq_regions_param(ctx, param, value: str) -> List[Dict[str, Any]]:
 @click.option("--reuse_local_cache", is_flag=True,
               help="""When defined and using remote `fasta_file_url`, reused local files
               if file already exists at destination path, rather than re-downloading and overwritting.""")
-def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, reuse_local_cache: bool):
+@click.option("--unmasked", is_flag=True,
+              help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
+def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, reuse_local_cache: bool, unmasked: bool):
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
@@ -92,11 +94,9 @@ def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, r
     all sequence regions requested (in positional order defined by specified seq_strand).
     """
 
-    click.echo(f"Received request to retrieve sequences for {seq_id}, strand {seq_strand}, seq_regions {seq_regions}!")
-
     data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
-    seq_region_objs = []
+    seq_region_objs: List[SeqRegion] = []
     for region in seq_regions:
         seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
                                          fasta_file_url=fasta_file_url))
@@ -106,8 +106,8 @@ def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, r
         seq_region.fetch_seq()
 
     # Concatenate all regions into single sequence
-    seq_concat = chain_seq_region_seqs(seq_region_objs, seq_strand)
-    click.echo(f"\nSeq concat: {seq_concat}")
+    seq_concat = chain_seq_region_seqs(seq_region_objs, seq_strand, unmasked=unmasked)
+    click.echo(seq_concat)
 
 
 if __name__ == '__main__':

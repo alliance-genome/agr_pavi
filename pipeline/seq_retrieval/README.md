@@ -115,10 +115,39 @@ make check-python-typing-dev
 
 `mypy` checks are automatically run and enforced as part of the PR validation
 and all reported errors must be fixed to enable merging each PR into `main`.  
-If the `pipeline/seq_retrieval check python typing` status check fails on a PR in github,
+If the `pipeline/seq_retrieval python typing check` status check fails on a PR in github,
 click the details link and inspect the failing step output for hints on what to fix.
 
 #### Code documentation (docstrings)
 All modules, functions, classes and methods should have their input, attributes and output documented
 through docstrings to make the code easy to read and understand for anyone reading it.
 To ensure this is done in a uniform way accross all code, follow the [Google Python Style Guide on docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
+
+#### Style
+[Flake8](https://flake8.pycqa.org/en/latest/) is being used for style Guide Enforcement.
+For detailed list of all rules available through flake8, see https://www.flake8rules.com/.
+
+To check if your code complies with all style rules set by flake8, run the following command:
+```shell
+make check-python-style
+```
+With the flake8 output, we can now return to the code and fix the errors reported
+which would otherwise result in inconsistent code style and reduced readability.
+
+These style checks are automatically run and enforced as part of the PR validation
+and all reported errors must be fixed to enable merging each PR into `main`.  
+If the `pipeline/seq_retrieval python style check` status check fails on a PR in github,
+click the details link and inspect the failing step output for hints on what to fix.
+
+#### Unit testing
+[Pytest](https://pytest.org/) is being used for unit testing.
+
+To run unit testing locally, run the following command:
+```shell
+make run-unit-tests
+```
+
+All unit tests are automatically run and enforced as part of the PR validation
+and all reported errors must be fixed to enable merging each PR into `main`.  
+If the `pipeline/seq_retrieval unit tests` status check fails on a PR in github,
+click the details link and inspect the failing step output for hints on what to fix.
