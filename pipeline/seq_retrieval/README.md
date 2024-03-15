@@ -147,6 +147,9 @@ To run unit testing locally, run the following command:
 make run-unit-tests
 ```
 
+A minimum of 80% code coverage is required to ensure new code gets approriate unit
+testing before getting merged, which ensures the code is functional and won't break
+unnoticed in future development iterations.  
 All unit tests are automatically run and enforced as part of the PR validation
 and all reported errors must be fixed to enable merging each PR into `main`.  
 If the `pipeline/seq_retrieval unit tests` status check fails on a PR in github,

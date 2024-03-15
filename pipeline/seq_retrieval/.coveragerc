@@ -1,0 +1,15 @@
+[run]
+source = src
+omit =
+    *__init__*
+    # Exclude main runnables (covered through integration rather than unit testing)
+    main.py
+
+[report]
+exclude_lines =
+    # Exclude defensive assertion code
+    raise AssertionError
+    raise NotImplementedError
+
+    # Exclude main method calling (not testable through unit testing)
+    if __name__ == .__main__.:
