@@ -96,7 +96,7 @@ def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, r
 
     data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
-    seq_region_objs = []
+    seq_region_objs: List[SeqRegion] = []
     for region in seq_regions:
         seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
                                          fasta_file_url=fasta_file_url))
