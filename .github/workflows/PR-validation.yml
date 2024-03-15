@@ -62,5 +62,24 @@ jobs:
       - name: Check python style
         run: |
           make check-python-style
-  #TODO: add unit testing
+  pipeline-seq-retrieval-unit-tests:
+    name: pipeline/seq_retrieval unit tests
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/seq_retrieval/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/seq_retrieval/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run unit tests
+        run: |
+          make run-unit-tests
   #TODO: add integration testing
