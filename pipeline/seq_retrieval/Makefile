@@ -18,7 +18,7 @@ check-python-style: python-dependencies python-test-dependencies
 	flake8 ./
 
 run-unit-tests: python-dependencies python-test-dependencies
-	python -m pytest
+	python -m pytest --cov --cov-fail-under=80
 
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
