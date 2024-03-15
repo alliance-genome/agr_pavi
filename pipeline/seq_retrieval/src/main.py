@@ -92,8 +92,6 @@ def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, r
     all sequence regions requested (in positional order defined by specified seq_strand).
     """
 
-    click.echo(f"Received request to retrieve sequences for {seq_id}, strand {seq_strand}, seq_regions {seq_regions}!")
-
     data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
     seq_region_objs = []
@@ -107,7 +105,7 @@ def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, r
 
     # Concatenate all regions into single sequence
     seq_concat = chain_seq_region_seqs(seq_region_objs, seq_strand)
-    click.echo(f"\nSeq concat: {seq_concat}")
+    click.echo(seq_concat)
 
 
 if __name__ == '__main__':
