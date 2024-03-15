@@ -128,12 +128,25 @@ class SeqRegion():
         else:
             self.sequence = sequence
 
-    def get_sequence(self) -> str:
-        """Return `sequence` attribute as a string (empty string if `None`)."""
-        return str(self.sequence)
+    def get_sequence(self, unmasked: bool = False) -> str:
+        """
+        Method to return `sequence` attribute as a string (optionally with modifications).
+
+        Args:
+            unmasked: Flag to remove soft masking (lowercase letters) \
+                      and return unmasked sequence instead (uppercase). Default `False`.
+        Returns:
+            The sequence of a seq region as a string (empty string if `None`).
+        """
+
+        seq = str(self.sequence)
+        if unmasked:
+            seq = seq.upper()
+
+        return seq
 
 
-def chain_seq_region_seqs(seq_regions: List[SeqRegion], seq_strand: str) -> str:
+def chain_seq_region_seqs(seq_regions: List[SeqRegion], seq_strand: str, unmasked: bool = False) -> str:
     """
     Chain multiple SeqRegions' sequenes together into one continuous sequence.
 
@@ -144,6 +157,7 @@ def chain_seq_region_seqs(seq_regions: List[SeqRegion], seq_strand: str) -> str:
     Args:
         seq_regions: list of SeqRegion objects to chain together
         seq_strand: sequence strand which defines the chaining order
+        unmasked: Return unmasked sequence (undo any soft masking present in source fasta file)
 
     Returns:
         String representing the chained sequence of all input SeqRegions
@@ -156,6 +170,6 @@ def chain_seq_region_seqs(seq_regions: List[SeqRegion], seq_strand: str) -> str:
 
     sorted_regions = seq_regions
     sorted_regions.sort(**sort_args)
-    chained_seq = ''.join(map(lambda region : region.get_sequence(), sorted_regions))
+    chained_seq = ''.join(map(lambda region : region.get_sequence(unmasked=unmasked), sorted_regions))
 
     return chained_seq
