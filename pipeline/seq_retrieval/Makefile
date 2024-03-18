@@ -1,4 +1,4 @@
-.PHONY: check-venv-active check-python-typing
+.PHONY: check-venv-active run-python-type-check
 
 container-image:
 	docker build -t agr_pavi/seq_retrieval .
@@ -11,10 +11,10 @@ python-dependencies-update:
 python-test-dependencies:
 	pip install -r tests/requirements.txt
 
-check-python-typing: python-dependencies python-test-dependencies
+run-python-type-check: python-dependencies python-test-dependencies
 	mypy --install-types --non-interactive src/main.py
 
-check-python-style: python-dependencies python-test-dependencies
+run-python-style-check: python-dependencies python-test-dependencies
 	flake8 ./
 
 run-unit-tests: python-dependencies python-test-dependencies
@@ -34,4 +34,4 @@ python-dependencies-dev: check-venv-active python-dependencies
 
 python-dependencies-dev-update: check-venv-active python-dependencies-update
 
-check-python-typing-dev: check-venv-active check-python-typing
+run-python-type-check-dev: check-venv-active run-python-type-check

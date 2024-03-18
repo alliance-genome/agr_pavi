@@ -38,7 +38,7 @@ deactivate
 Type hints are required wherever possible and `mypy` is used to enforce this on PR validation.  
 To check all code part of the seq_retrieval module in this folder (on local development), run:
 ```shell
-make check-python-typing-dev
+make run-python-type-check-dev
 ```
 
 **Detailed explanation**  
@@ -110,7 +110,7 @@ which would otherwise result in silent unexpected behavior and bugs.
 To run `mypy` on the seq_retrieval module in this folder in your local development environment,
 run the following shell command:
 ```shell
-make check-python-typing-dev
+make run-python-type-check-dev
 ```
 
 `mypy` checks are automatically run and enforced as part of the PR validation
@@ -129,7 +129,7 @@ For detailed list of all rules available through flake8, see https://www.flake8r
 
 To check if your code complies with all style rules set by flake8, run the following command:
 ```shell
-make check-python-style
+make run-python-style-check
 ```
 With the flake8 output, we can now return to the code and fix the errors reported
 which would otherwise result in inconsistent code style and reduced readability.
