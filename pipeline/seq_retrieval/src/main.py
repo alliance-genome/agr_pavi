@@ -11,7 +11,7 @@ import data_mover.data_file_mover as data_file_mover
 from seq_region import SeqRegion, chain_seq_region_seqs
 
 
-def validate_strand_param(ctx, param, value: str) -> Literal['+', '-']:
+def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str) -> Literal['+', '-']:
     """
     Processes and normalises the value of click input argument `strand`.
 
@@ -31,7 +31,7 @@ def validate_strand_param(ctx, param, value: str) -> Literal['+', '-']:
         raise click.BadParameter(f"Must be one of {POS_CHOICES} for positive strand, or {NEG_CHOICES} for negative strand.")
 
 
-def process_seq_regions_param(ctx, param, value: str) -> List[Dict[str, Any]]:
+def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value: str) -> List[Dict[str, Any]]:
     """
     Parse the value of click input parameter seq_regions and validate it's structure.
 
@@ -86,7 +86,7 @@ def process_seq_regions_param(ctx, param, value: str) -> List[Dict[str, Any]]:
               if file already exists at destination path, rather than re-downloading and overwritting.""")
 @click.option("--unmasked", is_flag=True,
               help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
-def main(seq_id: str, seq_strand: str, seq_regions: List, fasta_file_url: str, reuse_local_cache: bool, unmasked: bool):
+def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, Any]], fasta_file_url: str, reuse_local_cache: bool, unmasked: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
