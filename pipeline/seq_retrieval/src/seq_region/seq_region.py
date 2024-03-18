@@ -100,11 +100,11 @@ class SeqRegion():
         except IOError:
             raise IOError(f"Error while reading fasta file or index matching path {self.fasta_file_path}.")
         else:
-            seq = fasta_file.fetch(reference=self.seq_id, start=(self.start - 1), end=self.end)
+            seq: str = fasta_file.fetch(reference=self.seq_id, start=(self.start - 1), end=self.end)
             fasta_file.close()
 
             if self.strand == '-':
-                seq = Seq.reverse_complement(seq)
+                seq = str(Seq.reverse_complement(seq))
 
         self.set_sequence(seq)
 
