@@ -2,7 +2,7 @@
 Module containing the MultiPartSeqRegion class.
 """
 
-from typing import Any, Dict, List, override
+from typing import Any, Dict, List, override, Set
 
 from seq_region import SeqRegion
 
@@ -32,40 +32,30 @@ class MultiPartSeqRegion(SeqRegion):
             ValueError: if `seq_regions` have distinct `seq_id`, `strand` or `fasta_file_path` properties.
         """
 
-        seq_length = 0
+        self.seq_length: int = sum(map(lambda seq_region: seq_region.seq_length, seq_regions))
+        self.start: int = min(map(lambda seq_region: seq_region.start, seq_regions))
+        self.end: int = max(map(lambda seq_region: seq_region.end, seq_regions))
 
-        for seqRegion in seq_regions:
-            if not hasattr(self, 'strand'):
-                self.strand = seqRegion.strand
-            elif self.strand != seqRegion.strand:
-                raise ValueError(f"Strand {seqRegion.strand} does not match strand of first seqRegion ({self.strand})."
-                                 + " All seqRegions in multiPartSeqRegion must have equal value for strand property.")
+        strands: Set[str] = set(map(lambda seq_region: seq_region.strand, seq_regions))
+        if len(strands) > 1:
+            raise ValueError(f"Multiple strands defined accross seq regions ({strands})."
+                             + " All seqRegions in multiPartSeqRegion must have equal value for strand attribute.")
+        else:
+            self.strand = strands.pop()
 
-            if not hasattr(self, 'seq_id'):
-                self.seq_id = seqRegion.seq_id
-            elif self.seq_id != seqRegion.seq_id:
-                raise ValueError(f"seq_id {seqRegion.seq_id} does not match seq_id of first seqRegion ({self.seq_id})."
-                                 + " All seqRegions in multiPartSeqRegion must have equal value for seq_id property.")
+        seq_ids: Set[str] = set(map(lambda seq_region: seq_region.seq_id, seq_regions))
+        if len(seq_ids) > 1:
+            raise ValueError(f"Multiple seq_ids defined accross seq regions ({seq_ids})."
+                             + " All seqRegions in multiPartSeqRegion must have equal value for seq_id attribute.")
+        else:
+            self.seq_id = seq_ids.pop()
 
-            if not hasattr(self, 'fasta_file_path'):
-                self.fasta_file_path = seqRegion.fasta_file_path
-            elif self.fasta_file_path != seqRegion.fasta_file_path:
-                raise ValueError(f"fasta_file_path {seqRegion.fasta_file_path} does not match fasta_file_path of first seqRegion ({self.fasta_file_path})."
-                                 + " All seqRegions in multiPartSeqRegion must have equal value for fasta_file_path property.")
-
-            if not hasattr(self, 'start'):
-                self.start = seqRegion.start
-            elif seqRegion.start < self.start:
-                self.start = seqRegion.start
-
-            if not hasattr(self, 'end'):
-                self.end = seqRegion.end
-            elif self.end < seqRegion.end:
-                self.end = seqRegion.end
-
-            seq_length += seqRegion.seq_length
-
-        self.seq_length = seq_length
+        fasta_file_paths: Set[str] = set(map(lambda seq_region: seq_region.fasta_file_path, seq_regions))
+        if len(fasta_file_paths) > 1:
+            raise ValueError(f"Multiple fasta_file_paths defined accross seq regions ({fasta_file_paths})."
+                             + " All seqRegions in multiPartSeqRegion must have equal value for fasta_file_path attribute.")
+        else:
+            self.fasta_file_path = fasta_file_paths.pop()
 
         sort_args: Dict[str, Any] = dict(key=lambda region: region.start, reverse=False)
 
