@@ -12,21 +12,26 @@ class MultiPartSeqRegion(SeqRegion):
     Defines a (non-continuous) genetic sequence region consisting of multiple (consecutive) sequence regions.
     """
 
-    seqRegion_list: List[SeqRegion]
-    """List of SeqRegions which contitute a single multi-part sequence region"""
+    ordered_seqRegions: List[SeqRegion]
+    """Ordered list of SeqRegions which constitute a single multi-part sequence region"""
 
     def __init__(self, seq_regions: List[SeqRegion]):
         """
-        Initializes a MultiPartSeqRegion instance from multiple `SeqRegion`s
+        Initializes a MultiPartSeqRegion instance from multiple `SeqRegion`s.
+
+        Sequence regions will be ordered based on their `start` attribute:
+         * Ascending order when MultiPartSeqRegion.strand is positive strand
+         * Descending order when MultiPartSeqRegion.strand is negative strand
 
         Args:
             seq_regions: list of SeqRegion objects that constitute this multi-part sequence region.\
-                         All SeqRegions must have identical seq_id, strand and fasta_file_path properties to form a valid MultipartSeqRegion.
+                         All SeqRegions must have identical seq_id, strand and fasta_file_path properties \
+                         to form a valid MultipartSeqRegion.
 
         Raises:
             ValueError: if `seq_regions` have distinct `seq_id`, `strand` or `fasta_file_path` properties.
         """
-        self.seqRegion_list = seq_regions
+
         seq_length = 0
 
         for seqRegion in seq_regions:
@@ -52,28 +57,29 @@ class MultiPartSeqRegion(SeqRegion):
 
         self.seq_length = seq_length
 
+        sort_args: Dict[str, Any] = dict(key=lambda region: region.start, reverse=False)
+
+        if self.strand == '-':
+            sort_args['reverse'] = True
+
+        ordered_seq_regions = seq_regions
+        ordered_seq_regions.sort(**sort_args)
+
+        self.ordered_seqRegions = ordered_seq_regions
+
     @override
     def fetch_seq(self) -> None:
         """
         Fetch genetic (DNA) sequence for MultiPartSeqRegion by chaining \
         consisting SeqRegions' sequenes together into one continuous sequence.
 
-        SeqRegions are chained together in an order based on the `start` attribute of each:
-        * Ascending order when MultiPartSeqRegion.strand is positive strand
-        * Descending order when MultiPartSeqRegion.strand is negative strand
+        Chains seqRegions in the order defined in the `ordered_seqRegions` attribute.
 
         Returns:
             Stores resulting sequence in `sequence` attribute.
         """
 
-        sort_args: Dict[str, Any] = dict(key=lambda region: region.start, reverse=False)
-
-        if self.strand == '-':
-            sort_args['reverse'] = True
-
-        sorted_regions = self.seqRegion_list
-        sorted_regions.sort(**sort_args)
-        self.set_sequence(''.join(map(lambda region: region.get_sequence(), sorted_regions)))
+        self.set_sequence(''.join(map(lambda region: region.get_sequence(), self.ordered_seqRegions)))
 
     @override
     def set_sequence(self, sequence: str) -> None:
