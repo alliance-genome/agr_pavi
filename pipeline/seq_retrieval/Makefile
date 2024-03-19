@@ -20,6 +20,10 @@ run-python-style-check: python-dependencies python-test-dependencies
 run-unit-tests: python-dependencies python-test-dependencies
 	python -m pytest --cov --cov-fail-under=80
 
+run-code-checks: run-python-type-check run-python-style-check run-unit-tests
+
+run-build-checks: containter-image
+
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
 	@echo 'No active python virtual environment found.'\
