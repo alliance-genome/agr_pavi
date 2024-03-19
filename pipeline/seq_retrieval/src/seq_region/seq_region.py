@@ -27,7 +27,7 @@ class SeqRegion():
     """The (genomic) strand of the sequence region"""
 
     fasta_file_path: str
-    """Absolute path to (faidx indexed) FASTA file containing the sequences"""
+    """Absolute path to (faidx indexed) FASTA file containing reference sequences"""
 
     sequence: Optional[str]
     """the DNA sequence of a sequence region"""
@@ -43,7 +43,7 @@ class SeqRegion():
             end: The end position of the sequence region (1-base, inclusive).\
                  If negative strand, `start` and `end` are swapped if `end` < `start`.
             strand: the (genomic) strand of the sequence region
-            fasta_file_url: Path to local faidx-indexed FASTA file containing the sequences to retrieve (regions of).\
+            fasta_file_url: URL of faidx-indexed FASTA file containing the reference sequences to retrieve (regions of).\
                             Faidx-index files `fasta_file_url`.fai and `fasta_file_url`.gzi for compressed fasta file must be accessible URLs.
             seq: optional DNA sequence of the sequence region
 
