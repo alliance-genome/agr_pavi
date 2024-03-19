@@ -26,6 +26,9 @@ class SeqRegion():
     strand: str
     """The (genomic) strand of the sequence region"""
 
+    seq_length: int
+    """Sequence length (expected) of the sequence region."""
+
     fasta_file_path: str
     """Absolute path to (faidx indexed) FASTA file containing reference sequences"""
 
@@ -69,6 +72,8 @@ class SeqRegion():
                 self.start = start
                 self.end = end
 
+        self.seq_length = self.end - self.start + 1
+
         # Fetch the file(s)
         self.fasta_file_path = fetch_faidx_files(fasta_file_url)
 
@@ -111,9 +116,8 @@ class SeqRegion():
         """
 
         seq_len = len(sequence)
-        expected_len = self.end - self.start + 1
-        if seq_len != expected_len:
-            raise ValueError(f"Sequence length {seq_len} does not equal length expected on region positions {expected_len}.")
+        if seq_len != self.seq_length:
+            raise ValueError(f"Sequence length {seq_len} does not match expected length {self.seq_length}.")
         else:
             self.sequence = sequence
 

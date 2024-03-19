@@ -27,6 +27,7 @@ class MultiPartSeqRegion(SeqRegion):
             ValueError: if `seq_regions` have distinct `seq_id`, `strand` or `fasta_file_path` properties.
         """
         self.seqRegion_list = seq_regions
+        seq_length = 0
 
         for seqRegion in seq_regions:
             if not hasattr(self, 'strand'):
@@ -46,6 +47,10 @@ class MultiPartSeqRegion(SeqRegion):
             elif self.fasta_file_path != seqRegion.fasta_file_path:
                 raise ValueError(f"fasta_file_path {seqRegion.fasta_file_path} does not match fasta_file_path of first seqRegion ({self.fasta_file_path})."
                                  + " All seqRegions in multiPartSeqRegion must have equal value for fasta_file_path property.")
+
+            seq_length += seqRegion.seq_length
+
+        self.seq_length = seq_length
 
     @override
     def fetch_seq(self) -> None:
@@ -68,7 +73,7 @@ class MultiPartSeqRegion(SeqRegion):
 
         sorted_regions = self.seqRegion_list
         sorted_regions.sort(**sort_args)
-        self.sequence = ''.join(map(lambda region: region.get_sequence(), sorted_regions))
+        self.set_sequence(''.join(map(lambda region: region.get_sequence(), sorted_regions)))
 
     @override
     def set_sequence(self, sequence: str) -> None:
@@ -84,14 +89,10 @@ class MultiPartSeqRegion(SeqRegion):
             valueError: If the length of `sequence` provided does not match the region length (sum of SeqRegion lengths)
         """
 
-        seq_len = len(sequence)
+        sequence_len = len(sequence)
 
-        expected_len = 0
-        for region in self.seqRegion_list:
-            expected_len += region.end - region.start + 1
-
-        if seq_len != expected_len:
-            raise ValueError(f"Sequence length {seq_len} does not equal length expected based on region positions {expected_len}.")
+        if sequence_len != self.seq_length:
+            raise ValueError(f"Sequence length {sequence_len} does not equal length expected based on region positions {self.seq_length}.")
         else:
             self.sequence = sequence
 
