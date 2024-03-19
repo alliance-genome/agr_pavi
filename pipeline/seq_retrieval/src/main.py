@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Literal
 import json
 
 import data_mover.data_file_mover as data_file_mover
-from seq_region import SeqRegion, chain_seq_region_seqs
+from seq_region import SeqRegion, MultiPartSeqRegion
 
 
 def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str) -> Literal['+', '-']:
@@ -106,7 +106,11 @@ def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, Any]], fasta_
         seq_region.fetch_seq()
 
     # Concatenate all regions into single sequence
-    seq_concat = chain_seq_region_seqs(seq_region_objs, seq_strand, unmasked=unmasked)
+    fullRegion = MultiPartSeqRegion(seq_regions=seq_region_objs)
+
+    fullRegion.fetch_seq()
+    seq_concat = fullRegion.get_sequence(unmasked=unmasked)
+
     click.echo(seq_concat)
 
 

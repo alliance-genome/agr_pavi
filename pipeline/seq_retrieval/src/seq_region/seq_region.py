@@ -1,7 +1,7 @@
 """
-Module containing the SeqRegion class and all functions to handle SeqRegion entities.
+Module containing the SeqRegion class and related functions.
 """
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
@@ -11,7 +11,7 @@ from data_mover import data_file_mover
 
 class SeqRegion():
     """
-    Defines a DNA sequence region.
+    Defines a (continuous) genetic sequence region.
     """
 
     seq_id: str
@@ -70,18 +70,7 @@ class SeqRegion():
                 self.end = end
 
         # Fetch the file(s)
-        local_fasta_file_path = data_file_mover.fetch_file(fasta_file_url)
-
-        # Fetch additional faidx index files in addition to fasta file itself
-        # (to the same location)
-        index_files = [fasta_file_url + '.fai']
-        if fasta_file_url.endswith('.gz'):
-            index_files.append(fasta_file_url + '.gzi')
-
-        for index_file in index_files:
-            data_file_mover.fetch_file(index_file)
-
-        self.fasta_file_path = local_fasta_file_path
+        self.fasta_file_path = fetch_faidx_files(fasta_file_url)
 
         if seq is not None:
             self.sequence = seq
@@ -146,30 +135,29 @@ class SeqRegion():
         return seq
 
 
-def chain_seq_region_seqs(seq_regions: List[SeqRegion], seq_strand: str, unmasked: bool = False) -> str:
+def fetch_faidx_files(fasta_file_url: str) -> str:
     """
-    Chain multiple SeqRegions' sequenes together into one continuous sequence.
+    Fetch faidx-indexed fasta file and index files.
 
-    SeqRegions are chained together in an order based on the `start` attribute of each:
-     * Ascending order when `seq_strand` is positive strand
-     * Descending order when `seq_strand` is negative strand
+    Fetches fasta file and index files (.fai + .gzi if fasta file is (bgzip) compressed).
 
     Args:
-        seq_regions: list of SeqRegion objects to chain together
-        seq_strand: sequence strand which defines the chaining order
-        unmasked: Return unmasked sequence (undo any soft masking present in source fasta file)
+        fasta_file_url: URL of faidx-indexed FASTA file to fetch.\
+                        Index files `fasta_file_url`.fai and `fasta_file_url`.gzi for compressed fasta file must be accessible URLs.
 
     Returns:
-        String representing the chained sequence of all input SeqRegions
+        Absolute path to fasta file matching the requested URL (string).
     """
+    # Fetch the fasta file
+    local_fasta_file_path = data_file_mover.fetch_file(fasta_file_url)
 
-    sort_args: Dict[str, Any] = dict(key=lambda region: region.start, reverse=False)
+    # Fetch additional faidx index files in addition to fasta file itself
+    # (to the same location)
+    index_files = [fasta_file_url + '.fai']
+    if fasta_file_url.endswith('.gz'):
+        index_files.append(fasta_file_url + '.gzi')
 
-    if seq_strand == '-':
-        sort_args['reverse'] = True
+    for index_file in index_files:
+        data_file_mover.fetch_file(index_file)
 
-    sorted_regions = seq_regions
-    sorted_regions.sort(**sort_args)
-    chained_seq = ''.join(map(lambda region : region.get_sequence(unmasked=unmasked), sorted_regions))
-
-    return chained_seq
+    return local_fasta_file_path
