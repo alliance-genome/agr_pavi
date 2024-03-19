@@ -53,6 +53,16 @@ class MultiPartSeqRegion(SeqRegion):
                 raise ValueError(f"fasta_file_path {seqRegion.fasta_file_path} does not match fasta_file_path of first seqRegion ({self.fasta_file_path})."
                                  + " All seqRegions in multiPartSeqRegion must have equal value for fasta_file_path property.")
 
+            if not hasattr(self, 'start'):
+                self.start = seqRegion.start
+            elif seqRegion.start < self.start:
+                self.start = seqRegion.start
+
+            if not hasattr(self, 'end'):
+                self.end = seqRegion.end
+            elif self.end < seqRegion.end:
+                self.end = seqRegion.end
+
             seq_length += seqRegion.seq_length
 
         self.seq_length = seq_length
