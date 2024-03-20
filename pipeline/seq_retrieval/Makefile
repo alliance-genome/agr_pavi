@@ -18,6 +18,9 @@ run-python-style-check: python-dependencies python-test-dependencies
 	flake8 ./
 
 run-unit-tests: python-dependencies python-test-dependencies
+	python -m pytest --cov --cov-fail-under=80
+
+run-unit-tests-dev: python-dependencies python-test-dependencies
 	python -m pytest --cov --cov-fail-under=80 --cov-report html
 
 run-code-checks: run-python-type-check run-python-style-check run-unit-tests
