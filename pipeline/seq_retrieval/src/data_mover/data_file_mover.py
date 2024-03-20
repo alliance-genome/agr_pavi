@@ -3,9 +3,13 @@ Module used to find, access and copy files at/to/from remote locations
 """
 import os.path
 from pathlib import Path
-from typing import Dict, Optional
 import requests
+from typing import Dict, Optional
 from urllib.parse import urlparse, unquote
+
+from log_mgmt import get_logger
+
+logger = get_logger(name=__name__)
 
 _stored_files: Dict[str, str] = dict()
 """Module level memory cache of filepaths for all files accessed through this module."""

@@ -4,11 +4,15 @@ Main module serving the CLI for PAVI sequence retrieval.
 Retrieves multiple sequence regions and returns them as one chained sequence.
 """
 import click
-from typing import Any, Dict, List, Literal
 import json
+import logging
+from typing import Any, Dict, List, Literal
 
 import data_mover.data_file_mover as data_file_mover
 from seq_region import SeqRegion, MultiPartSeqRegion
+from log_mgmt import set_log_level, get_logger
+
+logger = get_logger(name=__name__)
 
 
 def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str) -> Literal['+', '-']:
@@ -86,13 +90,20 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
               if file already exists at destination path, rather than re-downloading and overwritting.""")
 @click.option("--unmasked", is_flag=True,
               help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
-def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, Any]], fasta_file_url: str, reuse_local_cache: bool, unmasked: bool) -> None:
+@click.option("--debug", is_flag=True,
+              help="""Flag to enable debug printing.""")
+def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, Any]], fasta_file_url: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
     Prints a single (transcript) sequence obtained by concatenating the sequence of
     all sequence regions requested (in positional order defined by specified seq_strand).
     """
+
+    if debug:
+        set_log_level(logging.DEBUG)
+    else:
+        set_log_level(logging.WARNING)
 
     data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
@@ -111,6 +122,7 @@ def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, Any]], fasta_
     fullRegion.fetch_seq()
     seq_concat = fullRegion.get_sequence(unmasked=unmasked)
 
+    logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")
     click.echo(seq_concat)
 
 
