@@ -6,6 +6,7 @@ Retrieves multiple sequence regions and returns them as one chained sequence.
 import click
 import json
 import logging
+import re
 from typing import Any, Dict, List, Literal
 
 import data_mover.data_file_mover as data_file_mover
@@ -40,9 +41,13 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
     Parse the value of click input parameter seq_regions and validate it's structure.
 
     Value is expected to be a JSON-formatted list of sequence regions to retrieve.
-    Each region should have:
-     * a 'start' property indicating the region start (1-based, inclusive)
-     * a 'end' property indicating the region end (1-based, inclusive)
+    Sequence regions can either be define as dicts or as string.
+
+    Dict format expected: '{"start": 1234, "end": 5678}'
+    String format expected: '`start`..`end`'
+    where:
+     * 'start' property indicates the region start (1-based, inclusive)
+     * 'end' property indicates the region end (1-based, inclusive)
 
     Returns:
         List of dicts representing start and end of seq region
@@ -58,17 +63,27 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
     else:
         if not isinstance(seq_regions, list):
             raise click.BadParameter("Must be a valid list (JSON-array) of sequence regions to retrieve.")
-        for region in seq_regions:
-            if not isinstance(region, dict):
-                raise click.BadParameter(f"Region {region} is not a valid dict. All regions in seq_regions list must be valid dicts (JSON-objects).")
-            if 'start' not in region.keys():
-                raise click.BadParameter(f"Region {region} does not have a 'start' property, which is a required property.")
-            if 'end' not in region.keys():
-                raise click.BadParameter(f"Region {region} does not have a 'end' property, which is a required property.")
-            if not isinstance(region['start'], int):
-                raise click.BadParameter(f"'start' property of region {region} is not an integer. All positions must be integers.")
-            if not isinstance(region['end'], int):
-                raise click.BadParameter(f"'end' property of region {region} is not an integer. All positions must be integers.")
+        for index, region in enumerate(seq_regions):
+            if isinstance(region, dict):
+                if 'start' not in region.keys():
+                    raise click.BadParameter(f"Region {region} does not have a 'start' property, which is a required property.")
+                if 'end' not in region.keys():
+                    raise click.BadParameter(f"Region {region} does not have a 'end' property, which is a required property.")
+                if not isinstance(region['start'], int):
+                    raise click.BadParameter(f"'start' property of region {region} is not an integer. All positions must be integers.")
+                if not isinstance(region['end'], int):
+                    raise click.BadParameter(f"'end' property of region {region} is not an integer. All positions must be integers.")
+            elif isinstance(region, str):
+                re_match = re.fullmatch(r'(\d+)\.\.(\d+)', region)
+                if re_match is not None:
+                    region = dict(start=int(re_match.group(1)),
+                                  end=int(re_match.group(2)))
+                else:
+                    raise click.BadParameter(f"Region {region} of type string has invalid format. Region of type string must be formatted '`start`..`end`'")
+            else:
+                raise click.BadParameter(f"Region {region} is not a valid type. All regions in seq_regions list must be valid dicts (JSON-objects) or strings.")
+
+            seq_regions[index] = region
 
         return seq_regions
 
@@ -79,7 +94,8 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
 @click.option("--seq_strand", type=click.STRING, default='+', callback=validate_strand_param,
               help="The sequence strand to retrieve sequences for.")
 @click.option("--seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions_param,
-              help="A list of sequence regions to retrieve sequences for.")
+              help="A JSON list of sequence regions to retrieve sequences for "
+                   + "(dicts formatted '{\"start\": 1234, \"end\": 5678}' or strings formatted '`start`..`end`').")
 @click.option("--fasta_file_url", type=click.STRING, required=True,
               help="""URL to (faidx-indexed) fasta file to retrieve sequences from.\
                    Assumes additional index files can be found at `<fasta_file_url>.fai`,
