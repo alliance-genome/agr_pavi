@@ -118,8 +118,6 @@ def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, int]], fasta_
 
     if debug:
         set_log_level(logging.DEBUG)
-    else:
-        set_log_level(logging.WARNING)
 
     data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
