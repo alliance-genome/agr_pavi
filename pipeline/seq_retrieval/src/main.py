@@ -92,15 +92,15 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
 @click.option("--seq_id", type=click.STRING, required=True,
               help="The sequence ID to retrieve sequences for.")
 @click.option("--seq_strand", type=click.STRING, default='+', callback=validate_strand_param,
-              help="The sequence strand to retrieve sequences for.")
+              help="The sequence strand to retrieve sequences for (default '+').")
 @click.option("--seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions_param,
               help="A JSON list of sequence regions to retrieve sequences for "
                    + "(dicts formatted '{\"start\": 1234, \"end\": 5678}' or strings formatted '`start`..`end`').")
 @click.option("--fasta_file_url", type=click.STRING, required=True,
-              help="""URL to (faidx-indexed) fasta file to retrieve sequences from.\
+              help="""URL to (faidx-indexed) fasta file to retrieve sequences from.
                    Assumes additional index files can be found at `<fasta_file_url>.fai`,
                    and at `<fasta_file_url>.gzi` if the fastafile is compressed.
-                   Use "file://*" URL for local file or "http(s)://*" for remote files.""")
+                   Use "file://*" for local file or "http(s)://*" for remote files.""")
 @click.option("--reuse_local_cache", is_flag=True,
               help="""When defined and using remote `fasta_file_url`, reused local files
               if file already exists at destination path, rather than re-downloading and overwritting.""")
@@ -108,7 +108,7 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
               help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
-def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, Any]], fasta_file_url: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
+def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, int]], fasta_file_url: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
