@@ -86,6 +86,7 @@ def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: Option
             local_path = download_from_url(url, dest_dir, reuse_local_cache=reuse_local_cache)
         _stored_files[url] = local_path
     else:
+        logger.debug(f"Fetching {url} from memory cache.")
         local_path = _stored_files[url]
 
     return local_path
@@ -150,11 +151,13 @@ def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size: int = 
 
         if os.path.exists(local_file_path) and os.path.isfile(local_file_path):
             if reuse_local_cache is True:
+                logger.info(f"Fetching {url} from local file cache.")
                 # Return the local file path without downloading new content
                 return str(Path(local_file_path).resolve())
             else:
                 os.remove(local_file_path)
 
+        logger.info(f"Fetching {url} from remote.")
         # Download file through streaming to support large files
         tmp_file_path = f"{local_file_path}.part"
         response = requests.get(url, stream=True)
