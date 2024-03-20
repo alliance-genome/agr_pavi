@@ -22,6 +22,7 @@ def test_seq_region_class_neg_strand():
     assert isinstance(exon_1_seq, str)
     assert exon_1_seq == 'atgACGGTGGGTAAACTAATGATTGGCTTACTTATACCGATTCTTGTCGCCACAGTTTACGCAGAG'
 
+
 def test_seq_region_class_pos_strand():
 
     # WBGene00016599 Transcript:C42D8.1.1 Exon 1 (mRNA start)
