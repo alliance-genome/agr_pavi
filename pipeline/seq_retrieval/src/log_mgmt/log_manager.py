@@ -11,7 +11,8 @@ _log_level: int = logging.WARNING
 _loggers: List[logging.Logger] = []
 """List of loggers managed by this module."""
 
-logging.basicConfig()
+FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(format=FORMAT)
 
 
 def get_logger(name: str = __name__, log_level: int = _log_level) -> logging.Logger:
