@@ -1,7 +1,8 @@
 .PHONY: check-venv-active run-python-type-check
 
 container-image:
-	docker build -t agr_pavi/seq_retrieval .
+	docker build --no-cache -t agr_pavi/seq_retrieval .
+
 python-dependencies:
 	pip install -r requirements.txt
 
