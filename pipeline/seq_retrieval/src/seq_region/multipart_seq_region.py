@@ -151,6 +151,7 @@ class MultiPartSeqRegion(SeqRegion):
 
             return self.protein_sequence
         else:
+            logger.warning('No open reading frames found, so no translation made.')
             return None
 
 
@@ -208,14 +209,18 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type
                     reading_frame_opened = True
                     index_opened = i
 
+    logger.debug(f'{len(orfs)} orfs found.')
+
     if len(orfs) == 0:
         logger.warning('No open reading frames found in provided sequence.')
         return orfs
 
     if return_type == 'all':
+        logger.debug(f'Returning all {len(orfs)} orfs.')
         return orfs
     elif return_type == 'longest':
         orfs.sort(key=lambda orf: len(orf['sequence']), reverse=False)
+        logger.debug(f"Returning longest orf (length {len(orfs[-1]['sequence'])}).")
         return [orfs.pop()]
     else:
         raise ValueError(f"return_type {return_type} is not a valid value.")
