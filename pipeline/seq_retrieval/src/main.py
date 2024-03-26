@@ -15,8 +15,8 @@ from log_mgmt import set_log_level, get_logger
 
 logger = get_logger(name=__name__)
 
-POS_CHOICES = ['+', '+1', 'pos']
-NEG_CHOICES = ['-', '-1', 'neg']
+STRAND_POS_CHOICES = ['+', '+1', 'pos']
+STRAND_NEG_CHOICES = ['-', '-1', 'neg']
 
 
 def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str) -> Literal['+', '-']:
@@ -30,12 +30,12 @@ def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str
         click.BadParameter: If an unrecognised string was provided.
     """
 
-    if value in POS_CHOICES:
+    if value in STRAND_POS_CHOICES:
         return '+'
-    elif value in NEG_CHOICES:
+    elif value in STRAND_NEG_CHOICES:
         return '-'
     else:
-        raise click.BadParameter(f"Must be one of {POS_CHOICES} for positive strand, or {NEG_CHOICES} for negative strand.")
+        raise click.BadParameter(f"Must be one of {STRAND_POS_CHOICES} for positive strand, or {STRAND_NEG_CHOICES} for negative strand.")
 
 
 def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value: str) -> List[Dict[str, Any]]:
@@ -93,7 +93,7 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
 @click.command(context_settings={'show_default': True})
 @click.option("--seq_id", type=click.STRING, required=True,
               help="The sequence ID to retrieve sequences for.")
-@click.option("--seq_strand", type=click.Choice(POS_CHOICES + NEG_CHOICES), default='+', callback=validate_strand_param,
+@click.option("--seq_strand", type=click.Choice(STRAND_POS_CHOICES + STRAND_NEG_CHOICES), default='+', callback=validate_strand_param,
               help="The sequence strand to retrieve sequences for.")
 @click.option("--seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions_param,
               help="A JSON list of sequence regions to retrieve sequences for "

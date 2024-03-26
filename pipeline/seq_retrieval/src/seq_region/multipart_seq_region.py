@@ -8,7 +8,7 @@ import logging
 from typing import Any, Dict, List, override, Set
 
 from seq_region import SeqRegion
-from log_mgmt import set_log_level, get_logger
+from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -151,6 +151,8 @@ class MultiPartSeqRegion(SeqRegion):
             self.protein_sequence = str(Seq.translate(sequence=orf['sequence'], table=codon_table, cds=False, to_stop=True))  # type: ignore
 
             return self.protein_sequence
+        else:
+            return None
 
 
 def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type: str = 'all') -> List[Dict[str, Any]]:
@@ -192,8 +194,8 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type
                 if reading_frame_opened:
                     orf: Dict[str, Any] = {}
                     orf['sequence'] = ''.join(codons[offset][index_opened:i + 1])
-                    orf['start_idx'] = offset + index_opened * CODON_SIZE + 1
-                    orf['end_idx'] = offset + (i + 1) * CODON_SIZE
+                    orf['seq_start'] = offset + index_opened * CODON_SIZE + 1  # Relative (DNA) sequence start position (1-based)
+                    orf['seq_end'] = offset + (i + 1) * CODON_SIZE  # Relative (DNA) sequence end position (1-based)
                     orf['complete'] = True
                     orf['offset'] = offset
 
