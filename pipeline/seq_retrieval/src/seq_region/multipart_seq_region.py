@@ -129,14 +129,14 @@ class MultiPartSeqRegion(SeqRegion):
 
         return seq
 
-    def translate(self) -> str:
+    def translate(self) -> str | None:
         """
         Method to translate (c)DNA sequence of sequence region (`sequence` attribute) to protein sequence.
 
         Stores the resulting protein sequence in the `protein_sequence` attribute and returns it.
 
         Returns:
-            Protein sequence corresponding to the sequence region's `sequence`
+            Protein sequence corresponding to the sequence region's `sequence`. Returns `None` if no Open Reading Frame was found in the sequence.
         """
         dna_sequence = self.get_sequence()
 
@@ -144,12 +144,13 @@ class MultiPartSeqRegion(SeqRegion):
 
         # Find the best open reading frame
         orfs = find_orfs(dna_sequence, codon_table, return_type='longest')
-        orf = orfs.pop()
 
-        # Translate to protein
-        self.protein_sequence = str(Seq.translate(sequence=orf['sequence'], table=codon_table, cds=False, to_stop=True))  # type: ignore
+        if len(orfs) > 1:
+            # Translate to protein
+            orf = orfs.pop()
+            self.protein_sequence = str(Seq.translate(sequence=orf['sequence'], table=codon_table, cds=False, to_stop=True))  # type: ignore
 
-        return self.protein_sequence
+            return self.protein_sequence
 
 
 def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type: str = 'all') -> List[Dict[str, Any]]:
@@ -205,6 +206,10 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type
                 if not reading_frame_opened:
                     reading_frame_opened = True
                     index_opened = i
+
+    if len(orfs) == 0:
+        logger.warning('No open reading frames found in provided sequence.')
+        return orfs
 
     if return_type == 'all':
         return orfs
