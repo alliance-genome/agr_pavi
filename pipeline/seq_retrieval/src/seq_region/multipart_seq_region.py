@@ -2,9 +2,15 @@
 Module containing the MultiPartSeqRegion class.
 """
 
+from Bio import Seq  # Bio.Seq biopython submodule
+from Bio.Data import CodonTable
+import logging
 from typing import Any, Dict, List, override, Set
 
 from seq_region import SeqRegion
+from log_mgmt import set_log_level, get_logger
+
+logger = get_logger(name=__name__)
 
 
 class MultiPartSeqRegion(SeqRegion):
@@ -14,6 +20,9 @@ class MultiPartSeqRegion(SeqRegion):
 
     ordered_seqRegions: List[SeqRegion]
     """Ordered list of SeqRegions which constitute a single multi-part sequence region"""
+
+    protein_sequence: str
+    """Protein sequence of a sequence region."""
 
     def __init__(self, seq_regions: List[SeqRegion]):
         """
@@ -119,3 +128,88 @@ class MultiPartSeqRegion(SeqRegion):
             seq = seq.upper()
 
         return seq
+
+    def translate(self) -> str:
+        """
+        Method to translate (c)DNA sequence of sequence region (`sequence` attribute) to protein sequence.
+
+        Stores the resulting protein sequence in the `protein_sequence` attribute and returns it.
+
+        Returns:
+            Protein sequence corresponding to the sequence region's `sequence`
+        """
+        dna_sequence = self.get_sequence()
+
+        codon_table: CodonTable.CodonTable = CodonTable.unambiguous_dna_by_name["Standard"]
+
+        # Find the best open reading frame
+        orfs = find_orfs(dna_sequence, codon_table, return_type='longest')
+        orf = orfs.pop()
+
+        # Translate to protein
+        self.protein_sequence = str(Seq.translate(sequence=orf['sequence'], table=codon_table, cds=False, to_stop=True))  # type: ignore
+
+        return self.protein_sequence
+
+
+def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type: str = 'all') -> List[Dict[str, Any]]:
+    """
+    Find Open Reading Frames (ORFs) in a (spliced) DNA sequence.
+
+    Defines ORFs as reading frame from first start codon to first stop codon.
+    Continues to search for more ORFs after previous ORF was closed.
+    Only reports complete ORFs (with start and stop codon found in sequence).
+
+    Args:
+        dna_sequence: the DNA sequence to search open reading frames in
+        codon_table: the codon table to define start and stop codons
+        return_type: 'all' to return all ORFs found, 'longest' to return the longest found.
+
+    Returns:
+        List of open reading frames found (in accordance to `return_type`).
+
+    Raises:
+        ValueError: if `return_type` does not have a valid value.
+    """
+
+    # Split the DNA sequence in codons (3-base blocks).
+    # Offset the sequence by 1 or 2 (skip first N bases) to obtain all possible codons.
+    CODON_SIZE = 3
+    codons: Dict[int, List[str]] = dict()
+    for offset in range(0, CODON_SIZE):
+        codons[offset] = [dna_sequence[i:i + CODON_SIZE] for i in range(offset, len(dna_sequence), CODON_SIZE)]
+
+    # Read through all codons with each offset and determine the ORFs
+    orfs: List[Dict[str, Any]] = []
+    for offset in range(0, CODON_SIZE):
+        reading_frame_opened = False
+        index_opened: int = -1
+
+        for i, codon in enumerate(codons[offset]):
+
+            if codon in codon_table.stop_codons:
+                if reading_frame_opened:
+                    orf: Dict[str, Any] = {}
+                    orf['sequence'] = ''.join(codons[offset][index_opened:i + 1])
+                    orf['start_idx'] = offset + index_opened * CODON_SIZE + 1
+                    orf['end_idx'] = offset + (i + 1) * CODON_SIZE
+                    orf['complete'] = True
+                    orf['offset'] = offset
+
+                    orfs.append(orf)
+
+                reading_frame_opened = False
+                index_opened = -1
+
+            if codon in codon_table.start_codons:
+                if not reading_frame_opened:
+                    reading_frame_opened = True
+                    index_opened = i
+
+    if return_type == 'all':
+        return orfs
+    elif return_type == 'longest':
+        orfs.sort(key=lambda orf: len(orf['sequence']), reverse=False)
+        return [orfs.pop()]
+    else:
+        raise ValueError(f"return_type {return_type} is not a valid value.")
