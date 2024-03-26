@@ -15,6 +15,9 @@ from log_mgmt import set_log_level, get_logger
 
 logger = get_logger(name=__name__)
 
+POS_CHOICES = ['+', '+1', 'pos']
+NEG_CHOICES = ['-', '-1', 'neg']
+
 
 def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str) -> Literal['+', '-']:
     """
@@ -26,8 +29,7 @@ def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str
     Raises:
         click.BadParameter: If an unrecognised string was provided.
     """
-    POS_CHOICES = ['+', '+1', 'pos']
-    NEG_CHOICES = ['-', '-1', 'neg']
+
     if value in POS_CHOICES:
         return '+'
     elif value in NEG_CHOICES:
@@ -88,11 +90,11 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
         return seq_regions
 
 
-@click.command()
+@click.command(context_settings={'show_default': True})
 @click.option("--seq_id", type=click.STRING, required=True,
               help="The sequence ID to retrieve sequences for.")
-@click.option("--seq_strand", type=click.STRING, default='+', callback=validate_strand_param,
-              help="The sequence strand to retrieve sequences for (default '+').")
+@click.option("--seq_strand", type=click.Choice(POS_CHOICES + NEG_CHOICES), default='+', callback=validate_strand_param,
+              help="The sequence strand to retrieve sequences for.")
 @click.option("--seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions_param,
               help="A JSON list of sequence regions to retrieve sequences for "
                    + "(dicts formatted '{\"start\": 1234, \"end\": 5678}' or strings formatted '`start`..`end`').")
@@ -102,7 +104,7 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
                    and at `<fasta_file_url>.gzi` if the fastafile is compressed.
                    Use "file://*" for local file or "http(s)://*" for remote files.""")
 @click.option("--output_type", type=click.Choice(['transcript', 'protein'], case_sensitive=False), required=True,
-              help="""The output to return. Can be one of 'transcript' (for transcript sequence) and 'protein' (for protein sequence).""")
+              help="""The output type to return.""")
 @click.option("--reuse_local_cache", is_flag=True,
               help="""When defined and using remote `fasta_file_url`, reused local files
               if file already exists at destination path, rather than re-downloading and overwritting.""")
