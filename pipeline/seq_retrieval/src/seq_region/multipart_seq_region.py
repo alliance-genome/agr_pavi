@@ -4,7 +4,6 @@ Module containing the MultiPartSeqRegion class.
 
 from Bio import Seq  # Bio.Seq biopython submodule
 from Bio.Data import CodonTable
-import logging
 from typing import Any, Dict, List, override, Set
 
 from seq_region import SeqRegion
@@ -145,7 +144,7 @@ class MultiPartSeqRegion(SeqRegion):
         # Find the best open reading frame
         orfs = find_orfs(dna_sequence, codon_table, return_type='longest')
 
-        if len(orfs) > 1:
+        if len(orfs) > 0:
             # Translate to protein
             orf = orfs.pop()
             self.protein_sequence = str(Seq.translate(sequence=orf['sequence'], table=codon_table, cds=False, to_stop=True))  # type: ignore
