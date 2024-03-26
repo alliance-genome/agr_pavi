@@ -10,6 +10,7 @@ FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.
 
 def test_multipart_seq_region_class():
 
+    ## Test Class initiation
     # WBGene00000149 Transcript:C54H2.5.1 Exon 1 (mRNA start)
     exon_1: SeqRegion = SeqRegion(seq_id='X', start=5780644, end=5780722, strand='-',
                                   fasta_file_url=FASTA_FILE_URL)
@@ -37,6 +38,7 @@ def test_multipart_seq_region_class():
 
     multipart_seq_region = MultiPartSeqRegion(seq_region_list)
 
+    ## Test fetch_seq method
     multipart_seq_region.fetch_seq()
 
     chained_seq: str = multipart_seq_region.get_sequence()
@@ -44,7 +46,33 @@ def test_multipart_seq_region_class():
     assert isinstance(chained_seq, str)
     assert chained_seq == EXON_1_SEQ + EXON_2_SEQ + EXON_3_SEQ + EXON_4_SEQ
 
+    ## Test translate method
     protein_seq = multipart_seq_region.translate()
 
+    # Assert successful translation
     assert isinstance(protein_seq, str)
     assert protein_seq == 'MNQFRAPGGQNEMLAKAEDAAEDFFRKTRTYLPHIARLCLVSTFLEDGIRMYFQWDDQKQFMQESWSCGWFIATLFVIYNFFGQFIPVLMIMLRKKVLVACGILASIVILQTIAYHILWDLKFLARNIAVGGGLLLLLAETQEEKASLFAGVPTMGDSNKPKSYMLLAGRVLLIFMFMSLMHFEMSFMQVLEIVVGFALITLVSIGYKTKLSAIVLVIWLFGLNLWLNAWWTIPSDRFYRDFMKYDFFQTMSVIGGLLLVIAYGPGGVSVDDYKKRW'
+
+
+def test_incomplete_multipart_seq_region():
+
+    # Test translation of incomplete ORF
+    # WBGene00000149 Transcript:C54H2.5.1 5' UTR
+    five_p_utr: SeqRegion = SeqRegion(seq_id='X', start=5780713, end=5780722, strand='-',
+                                      fasta_file_url=FASTA_FILE_URL)
+    UTR_SEQ = 'CTCTTGGAAA'
+
+    five_p_utr.fetch_seq()
+
+    incomplete_multipart_seq_region = MultiPartSeqRegion([five_p_utr])
+    incomplete_multipart_seq_region.fetch_seq()
+
+    chained_utr_seq: str = incomplete_multipart_seq_region.get_sequence()
+
+    assert isinstance(chained_utr_seq, str)
+    assert chained_utr_seq == UTR_SEQ
+
+    incomplete_translation = incomplete_multipart_seq_region.translate()
+
+    # Assert failed translation
+    assert incomplete_translation is None
