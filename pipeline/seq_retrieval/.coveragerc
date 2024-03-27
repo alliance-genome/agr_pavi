@@ -3,7 +3,9 @@ source = src
 omit =
     *__init__*
     # Exclude main runnables (covered through integration rather than unit testing)
-    main.py
+    src/main.py
+    # Exclude logging code (no need to be tested)
+    src/log_mgmt/*
 
 [report]
 exclude_lines =

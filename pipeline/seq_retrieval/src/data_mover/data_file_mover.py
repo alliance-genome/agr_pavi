@@ -3,9 +3,13 @@ Module used to find, access and copy files at/to/from remote locations
 """
 import os.path
 from pathlib import Path
-from typing import Dict, Optional
 import requests
+from typing import Dict, Optional
 from urllib.parse import urlparse, unquote
+
+from log_mgmt import get_logger
+
+logger = get_logger(name=__name__)
 
 _stored_files: Dict[str, str] = dict()
 """Module level memory cache of filepaths for all files accessed through this module."""
@@ -57,9 +61,11 @@ def is_accessible_url(url: str) -> bool:
 
 def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: Optional[bool] = None) -> str:
     """
-    Fetch file from URL and return its local path.
+    Search local file path matching URL in caches, fetch file from URL if not found.
 
-    Parses `url` to determine scheme and sends it to the appropriate data_file_mover function for retrieval.
+    First searched the data_file_mover module's `_stored_files` memory cache for result of previous retrievals,
+    then searches the local file cache if `reuse_local_file_cache` is True.
+    If not found, parses `url` to determine scheme and sends it to the appropriate data_file_mover function for retrieval.
     Result is cached in the data_file_mover module's `_stored_files` memory cache, which is used to speed up
     repeated retrieval.
 
@@ -70,19 +76,49 @@ def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: Option
 
     Returns:
         Absolute path to local file matching the requested URL (string).
+
+    Raises:
+        `NotImplementedError`: if the requested URL has a scheme that is currently not supported.
     """
+
     global _stored_files
-    local_path = None
-    if url not in _stored_files.keys():
+    local_path: str
+
+    if reuse_local_cache is None:
+        reuse_local_cache = _reuse_local_cache
+
+    if url in _stored_files.keys():
+        logger.debug(f"Fetching {url} from memory cache.")
+        local_path = _stored_files[url]
+    else:
         url_components = urlparse(url)
         if url_components.scheme == 'file':
             filepath = url_components.netloc + url_components.path
             local_path = find_local_file(filepath)
+
+        elif url_components.scheme in ['http', 'https']:
+
+            filename = unquote(os.path.basename(url_components.path))
+            local_file_path = os.path.join(dest_dir, filename)
+
+            if reuse_local_cache is True:
+
+                try:
+                    local_path = find_local_file(local_file_path)
+                except FileNotFoundError:
+                    logger.info(f"File for {url} not found on download destination, downloading from remote to {dest_dir}.")
+                    local_path = download_from_url(url, local_file_path)
+                else:
+                    logger.info(f"Found file for {url} in local file cache.")
+
+            else:
+                logger.info(f"Downloading {url} from remote to {dest_dir}.")
+                local_path = download_from_url(url, local_file_path)
         else:
-            local_path = download_from_url(url, dest_dir, reuse_local_cache=reuse_local_cache)
+            # Currently not supported
+            raise NotImplementedError(f"URL with scheme '{url_components.scheme}' is currently not supported.")
+
         _stored_files[url] = local_path
-    else:
-        local_path = _stored_files[url]
 
     return local_path
 
@@ -109,29 +145,25 @@ def find_local_file(path: str) -> str:
             return str(Path(path).resolve())
 
 
-def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size: int = 10 * 1024, reuse_local_cache: Optional[bool] = None) -> str:
+def download_from_url(url: str, dest_filepath: str, chunk_size: int = 10 * 1024) -> str:
     """
     Download file from remote URL and return its absolute local path.
 
     Parses `url` to determine scheme and downloads the remote file to local filesystem as appropriate.
-    When local cache reuse is enabled, does not download but returns identically named files at `dest_dir` location when found.
-    When local cache reuse is disabled, removes identically named files at `dest_dir` location when found before initiating download.
+    Removes file at `dest_filepath` when found before initiating download.
 
     Args:
         url: URL to remote file to download
-        dest_dir: Destination directory to search/download remote file in/to.
+        dest_filepath: Destination filepath to download remote file to.
         chunk_size: Chunk size use while downloading
-        reuse_local_cache: Argument to override local cache reuse behavior defined at data_file_mover level.
 
     Returns:
-        Absolute path to the found/downloaded file (string).
+        Absolute path to the downloaded file (string).
 
     Raises:
-        `ValueError`: if `url` scheme is not supported or `url` is not accessible.
+        `ValueError`: if `url` is not accessible.
+        `NotImplementedError`: if `url` scheme is not supported
     """
-
-    if reuse_local_cache is None:
-        reuse_local_cache = _reuse_local_cache
 
     url_components = urlparse(url)
     if url_components.scheme in ['http', 'https']:
@@ -139,29 +171,25 @@ def download_from_url(url: str, dest_dir: str = _DEFAULT_DIR, chunk_size: int = 
         if not is_accessible_url(url):
             raise ValueError(f"URL {url} is not accessible.")
 
-        Path(dest_dir).mkdir(parents=True, exist_ok=True)
+        Path(os.path.dirname(dest_filepath)).mkdir(parents=True, exist_ok=True)
 
-        filename = unquote(os.path.basename(url_components.path))
-        local_file_path = os.path.join(dest_dir, filename)
+        if os.path.exists(dest_filepath) and os.path.isfile(dest_filepath):
+            logger.warning(f"Pre-existing file {dest_filepath} found at download destination, deleting before download.")
+            os.remove(dest_filepath)
 
-        if os.path.exists(local_file_path) and os.path.isfile(local_file_path):
-            if reuse_local_cache is True:
-                # Return the local file path without downloading new content
-                return str(Path(local_file_path).resolve())
-            else:
-                os.remove(local_file_path)
-
+        logger.debug(f"Downloading {url}...")
         # Download file through streaming to support large files
-        tmp_file_path = f"{local_file_path}.part"
+        tmp_file_path = f"{dest_filepath}.part"
         response = requests.get(url, stream=True)
 
         with open(tmp_file_path, mode="wb") as local_file:
             for chunk in response.iter_content(chunk_size=chunk_size):
                 local_file.write(chunk)
 
-        os.rename(tmp_file_path, local_file_path)
+        os.rename(tmp_file_path, dest_filepath)
+        logger.debug(f"Download of {url} completed.")
 
-        return str(Path(local_file_path).resolve())
+        return find_local_file(dest_filepath)
     else:
         # Currently not supported
-        raise ValueError(f"URL with scheme '{url_components.scheme}' is currently not supported.")
+        raise NotImplementedError(f"URL with scheme '{url_components.scheme}' is currently not supported.")

@@ -41,7 +41,7 @@ jobs:
           python-version: '3.12'
       - name: Check python typing
         run: |
-          make check-python-typing
+          make run-python-type-check
   pipeline-seq-retrieval-python-style-check:
     name: pipeline/seq_retrieval python style check
     runs-on: ubuntu-22.04
@@ -61,7 +61,7 @@ jobs:
           python-version: '3.12'
       - name: Check python style
         run: |
-          make check-python-style
+          make run-python-style-check
   pipeline-seq-retrieval-unit-tests:
     name: pipeline/seq_retrieval unit tests
     runs-on: ubuntu-22.04

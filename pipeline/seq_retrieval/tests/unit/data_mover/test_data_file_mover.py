@@ -20,10 +20,11 @@ def test_is_accessible_url():
 
 
 def test_download_from_url():
-    downloaded_file_path = download_from_url(url=FASTA_URL, dest_dir=DOWNLOAD_DIR, reuse_local_cache=False)
 
     expected_rel_file_path = os.path.join(DOWNLOAD_DIR, 'GCF_000146045.2_R64_genomic.fna.gz')
     expected_abs_file_path = str(Path(expected_rel_file_path).resolve())
+
+    downloaded_file_path = download_from_url(url=FASTA_URL, dest_filepath=expected_rel_file_path)
 
     assert isinstance(downloaded_file_path, str)
     assert downloaded_file_path == expected_abs_file_path

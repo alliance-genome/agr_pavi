@@ -1,7 +1,7 @@
 """
-Module containing the SeqRegion class and all functions to handle SeqRegion entities.
+Module containing the SeqRegion class and related functions.
 """
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
@@ -11,7 +11,7 @@ from data_mover import data_file_mover
 
 class SeqRegion():
     """
-    Defines a DNA sequence region.
+    Defines a (continuous) genetic sequence region.
     """
 
     seq_id: str
@@ -26,8 +26,11 @@ class SeqRegion():
     strand: str
     """The (genomic) strand of the sequence region"""
 
+    seq_length: int
+    """Sequence length (expected) of the sequence region."""
+
     fasta_file_path: str
-    """Absolute path to (faidx indexed) FASTA file containing the sequences"""
+    """Absolute path to (faidx indexed) FASTA file containing reference sequences"""
 
     sequence: Optional[str]
     """the DNA sequence of a sequence region"""
@@ -43,7 +46,7 @@ class SeqRegion():
             end: The end position of the sequence region (1-base, inclusive).\
                  If negative strand, `start` and `end` are swapped if `end` < `start`.
             strand: the (genomic) strand of the sequence region
-            fasta_file_url: Path to local faidx-indexed FASTA file containing the sequences to retrieve (regions of).\
+            fasta_file_url: URL of faidx-indexed FASTA file containing the reference sequences to retrieve (regions of).\
                             Faidx-index files `fasta_file_url`.fai and `fasta_file_url`.gzi for compressed fasta file must be accessible URLs.
             seq: optional DNA sequence of the sequence region
 
@@ -69,19 +72,10 @@ class SeqRegion():
                 self.start = start
                 self.end = end
 
+        self.seq_length = self.end - self.start + 1
+
         # Fetch the file(s)
-        local_fasta_file_path = data_file_mover.fetch_file(fasta_file_url)
-
-        # Fetch additional faidx index files in addition to fasta file itself
-        # (to the same location)
-        index_files = [fasta_file_url + '.fai']
-        if fasta_file_url.endswith('.gz'):
-            index_files.append(fasta_file_url + '.gzi')
-
-        for index_file in index_files:
-            data_file_mover.fetch_file(index_file)
-
-        self.fasta_file_path = local_fasta_file_path
+        self.fasta_file_path = fetch_faidx_files(fasta_file_url)
 
         if seq is not None:
             self.sequence = seq
@@ -100,11 +94,11 @@ class SeqRegion():
         except IOError:
             raise IOError(f"Error while reading fasta file or index matching path {self.fasta_file_path}.")
         else:
-            seq = fasta_file.fetch(reference=self.seq_id, start=(self.start - 1), end=self.end)
+            seq: str = fasta_file.fetch(reference=self.seq_id, start=(self.start - 1), end=self.end)
             fasta_file.close()
 
             if self.strand == '-':
-                seq = Seq.reverse_complement(seq)
+                seq = str(Seq.reverse_complement(seq))
 
         self.set_sequence(seq)
 
@@ -122,9 +116,8 @@ class SeqRegion():
         """
 
         seq_len = len(sequence)
-        expected_len = self.end - self.start + 1
-        if seq_len != expected_len:
-            raise ValueError(f"Sequence length {seq_len} does not equal length expected on region positions {expected_len}.")
+        if seq_len != self.seq_length:
+            raise ValueError(f"Sequence length {seq_len} does not match expected length {self.seq_length}.")
         else:
             self.sequence = sequence
 
@@ -146,30 +139,29 @@ class SeqRegion():
         return seq
 
 
-def chain_seq_region_seqs(seq_regions: List[SeqRegion], seq_strand: str, unmasked: bool = False) -> str:
+def fetch_faidx_files(fasta_file_url: str) -> str:
     """
-    Chain multiple SeqRegions' sequenes together into one continuous sequence.
+    Fetch faidx-indexed fasta file and index files.
 
-    SeqRegions are chained together in an order based on the `start` attribute of each:
-     * Ascending order when `seq_strand` is positive strand
-     * Descending order when `seq_strand` is negative strand
+    Fetches fasta file and index files (.fai + .gzi if fasta file is (bgzip) compressed).
 
     Args:
-        seq_regions: list of SeqRegion objects to chain together
-        seq_strand: sequence strand which defines the chaining order
-        unmasked: Return unmasked sequence (undo any soft masking present in source fasta file)
+        fasta_file_url: URL of faidx-indexed FASTA file to fetch.\
+                        Index files `fasta_file_url`.fai and `fasta_file_url`.gzi for compressed fasta file must be accessible URLs.
 
     Returns:
-        String representing the chained sequence of all input SeqRegions
+        Absolute path to fasta file matching the requested URL (string).
     """
+    # Fetch the fasta file
+    local_fasta_file_path = data_file_mover.fetch_file(fasta_file_url)
 
-    sort_args: Dict[str, Any] = dict(key=lambda region: region.start, reverse=False)
+    # Fetch additional faidx index files in addition to fasta file itself
+    # (to the same location)
+    index_files = [fasta_file_url + '.fai']
+    if fasta_file_url.endswith('.gz'):
+        index_files.append(fasta_file_url + '.gzi')
 
-    if seq_strand == '-':
-        sort_args['reverse'] = True
+    for index_file in index_files:
+        data_file_mover.fetch_file(index_file)
 
-    sorted_regions = seq_regions
-    sorted_regions.sort(**sort_args)
-    chained_seq = ''.join(map(lambda region : region.get_sequence(unmasked=unmasked), sorted_regions))
-
-    return chained_seq
+    return local_fasta_file_path
