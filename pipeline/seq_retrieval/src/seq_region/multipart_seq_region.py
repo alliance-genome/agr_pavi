@@ -176,28 +176,28 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type
     """
 
     # Split the DNA sequence in codons (3-base blocks).
-    # Offset the sequence by 1 or 2 (skip first N bases) to obtain all possible codons.
+    # Frameshift the sequence by 0, 1 or 2 (skip first N bases) to obtain all possible codons.
     CODON_SIZE = 3
     codons: Dict[int, List[str]] = dict()
-    for offset in range(0, CODON_SIZE):
-        codons[offset] = [dna_sequence[i:i + CODON_SIZE] for i in range(offset, len(dna_sequence), CODON_SIZE)]
+    for frameshift in range(0, CODON_SIZE):
+        codons[frameshift] = [dna_sequence[i:i + CODON_SIZE] for i in range(frameshift, len(dna_sequence), CODON_SIZE)]
 
-    # Read through all codons with each offset and determine the ORFs
+    # Read through all codons accross all frameshifts and determine the ORFs
     orfs: List[Dict[str, Any]] = []
-    for offset in range(0, CODON_SIZE):
+    for frameshift in range(0, CODON_SIZE):
         reading_frame_opened = False
         index_opened: int = -1
 
-        for i, codon in enumerate(codons[offset]):
+        for i, codon in enumerate(codons[frameshift]):
 
             if codon in codon_table.stop_codons:
                 if reading_frame_opened:
                     orf: Dict[str, Any] = {}
-                    orf['sequence'] = ''.join(codons[offset][index_opened:i + 1])
-                    orf['seq_start'] = offset + index_opened * CODON_SIZE + 1  # Relative (DNA) sequence start position (1-based)
-                    orf['seq_end'] = offset + (i + 1) * CODON_SIZE  # Relative (DNA) sequence end position (1-based)
+                    orf['sequence'] = ''.join(codons[frameshift][index_opened:i + 1])
+                    orf['seq_start'] = frameshift + index_opened * CODON_SIZE + 1  # Relative (DNA) sequence start position (1-based)
+                    orf['seq_end'] = frameshift + (i + 1) * CODON_SIZE  # Relative (DNA) sequence end position (1-based)
                     orf['complete'] = True
-                    orf['offset'] = offset
+                    orf['frameshift'] = frameshift
 
                     orfs.append(orf)
 
