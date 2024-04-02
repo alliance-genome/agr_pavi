@@ -4,6 +4,11 @@ First build the docker image:
 make docker-image
 ```
 
+To build a clean docker image (for production usage and troubleshooting):
+```bash
+make clean docker-image
+```
+
 Then run the container to run any alignment.
 
 Use a volume mount (`-v`) as appropriate to enable the container access to the input and output directorie(s).  

@@ -1,6 +1,13 @@
 # PAVI Sequence retrieval
 This subdirectory contains all code and configs for the PAVI sequence retrieval component.
 
+## Content table
+ * [Development](#development)
+    * [Local dev environment](#local-dev-environment)
+    * [Code guidelines](#code-guidelines)
+ * [Building](#building)
+ * [Usage](#usage)
+
 ## Development
 ### Local dev environment
 In order to enable isolated local development that does not interfere with the global system python setup,
@@ -154,3 +161,16 @@ All unit tests are automatically run and enforced as part of the PR validation
 and all reported errors must be fixed to enable merging each PR into `main`.  
 If the `pipeline/seq_retrieval unit tests` status check fails on a PR in github,
 click the details link and inspect the failing step output for hints on what to fix.
+
+## Building
+To build a clean docker image (for production usage and troubleshooting):
+```bash
+make clean docker-image
+```
+
+## Usage
+This PAVI component is intented to be called as a container.
+To call the container after building:
+```bash
+docker run agr_pavi/seq_retrieval
+```

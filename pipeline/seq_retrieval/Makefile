@@ -1,7 +1,14 @@
-.PHONY: check-venv-active run-python-type-check
+CONTAINER_NAME=agr_pavi/seq_retrieval
+ADDITIONAL_BUILD_ARGS=
+
+.PHONY: check-venv-active run-python-type-check clean
+
+clean:
+	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
+	@:
 
 container-image:
-	docker build --no-cache -t agr_pavi/seq_retrieval .
+	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
 
 python-dependencies:
 	pip install -r requirements.txt

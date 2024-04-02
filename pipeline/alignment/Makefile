@@ -1,2 +1,11 @@
+CONTAINER_NAME=agr_pavi/alignment
+ADDITIONAL_BUILD_ARGS=
+
+.PHONY: clean
+
+clean:
+	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
+	@:
+
 container-image:
-	docker build --no-cache -t agr_pavi/alignment .
+	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
