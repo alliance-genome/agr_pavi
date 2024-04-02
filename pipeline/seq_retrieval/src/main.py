@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Main module serving the CLI for PAVI sequence retrieval.
 
