@@ -1,0 +1,12 @@
+RELEASE=23.10.1
+
+.PHONY: build-workflow-local-deps run-workflow-local
+
+nextflow:
+	curl -L https://github.com/nextflow-io/nextflow/releases/download/v${RELEASE}/nextflow-${RELEASE}-all -o nextflow
+	chmod u+x nextflow
+
+build-workflow-local-deps:
+	make -C ../seq_retrieval/ container-image
+	make -C ../alignment/ container-image
+
