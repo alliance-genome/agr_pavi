@@ -106,6 +106,8 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
                    Use "file://*" for local file or "http(s)://*" for remote files.""")
 @click.option("--output_type", type=click.Choice(['transcript', 'protein'], case_sensitive=False), required=True,
               help="""The output type to return.""")
+@click.option("--name", type=click.STRING, required=True,
+              help="The sequence name to use in the output fasta header.")
 @click.option("--reuse_local_cache", is_flag=True,
               help="""When defined and using remote `fasta_file_url`, reused local files
               if file already exists at destination path, rather than re-downloading and overwritting.""")
@@ -113,7 +115,8 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
               help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
-def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, int]], fasta_file_url: str, output_type: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
+def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, int]], fasta_file_url: str, output_type: str,
+         name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
@@ -143,6 +146,7 @@ def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, int]], fasta_
 
     logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")
 
+    click.echo('>' + name)
     if output_type == 'transcript':
         click.echo(seq_concat)
     elif output_type == 'protein':
