@@ -21,6 +21,8 @@ process sequence_retrieval {
 process alignment {
     container 'agr_pavi/alignment'
 
+    publishDir "pipeline-results/", mode: 'copy'
+
     input:
         path 'alignment-input.fa'
 
@@ -29,7 +31,7 @@ process alignment {
 
     script:
         """
-        clustalo -i alignment-input.fa -outfmt=clustal -o alignment-output.aln
+        clustalo -i alignment-input.fa -outfmt=clustal --resno -o alignment-output.aln
         """
 }
 
