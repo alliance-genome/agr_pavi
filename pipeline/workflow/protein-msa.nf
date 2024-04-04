@@ -31,7 +31,7 @@ process alignment {
 
     script:
         """
-        clustalo -i alignment-input.fa -outfmt=clustal --resno -o alignment-output.aln
+        clustalo -i alignment-input.fa --outfmt=clustal --resno -o alignment-output.aln
         """
 }
 
