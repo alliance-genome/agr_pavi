@@ -3,3 +3,4 @@ nextflow
 .nextflow/
 .nextflow.log.*
 work/
+pipeline-results/
