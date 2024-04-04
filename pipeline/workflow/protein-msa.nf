@@ -7,14 +7,14 @@ process sequence_retrieval {
         val request_map
 
     output:
-        path 'protein.fa'
+        path "${request_map.name}-protein.fa"
 
     script:
         """
         main.py --output_type protein \
             --name ${request_map.name} --seq_id ${request_map.seq_id} --seq_strand ${request_map.seq_strand} \
             --fasta_file_url ${request_map.fasta_file_url} --seq_regions '${request_map.seq_regions}' \
-            > protein.fa
+            > ${request_map.name}-protein.fa
         """
 }
 
@@ -38,5 +38,5 @@ process alignment {
 workflow {
     def seq_region_channel = Channel.of(params.input_seq_regions).splitJson()
 
-    seq_region_channel | sequence_retrieval | collectFile(name: 'alignment-input.fa') | alignment
+    seq_region_channel | sequence_retrieval | collectFile(name: 'alignment-input.fa', sort: true) | alignment
 }
