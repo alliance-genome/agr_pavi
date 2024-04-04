@@ -38,5 +38,5 @@ process alignment {
 workflow {
     def seq_region_channel = Channel.of(params.input_seq_regions).splitJson()
 
-    seq_region_channel | sequence_retrieval | collectFile(name: 'alignment-input.fa', sort: true) | alignment
+    seq_region_channel | sequence_retrieval | collectFile(name: 'alignment-input.fa', sort: { file -> file.name }) | alignment
 }
