@@ -8,10 +8,6 @@ jobs:
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./pipeline/seq_retrieval/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -24,7 +20,7 @@ jobs:
       - name: Build container image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./pipeline/seq_retrieval/
           push: false
           outputs: type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
       - name: Upload image as artifact (share between jobs)
@@ -95,10 +91,6 @@ jobs:
   pipeline-alignment-container-image-build:
     name: pipeline/alignment container-image build
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./pipeline/alignment/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -111,7 +103,7 @@ jobs:
       - name: Build container image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./pipeline/alignment/
           push: false
           outputs: type=docker,dest=/tmp/pavi_alignment_docker_image.tar
       - name: Upload image as artifact (share between jobs)
