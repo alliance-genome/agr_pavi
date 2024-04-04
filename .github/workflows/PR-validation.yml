@@ -26,12 +26,12 @@ jobs:
         with:
           context: .
           push: false
-          outputs: type=docker,dest=/tmp/pavi-docker-images/seq_retrieval.tar
+          outputs: type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
       - name: Upload image as artifact (share between jobs)
         uses: actions/upload-artifact@v4
         with:
           name: seq_retrieval_image
-          path: /tmp/pavi-docker-images/seq_retrieval.tar
+          path: /tmp/pavi_seq_retrieval_docker_image.tar
   pipeline-seq-retrieval-python-typing-check:
     name: pipeline/seq_retrieval python typing check
     runs-on: ubuntu-22.04
@@ -113,12 +113,12 @@ jobs:
         with:
           context: .
           push: false
-          outputs: type=docker,dest=/tmp/pavi-docker-images/alignment.tar
+          outputs: type=docker,dest=/tmp/pavi_alignment_docker_image.tar
       - name: Upload image as artifact (share between jobs)
         uses: actions/upload-artifact@v4
         with:
           name: alignment_image
-          path: /tmp/pavi-docker-images/alignment.tar
+          path: /tmp/pavi_alignment_docker_image.tar
   pipeline-workflow-integration-testing:
     name: pipeline/workflow integration testing
     needs:
@@ -136,18 +136,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: seq_retrieval_image
-          path: /tmp/pavi-docker-images
+          path: /tmp
       - name: Download alignment image
         uses: actions/download-artifact@v4
         with:
           name: alignment_image
-          path: /tmp/pavi-docker-images
+          path: /tmp
       - name: Load seq_retrieval Docker image artifact (from previous job)
         run: |
-          docker load --input /tmp/pavi-docker-images/seq_retrieval.tar
+          docker load --input /tmp/pavi_seq_retrieval_docker_image.tar
       - name: Load alignment Docker image
         run: |
-          docker load --input /tmp/pavi-docker-images/alignment.tar
+          docker load --input /tmp/pavi_alignment_docker_image.tar
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
