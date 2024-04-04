@@ -10,6 +10,9 @@ build-workflow-local-deps:
 	make -C ../seq_retrieval/ container-image
 	make -C ../alignment/ container-image
 
-run-integration-test: nextflow
+pipeline-results/:
+	mkdir pipeline-results/
+
+run-integration-test: nextflow pipeline-results/
 	./nextflow run -profile test protein-msa.nf
 	@diff -qs pipeline-results/alignment-output.aln tests/resources/integration-test-results.aln
