@@ -124,6 +124,12 @@ jobs:
         shell: bash
         working-directory: ./pipeline/workflow/
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/workflow/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Download seq_retrieval image artifact (from previous job)
@@ -131,23 +137,17 @@ jobs:
         with:
           name: seq_retrieval_image
           path: /tmp
-      - name: Download alignment image
+      - name: Download alignment image artifact (from previous job)
         uses: actions/download-artifact@v4
         with:
           name: alignment_image
           path: /tmp
-      - name: Load seq_retrieval Docker image artifact (from previous job)
+      - name: Load seq_retrieval Docker image
         run: |
           docker load --input /tmp/pavi_seq_retrieval_docker_image.tar
       - name: Load alignment Docker image
         run: |
           docker load --input /tmp/pavi_alignment_docker_image.tar
-      - name: Check out repository code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          sparse-checkout: |
-            pipeline/workflow/
       - name: Run integration test
         run: |
           make run-integration-test
