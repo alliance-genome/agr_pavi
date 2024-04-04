@@ -8,10 +8,6 @@ jobs:
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./pipeline/seq_retrieval/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -19,9 +15,20 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             pipeline/seq_retrieval/
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build container image
-        run: |
-          make container-image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./pipeline/seq_retrieval/
+          push: false
+          tags: agr_pavi/seq_retrieval:latest
+          outputs: type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
+      - name: Upload image as artifact (share between jobs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: seq_retrieval_image
+          path: /tmp/pavi_seq_retrieval_docker_image.tar
   pipeline-seq-retrieval-python-typing-check:
     name: pipeline/seq_retrieval python typing check
     runs-on: ubuntu-22.04
@@ -82,4 +89,65 @@ jobs:
       - name: Run unit tests
         run: |
           make run-unit-tests
-  #TODO: add integration testing
+  pipeline-alignment-container-image-build:
+    name: pipeline/alignment container-image build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/alignment/
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build container image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./pipeline/alignment/
+          push: false
+          tags: agr_pavi/alignment:latest
+          outputs: type=docker,dest=/tmp/pavi_alignment_docker_image.tar
+      - name: Upload image as artifact (share between jobs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: alignment_image
+          path: /tmp/pavi_alignment_docker_image.tar
+  pipeline-workflow-integration-testing:
+    name: pipeline/workflow integration testing
+    needs:
+      - pipeline-seq-retrieval-container-image-build
+      - pipeline-alignment-container-image-build
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/workflow/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/workflow/
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Download seq_retrieval image artifact (from previous job)
+        uses: actions/download-artifact@v4
+        with:
+          name: seq_retrieval_image
+          path: /tmp
+      - name: Download alignment image artifact (from previous job)
+        uses: actions/download-artifact@v4
+        with:
+          name: alignment_image
+          path: /tmp
+      - name: Load seq_retrieval Docker image
+        run: |
+          docker load --input /tmp/pavi_seq_retrieval_docker_image.tar
+      - name: Load alignment Docker image
+        run: |
+          docker load --input /tmp/pavi_alignment_docker_image.tar
+      - name: Run integration test
+        run: |
+          make run-integration-test

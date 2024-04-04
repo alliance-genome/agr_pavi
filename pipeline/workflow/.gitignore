@@ -1,0 +1,6 @@
+# NextFlow output files
+nextflow
+.nextflow/
+.nextflow.log.*
+work/
+pipeline-results/
