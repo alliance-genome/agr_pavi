@@ -151,3 +151,33 @@ jobs:
       - name: Run integration test
         run: |
           make run-integration-test
+  aws-infra-cdk-test:
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Setup node.js (CDK requirement)
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+    - name: Install CDK
+      run: npm install -g aws-cdk
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install CDK stack dependencies
+      run: pip install -r requirements.txt
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
+        aws-region: us-east-1
+    - name: cdk diff
+      run: cdk diff
