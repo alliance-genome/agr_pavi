@@ -152,6 +152,7 @@ jobs:
         run: |
           make run-integration-test
   pipeline-aws-infra-cdk-test:
+    name: pipeline/aws_infra CDK test
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
