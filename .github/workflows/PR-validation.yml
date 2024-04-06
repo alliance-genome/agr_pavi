@@ -151,13 +151,13 @@ jobs:
       - name: Run integration test
         run: |
           make run-integration-test
-  aws-infra-cdk-test:
+  pipeline-aws-infra-cdk-test:
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     defaults:
       run:
-        working-directory: ./aws_infra
+        working-directory: pipeline/aws_infra
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
