@@ -13,18 +13,15 @@
     ]
   },
   "context": {
-    "@aws-cdk/core:stackRelativeExports": true,
-    "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
-    "@aws-cdk/aws-ec2:uniqueImdsv2TemplateName": true,
     "@aws-cdk/core:checkSecretUsage": true,
-    "@aws-cdk/aws-iam:minimizePolicies": true,
-    "@aws-cdk/aws-ecs:arnFormatIncludesClusterName": true,
-    "@aws-cdk/core:validateSnapshotRemovalPolicy": true,
-    "@aws-cdk/aws-s3:createDefaultLoggingPolicy": true,
     "@aws-cdk/core:enablePartitionLiterals": true,
-    "@aws-cdk/core:target-partitions": [
-      "aws",
-      "aws-cn"
-    ]
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"],
+    "@aws-cdk/core:stackRelativeExports": true,
+    "@aws-cdk/core:validateSnapshotRemovalPolicy": true,
+    "@aws-cdk/aws-ec2:uniqueImdsv2TemplateName": true,
+    "@aws-cdk/aws-ecs:arnFormatIncludesClusterName": true,
+    "@aws-cdk/aws-iam:minimizePolicies": true,
+    "@aws-cdk/aws-s3:createDefaultLoggingPolicy": true,
+    "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true
   }
 }
