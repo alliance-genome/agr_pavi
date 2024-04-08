@@ -151,8 +151,8 @@ jobs:
       - name: Run integration test
         run: |
           make run-integration-test
-  pipeline-aws-infra-cdk-test:
-    name: pipeline/aws_infra CDK test
+  pipeline-aws-infra-cdk-code-validation:
+    name: pipeline/aws_infra CDK code validation
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -182,3 +182,23 @@ jobs:
         aws-region: us-east-1
     - name: cdk diff
       run: cdk diff
+  pipeline-aws-infra-cdk-assertions:
+    name: pipeline/aws_infra CDK resource assertions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/aws_infra/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/aws_infra/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run unit tests
+        run: |
+          make run-unit-tests
