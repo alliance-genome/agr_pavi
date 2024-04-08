@@ -12,3 +12,4 @@ class CdkInfraStack(Stack):
 		super().__init__(scope, construct_id, **kwargs)
 
 		PaviEcrRepository(self, id="PAVI-pipeline-seq-retrieval-repo", component_name='seq_retrieval')
+		PaviEcrRepository(self, id="PAVI-pipeline-alignment-repo", component_name='alignment')
