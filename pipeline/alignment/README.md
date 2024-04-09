@@ -17,7 +17,7 @@ Use a volume mount (`-v`) as appropriate to provide the container access to the 
 on your local system.  
 Specify the clustalo command-line arguments as appropriate after the `docker run` command, as per below example:
 ```bash
-docker run -v /abs/path/to/in-out-dir:/mnt/pavi/ --rm agr_pavi/alignment \
+docker run -v /abs/path/to/in-out-dir:/mnt/pavi/ --rm agr_pavi/pipeline_alignment \
  clustalo -i /mnt/pavi/input-seqs.fa --outfmt=clustal --resno -o /mnt/pavi/clustal-output.aln
 ```
 Once the run completed, Clustal-formatted alignment results can then be found locally in `</abs/path/to/in-out-dir>/clustal-output.aln`.

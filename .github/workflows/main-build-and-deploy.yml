@@ -1,0 +1,120 @@
+name: Main branch Build and Deployment
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+jobs:
+  on-merge-and-deploy:
+    name: Job(s) that gets skipped if PR was not merged or has the 'no-deploy' tag
+    if: github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'no-deploy')
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Confirm execution
+      shell: bash
+      run: |
+        echo "PR merge detected and deployment wanted."
+  deploy-aws-infra:
+    name: Deploy or update AWS infrastructure for PAVI
+    needs: [on-merge-and-deploy]
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: pipeline/aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Setup node.js (CDK requirement)
+      uses: actions/setup-node@v3
+      with:
+        node-version: "18"
+    - name: Install CDK
+      run: npm install -g aws-cdk
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install CDK stack dependencies
+      run: pip install -r requirements.txt
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
+        aws-region: us-east-1
+    - name: cdk deploy
+      run: cdk deploy --require-approval never 
+  pipeline-seq-retrieval-build-and-push-docker-image:
+    needs: [on-merge-and-deploy, deploy-aws-infra]
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        sparse-checkout: |
+          pipeline/seq_retrieval/
+    - name: Store release tag in env
+      shell: bash
+      run: |
+        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
+    # This step will configure environment variables to be used by all steps
+    # involving AWS interaction further down
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-pipeline-seq-retrieval
+        aws-region: us-east-1
+    - name: Amazon ECR login
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+    - name: Build and push container image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./pipeline/seq_retrieval/
+        push: true
+        tags: |
+          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{ env.tagname }}
+          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${GITHUB_REF#refs/heads/}
+        platforms: linux/amd64,linux/arm64
+  pipeline-alignment-build-and-push-docker-image:
+    needs: [on-merge-and-deploy, deploy-aws-infra]
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        sparse-checkout: |
+          pipeline/alignment/
+    - name: Store release tag in env
+      shell: bash
+      run: |
+        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
+    # This step will configure environment variables to be used by all steps
+    # involving AWS interaction further down
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-pipeline-seq-retrieval
+        aws-region: us-east-1
+    - name: Amazon ECR login
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+    - name: Build and push container image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./pipeline/alignment/
+        push: true
+        tags: |
+          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{ env.tagname }}
+          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${GITHUB_REF#refs/heads/}
+        platforms: linux/amd64,linux/arm64

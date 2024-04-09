@@ -1,4 +1,4 @@
-CONTAINER_NAME=agr_pavi/alignment
+CONTAINER_NAME=agr_pavi/pipeline_alignment
 ADDITIONAL_BUILD_ARGS=
 
 .PHONY: clean

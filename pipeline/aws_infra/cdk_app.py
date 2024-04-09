@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-import os
-
-import aws_cdk as cdk
+from aws_cdk import (
+    App, Environment
+)
 
 from cdk_classes.cdk_infra_stack import CdkInfraStack
 
 
-app = cdk.App()
+app = App()
 CdkInfraStack(app, "PaviPipelineCdkStack",
-	env=cdk.Environment(account='100225593120', region='us-east-1'))
+              env=Environment(account='100225593120', region='us-east-1'))
 
 app.synth()

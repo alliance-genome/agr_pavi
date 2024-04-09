@@ -1,7 +1,7 @@
 params.input_seq_regions
 
 process sequence_retrieval {
-    container 'agr_pavi/seq_retrieval'
+    container 'agr_pavi/pipeline_seq_retrieval'
 
     input:
         val request_map
@@ -19,7 +19,7 @@ process sequence_retrieval {
 }
 
 process alignment {
-    container 'agr_pavi/alignment'
+    container 'agr_pavi/pipeline_alignment'
 
     publishDir "pipeline-results/", mode: 'copy'
 
