@@ -21,3 +21,6 @@ run-unit-tests: python-dependencies python-test-dependencies
 
 run-unit-tests-dev: check-venv-active python-dependencies python-test-dependencies
 	python -m pytest
+
+run-python-type-check: python-dependencies python-test-dependencies
+	mypy --install-types --non-interactive --warn-unused-config .

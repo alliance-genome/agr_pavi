@@ -4,12 +4,13 @@ to ensure breaking changes are caught and handled
 before getting applied to the live AWS resources.
 """
 
-import aws_cdk
+from aws_cdk import App
+from aws_cdk.aws_config import ResourceType
 import aws_cdk.assertions as assertions
 
 from cdk_classes.cdk_infra_stack import CdkInfraStack
 
-app = aws_cdk.App()
+app = App()
 stack = CdkInfraStack(app, "pytest-stack")
 template = assertions.Template.from_stack(stack)
 
@@ -21,15 +22,15 @@ template = assertions.Template.from_stack(stack)
 #    * Move All images from the old ECR repository to the new one
 #      (or delete the images if no longer relevant)
 #    * Delete the old ECR repository
-def test_pipeline_seq_retrieval_ecr_repo():
-    template.has_resource(type=aws_cdk.aws_config.ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
+def test_pipeline_seq_retrieval_ecr_repo() -> None:
+    template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
         "Properties": {
             "RepositoryName": "agr_pavi/seq_retrieval"
         }
     })
 
-def test_pipeline_alignment_ecr_repo():
-    template.has_resource(type=aws_cdk.aws_config.ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
+def test_pipeline_alignment_ecr_repo() -> None:
+    template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
         "Properties": {
             "RepositoryName": "agr_pavi/alignment"
         }

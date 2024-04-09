@@ -18,4 +18,4 @@ class PaviEcrRepository:
         self.repository = repo
 
     def get_repo_arn(self) -> str:
-        return self.repository.repository_arn
+        return str(self.repository.repository_arn)
