@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   on-merge-and-deploy:
-    name: Job(s) that gets skipped if PR was not merged or has the 'no-deploy' tag
+    name: Skip on unmerged or 'no-deploy' PRs
     if: github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'no-deploy')
     runs-on: ubuntu-22.04
     steps:
@@ -14,8 +14,8 @@ jobs:
       shell: bash
       run: |
         echo "PR merge detected and deployment wanted."
-  deploy-aws-infra:
-    name: Deploy or update AWS infrastructure for PAVI
+  pipeline-deploy-aws-infra:
+    name: Deploy/update AWS infrastructure for pipeline
     needs: [on-merge-and-deploy]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
@@ -47,7 +47,7 @@ jobs:
     - name: cdk deploy
       run: cdk deploy --require-approval never 
   pipeline-seq-retrieval-build-and-push-docker-image:
-    needs: [on-merge-and-deploy, deploy-aws-infra]
+    needs: [on-merge-and-deploy, pipeline-deploy-aws-infra]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -83,7 +83,7 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
   pipeline-alignment-build-and-push-docker-image:
-    needs: [on-merge-and-deploy, deploy-aws-infra]
+    needs: [on-merge-and-deploy, pipeline-deploy-aws-infra]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
