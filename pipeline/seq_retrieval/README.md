@@ -175,5 +175,5 @@ make clean docker-image
 This PAVI component is intented to be called as a container.
 To call the container after building:
 ```bash
-docker run agr_pavi/seq_retrieval main.py
+docker run agr_pavi/pipeline_seq_retrieval main.py
 ```

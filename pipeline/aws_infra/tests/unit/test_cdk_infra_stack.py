@@ -26,7 +26,7 @@ template = assertions.Template.from_stack(stack)
 def test_pipeline_seq_retrieval_ecr_repo() -> None:
     template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
         "Properties": {
-            "RepositoryName": "agr_pavi/seq_retrieval"
+            "RepositoryName": "agr_pavi/pipeline_seq_retrieval"
         }
     })
 
@@ -34,6 +34,6 @@ def test_pipeline_seq_retrieval_ecr_repo() -> None:
 def test_pipeline_alignment_ecr_repo() -> None:
     template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
         "Properties": {
-            "RepositoryName": "agr_pavi/alignment"
+            "RepositoryName": "agr_pavi/pipeline_alignment"
         }
     })

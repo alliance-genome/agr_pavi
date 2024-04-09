@@ -1,4 +1,4 @@
-CONTAINER_NAME=agr_pavi/seq_retrieval
+CONTAINER_NAME=agr_pavi/pipeline_seq_retrieval
 ADDITIONAL_BUILD_ARGS=
 
 .PHONY: check-venv-active run-python-type-check clean

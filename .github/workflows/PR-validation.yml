@@ -22,7 +22,7 @@ jobs:
         with:
           context: ./pipeline/seq_retrieval/
           push: false
-          tags: agr_pavi/seq_retrieval:latest
+          tags: agr_pavi/pipeline_seq_retrieval:latest
           outputs: type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
       - name: Upload image as artifact (share between jobs)
         uses: actions/upload-artifact@v4
@@ -72,7 +72,7 @@ jobs:
         with:
           context: ./pipeline/alignment/
           push: false
-          tags: agr_pavi/alignment:latest
+          tags: agr_pavi/pipeline_alignment:latest
           outputs: type=docker,dest=/tmp/pavi_alignment_docker_image.tar
       - name: Upload image as artifact (share between jobs)
         uses: actions/upload-artifact@v4
