@@ -14,6 +14,7 @@ app = App()
 stack = CdkInfraStack(app, "pytest-stack")
 template = assertions.Template.from_stack(stack)
 
+
 # If any of the below ECR repository names change, then ensure this change is intentional.
 # If so, take below manual steps before merging to ensure correct PAVI deployment and execution:
 #  * Update all references to respective repository name in all PAVI code to match the new name
@@ -28,6 +29,7 @@ def test_pipeline_seq_retrieval_ecr_repo() -> None:
             "RepositoryName": "agr_pavi/seq_retrieval"
         }
     })
+
 
 def test_pipeline_alignment_ecr_repo() -> None:
     template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={

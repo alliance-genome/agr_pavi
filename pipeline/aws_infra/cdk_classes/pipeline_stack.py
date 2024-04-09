@@ -4,6 +4,7 @@ from aws_cdk import (
     RemovalPolicy
 )
 
+
 class PaviEcrRepository:
 
     repository: ecr.Repository
@@ -14,7 +15,7 @@ class PaviEcrRepository:
         PAVI_REPO_PREFIX = 'agr_pavi/'
         repository_name = PAVI_REPO_PREFIX + component_name
         repo = ecr.Repository(scope, id=id, repository_name=repository_name,
-                              empty_on_delete=False,removal_policy=RemovalPolicy.RETAIN)
+                              empty_on_delete=False, removal_policy=RemovalPolicy.RETAIN)
         self.repository = repo
 
     def get_repo_arn(self) -> str:
