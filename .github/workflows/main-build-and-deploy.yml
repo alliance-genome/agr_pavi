@@ -81,7 +81,7 @@ jobs:
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{ env.tagname }}
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{ github.event.pull_request.base.ref }}
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64
   pipeline-alignment-build-and-push-docker-image:
     needs: [on-merge-and-deploy, deploy-aws-infra]
     permissions:
@@ -117,4 +117,4 @@ jobs:
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{ env.tagname }}
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{ github.event.pull_request.base.ref }}
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64
