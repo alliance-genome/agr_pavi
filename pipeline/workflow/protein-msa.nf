@@ -1,7 +1,9 @@
+params.image_registry = ''
+params.image_tag = 'latest'
 params.input_seq_regions
 
 process sequence_retrieval {
-    container 'agr_pavi/pipeline_seq_retrieval'
+    container "${params.image_registry}agr_pavi/pipeline_seq_retrieval:${params.image_tag}"
 
     input:
         val request_map
@@ -19,7 +21,7 @@ process sequence_retrieval {
 }
 
 process alignment {
-    container 'agr_pavi/pipeline_alignment'
+    container "${params.image_registry}agr_pavi/pipeline_alignment:${params.image_tag}"
 
     publishDir "pipeline-results/", mode: 'copy'
 
