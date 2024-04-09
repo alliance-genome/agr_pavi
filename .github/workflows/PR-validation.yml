@@ -29,8 +29,8 @@ jobs:
         with:
           name: seq_retrieval_image
           path: /tmp/pavi_seq_retrieval_docker_image.tar
-  pipeline-seq-retrieval-python-typing-check:
-    name: pipeline/seq_retrieval python typing check
+  pipeline-seq-retrieval-code-checks:
+    name: pipeline/seq_retrieval code checks
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -49,43 +49,9 @@ jobs:
       - name: Check python typing
         run: |
           make run-python-type-check
-  pipeline-seq-retrieval-python-style-check:
-    name: pipeline/seq_retrieval python style check
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./pipeline/seq_retrieval/
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          sparse-checkout: |
-            pipeline/seq_retrieval/
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Check python style
         run: |
           make run-python-style-check
-  pipeline-seq-retrieval-unit-tests:
-    name: pipeline/seq_retrieval unit tests
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./pipeline/seq_retrieval/
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          sparse-checkout: |
-            pipeline/seq_retrieval/
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Run unit tests
         run: |
           make run-unit-tests
@@ -151,8 +117,8 @@ jobs:
       - name: Run integration test
         run: |
           make run-integration-test
-  pipeline-aws-infra-cdk-code-validation:
-    name: pipeline/aws_infra CDK code validation
+  pipeline-aws-infra-code-checks:
+    name: pipeline/aws_infra code checks
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -162,16 +128,26 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
-    - name: Setup node.js (CDK requirement)
-      uses: actions/setup-node@v4
       with:
-        node-version: "18"
-    - name: Install CDK
-      run: npm install -g aws-cdk
+        fetch-depth: 0
+        sparse-checkout: |
+          pipeline/aws_infra/
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+    - name: CDK resource assertions (unit tests)
+      run: |
+        make run-unit-tests
+    - name: Python typing test
+      run: |
+        make run-python-type-check
+    - name: Setup node.js (CDK requirement)
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+    - name: Install CDK CLI
+      run: npm install -g aws-cdk
     - name: Install CDK stack dependencies
       run: pip install -r requirements.txt
     - name: AWS credentials configuration
@@ -180,25 +156,5 @@ jobs:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
         aws-region: us-east-1
-    - name: cdk diff
+    - name: Validate CDK stack code
       run: cdk diff
-  pipeline-aws-infra-cdk-assertions:
-    name: pipeline/aws_infra CDK resource assertions
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./pipeline/aws_infra/
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          sparse-checkout: |
-            pipeline/aws_infra/
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Run unit tests
-        run: |
-          make run-unit-tests
