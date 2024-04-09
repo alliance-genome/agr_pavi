@@ -46,10 +46,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Check python typing
+      - name: Python typing test
         run: |
           make run-python-type-check
-      - name: Check python style
+      - name: Python style test
         run: |
           make run-python-style-check
       - name: Run unit tests

@@ -124,7 +124,7 @@ make run-python-type-check-dev
 and all reported errors must be fixed to enable merging each PR into `main`.  
 If the `pipeline/seq_retrieval code checks` status check fails on a PR in github,
 click the details link and check which step failed, and investigate the step output
-for hints on what to fix. The python type checks are run in the `Check python typing` step.
+for hints on what to fix. The python type checks are run in the `Python typing test` step.
 
 #### Code documentation (docstrings)
 All modules, functions, classes and methods should have their input, attributes and output documented
@@ -146,7 +146,7 @@ These style checks are automatically run and enforced as part of the PR validati
 and all reported errors must be fixed to enable merging each PR into `main`.  
 If the `pipeline/seq_retrieval code checks` status check fails on a PR in github,
 click the details link and check which step failed, and investigate the step output
-for hints on what to fix. The python style checks are run in the `Check python style` step.
+for hints on what to fix. The python style checks are run in the `Python style test` step.
 
 #### Unit testing
 [Pytest](https://pytest.org/) is being used for unit testing.
