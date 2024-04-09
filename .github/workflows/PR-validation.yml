@@ -142,6 +142,9 @@ jobs:
     - name: Python typing test
       run: |
         make run-python-type-check
+    - name: Python style test
+      run: |
+        make run-python-style-check
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
