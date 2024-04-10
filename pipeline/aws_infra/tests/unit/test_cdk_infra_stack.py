@@ -39,6 +39,7 @@ def test_pipeline_alignment_ecr_repo() -> None:
         }
     })
 
+
 def test_pipeline_nf_s3_bucket() -> None:
     template.has_resource(type=ResourceType.S3_BUCKET.compliance_resource_type, props={
         "Properties": {
@@ -46,8 +47,9 @@ def test_pipeline_nf_s3_bucket() -> None:
         }
     })
 
+
 # Below test check for resource that must be available in the stack,
 # but which can be replaced/renamed without manual interventions
 def test_pipeline_execution_environment() -> None:
-    template.has_resource(type=ResourceType.BATCH_COMPUTE_ENVIRONMENT.compliance_resource_type,props={})
-    template.has_resource(type=ResourceType.BATCH_JOB_QUEUE.compliance_resource_type,props={})
+    template.has_resource(type=ResourceType.BATCH_COMPUTE_ENVIRONMENT.compliance_resource_type, props={})
+    template.has_resource(type=ResourceType.BATCH_JOB_QUEUE.compliance_resource_type, props={})

@@ -7,6 +7,7 @@ from aws_cdk import (
     aws_s3 as s3
 )
 
+
 class PaviExecutionEnvironment:
 
     compute_environment: aws_batch.FargateComputeEnvironment
@@ -15,7 +16,7 @@ class PaviExecutionEnvironment:
 
     def __init__(self, scope: Stack) -> None:
 
-        vpc = ec2.Vpc.from_lookup(scope, "AgrVpc", vpc_id = "vpc-55522232")
+        vpc = ec2.Vpc.from_lookup(scope, "AgrVpc", vpc_id="vpc-55522232")
         subnets = ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS)
 
         # Create the compute environment
@@ -35,7 +36,7 @@ class PaviExecutionEnvironment:
             job_queue_name='pavi_pipeline'
         )
 
-        self.job_queue.add_compute_environment(self.compute_environment, order=1) # type: ignore
+        self.job_queue.add_compute_environment(self.compute_environment, order=1)  # type: ignore
 
         # Create an S3 bucket to contain the nextflow work dir
         self.nf_workdir_bucket = s3.Bucket(
