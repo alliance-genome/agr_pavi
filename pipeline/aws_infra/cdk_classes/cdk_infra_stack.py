@@ -6,7 +6,8 @@ from constructs import Construct
 
 from typing import Any
 
-from cdk_classes.pipeline_stack import PaviEcrRepository
+from cdk_classes.pavi_ecr_repo import PaviEcrRepository
+from cdk_classes.aws_batch import PaviExecutionEnvironment
 
 
 class CdkInfraStack(Stack):
@@ -16,3 +17,5 @@ class CdkInfraStack(Stack):
 
         PaviEcrRepository(self, id="PAVI-pipeline-seq-retrieval-repo", component_name='pipeline_seq_retrieval')
         PaviEcrRepository(self, id="PAVI-pipeline-alignment-repo", component_name='pipeline_alignment')
+
+        PaviExecutionEnvironment(self)

@@ -9,9 +9,10 @@ from aws_cdk.aws_config import ResourceType
 import aws_cdk.assertions as assertions
 
 from cdk_classes.cdk_infra_stack import CdkInfraStack
+from agr_aws_env import agr_aws_environment
 
 app = App()
-stack = CdkInfraStack(app, "pytest-stack")
+stack = CdkInfraStack(app, "pytest-stack", env=agr_aws_environment)
 template = assertions.Template.from_stack(stack)
 
 
@@ -37,3 +38,18 @@ def test_pipeline_alignment_ecr_repo() -> None:
             "RepositoryName": "agr_pavi/pipeline_alignment"
         }
     })
+
+
+def test_pipeline_nf_s3_bucket() -> None:
+    template.has_resource(type=ResourceType.S3_BUCKET.compliance_resource_type, props={
+        "Properties": {
+            "BucketName": "agr-pavi-pipeline-nextflow"
+        }
+    })
+
+
+# Below test check for resource that must be available in the stack,
+# but which can be replaced/renamed without manual interventions
+def test_pipeline_execution_environment() -> None:
+    template.has_resource(type=ResourceType.BATCH_COMPUTE_ENVIRONMENT.compliance_resource_type, props={})
+    template.has_resource(type=ResourceType.BATCH_JOB_QUEUE.compliance_resource_type, props={})

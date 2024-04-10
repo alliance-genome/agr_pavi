@@ -62,18 +62,42 @@ Then the AWS Stack to be deployed using CDK is define in the following files and
 
 ## Validating
 When making changes to any of the CDK files, validate them before requesting a PR
-or attempting a deployment, by running the following command:
-```bash
-> cdk diff
-```
-This will attempt to synthesize the (Cloudformation) stack and produce errors when (syntax) errors
-would be present in any of the CDK code.  
-When no (more) errors are present, `cdk diff` will compare the stack to the deployed stack,
-and display the changes that would get deployed. Inspect these changes to ensure
-the code changes made will have the expected effect on the deployed AWS resources.
+or attempting a deployment.
 
-This allows the developer to fix any errors before deployment, reducing the amount of
-troubleshooting that would otherwise be required on failing or incorrect deployments.
+**Note**: as part of the validation requires comparison to deployed resources,
+you need to be authenticateable to AWS before you can run below validation target.
+
+To validate the CDK code run the following command:
+```bash
+make validate-dev
+```
+This make target will run two things:
+
+First it will run the unit tests (through the Makefile's `run-unit-tests-dev` target),
+which test CDK code for resource definitions exepected by other parts of this repository,
+to ensure updates to the CDK code don't accidentally remove or rename essential AWS resources.
+
+After the unit tests pass, it will run `cdk diff` which compares the stack defined in the code
+to the deployed stack and displays the changes that would get deployed. 
+Inspect these changes to ensure the code changes made will have the expected effect
+on the deployed AWS resources.
+As `cdk diff` will synthesize the full (Cloudformation) stack to do so, it will
+produce errors when errors are present in any of the CDK code (where those
+errors would not have been caught by the unit tests). If cdk diff reports errors, inspect
+them and correct the code accordingly.
+
+This validation step allows the developer to fix any errors before deployment,
+reducing the amount of troubleshooting and fixing that would otherwise be required
+on failing or incorrect deployments.
+
+**Note**:  
+While some of the existing CDK code (at time of writing, 2024-04-10)
+references to external resource in AWS (outside of the CDK stack defined here),
+unit testing does not actually query those resources.
+As a result, unit testing will not catch changes to or error in those (external) resource definitions.  
+Only `cdk diff` will query actual AWS resources and produce
+errors accordingly if there would be any issues with such externally defined resources.
+Consequently, the `cdk diff` step in the `validate-dev` make recipe requires AWS authentication.
 
 ## Deployment
 After making all necessary changes to the CDK code and [validating](#validating)
