@@ -4,10 +4,11 @@ from aws_cdk import (
 )
 
 from cdk_classes.cdk_infra_stack import CdkInfraStack
+from agr_aws_env import agr_aws_environment
 
 
 app = App()
 CdkInfraStack(app, "PaviPipelineCdkStack",
-              env=Environment(account='100225593120', region='us-east-1'))
+              env=agr_aws_environment)
 
 app.synth()
