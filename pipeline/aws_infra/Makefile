@@ -27,3 +27,9 @@ run-python-type-check: python-dependencies python-test-dependencies
 
 run-python-style-check: python-dependencies python-test-dependencies
 	flake8 ./
+
+validate: run-unit-tests
+	cdk diff
+
+validate-dev: check-venv-active validate
+	@:
