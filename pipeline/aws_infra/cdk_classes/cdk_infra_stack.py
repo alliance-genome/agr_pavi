@@ -6,7 +6,7 @@ from constructs import Construct
 
 from typing import Any
 
-from cdk_classes.pipeline_stack import PaviEcrRepository
+from cdk_classes.pavi_ecr_repo import PaviEcrRepository
 
 
 class CdkInfraStack(Stack):
