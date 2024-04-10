@@ -44,6 +44,8 @@ jobs:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
         aws-region: us-east-1
+    - name: CDK validations (resource assertions and cdk diff)
+      run: make validate
     - name: cdk deploy
       run: cdk deploy --require-approval never 
   pipeline-seq-retrieval-build-and-push-docker-image:
