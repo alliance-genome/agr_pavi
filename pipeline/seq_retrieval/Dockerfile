@@ -1,9 +1,15 @@
-FROM python:3.12-alpine
+FROM python:3.12-slim-bullseye
 
 WORKDIR /usr/src/app
 
-RUN apk update && apk add --no-cache build-base zlib-dev bzip2-dev xz-dev \
-                                     bash # Nextflow requirement
+RUN apt update && apt install -y build-essential zlib1g-dev libbz2-dev xz-utils \
+                                     bash curl unzip # Nextflow requirements
+
+#Install AWS CLI required for nextflow AWS batch execution
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf ./aws/
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
