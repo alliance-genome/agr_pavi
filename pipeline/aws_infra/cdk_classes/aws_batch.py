@@ -79,7 +79,7 @@ class PaviExecutionEnvironment:
                                      's3-workdir-policy': s3_workdir_bucket_policy_doc
                                  })
 
-        ce_name = 'pavi_pipeline'
+        ce_name = 'pavi_pipeline_ecs'
         if env_suffix:
             ce_name += f'_{env_suffix}'
         self.compute_environment = aws_batch.ManagedEc2EcsComputeEnvironment(
