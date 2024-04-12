@@ -159,5 +159,5 @@ jobs:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
         aws-region: us-east-1
-    - name: Validate CDK stack code
-      run: cdk diff
+    - name: Validate production CDK stack code
+      run: cdk diff PaviPipelineCdkStack

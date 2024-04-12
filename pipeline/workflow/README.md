@@ -23,3 +23,9 @@ To run the protein MSA workflow locally:
     "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000146045.2_R64_genomic.fna.gz"}
     ]'
     ```
+
+To run any workflow in the AGR AWS, ensure you are authenticatable to the AGR AWS
+and use the `aws` profile (can be used in addition to other profiles):
+```bash
+./nextflow run -profile aws protein-msa.nf ...
+```

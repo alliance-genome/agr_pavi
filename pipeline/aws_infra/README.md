@@ -77,14 +77,16 @@ First it will run the unit tests (through the Makefile's `run-unit-tests-dev` ta
 which test CDK code for resource definitions exepected by other parts of this repository,
 to ensure updates to the CDK code don't accidentally remove or rename essential AWS resources.
 
-After the unit tests pass, it will run `cdk diff` which compares the stack defined in the code
-to the deployed stack and displays the changes that would get deployed. 
+After the unit tests pass, it will run `cdk diff` on the production stack,
+which compares the production stack defined in the code to the deployed stack
+and displays the changes that would get deployed. 
 Inspect these changes to ensure the code changes made will have the expected effect
 on the deployed AWS resources.
 As `cdk diff` will synthesize the full (Cloudformation) stack to do so, it will
 produce errors when errors are present in any of the CDK code (where those
-errors would not have been caught by the unit tests). If cdk diff reports errors, inspect
-them and correct the code accordingly.
+errors would not have been caught by the unit tests).
+
+If the validation reports any errors, inspect them and correct the code accordingly.
 
 This validation step allows the developer to fix any errors before deployment,
 reducing the amount of troubleshooting and fixing that would otherwise be required

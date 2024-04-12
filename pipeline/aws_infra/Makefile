@@ -29,7 +29,8 @@ run-python-style-check: python-dependencies python-test-dependencies
 	flake8 ./
 
 validate: run-unit-tests
-	cdk diff
+# Validate production stack code
+	cdk diff PaviPipelineCdkStack
 
 validate-dev: check-venv-active validate
 	@:
