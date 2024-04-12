@@ -12,7 +12,7 @@ from typing import Optional
 
 class PaviExecutionEnvironment:
 
-    compute_environment: aws_batch.FargateComputeEnvironment
+    compute_environment: aws_batch.ManagedEc2EcsComputeEnvironment
     job_queue: aws_batch.JobQueue
     nf_workdir_bucket: s3.Bucket | s3.IBucket
 
@@ -33,11 +33,11 @@ class PaviExecutionEnvironment:
         ce_name = 'pavi_pipeline'
         if env_suffix:
             ce_name += f'_{env_suffix}'
-        self.compute_environment = aws_batch.FargateComputeEnvironment(
+        self.compute_environment = aws_batch.ManagedEc2EcsComputeEnvironment(
             scope=scope, id='pavi-pipeline-compute-environment',
             compute_environment_name=ce_name,
             vpc=vpc, vpc_subnets=subnets,
-            spot=True,
+            spot=False,
             terminate_on_update=False, update_timeout=Duration.minutes(10),
             update_to_latest_image_version=True)
 
