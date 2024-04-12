@@ -40,6 +40,15 @@ def test_pipeline_alignment_ecr_repo() -> None:
     })
 
 
+# Ensure any change to the bucket name is intentional, and if so, take below
+# manual steps before merging to ensure correct PAVI deployment and execution:
+#  * Update all references to respective bucket name in all PAVI code to match the new name
+#  * Update BucketName in below unit test(s) to match the new name
+#  * If the nf s3 bucket gets renamed, it will not automatically be cleaned up,
+#    so after merging and deployment:
+#     * Move all relevant files in the old bucket to the new one,
+#       and delete all files that are no longer relevant (such as intermediate work directory files)
+#     * Delete the old S3 bucket
 def test_pipeline_nf_s3_bucket() -> None:
     template.has_resource(type=ResourceType.S3_BUCKET.compliance_resource_type, props={
         "Properties": {
@@ -48,8 +57,13 @@ def test_pipeline_nf_s3_bucket() -> None:
     })
 
 
-# Below test check for resource that must be available in the stack,
-# but which can be replaced/renamed without manual interventions
+# Below tests check for resource that must be available in the stack,
+# but which can be replaced/renamed without manual interventions other than
+# updating all references to those resources to use the new name (check all code).
 def test_pipeline_execution_environment() -> None:
     template.has_resource(type=ResourceType.BATCH_COMPUTE_ENVIRONMENT.compliance_resource_type, props={})
-    template.has_resource(type=ResourceType.BATCH_JOB_QUEUE.compliance_resource_type, props={})
+    template.has_resource(type=ResourceType.BATCH_JOB_QUEUE.compliance_resource_type, props={
+        "Properties": {
+            "JobQueueName": "pavi_pipeline"
+        }
+    })
