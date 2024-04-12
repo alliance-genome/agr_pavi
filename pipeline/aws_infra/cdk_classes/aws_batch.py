@@ -52,23 +52,23 @@ class PaviExecutionEnvironment:
 
         # Create the compute environment
         s3_workdir_bucket_policy_doc = iam.PolicyDocument(
-			statements= [
-				iam.PolicyStatement(
-					sid="S3BucketWriteAll",
-					effect=iam.Effect.ALLOW,
-					actions=[ 's3:Put*' ],
-					resources=[ self.nf_workdir_bucket.bucket_arn+'/*' ]
-				),
-				iam.PolicyStatement(
-					sid="S3BucketReadAll",
-					effect=iam.Effect.ALLOW,
-					actions=[ 's3:ListBucket*', 's3:Get*' ],
-					resources=[ self.nf_workdir_bucket.bucket_arn, self.nf_workdir_bucket.bucket_arn+'/*' ]
-				)
-			]
-		)
+            statements=[
+                iam.PolicyStatement(
+                    sid="S3BucketWriteAll",
+                    effect=iam.Effect.ALLOW,
+                    actions=['s3:Put*'],
+                    resources=[self.nf_workdir_bucket.bucket_arn + '/*']
+                ),
+                iam.PolicyStatement(
+                    sid="S3BucketReadAll",
+                    effect=iam.Effect.ALLOW,
+                    actions=['s3:ListBucket*', 's3:Get*'],
+                    resources=[self.nf_workdir_bucket.bucket_arn, self.nf_workdir_bucket.bucket_arn + '/*']
+                )
+            ]
+        )
 
-        instance_role = iam.Role(scope,'pavi-pipeline-compute-environment-instance-role',
+        instance_role = iam.Role(scope, 'pavi-pipeline-compute-environment-instance-role',
                                  description='Role granting permissions for Nextflow ECS execution',
                                  assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),  # type: ignore
                                  managed_policies=[
