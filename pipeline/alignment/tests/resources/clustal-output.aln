@@ -1,0 +1,98 @@
+CLUSTAL O(1.2.4) multiple sequence alignment
+
+
+NM_001136016.3-protein              -------MDQ--LED----LLVLFINYVPTDGNAGLLAEPQIAMFCGRLNMHM---NVQN	44
+Cel_C42D8.8a.1-protein              MTVGKLMIGL--LIPIL--VATVYAEGSPAGSKRHEKFIPMVAFSCGYRNQYM----TEE	52
+Mmu_ENSMUST00000227723-protein      ------MLPS--LALLLLAAWTVRALEVPTDGNAGLLAEPQIAMFCGKLNMHM---NVQN	49
+Dme_Appl-RA-protein                 ------MCAALRRNLLLRSLWVVLAIGTAQVQAASPRWEPQIAVLCEAGQIYQPQYLSEE	54
+                                                         .:                * :*. *   : :      ::
+
+NM_001136016.3-protein              GKWDSDPSG---TKTCIDTKEGILQYCQEVYPELQITNVVEANQPVTIQNWCKRGR---K	98
+Cel_C42D8.8a.1-protein              GSWKTDDER---YATCFSGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---S	106
+Mmu_ENSMUST00000227723-protein      GKWESDPSG---TKTCIGTKEGILQYCQEVYPELQITNVVEANQPVTIQNWCKRGR---K	103
+Dme_Appl-RA-protein                 GRWVTDLSKKTTGPTCLRDKMDLLDYCKKAYPNRDITNIVESSHYQKIGGWCRQGALNAA	114
+                                    * * :* .      **:  * .:*.**::.**. :***:** .:  .* .**:.      
+
+NM_001136016.3-protein              QCKTHPHFVIPYRCLVGEFVSDALLVPDKCKFLHQERMDVCETHLHWHTVAKETCSEKS-	157
+Cel_C42D8.8a.1-protein              PCKW-THSVRPYHCIDGEFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKS	165
+Mmu_ENSMUST00000227723-protein      QCKTHTHIVIPYRCLVGEFVSDALLVPDKCKFLHQERMDVCETHLHWHTVAKETCSEKS-	162
+Dme_Appl-RA-protein                 KCKGSHRWIKPFRCL-GPFQSDALLVPEGCLFDHIHNASRCWPFVRWNQTGAAACQERG-	172
+                                     **   : : *::*: * * *:** **. * * * .  . *  . :*:  .   *. :  
+
+NM_001136016.3-protein              -----TNLHDYGMLLPCGIDKFRGVEFVCCPLAEESDNVDSADAEEDDSD-VWWGGADTD	211
+Cel_C42D8.8a.1-protein              KGNKDMIVRSFAVLEPCALDMFTGVEFVCCPNDQTNKTDVQKTKE---------------	210
+Mmu_ENSMUST00000227723-protein      -----TNLHDYGMLLPCGIDKFRGVEFVCCPLAEESDSVDSADAEEDDSD-VWWGGADTD	216
+Dme_Appl-RA-protein                 -----MQMRSFAMLLPCGISVFSGVEFVCCPKHFKTDEIHVKKTDLPVMPAAQINSANDE	227
+                                           ::.:.:* **.:. * ********    ..       :               
+
+NM_001136016.3-protein              YADGSEDKVVEVAEEEEVAEVEEEEADDDEDDEDGDEVEEEAEEPYEEATERTTSIATTT	271
+Cel_C42D8.8a.1-protein              ----------------------DEDDDDDEDDAY--------EDDYSEESD---------	231
+Mmu_ENSMUST00000227723-protein      YADGGEDKVVEVAEEEEVADVEEEEADDDEDVEDGDEVEEEAEEPYEEATERTTSTATTT	276
+Dme_Appl-RA-protein                 LVMNDEDDSN----DSNYSKDANEDDLDDEDDLMGDDEEDDMVADEAATAGGSPNTGSSG	283
+                                                          :*:  ****                  :          
+
+NM_001136016.3-protein              TTTTESVEEVVREVCSEQAETGPCRAMISRWYFDVTEGKCAPFFYGGCGGNRNNFDTEEY	331
+Cel_C42D8.8a.1-protein              ------------------------------------------------------------	231
+Mmu_ENSMUST00000227723-protein      TTTTESVEEVVREVCSEQAETGPCRAMISRWYFDVTEGKCVPFFYGGCGGNRNNFDTEEY	336
+Dme_Appl-RA-protein                 DSNSGSLDDINAEYDS------------------GEEGD--NYEEDGAGSES-EAEV-EA	321
+                                                                                                
+
+NM_001136016.3-protein              CMAVCGSA-----------------------IPT--------------------------	342
+Cel_C42D8.8a.1-protein              ---------------------------------E--------------------------	232
+Mmu_ENSMUST00000227723-protein      CMAVCGSVSTQSLLK----TTSEPLPQDPDKLPT--------------------------	366
+Dme_Appl-RA-protein                 SWDQSGGAKVVSLKSDSSSPSSAPVAPAPEKAPVKSESVTSTPQLSASAAAFVAANSGNS	381
+                                                                                                
+
+NM_001136016.3-protein              ------TAASTPDAVDKYLETPGDENEHAHFQKAKERLEAKHRERMSQVMREWEEAERQA	396
+Cel_C42D8.8a.1-protein              ------KDEEEPSSQDPYFKIANWTNEHDDFKKAEMRMDEKHRKKVDKVMKEWGDLETRY	286
+Mmu_ENSMUST00000227723-protein      ------TAASTPDAVDKYLETPGDENEHAHFQKAKERLEAKHRERMSQVMREWEEAERQA	420
+Dme_Appl-RA-protein                 GTGAGAPPSTAQPTSDPYFTHFDPHYEHQSYKVSQKRLEESHREKVTRVMKDWSDLEEKY	441
+                                                 : * *:   .   **  :: :: *:: .**::: :**::* : * : 
+
+NM_001136016.3-protein              KNLPKAD-------KKAVIQHFQEKVESLEQEAANERQQLVETHMARVEAMLNDRRRLAL	449
+Cel_C42D8.8a.1-protein              NEQKAKDPKGAEKFKSQMNARFQKTVSSLEEEHKRMRKEIEAVHEERVQAMLNEKKRDAT	346
+Mmu_ENSMUST00000227723-protein      KNLPKAD-------KKAVIQHFQEKVESLEQEAANERQQLVETHMARVEAMLNDRRRLAL	473
+Dme_Appl-RA-protein                 QDMRLADPKAAQSFKQRMTARFQTSVQALEEEGNAEKHQLAAMHQQRVLAHINQRKREAM	501
+                                    ::    *       *. :  :** .*.:**:*    ::::   *  ** * :*:::* * 
+
+NM_001136016.3-protein              ENYITALQAV--PPRPRHVFNMLKKYVRAEQKDRQHTLKHFEHVRMVDP----KKAAQIR	503
+Cel_C42D8.8a.1-protein              HDYRQALATHVNKPNKHSVLQSLKAYIRAEEKDRMHTLNRYRHLLKADS----KEAAAYK	402
+Mmu_ENSMUST00000227723-protein      ENYITALQAV--PPRPHHVFNMLKKYVRAEQKDRQHTLKHFEHVRMVDP----KKAAQIR	527
+Dme_Appl-RA-protein                 TCYTQALTEQ--PPNAHHVEKCLQKLLRALHKDRAHALAHYRHLLNSGGPGGLEAAASER	559
+                                      *  **      *. : * : *:  :** .*** *:* ::.*:   .     : **  :
+
+NM_001136016.3-protein              SQVMTHLRVIYERMNQSLSLLYNVPAVAEEIQDEVDELLQKEQNYSDDVLANMISEPRIS	563
+Cel_C42D8.8a.1-protein              PTVIHRLRYIDLRINGTLAMLRDFPDLEKYVRPIAVTY---WKDYRDEVS------PDIS	453
+Mmu_ENSMUST00000227723-protein      SQVMTHLRVIYERMNQSLSLLYNVPAVAEEIQDEVDELLQKEQNYSDDVLANMISEPRIS	587
+Dme_Appl-RA-protein                 PRTLERLIDIDRAVNQSMTMLKRYPELSAKIAQLMNDYILALRSKDD-I-------PGSS	611
+                                      .: :*  *   :* ::::*   * :   :           :.  * :       *  *
+
+NM_001136016.3-protein              YGNDA--LMPSLTET------------------------------KTTVELLPVNGEFSL	591
+Cel_C42D8.8a.1-protein              VEDSE--LTPIIHDDEF------SKNAKLDVKAPTT--TAKPVKETDNAKVLPTEASDSE	503
+Mmu_ENSMUST00000227723-protein      YGNDA--LMPSLTET------------------------------KTTVELLPVNGEFSL	615
+Dme_Appl-RA-protein                 LGMSEEAEAGILDKYRVEIERKVAEKERLRLAEKQRKEQRAAEREKLREEKLRLEAKKVD	671
+                                       .       : .                               .   : *  :..   
+
+NM_001136016.3-protein              ---------DDLQPWHSFGADS-V--PANTENEVEPVDARPAADRG--------------	625
+Cel_C42D8.8a.1-protein              ---------EEADEYYEDEDDEQVKKTPDMKKKVKVVDIKPKEIKVT-----IEEEKKAP	549
+Mmu_ENSMUST00000227723-protein      ---------DDLQPWHPFGVDS-V--PANTENEVEPVDARPAADRG--------------	649
+Dme_Appl-RA-protein                 DMLKSQVAEQQSQPTQSST-QSQAQ-QQQQEKSLPGKELGPDAALVTAANPNLETTKSEK	729
+                                             :: :       :. .    : ::.:   :  *                   
+
+NM_001136016.3-protein              --------------------L-----------TTRPGSGLTNIKTEEISEVKMDAEFRHD	654
+Cel_C42D8.8a.1-protein              KL--------------VETSVQTDDEDDDEDSSSSTSSESDEDEDKNIKELRVDIEPIID	595
+Mmu_ENSMUST00000227723-protein      --------------------L-----------TTRPGSGLTNIKTEEISEVKMDAEFGHD	678
+Dme_Appl-RA-protein                 DLSDTEYGEATVSSTKVQTVLPTVDDDAVQRAVEDVAAAVAHQEAEPQVQHFMTHDLGHR	789
+                                                        :               .:   . : :   :  :  :    
+
+NM_001136016.3-protein              -SGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIATVI-VITLVMLKKKQYTSIHHGVV	712
+Cel_C42D8.8a.1-protein              EPASFYRHDKLIQSPEVERSASSVFQPYVLASAMFITAI-CIIAFAITNARRRRAMRGFI	654
+Mmu_ENSMUST00000227723-protein      -SGFEVRHQKLVFFAEDVGSNKGAIIGLMVGGVVIATVI-VITLVMLKKKQYTSIHHGVV	736
+Dme_Appl-RA-protein                 ESSFSLRRE-FAQHAHAAKEGRNVYFTLSFAGIALMAAVFVGVAVAKWRTSRSPHAQGFI	848
+                                      .   ::: :    .   .  ..     ...  : :.:     .   .       :*.:
+
+NM_001136016.3-protein              EVDAAVT------PEERHLSKMQQNGYENPTYKFFEQMQN*	746
+Cel_C42D8.8a.1-protein              EVD-VYT------PEERHVAGMQVNGYENPTYSFFDSKA*-	686
+Mmu_ENSMUST00000227723-protein      EVDAAVT------PEERHLSKMQQNGYENPTYKFFEQMQN*	770
+Dme_Appl-RA-protein                 EVDQNVTTHHPIVREEKIVPNMQINGYENPTYKYFEVKE--	887
+                                    ***   *       **: :  ** ********.:*:     
