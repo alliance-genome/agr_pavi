@@ -1,10 +1,8 @@
 FROM biocontainers/clustalo:v1.2.4-2-deb_cv1
 USER root
 
-#Fix apt-upate erros caused by missing "Buster-backports" apt keys
-RUN (apt update || true) && apt install -y gnupg && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131
+#Fix buster-backports repository errors (no packages of it used)
+RUN rm /etc/apt/sources.list.d/backports.list
 #Install AWS CLI required for nextflow AWS batch execution
 RUN apt update && \
     apt install -y curl unzip
