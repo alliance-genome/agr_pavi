@@ -36,13 +36,10 @@ def test_multipart_seq_region_class():
 
     seq_region_list = [exon_1, exon_2, exon_3, exon_4]
 
-    for seq_region in seq_region_list:
-        seq_region.fetch_seq()
-
     multipart_seq_region = MultiPartSeqRegion(seq_region_list)
 
     ## Test fetch_seq method
-    multipart_seq_region.fetch_seq()
+    multipart_seq_region.fetch_seq(recursive_fetch=True)
 
     chained_seq: str = multipart_seq_region.get_sequence()
 
