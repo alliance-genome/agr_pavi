@@ -175,12 +175,15 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type
         ValueError: if `return_type` does not have a valid value.
     """
 
+    # Remove any softmasking
+    unmasked_dna_sequence = dna_sequence.upper()
+
     # Split the DNA sequence in codons (3-base blocks).
     # Frameshift the sequence by 0, 1 or 2 (skip first N bases) to obtain all possible codons.
     CODON_SIZE = 3
     codons: Dict[int, List[str]] = dict()
     for frameshift in range(0, CODON_SIZE):
-        codons[frameshift] = [dna_sequence[i:i + CODON_SIZE] for i in range(frameshift, len(dna_sequence), CODON_SIZE)]
+        codons[frameshift] = [unmasked_dna_sequence[i:i + CODON_SIZE] for i in range(frameshift, len(unmasked_dna_sequence), CODON_SIZE)]
 
     # Read through all codons accross all frameshifts and determine the ORFs
     orfs: List[Dict[str, Any]] = []
