@@ -177,9 +177,12 @@ class MultiPartSeqRegion(SeqRegion):
             logger.warning('No open reading frames found, so no translation made.')
             return None
 
-    def seq_to_rel_pos(self, seq_position: int) -> int:
+    def to_rel_position(self, seq_position: int) -> int:
         """
         Convert absolute sequence position to relative position within the MultipartSeqRegion
+
+        Args:
+            seq_position: absolute sequence position to be converted
 
         Returns:
             Relative position on the complete MultipartSeqRegion sequence (1-based)
@@ -187,24 +190,25 @@ class MultiPartSeqRegion(SeqRegion):
         Raises:
             ValueError: when abs_position falls between SeqRegion parts
         """
-        rel_position = 0
-        for region in self.ordered_seqRegions:
-            if self.strand == '+':
-                if region.end < seq_position:
-                    rel_position += region.end - region.start + 1
-                elif region.start <= seq_position:
+        if seq_position < self.start or self.end < seq_position:
+            raise ValueError(f'Seq position {seq_position} out of boundaries of MultipartSeqRegion {self}.')
+
+        rel_position: int | None = None
+        for i in range(0, len(self.ordered_seqRegions)):
+            region = self.ordered_seqRegions[i]
+
+            if region.start <= seq_position and seq_position <= region.end:
+                rel_position = sum(map(lambda seq_region: seq_region.seq_length, self.ordered_seqRegions[0:i]))
+
+                if self.strand == '+':
                     rel_position += seq_position - region.start + 1
-                    break
                 else:
-                    raise ValueError(f'Seq position {seq_position} located between SeqRegion parts defining the MultipartSeqRegion {self}.')
-            else:
-                if seq_position < region.start:
-                    rel_position += region.end - region.start + 1
-                elif seq_position <= region.end:
                     rel_position += region.end - seq_position + 1
-                    break
-                else:
-                    raise ValueError(f'Seq position {seq_position} located between SeqRegion parts defining the MultipartSeqRegion {self}.')
+
+                break
+
+        if rel_position is None:
+            raise ValueError(f'Seq position {seq_position} located between SeqRegion parts defining the MultipartSeqRegion {self}.')
 
         return rel_position
 

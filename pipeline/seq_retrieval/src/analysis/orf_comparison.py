@@ -125,9 +125,9 @@ def main(mod: str, fasta_file: str) -> None:  # noqa: C901
                 abs_cds_end = max(map(lambda region: region.end, cds_regions))
 
                 if transcript_region.strand == '-':
-                    cds_start = transcript_region.seq_to_rel_pos(abs_cds_end)
+                    cds_start = transcript_region.to_rel_position(abs_cds_end)
                 else:
-                    cds_start = transcript_region.seq_to_rel_pos(abs_cds_start)
+                    cds_start = transcript_region.to_rel_position(abs_cds_start)
 
                 cds_end = sum(map(lambda region: region.seq_length, cds_regions)) + cds_start - 1
 
