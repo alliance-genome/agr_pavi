@@ -6,6 +6,8 @@ omit =
     src/main.py
     # Exclude logging code (no need to be tested)
     src/log_mgmt/*
+    # Exclude comparison analysis code
+    src/analysis/*
 
 [report]
 exclude_lines =

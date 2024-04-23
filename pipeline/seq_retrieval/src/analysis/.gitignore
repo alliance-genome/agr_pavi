@@ -1,0 +1,10 @@
+# Analyis input and DB files
+*.db
+*.gff
+*.gff3
+*.gz
+# Analysis output files
+*.tsv
+*.out
+*.err
+*.debug

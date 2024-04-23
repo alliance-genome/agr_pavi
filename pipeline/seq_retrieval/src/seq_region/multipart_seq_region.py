@@ -162,6 +162,37 @@ class MultiPartSeqRegion(SeqRegion):
             logger.warning('No open reading frames found, so no translation made.')
             return None
 
+    def seq_to_rel_pos(self, seq_position: int) -> int:
+        """
+        Convert absolute sequence position to relative position within the MultipartSeqRegion
+
+        Returns:
+            Relative position on the complete MultipartSeqRegion sequence (1-based)
+
+        Raises:
+            ValueError: when abs_position falls between SeqRegion parts
+        """
+        rel_position = 0
+        for region in self.ordered_seqRegions:
+            if self.strand == '+':
+                if region.end < seq_position:
+                    rel_position += region.end - region.start + 1
+                elif region.start <= seq_position:
+                    rel_position += seq_position - region.start + 1
+                    break
+                else:
+                    raise ValueError(f'Seq position {seq_position} located between SeqRegion parts defining the MultiparSeqRegion.')
+            else:
+                if seq_position < region.start:
+                    rel_position += region.end - region.start + 1
+                elif seq_position <= region.end:
+                    rel_position += region.end - seq_position + 1
+                    break
+                else:
+                    raise ValueError(f'Seq position {seq_position} located between SeqRegion parts defining the MultiparSeqRegion.')
+
+        return rel_position
+
 
 def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type: str = 'all') -> List[Dict[str, Any]]:
     """
