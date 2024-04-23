@@ -37,6 +37,7 @@ def test_seq_region_class_pos_strand():
     assert isinstance(exon_1_seq, str)
     assert exon_1_seq == 'aacCATGTCGATGTATGGCAAAGACAAGGCGTATATCGAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
 
+
 def test_seq_region_overlap():
 
     # WBGene00016599 Transcript:C42D8.1.1 Exon 1 (mRNA start)
@@ -47,22 +48,22 @@ def test_seq_region_overlap():
     gk803418: SeqRegion = SeqRegion(seq_id='X', start=5109543, end=5109543, strand='+',
                                     fasta_file_url=FASTA_FILE_URL)
 
-    assert exon_1.overlaps(gk803418) == True
+    assert exon_1.overlaps(gk803418) is True
 
     # gk320952 - splice region variant (no overlap)
     gk320952: SeqRegion = SeqRegion(seq_id='X', start=5110758, end=5110758, strand='+',
                                     fasta_file_url=FASTA_FILE_URL)
 
-    assert exon_1.overlaps(gk320952) == False
+    assert exon_1.overlaps(gk320952) is False
 
     # WBGene00016599 Transcript:C42D8.1.1 Exon 8 (mRNA end)
     exon_8: SeqRegion = SeqRegion(seq_id='X', start=5112256, end=5112426, strand='+',
                                   fasta_file_url=FASTA_FILE_URL)
     # Transcript:C42D8.8a.1 Exon 11 (overlap on opposite strand)
     opp_strand_exon: SeqRegion = SeqRegion(seq_id='X', start=5112422, end=5113420, strand='-',
-                                  fasta_file_url=FASTA_FILE_URL)
+                                           fasta_file_url=FASTA_FILE_URL)
     same_strand_exon: SeqRegion = SeqRegion(seq_id='X', start=5112422, end=5113420, strand='+',
-                                  fasta_file_url=FASTA_FILE_URL)
+                                            fasta_file_url=FASTA_FILE_URL)
 
-    assert exon_8.overlaps(opp_strand_exon) == False
-    assert exon_8.overlaps(same_strand_exon) == True
+    assert exon_8.overlaps(opp_strand_exon) is False
+    assert exon_8.overlaps(same_strand_exon) is True

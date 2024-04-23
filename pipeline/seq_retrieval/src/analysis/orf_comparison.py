@@ -1,4 +1,4 @@
-from gffutils import FeatureDB # type: ignore
+from gffutils import FeatureDB  # type: ignore
 from Bio.Data import CodonTable
 
 from typing import List
@@ -6,19 +6,20 @@ import click
 
 import sys
 sys.path.append('../')
-from seq_region import SeqRegion, MultiPartSeqRegion
-from seq_region.multipart_seq_region import find_orfs
+from seq_region import SeqRegion, MultiPartSeqRegion  # noqa: E402
+from seq_region.multipart_seq_region import find_orfs  # noqa: E402
 
-import logging
-from log_mgmt import get_logger, set_log_level
+import logging  # noqa: E402
+from log_mgmt import get_logger, set_log_level  # noqa: E402
 logger = get_logger(name=__name__)
+
 
 # db = gffutils.create_db("GFF_HUMAN_0.gff", 'GFF-HUMAN.db', force=True, keep_order=True,merge_strategy='merge', sort_attribute_values=True)
 
 @click.command(context_settings={'show_default': True})
 @click.option("--mod", type=click.STRING, required=True, help="Example: 'XBXL'")
 @click.option("--fasta_file", type=click.STRING, required=True, help="Example: '/home/mlp/AGR/fastas/XENLA_9.2_genome.fa.gz'")
-def main(mod: str, fasta_file: str) -> None:
+def main(mod: str, fasta_file: str) -> None:  # noqa: C901
     # MOD = 'XBXL'
     # FASTA_FILE = 'file:///home/mlp/AGR/fastas/XENLA_9.2_genome.fa.gz'
 
@@ -33,25 +34,24 @@ def main(mod: str, fasta_file: str) -> None:
         CDS_OUTPUT_FILENAME += '.debug'
         ORF_OUTPUT_FILENAME += '.debug'
 
-    cds_outfile = open(CDS_OUTPUT_FILENAME,mode='w')
-    orf_outfile = open(ORF_OUTPUT_FILENAME,mode='w')
+    cds_outfile = open(CDS_OUTPUT_FILENAME, mode='w')
+    orf_outfile = open(ORF_OUTPUT_FILENAME, mode='w')
 
     for transcript in db.features_of_type('mRNA'):
         # if transcript.id != 'rna23588':
         #     continue
 
-        #Skip Mitochondrial seqs
+        # Skip Mitochondrial seqs
         if transcript.seqid in ['MtDNA', 'MT', 'M', 'mitochondrion_genome', 'chrmt']:
             continue
 
         exons = db.children(transcript, level=1, featuretype='exon')
 
-
         seq_region_objs: List[SeqRegion] = []
         for exon in exons:
 
             seq_region_objs.append(SeqRegion(seq_id=exon.seqid, start=exon.start, end=exon.end, strand=exon.strand,
-                                            fasta_file_url='file://' + fasta_file))
+                                             fasta_file_url='file://' + fasta_file))
 
         # Skip transcripts with no exons in GFF
         if len(seq_region_objs) == 0:
@@ -111,13 +111,13 @@ def main(mod: str, fasta_file: str) -> None:
                 cds_regions.append(SeqRegion(seq_id=cds_part.seqid, start=cds_part.start, end=cds_part.end, strand=cds_part.strand,
                                              fasta_file_url='file://' + fasta_file))
 
-            for i in range(0,len(cds_regions)-1):
-                for j in range(i+1,len(cds_regions)):
+            for i in range(0, len(cds_regions) - 1):
+                for j in range(i + 1, len(cds_regions)):
                     logger.info(f'Overlap analysis for {cds_regions[i]} and {cds_regions[j]}')
                     if cds_regions[i].overlaps(cds_regions[j]):
                         cds_error = 'overlapping'
-                        logger.warning(f'Overlapping CDS regions detected, cancelling CDS calculations for {transcript.id}.' +
-                                " Conflicting CDS parts: {cds_regions[i]} and {cds_regions[j]}\n")
+                        logger.warning(f'Overlapping CDS regions detected, cancelling CDS calculations for {transcript.id}.'
+                                       + f" Conflicting CDS parts: {cds_regions[i]} and {cds_regions[j]}\n")
                         break
 
             if cds_error is None:
@@ -132,7 +132,7 @@ def main(mod: str, fasta_file: str) -> None:
                 cds_end = sum(map(lambda region: region.seq_length, cds_regions)) + cds_start - 1
 
         if cds_start is not None:
-                cds_outfile.write(f"{transcript.id}\t{cds_start}\t{cds_end}\n")
+            cds_outfile.write(f"{transcript.id}\t{cds_start}\t{cds_end}\n")
         else:
             cds_outfile.write(f"{transcript.id}\t-\t-\n")
 
@@ -161,6 +161,7 @@ def main(mod: str, fasta_file: str) -> None:
 
     orf_outfile.close()
     cds_outfile.close()
+
 
 if __name__ == '__main__':
     main()

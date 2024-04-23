@@ -69,11 +69,11 @@ class MultiPartSeqRegion(SeqRegion):
             self.fasta_file_path = fasta_file_paths.pop()
 
         # Ensure no overlap between seq_regions
-        for i in range(0,len(seq_regions)-1):
-            for j in range(i+1,len(seq_regions)):
+        for i in range(0, len(seq_regions) - 1):
+            for j in range(i + 1, len(seq_regions)):
                 if seq_regions[i].overlaps(seq_regions[j]):
                     raise ValueError(f"Overlapping seq regions found ({seq_regions[i]} and {seq_regions[j]})."
-                             + " a MultiPartSeqRegion cannot consist of overlapping parts.")
+                                     + " a MultiPartSeqRegion cannot consist of overlapping parts.")
 
         # Sort seq_regions before storing
         sort_args: Dict[str, Any] = dict(key=lambda region: region.start, reverse=False)

@@ -77,6 +77,7 @@ def test_incomplete_multipart_seq_region():
     # Assert failed translation
     assert incomplete_translation is None
 
+
 def test_orf_detection():
 
     # Test detection of ORF in softmasked sequence
