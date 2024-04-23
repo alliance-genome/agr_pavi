@@ -1,4 +1,4 @@
-from gffutils import FeatureDB
+from gffutils import FeatureDB # type: ignore
 from Bio.Data import CodonTable
 
 from typing import List
@@ -146,7 +146,7 @@ def main(mod: str, fasta_file: str) -> None:
             result.append('no-CDS')
         else:
             orf = orfs.pop()
-            if cds_start is None:
+            if cds_start is None or cds_end is None:
                 result.append(f'{cds_error}-CDS')
             elif orf['seq_start'] == cds_start and orf['seq_end'] == cds_end:
                 result.append('equal')

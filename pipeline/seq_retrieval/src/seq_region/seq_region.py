@@ -1,7 +1,7 @@
 """
 Module containing the SeqRegion class and related functions.
 """
-from typing import Optional
+from typing import Optional, override
 
 from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
@@ -80,10 +80,12 @@ class SeqRegion():
         if seq is not None:
             self.sequence = seq
 
-    def __str__(self):  # pragma: no cover
+    @override
+    def __str__(self) -> str:  # pragma: no cover
         return f'{self.seq_id}:{self.start}-{self.end}:{self.strand}'
 
-    def __repr__(self):  # pragma: no cover
+    @override
+    def __repr__(self) -> str:  # pragma: no cover
         return self.__str__()
 
     def fetch_seq(self) -> None:
@@ -144,7 +146,7 @@ class SeqRegion():
 
         return seq
 
-    def overlaps(self, seq_region_2: "SeqRegion"):
+    def overlaps(self, seq_region_2: "SeqRegion") -> bool:
         """
         Compare two SeqRegion instances and check for overlap.
 

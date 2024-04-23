@@ -1,4 +1,4 @@
-import gffutils
+import gffutils # type: ignore
 import click
 
 

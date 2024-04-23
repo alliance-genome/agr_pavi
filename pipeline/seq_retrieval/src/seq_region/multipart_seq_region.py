@@ -86,11 +86,12 @@ class MultiPartSeqRegion(SeqRegion):
 
         self.ordered_seqRegions = ordered_seq_regions
 
-    def __str__(self):  # pragma: no cover
+    @override
+    def __str__(self) -> str:  # pragma: no cover
         return self.ordered_seqRegions.__str__()
 
     @override
-    def fetch_seq(self, recursive_fetch = False) -> None:
+    def fetch_seq(self, recursive_fetch: bool = False) -> None:
         """
         Fetch genetic (DNA) sequence for MultiPartSeqRegion by chaining \
         consisting SeqRegions' sequenes together into one continuous sequence.
@@ -104,7 +105,7 @@ class MultiPartSeqRegion(SeqRegion):
             Stores resulting sequence in `sequence` attribute.
         """
 
-        def get_fetch_sequence(region):
+        def get_fetch_sequence(region: SeqRegion) -> str:
             if recursive_fetch:
                 region.fetch_seq()
             return region.get_sequence()
