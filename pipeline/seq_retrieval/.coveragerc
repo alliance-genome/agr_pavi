@@ -6,6 +6,8 @@ omit =
     src/main.py
     # Exclude logging code (no need to be tested)
     src/log_mgmt/*
+    # Exclude comparison analysis code
+    src/analysis/*
 
 [report]
 exclude_lines =
@@ -15,3 +17,6 @@ exclude_lines =
 
     # Exclude main method calling (not testable through unit testing)
     if __name__ == .__main__.:
+
+    # Exclude all functions labeled with "pragma: no cover"
+    pragma: no cover

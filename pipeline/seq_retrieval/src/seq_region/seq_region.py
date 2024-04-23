@@ -1,7 +1,7 @@
 """
 Module containing the SeqRegion class and related functions.
 """
-from typing import Optional
+from typing import Optional, override
 
 from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
@@ -80,6 +80,14 @@ class SeqRegion():
         if seq is not None:
             self.sequence = seq
 
+    @override
+    def __str__(self) -> str:  # pragma: no cover
+        return f'{self.seq_id}:{self.start}-{self.end}:{self.strand}'
+
+    @override
+    def __repr__(self) -> str:  # pragma: no cover
+        return self.__str__()
+
     def fetch_seq(self) -> None:
         """
         Fetch sequence found at `seq_id`:`start`-`end`:`strand`
@@ -137,6 +145,25 @@ class SeqRegion():
             seq = seq.upper()
 
         return seq
+
+    def overlaps(self, seq_region_2: "SeqRegion") -> bool:
+        """
+        Compare two SeqRegion instances and check for overlap.
+
+        Args:
+            seq_region_2: SeqRegion instance to check for overlap with self
+
+        Returns:
+            True if SeqRegion overlaps with another SeqRegion instance, False otherwise.
+        """
+        if self.fasta_file_path != seq_region_2.fasta_file_path or \
+           self.seq_id != seq_region_2.seq_id or self.strand != seq_region_2.strand:
+            return False
+
+        if max(self.start, seq_region_2.start) <= min(self.end, seq_region_2.end):
+            return True
+        else:
+            return False
 
 
 def fetch_faidx_files(fasta_file_url: str) -> str:

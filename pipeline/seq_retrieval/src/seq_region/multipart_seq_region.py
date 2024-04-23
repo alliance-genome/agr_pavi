@@ -34,16 +34,17 @@ class MultiPartSeqRegion(SeqRegion):
         Args:
             seq_regions: list of SeqRegion objects that constitute this multi-part sequence region.\
                          All SeqRegions must have identical seq_id, strand and fasta_file_path properties \
-                         to form a valid MultipartSeqRegion.
+                         to form a valid MultipartSeqRegion. Regions cannot overlap.
 
         Raises:
-            ValueError: if `seq_regions` have distinct `seq_id`, `strand` or `fasta_file_path` properties.
+            ValueError: if `seq_regions` have distinct `seq_id`, `strand` or `fasta_file_path` properties, or if regions overlap.
         """
 
         self.seq_length: int = sum(map(lambda seq_region: seq_region.seq_length, seq_regions))
         self.start: int = min(map(lambda seq_region: seq_region.start, seq_regions))
         self.end: int = max(map(lambda seq_region: seq_region.end, seq_regions))
 
+        # Ensure one strand
         strands: Set[str] = set(map(lambda seq_region: seq_region.strand, seq_regions))
         if len(strands) > 1:
             raise ValueError(f"Multiple strands defined accross seq regions ({strands})."
@@ -51,6 +52,7 @@ class MultiPartSeqRegion(SeqRegion):
         else:
             self.strand = strands.pop()
 
+        # Ensure one seq_id
         seq_ids: Set[str] = set(map(lambda seq_region: seq_region.seq_id, seq_regions))
         if len(seq_ids) > 1:
             raise ValueError(f"Multiple seq_ids defined accross seq regions ({seq_ids})."
@@ -58,6 +60,7 @@ class MultiPartSeqRegion(SeqRegion):
         else:
             self.seq_id = seq_ids.pop()
 
+        # Ensure one fasta_file_path
         fasta_file_paths: Set[str] = set(map(lambda seq_region: seq_region.fasta_file_path, seq_regions))
         if len(fasta_file_paths) > 1:
             raise ValueError(f"Multiple fasta_file_paths defined accross seq regions ({fasta_file_paths})."
@@ -65,6 +68,14 @@ class MultiPartSeqRegion(SeqRegion):
         else:
             self.fasta_file_path = fasta_file_paths.pop()
 
+        # Ensure no overlap between seq_regions
+        for i in range(0, len(seq_regions) - 1):
+            for j in range(i + 1, len(seq_regions)):
+                if seq_regions[i].overlaps(seq_regions[j]):
+                    raise ValueError(f"Overlapping seq regions found ({seq_regions[i]} and {seq_regions[j]})."
+                                     + " a MultiPartSeqRegion cannot consist of overlapping parts.")
+
+        # Sort seq_regions before storing
         sort_args: Dict[str, Any] = dict(key=lambda region: region.start, reverse=False)
 
         if self.strand == '-':
@@ -76,18 +87,30 @@ class MultiPartSeqRegion(SeqRegion):
         self.ordered_seqRegions = ordered_seq_regions
 
     @override
-    def fetch_seq(self) -> None:
+    def __str__(self) -> str:  # pragma: no cover
+        return self.ordered_seqRegions.__str__()
+
+    @override
+    def fetch_seq(self, recursive_fetch: bool = False) -> None:
         """
         Fetch genetic (DNA) sequence for MultiPartSeqRegion by chaining \
         consisting SeqRegions' sequenes together into one continuous sequence.
 
         Chains seqRegions in the order defined in the `ordered_seqRegions` attribute.
 
+        Args:
+            recursive_fetch: if True, fetch sequence for each SeqRegion part of the MultiPartSeqRegion first, before chaining the results.
+
         Returns:
             Stores resulting sequence in `sequence` attribute.
         """
 
-        self.set_sequence(''.join(map(lambda region: region.get_sequence(), self.ordered_seqRegions)))
+        def get_fetch_sequence(region: SeqRegion) -> str:
+            if recursive_fetch:
+                region.fetch_seq()
+            return region.get_sequence()
+
+        self.set_sequence(''.join(map(lambda region: get_fetch_sequence(region), self.ordered_seqRegions)))
 
     @override
     def set_sequence(self, sequence: str) -> None:
@@ -154,6 +177,37 @@ class MultiPartSeqRegion(SeqRegion):
             logger.warning('No open reading frames found, so no translation made.')
             return None
 
+    def seq_to_rel_pos(self, seq_position: int) -> int:
+        """
+        Convert absolute sequence position to relative position within the MultipartSeqRegion
+
+        Returns:
+            Relative position on the complete MultipartSeqRegion sequence (1-based)
+
+        Raises:
+            ValueError: when abs_position falls between SeqRegion parts
+        """
+        rel_position = 0
+        for region in self.ordered_seqRegions:
+            if self.strand == '+':
+                if region.end < seq_position:
+                    rel_position += region.end - region.start + 1
+                elif region.start <= seq_position:
+                    rel_position += seq_position - region.start + 1
+                    break
+                else:
+                    raise ValueError(f'Seq position {seq_position} located between SeqRegion parts defining the MultipartSeqRegion {self}.')
+            else:
+                if seq_position < region.start:
+                    rel_position += region.end - region.start + 1
+                elif seq_position <= region.end:
+                    rel_position += region.end - seq_position + 1
+                    break
+                else:
+                    raise ValueError(f'Seq position {seq_position} located between SeqRegion parts defining the MultipartSeqRegion {self}.')
+
+        return rel_position
+
 
 def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type: str = 'all') -> List[Dict[str, Any]]:
     """
@@ -175,12 +229,15 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type
         ValueError: if `return_type` does not have a valid value.
     """
 
+    # Remove any softmasking
+    unmasked_dna_sequence = dna_sequence.upper()
+
     # Split the DNA sequence in codons (3-base blocks).
     # Frameshift the sequence by 0, 1 or 2 (skip first N bases) to obtain all possible codons.
     CODON_SIZE = 3
     codons: Dict[int, List[str]] = dict()
     for frameshift in range(0, CODON_SIZE):
-        codons[frameshift] = [dna_sequence[i:i + CODON_SIZE] for i in range(frameshift, len(dna_sequence), CODON_SIZE)]
+        codons[frameshift] = [unmasked_dna_sequence[i:i + CODON_SIZE] for i in range(frameshift, len(unmasked_dna_sequence), CODON_SIZE)]
 
     # Read through all codons accross all frameshifts and determine the ORFs
     orfs: List[Dict[str, Any]] = []

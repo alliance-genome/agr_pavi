@@ -2,7 +2,10 @@
 Unit testing for MultiPartSeqRegion class and related functions
 """
 
+from Bio.Data import CodonTable
+
 from seq_region import SeqRegion, MultiPartSeqRegion
+from seq_region.multipart_seq_region import find_orfs
 
 
 FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
@@ -33,13 +36,10 @@ def test_multipart_seq_region_class():
 
     seq_region_list = [exon_1, exon_2, exon_3, exon_4]
 
-    for seq_region in seq_region_list:
-        seq_region.fetch_seq()
-
     multipart_seq_region = MultiPartSeqRegion(seq_region_list)
 
     ## Test fetch_seq method
-    multipart_seq_region.fetch_seq()
+    multipart_seq_region.fetch_seq(recursive_fetch=True)
 
     chained_seq: str = multipart_seq_region.get_sequence()
 
@@ -76,3 +76,24 @@ def test_incomplete_multipart_seq_region():
 
     # Assert failed translation
     assert incomplete_translation is None
+
+
+def test_orf_detection():
+
+    # Test detection of ORF in softmasked sequence
+    # Y48G1C.9b cds
+    DNA_SEQUENCE = 'ATGATCTCGAAAAAGCACGTGGAATCGATGCACGCGTTGCCGGACCCtaaagaaactgaaatttga'
+
+    codon_table: CodonTable.CodonTable = CodonTable.unambiguous_dna_by_name["Standard"]
+
+    # Find the best open reading frame
+    orfs = find_orfs(DNA_SEQUENCE, codon_table, return_type='longest')
+
+    assert isinstance(orfs, list)
+    assert len(orfs) == 1
+
+    orf = orfs.pop()
+    assert 'seq_start' in orf.keys() and 'seq_end' in orf.keys()
+
+    assert orf['seq_start'] == 1
+    assert orf['seq_end'] == 66

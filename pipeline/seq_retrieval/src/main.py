@@ -134,14 +134,10 @@ def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, int]], fasta_
         seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
                                          fasta_file_url=fasta_file_url))
 
-    for seq_region in seq_region_objs:
-        # Retrieve sequence for region
-        seq_region.fetch_seq()
-
     # Concatenate all regions into single sequence
     fullRegion = MultiPartSeqRegion(seq_regions=seq_region_objs)
 
-    fullRegion.fetch_seq()
+    fullRegion.fetch_seq(recursive_fetch=True)
     seq_concat = fullRegion.get_sequence(unmasked=unmasked)
 
     logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")
