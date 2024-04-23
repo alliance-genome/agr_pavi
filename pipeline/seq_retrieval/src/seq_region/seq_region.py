@@ -144,6 +144,25 @@ class SeqRegion():
 
         return seq
 
+    def overlaps(self, seq_region_2: "SeqRegion"):
+        """
+        Compare two SeqRegion instances and check for overlap.
+
+        Args:
+            seq_region_2: SeqRegion instance to check for overlap with self
+
+        Returns:
+            True if SeqRegion overlaps with another SeqRegion instance, False otherwise.
+        """
+        if self.fasta_file_path != seq_region_2.fasta_file_path or \
+           self.seq_id != seq_region_2.seq_id or self.strand != seq_region_2.strand:
+            return False
+
+        if max(self.start, seq_region_2.start) <= min(self.end, seq_region_2.end):
+            return True
+        else:
+            return False
+
 
 def fetch_faidx_files(fasta_file_url: str) -> str:
     """
