@@ -75,6 +75,9 @@ class MultiPartSeqRegion(SeqRegion):
 
         self.ordered_seqRegions = ordered_seq_regions
 
+    def __str__(self):  # pragma: no cover
+        return self.ordered_seqRegions.__str__()
+
     @override
     def fetch_seq(self, recursive_fetch = False) -> None:
         """

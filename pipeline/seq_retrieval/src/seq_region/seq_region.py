@@ -80,6 +80,12 @@ class SeqRegion():
         if seq is not None:
             self.sequence = seq
 
+    def __str__(self):  # pragma: no cover
+        return f'{self.seq_id}:{self.start}-{self.end}:{self.strand}'
+
+    def __repr__(self):  # pragma: no cover
+        return self.__str__()
+
     def fetch_seq(self) -> None:
         """
         Fetch sequence found at `seq_id`:`start`-`end`:`strand`
