@@ -1,0 +1,15 @@
+version: "3.2"
+
+services:
+
+  agr.pavi.api:
+    container_name: agr.pavi.${NET}.api.server
+    image: ${REGISTRY}agr_pavi/api:${AGR_PAVI_RELEASE}
+    ports:
+      - "8080:8080"
+    networks:
+      - pavi
+
+networks:
+  # The presence of these objects is sufficient to define them
+  pavi:
