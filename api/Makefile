@@ -9,5 +9,9 @@ clean:
 container-image:
 	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
 
-run-server-dev:
+run-container-dev:
 	docker-compose --env-file dev.env up agr.pavi.api
+
+run-server-dev:
+	@cd src/ && \
+	 uvicorn main:app --reload
