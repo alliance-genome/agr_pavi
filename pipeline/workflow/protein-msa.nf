@@ -44,9 +44,11 @@ process alignment {
 workflow {
     def seq_regions_json = '[]'
     if (params.input_seq_regions_str) {
+        print('Reading input seq_regions argument from string.')
         seq_regions_json = params.input_seq_regions_str
     }
     else if (params.input_seq_regions_file) {
+        print("Reading input seq_regions argument from file '${params.input_seq_regions_file}'.")
         def in_file = file(params.input_seq_regions_file)
         seq_regions_json = in_file.text
     }
