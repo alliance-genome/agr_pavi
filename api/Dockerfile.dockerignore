@@ -1,0 +1,9 @@
+# Local dev env symlinks
+api/src/nextflow.sh
+api/src/nextflow.config
+api/src/*.nf
+# Nextflow output files
+api/src/seq_regions.json
+api/src/.nextflow*
+api/src/pipeline-results/
+api/src/work/

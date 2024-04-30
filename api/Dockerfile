@@ -10,7 +10,7 @@ RUN apt install -y make curl
 COPY api/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY api/src/main.py ./
+COPY api/src/ ./
 
 # Nextflow requirements, executable and configs
 RUN apt install -y default-jre
