@@ -4,6 +4,6 @@ src/nextflow.config
 src/*.nf
 # Nextflow output files
 src/seq_regions.json
-src/.nextflow*
+.nextflow*
 src/pipeline-results/
 src/work/
