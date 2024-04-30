@@ -103,6 +103,8 @@ class PaviExecutionEnvironment:
         cdk_tags.of(self.compute_environment).add("Product", "PAVI")
         cdk_tags.of(self.compute_environment).add("Managed_by", "PAVI")
 
+        self.compute_environment.tags.set_tag('Name', 'PAVI pipeline execution worker', priority=None, apply_to_launched_instances=True)
+
         # Create the job queue
         jq_name = 'pavi_pipeline'
         if env_suffix:
