@@ -1,6 +1,7 @@
 from aws_cdk import (
     Stack,
-    aws_ecr as ecr
+    aws_ecr as ecr,
+    Tags as cdk_tags
 )
 
 from constructs import Construct
@@ -39,6 +40,8 @@ class CdkInfraStack(Stack):
                                                             env_suffix=env_suffix)
         else:
             self.seq_retrieval_ecr_repo = ecr.Repository.from_repository_name(self, id='PAVI-pipeline-seq-retrieval-repo', repository_name=shared_seq_retrieval_image_repo)
+            cdk_tags.of(self.seq_retrieval_ecr_repo).add("Product", "PAVI")
+            cdk_tags.of(self.seq_retrieval_ecr_repo).add("Managed_by", "PAVI")
 
         # Import or create shared_alignment_image_repo
         if not shared_alignment_image_repo:
@@ -46,5 +49,7 @@ class CdkInfraStack(Stack):
                                                         env_suffix=env_suffix)
         else:
             self.alignment_ecr_repo = ecr.Repository.from_repository_name(self, id='PAVI-pipeline-alignment-repo', repository_name=shared_alignment_image_repo)
+            cdk_tags.of(self.alignment_ecr_repo).add("Product", "PAVI")
+            cdk_tags.of(self.alignment_ecr_repo).add("Managed_by", "PAVI")
 
         self.execution_environment = PaviExecutionEnvironment(self, env_suffix=env_suffix, shared_work_dir_bucket=shared_work_dir_bucket)

@@ -5,7 +5,8 @@ from aws_cdk import (
     aws_iam as iam,
     RemovalPolicy,
     Stack,
-    aws_s3 as s3
+    aws_s3 as s3,
+    Tags as cdk_tags
 )
 
 from typing import Optional
@@ -45,6 +46,8 @@ class PaviExecutionEnvironment:
                 removal_policy=RemovalPolicy.RETAIN,
                 versioned=False
             )
+            cdk_tags.of(self.nf_workdir_bucket).add("Product", "PAVI")
+            cdk_tags.of(self.nf_workdir_bucket).add("Managed_by", "PAVI")
         else:
             self.nf_workdir_bucket = s3.Bucket.from_bucket_name(
                 scope=scope, id='pavi-pipeline-nf-workdir-bucket',
@@ -67,6 +70,8 @@ class PaviExecutionEnvironment:
                 )
             ]
         )
+        cdk_tags.of(s3_workdir_bucket_policy_doc).add("Product", "PAVI")
+        cdk_tags.of(s3_workdir_bucket_policy_doc).add("Managed_by", "PAVI")
 
         instance_role = iam.Role(scope, 'pavi-pipeline-compute-environment-instance-role',
                                  description='Role granting permissions for Nextflow ECS execution',
@@ -78,6 +83,8 @@ class PaviExecutionEnvironment:
                                  inline_policies={
                                      's3-workdir-policy': s3_workdir_bucket_policy_doc
                                  })
+        cdk_tags.of(instance_role).add("Product", "PAVI")
+        cdk_tags.of(instance_role).add("Managed_by", "PAVI")
 
         ce_name = 'pavi_pipeline_ecs'
         if env_suffix:
@@ -93,6 +100,9 @@ class PaviExecutionEnvironment:
 
         self.compute_environment.apply_removal_policy(RemovalPolicy.DESTROY)
 
+        cdk_tags.of(self.compute_environment).add("Product", "PAVI")
+        cdk_tags.of(self.compute_environment).add("Managed_by", "PAVI")
+
         # Create the job queue
         jq_name = 'pavi_pipeline'
         if env_suffix:
@@ -103,3 +113,6 @@ class PaviExecutionEnvironment:
         )
 
         self.job_queue.add_compute_environment(self.compute_environment, order=1)  # type: ignore
+
+        cdk_tags.of(self.job_queue).add("Product", "PAVI")
+        cdk_tags.of(self.job_queue).add("Managed_by", "PAVI")
