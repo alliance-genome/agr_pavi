@@ -3,7 +3,7 @@ src/nextflow.sh
 src/nextflow.config
 src/*.nf
 # Nextflow output files
-src/seq_regions.json
+src/seq_regions*.json
 .nextflow*
-src/pipeline-results/
+src/pipeline-results*/
 src/work/
