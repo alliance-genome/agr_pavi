@@ -4,6 +4,9 @@ on:
     types: [synchronize, opened, reopened, edited]
     branches:
       - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 jobs:
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
