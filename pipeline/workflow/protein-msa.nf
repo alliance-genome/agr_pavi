@@ -5,6 +5,7 @@ params.image_tag = 'latest'
 params.input_seq_regions_str = ''
 params.input_seq_regions_file = ''
 params.publish_dir = 'pipeline-results/'
+params.publish_dir_prefix = ''
 
 process sequence_retrieval {
     container "${params.image_registry}agr_pavi/pipeline_seq_retrieval:${params.image_tag}"
@@ -28,7 +29,7 @@ process sequence_retrieval {
 process alignment {
     container "${params.image_registry}agr_pavi/pipeline_alignment:${params.image_tag}"
 
-    publishDir params.publish_dir, mode: 'copy'
+    publishDir "${params.publish_dir_prefix}${params.publish_dir}", mode: 'copy'
 
     input:
         path 'alignment-input.fa'
