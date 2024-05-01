@@ -1,20 +1,25 @@
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from pydantic import BaseModel
 
+from typing import Any
+
 import json
 import subprocess
 from uuid import uuid1, UUID
+
 
 class Pipeline_seq_region(BaseModel):
     name: str
     seq_id: str
     seq_strand: str
-    seq_regions: list[str|dict[str,str|int]]
+    seq_regions: list[str | dict[str, str | int]]
     fasta_file_url: str
+
 
 class Pipeline_job(BaseModel):
     uuid: UUID
     status: str = 'pending'
+
 
 def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) -> None:
     """
@@ -26,7 +31,7 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
     """
     jobs[uuid].status = 'running'
 
-    model_dumps: list = []
+    model_dumps: list[dict[str, Any]] = []
     for seq_region in pipeline_seq_regions:
         model_dumps.append(seq_region.model_dump())
     seq_regions_json: str = json.dumps(model_dumps)
@@ -41,12 +46,15 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
 
     jobs[uuid].status = 'completed'
 
+
 app = FastAPI()
 jobs: dict[UUID, Pipeline_job] = {}
 
+
 @app.get("/")
-async def help_msg():
+async def help_msg() -> dict[str, str]:
     return {"help": "Welcome to the PAVI API! For more information on how to use it, see the docs at {host}/docs"}
+
 
 @app.post('/pipeline-job/', status_code=201)
 async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region], background_tasks: BackgroundTasks) -> Pipeline_job:
@@ -56,8 +64,9 @@ async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region
 
     return new_task
 
+
 @app.get("/pipeline-job/{uuid}")
-async def get_pipeline_job_details(uuid: UUID):
+async def get_pipeline_job_details(uuid: UUID) -> Pipeline_job:
     if uuid not in jobs.keys():
         raise HTTPException(status_code=404, detail='Job not found.')
     return jobs[uuid]

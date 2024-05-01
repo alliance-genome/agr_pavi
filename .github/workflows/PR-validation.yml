@@ -193,3 +193,26 @@ jobs:
         aws-region: us-east-1
     - name: Validate production CDK stack code
       run: cdk diff PaviPipelineCdkStack
+  api-code-checks:
+    name: API code checks
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./api/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            api/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python typing test
+        run: |
+          make run-python-type-check
+      - name: Python style test
+        run: |
+          make run-python-style-check
