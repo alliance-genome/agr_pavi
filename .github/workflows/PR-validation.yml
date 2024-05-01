@@ -216,3 +216,26 @@ jobs:
       - name: Python style test
         run: |
           make run-python-style-check
+  api-container-image-build:
+    name: API container-image build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build container image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./
+          file: api/Dockerfile
+          push: false
+          tags: agr_pavi/api:latest
+          outputs: type=docker,dest=/tmp/pavi_api_docker_image.tar
+      - name: Upload image as artifact (share between jobs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: api_image
+          path: /tmp/pavi_api_docker_image.tar
