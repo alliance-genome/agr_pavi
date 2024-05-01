@@ -1,6 +1,9 @@
 # AGR PAVI
 AGR's Proteins Annotations and Variants Inspector
 
+## Architecture
+Section TODO.
+
 ## Acknowledgements
 Just as most modern software, PAVI heavily relies on third-party tools and libraries for much of its core functionality.
 We specifically acknowledge the creators and developers of the following third-party tools and libraries:
