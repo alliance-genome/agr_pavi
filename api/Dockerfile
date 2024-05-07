@@ -24,6 +24,7 @@ EXPOSE  8080
 
 # Default environment variables
 ENV API_RESULTS_PATH_PREFIX="s3://agr-pavi-pipeline-nextflow/main/results/"
+ENV API_EXECUTION_ENV="aws"
 
 # Start the API server application
 CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

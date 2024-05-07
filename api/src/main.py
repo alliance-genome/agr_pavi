@@ -11,6 +11,7 @@ import subprocess
 from uuid import uuid1, UUID
 
 api_results_path_prefix = getenv("API_RESULTS_PATH_PREFIX", '')
+api_execution_env = getenv("API_EXECUTION_ENV", 'local')
 
 
 class Pipeline_seq_region(BaseModel):
@@ -45,7 +46,7 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
     with open(seqregions_filename, mode='w') as seqregions_file:
         seqregions_file.write(seq_regions_json)
 
-    subprocess.run(['./nextflow.sh', 'run', '-profile', 'aws', 'protein-msa.nf',
+    subprocess.run(['./nextflow.sh', 'run', '-profile', api_execution_env, 'protein-msa.nf',
                     '--input_seq_regions_file', seqregions_filename,
                     '--publish_dir_prefix', api_results_path_prefix,
                     '--publish_dir', f'pipeline-results_{uuid}'])
