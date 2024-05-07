@@ -26,6 +26,9 @@ class Pipeline_job(BaseModel):
     uuid: UUID
     status: str = 'pending'
 
+class HTTP_exception_response(BaseModel):
+    details: str
+
 
 def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) -> None:
     """
@@ -72,13 +75,13 @@ async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region
     return new_task
 
 
-@app.get("/pipeline-job/{uuid}")
+@app.get("/pipeline-job/{uuid}", responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_details(uuid: UUID) -> Pipeline_job:
     if uuid not in jobs.keys():
         raise HTTPException(status_code=404, detail='Job not found.')
     return jobs[uuid]
 
-@app.get("/pipeline-job/{uuid}/alignment-result")
+@app.get("/pipeline-job/{uuid}/alignment-result", responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_alignment_result(uuid: UUID):
     try:
         file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/alignment-output.aln', mode="rb")
