@@ -22,7 +22,7 @@ src/protein-msa.nf:
 src/nextflow.config:
 	ln -s ../../pipeline/workflow/nextflow.config src/nextflow.config
 
-run-api-server-dev: src/nextflow.sh src/protein-msa.nf src/nextflow.config
+run-api-server-dev: python-dependencies src/nextflow.sh src/protein-msa.nf src/nextflow.config
 	@cd src/ && \
 	 export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 uvicorn main:app --reload
