@@ -1,11 +1,16 @@
 from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
+from os import getenv
 from pydantic import BaseModel
+from smart_open import open
 
 from typing import Any
 
 import json
 import subprocess
 from uuid import uuid1, UUID
+
+api_results_path_prefix = getenv("API_RESULTS_PATH_PREFIX", '')
 
 
 class Pipeline_seq_region(BaseModel):
@@ -42,6 +47,7 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
 
     subprocess.run(['./nextflow.sh', 'run', '-profile', 'aws', 'protein-msa.nf',
                     '--input_seq_regions_file', seqregions_filename,
+                    '--publish_dir_prefix', api_results_path_prefix,
                     '--publish_dir', f'pipeline-results_{uuid}'])
 
     jobs[uuid].status = 'completed'
@@ -70,3 +76,18 @@ async def get_pipeline_job_details(uuid: UUID) -> Pipeline_job:
     if uuid not in jobs.keys():
         raise HTTPException(status_code=404, detail='Job not found.')
     return jobs[uuid]
+
+@app.get("/pipeline-job/{uuid}/alignment-result")
+async def get_pipeline_job_alignment_result(uuid: UUID):
+    try:
+        file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/alignment-output.aln', mode="rb")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail='File not found.')
+    except OSError as error:
+        raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
+    else:
+        def iterfile():
+            with file_like:
+                yield from file_like
+
+        return StreamingResponse(iterfile(), media_type="text/plain")

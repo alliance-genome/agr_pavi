@@ -24,6 +24,7 @@ src/nextflow.config:
 
 run-api-server-dev: src/nextflow.sh src/protein-msa.nf src/nextflow.config
 	@cd src/ && \
+	 export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 uvicorn main:app --reload
 
 check-venv-active:
