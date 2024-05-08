@@ -52,16 +52,15 @@ jobs:
           context: ./pipeline/seq_retrieval/
           push: false
           tags: agr_pavi/pipeline_seq_retrieval:latest
-          outputs: |
-            type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
-            type=image,push=false
+          outputs: type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
       - name: Upload image as artifact (share between jobs)
         uses: actions/upload-artifact@v4
         with:
           name: seq_retrieval_image
           path: /tmp/pavi_seq_retrieval_docker_image.tar
-      - name: Tag and push image to registry
+      - name: Load, tag and push image to registry
         run: |
+          docker load --input /tmp/pavi_seq_retrieval_docker_image.tar
           docker tag agr_pavi/pipeline_seq_retrieval:latest ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{needs.container-build-context.outputs.tagname}}
           docker push ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{needs.container-build-context.outputs.tagname}}
   pipeline-seq-retrieval-code-checks:
@@ -123,16 +122,15 @@ jobs:
           context: ./pipeline/alignment/
           push: false
           tags: agr_pavi/pipeline_alignment:latest
-          outputs: |
-            type=docker,dest=/tmp/pavi_alignment_docker_image.tar
-            type=image,push=false
+          outputs: type=docker,dest=/tmp/pavi_alignment_docker_image.tar
       - name: Upload image as artifact (share between jobs)
         uses: actions/upload-artifact@v4
         with:
           name: alignment_image
           path: /tmp/pavi_alignment_docker_image.tar
-      - name: Tag and push image to registry
+      - name: Load, tag and push image to registry
         run: |
+          docker load --input /tmp/pavi_alignment_docker_image.tar
           docker tag agr_pavi/pipeline_alignment:latest ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{needs.container-build-context.outputs.tagname}}
           docker push ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{needs.container-build-context.outputs.tagname}}
   pipeline-alignment-unit-testing:
