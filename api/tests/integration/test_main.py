@@ -10,6 +10,7 @@ client = TestClient(app)
 environ["API_RESULTS_PATH_PREFIX"] = f'{getcwd()}/'
 environ["API_EXECUTION_ENV"] = 'local'
 
+
 def test_pipeline_workflow():
 
     # Initiate pipeline

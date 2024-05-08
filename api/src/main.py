@@ -26,6 +26,7 @@ class Pipeline_job(BaseModel):
     uuid: UUID
     status: str = 'pending'
 
+
 class HTTP_exception_response(BaseModel):
     details: str
 
@@ -80,6 +81,7 @@ async def get_pipeline_job_details(uuid: UUID) -> Pipeline_job:
     if uuid not in jobs.keys():
         raise HTTPException(status_code=404, detail='Job not found.')
     return jobs[uuid]
+
 
 @app.get("/pipeline-job/{uuid}/alignment-result", responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
