@@ -5,6 +5,12 @@ REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
 .PHONY: build-workflow-local-deps run-workflow-local registry-docker-login
 
+clean:
+	@rm -f nextflow.sh
+	@rm -rf pipeline-results/
+	@rm -rf .nextflow*
+	@rm -rf work/
+
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
 	@$(eval DOCKER_LOGIN_CMD=docker run --rm -it -v ~/.aws:/root/.aws amazon/aws-cli)

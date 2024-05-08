@@ -4,7 +4,13 @@ ADDITIONAL_BUILD_ARGS=
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
-	@:
+	@rm -f nextflow.sh
+	@rm -f protein-msa.nf
+	@rm -f nextflow.config
+	@rm -rf seq_regions*.json
+	@rm -rf pipeline-results*
+	@rm -rf .nextflow*
+	@rm -rf work/
 
 container-image:
 	cd ../ && \
