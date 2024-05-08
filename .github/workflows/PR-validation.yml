@@ -23,6 +23,8 @@ jobs:
     name: pipeline/seq_retrieval container-image build
     needs:
       - container-build-context
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
@@ -90,6 +92,8 @@ jobs:
     name: pipeline/alignment container-image build
     needs:
       - container-build-context
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
