@@ -20,7 +20,7 @@ COPY pipeline/workflow/nextflow.config nextflow.config
 COPY pipeline/workflow/protein-msa.nf protein-msa.nf
 
 # Expose necessary ports
-EXPOSE  8080
+EXPOSE 8080
 
 # Default environment variables
 ENV API_RESULTS_PATH_PREFIX="s3://agr-pavi-pipeline-nextflow/main/results/"
