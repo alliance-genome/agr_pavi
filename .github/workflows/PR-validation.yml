@@ -309,7 +309,6 @@ jobs:
     needs:
       - pipeline-seq-retrieval-container-image-build
       - pipeline-alignment-container-image-build
-      - pipeline-workflow-integration-testing
     runs-on: ubuntu-22.04
     defaults:
       run:
