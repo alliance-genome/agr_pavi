@@ -10,7 +10,7 @@ import json
 import subprocess
 from uuid import uuid1, UUID
 
-api_results_path_prefix = getenv("API_RESULTS_PATH_PREFIX", '')
+api_results_path_prefix = getenv("API_RESULTS_PATH_PREFIX", './')
 api_execution_env = getenv("API_EXECUTION_ENV", 'local')
 
 
