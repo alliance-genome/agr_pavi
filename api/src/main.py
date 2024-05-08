@@ -2,7 +2,7 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from os import getenv
 from pydantic import BaseModel
-from smart_open import open
+from smart_open import open  # type: ignore
 
 from typing import Any
 
@@ -82,7 +82,7 @@ async def get_pipeline_job_details(uuid: UUID) -> Pipeline_job:
     return jobs[uuid]
 
 @app.get("/pipeline-job/{uuid}/alignment-result", responses={404: {'model': HTTP_exception_response}})
-async def get_pipeline_job_alignment_result(uuid: UUID):
+async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
     try:
         file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/alignment-output.aln', mode="rb")
     except FileNotFoundError:
@@ -90,7 +90,7 @@ async def get_pipeline_job_alignment_result(uuid: UUID):
     except OSError as error:
         raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
     else:
-        def iterfile():
+        def iterfile():  # type: ignore
             with file_like:
                 yield from file_like
 
