@@ -1,9 +1,9 @@
-# Local dev env symlinks
-src/nextflow.sh
-src/nextflow.config
-src/*.nf
+# Local dev env executables and symlinks
+nextflow.sh
+nextflow.config
+*.nf
 # Nextflow output files
-src/seq_regions*.json
+seq_regions*.json
 .nextflow*
-src/pipeline-results*/
-src/work/
+pipeline-results*/
+work/

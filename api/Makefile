@@ -13,20 +13,19 @@ container-image:
 run-container-dev:
 	docker-compose --env-file dev.env up agr.pavi.dev.api
 
-src/nextflow.sh:
-	ln -s ../../pipeline/workflow/nextflow.sh src/nextflow.sh
+nextflow.sh:
+	make -f ../pipeline/workflow/Makefile nextflow.sh
 
-src/protein-msa.nf:
-	ln -s ../../pipeline/workflow/protein-msa.nf src/protein-msa.nf
+protein-msa.nf:
+	ln -s ../pipeline/workflow/protein-msa.nf protein-msa.nf
 
-src/nextflow.config:
-	ln -s ../../pipeline/workflow/nextflow.config src/nextflow.config
+nextflow.config:
+	ln -s ../pipeline/workflow/nextflow.config nextflow.config
 
-run-api-server-dev: python-dependencies src/nextflow.sh src/protein-msa.nf src/nextflow.config
-	@cd src/ && \
-	 export API_RESULTS_PATH_PREFIX="`pwd`/" && \
+run-api-server-dev: python-dependencies nextflow.sh protein-msa.nf nextflow.config
+	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 export API_EXECUTION_ENV="local" && \
-	 uvicorn main:app --reload
+	 uvicorn --app-dir src/ --reload main:app
 
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
@@ -49,3 +48,9 @@ run-python-type-check: python-dependencies python-test-dependencies
 
 run-python-style-check: python-dependencies python-test-dependencies
 	flake8 ./
+
+run-tests: python-dependencies python-test-dependencies nextflow.sh protein-msa.nf nextflow.config
+	python -m pytest --cov --cov-fail-under=80
+
+run-tests-dev: python-dependencies python-test-dependencies nextflow.sh protein-msa.nf nextflow.config
+	python -m pytest --cov --cov-fail-under=80 --cov-report html
