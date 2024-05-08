@@ -4,7 +4,7 @@ FROM python:3.12-slim-bullseye
 
 WORKDIR /usr/src/app
 
-RUN apt update && apt upgrade
+RUN apt update && apt upgrade -y
 RUN apt install -y make curl
 
 COPY api/requirements.txt ./
