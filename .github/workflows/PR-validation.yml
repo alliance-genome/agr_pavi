@@ -18,7 +18,7 @@ jobs:
       id: store_tagname
       shell: bash
       run: |
-        echo "tagname='PR-${{ github.event.pull_request.number }}-validation'" >> $GITHUB_OUTPUT
+        echo "tagname=PR-${{ github.event.pull_request.number }}-validation" >> $GITHUB_OUTPUT
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     needs:
