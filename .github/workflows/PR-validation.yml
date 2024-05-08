@@ -8,8 +8,21 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 jobs:
+  container-build-context:
+    name: define container image build context variables
+    runs-on: ubuntu-22.04
+    outputs:
+      tagname: ${{ steps.store_tagname.outputs.tagname }}
+    steps:
+    - name: Store image tag in env
+      id: store_tagname
+      shell: bash
+      run: |
+        echo "tagname='PR-${{ github.event.pull_request.number }}-validation'" >> $GITHUB_OUTPUT
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
+    needs:
+      - container-build-context
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
@@ -20,13 +33,28 @@ jobs:
             pipeline/seq_retrieval/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+      # This step will configure environment variables to be used by all steps
+      # involving AWS interaction further down
+      - name: AWS credentials configuration
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
+          role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-pipeline-seq-retrieval-validation
+          aws-region: us-east-1
+      - name: Amazon ECR login
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
       - name: Build container image
         uses: docker/build-push-action@v5
         with:
           context: ./pipeline/seq_retrieval/
           push: false
-          tags: agr_pavi/pipeline_seq_retrieval:latest
-          outputs: type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
+          tags: |
+            agr_pavi/pipeline_seq_retrieval:latest
+            ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{needs.container-build-context.outputs.tagname}}
+          outputs: |
+            type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
+            type=image,push=true
       - name: Upload image as artifact (share between jobs)
         uses: actions/upload-artifact@v4
         with:
@@ -60,6 +88,8 @@ jobs:
           make run-unit-tests
   pipeline-alignment-container-image-build:
     name: pipeline/alignment container-image build
+    needs:
+      - container-build-context
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
@@ -70,13 +100,28 @@ jobs:
             pipeline/alignment/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+      # This step will configure environment variables to be used by all steps
+      # involving AWS interaction further down
+      - name: AWS credentials configuration
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
+          role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-pipeline-alignment-validation
+          aws-region: us-east-1
+      - name: Amazon ECR login
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
       - name: Build container image
         uses: docker/build-push-action@v5
         with:
           context: ./pipeline/alignment/
           push: false
-          tags: agr_pavi/pipeline_alignment:latest
-          outputs: type=docker,dest=/tmp/pavi_alignment_docker_image.tar
+          tags: |
+            agr_pavi/pipeline_alignment:latest
+            ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{needs.container-build-context.outputs.tagname}}
+          outputs: |
+            type=docker,dest=/tmp/pavi_alignment_docker_image.tar
+            type=image,push=true
       - name: Upload image as artifact (share between jobs)
         uses: actions/upload-artifact@v4
         with:
@@ -114,6 +159,7 @@ jobs:
   pipeline-workflow-integration-testing:
     name: pipeline/workflow integration testing
     needs:
+      - container-build-context
       - pipeline-seq-retrieval-container-image-build
       - pipeline-alignment-container-image-build
     runs-on: ubuntu-22.04
@@ -146,9 +192,12 @@ jobs:
       - name: Load alignment Docker image
         run: |
           docker load --input /tmp/pavi_alignment_docker_image.tar
-      - name: Run integration test
+      - name: Run local integration test
         run: |
-          make run-integration-test
+          make run-integration-test-local
+      - name: Run local integration test
+        run: |
+          make run-integration-test-aws TAG_NAME=${{needs.container-build-context.outputs.tagname}}
   pipeline-aws-infra-code-checks:
     name: pipeline/aws_infra code checks
     permissions:

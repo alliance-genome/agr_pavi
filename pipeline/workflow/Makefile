@@ -2,6 +2,7 @@ RELEASE=23.10.1
 AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+TAG_NAME?=main
 
 .PHONY: build-workflow-local-deps run-workflow-local registry-docker-login
 
@@ -29,6 +30,11 @@ build-workflow-local-deps:
 	make -C ../seq_retrieval/ container-image
 	make -C ../alignment/ container-image
 
-run-integration-test: nextflow.sh
-	./nextflow.sh run -profile test protein-msa.nf
+run-integration-test-local: nextflow.sh
+	./nextflow.sh run -profile test,local protein-msa.nf
 	@diff -qs pipeline-results/alignment-output.aln tests/resources/integration-test-results.aln
+
+run-integration-test-aws: nextflow.sh
+	./nextflow.sh run -profile test,aws protein-msa.nf --image_tag ${TAG_NAME}
+	aws s3 cp s3://agr-pavi-pipeline-nextflow/${TAG_NAME}/results/pipeline-results/alignment-output.aln alignment-output.aln
+	@diff -qs alignment-output.aln tests/resources/integration-test-results.aln
