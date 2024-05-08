@@ -168,6 +168,8 @@ jobs:
       - container-build-context
       - pipeline-seq-retrieval-container-image-build
       - pipeline-alignment-container-image-build
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -201,7 +203,15 @@ jobs:
       - name: Run local integration test
         run: |
           make run-integration-test-local
-      - name: Run local integration test
+      # This step will configure environment variables to be used by all steps
+      # involving AWS interaction further down
+      - name: AWS credentials configuration
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
+          role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-workflow-aws-test
+          aws-region: us-east-1
+      - name: Run AWS integration test
         run: |
           make run-integration-test-aws TAG_NAME=${{needs.container-build-context.outputs.tagname}}
   pipeline-aws-infra-code-checks:
