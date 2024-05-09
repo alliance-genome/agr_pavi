@@ -57,12 +57,12 @@ def test_pipeline_nf_s3_bucket() -> None:
     })
 
 
-# The S3 bucket policy is assigned to the GH-actions role for PAVI, in addition to PAVI-managed resources.
+# The Nextflow AWS execution policy is assigned to the GH-actions role for PAVI, in addition to PAVI-managed resources.
 # Changing the name of this policy might require the gh-actions role to be updated to include the new role.
 def test_pipeline_nf_s3_bucket_policy() -> None:
     template.has_resource(type=ResourceType.of('AWS::IAM::ManagedPolicy').compliance_resource_type, props={
         "Properties": {
-            "ManagedPolicyName": "agr-pavi-pipeline-nf-bucket-access"
+            "ManagedPolicyName": "agr-pavi-pipeline-nf-aws-execution-policy"
         }
     })
 
