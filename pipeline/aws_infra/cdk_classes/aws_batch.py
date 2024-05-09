@@ -55,7 +55,7 @@ class PaviExecutionEnvironment:
                 bucket_name=shared_work_dir_bucket)
 
         # Create the IAM policy to grant access to the nextflow output bucket
-        s3_bucket_access_statements=[
+        s3_bucket_access_statements = [
             iam.PolicyStatement(
                 sid="S3BucketWriteAll",
                 effect=iam.Effect.ALLOW,
