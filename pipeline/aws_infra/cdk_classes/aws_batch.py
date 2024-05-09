@@ -59,7 +59,7 @@ class PaviExecutionEnvironment:
             iam.PolicyStatement(
                 sid="S3BucketWriteAll",
                 effect=iam.Effect.ALLOW,
-                actions=['s3:Put*'],
+                actions=['s3:Put*', 's3:DeleteObject'],
                 resources=[self.nf_output_bucket.bucket_arn + '/*']
             ),
             iam.PolicyStatement(
