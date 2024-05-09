@@ -17,6 +17,7 @@ class PaviExecutionEnvironment:
     compute_environment: aws_batch.ManagedEc2EcsComputeEnvironment
     job_queue: aws_batch.JobQueue
     nf_workdir_bucket: s3.Bucket | s3.IBucket
+    nf_bucket_access_policy: iam.ManagedPolicy
 
     def __init__(self, scope: Stack, env_suffix: str, shared_work_dir_bucket: Optional[str]) -> None:
         """
@@ -70,19 +71,23 @@ class PaviExecutionEnvironment:
                 )
             ]
         )
-        cdk_tags.of(s3_workdir_bucket_policy_doc).add("Product", "PAVI")
-        cdk_tags.of(s3_workdir_bucket_policy_doc).add("Managed_by", "PAVI")
+        s3_workdir_bucket_policy = iam.ManagedPolicy(scope,'pavi-s3-nextflow-bucket-policy',
+                                                     managed_policy_name='agr-pavi-pipeline-nf-bucket-access',
+                                                     description='Grant required access to PAVI pipeline nextflow bucket to run nextflow pipelines using it.',
+                                                     document=s3_workdir_bucket_policy_doc)
+        cdk_tags.of(s3_workdir_bucket_policy).add("Product", "PAVI") # type: ignore
+        cdk_tags.of(s3_workdir_bucket_policy).add("Managed_by", "PAVI") # type: ignore
+
+        self.nf_bucket_access_policy = s3_workdir_bucket_policy
 
         instance_role = iam.Role(scope, 'pavi-pipeline-compute-environment-instance-role',
                                  description='Role granting permissions for Nextflow ECS execution',
                                  assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),  # type: ignore
                                  managed_policies=[
                                      iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEC2ContainerServiceforEC2Role"),
-                                     iam.ManagedPolicy.from_managed_policy_name(scope, "iam-ecr-read-policy", "ReadOnlyAccessECR")
-                                 ],
-                                 inline_policies={
-                                     's3-workdir-policy': s3_workdir_bucket_policy_doc
-                                 })
+                                     iam.ManagedPolicy.from_managed_policy_name(scope, "iam-ecr-read-policy", "ReadOnlyAccessECR"),
+                                     self.nf_bucket_access_policy
+                                 ])
         cdk_tags.of(instance_role).add("Product", "PAVI")
         cdk_tags.of(instance_role).add("Managed_by", "PAVI")
 
