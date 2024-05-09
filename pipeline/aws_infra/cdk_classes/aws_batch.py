@@ -124,17 +124,25 @@ class PaviExecutionEnvironment:
             iam.PolicyStatement(
                 sid="AllowBatchJobMgmt",
                 effect=iam.Effect.ALLOW,
-                actions=['batch:CancelJob', 'batch:SubmitJob', 'batch:TerminateJob',
-                         'batch:ListJobs', 'batch:DescribeJobs',
-                         'batch:RegisterJobDefinition', 'batch:DescribeJobDefinitions'],
+                actions=['batch:CancelJob', 'batch:SubmitJob', 'batch:TerminateJob', 'batch:ListJobs',
+                         'batch:RegisterJobDefinition', 'batch:DeregisterJobDefinition'],
                 resources=['*']
             )
         )
         nf_aws_execution_statements.append(
             iam.PolicyStatement(
-                sid="AllowQueueAndComputeEnvDescribe",
+                sid="AllowDescribeAllBatchResources",
                 effect=iam.Effect.ALLOW,
-                actions=['batch:DescribeJobQueues', 'batch:DescribeComputeEnvironments'],
+                actions=['batch:DescribeJobQueues', 'batch:DescribeComputeEnvironments',
+                         'batch:DescribeJobDefinitions', 'batch:DescribeJobs'],
+                resources=['*']
+            )
+        )
+        nf_aws_execution_statements.append(
+            iam.PolicyStatement(
+                sid="AllowBatchResourceTagMgmt",
+                effect=iam.Effect.ALLOW,
+                actions=['batch:TagResource', 'batch:UntagResource', 'batch:ListTagsForResource'],
                 resources=['*']
             )
         )
