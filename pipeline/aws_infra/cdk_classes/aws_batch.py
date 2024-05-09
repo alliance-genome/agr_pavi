@@ -17,7 +17,7 @@ class PaviExecutionEnvironment:
     compute_environment: aws_batch.ManagedEc2EcsComputeEnvironment
     job_queue: aws_batch.JobQueue
     nf_output_bucket: s3.Bucket | s3.IBucket
-    nf_bucket_access_policy: iam.ManagedPolicy
+    nf_aws_execution_policy: iam.ManagedPolicy
 
     def __init__(self, scope: Stack, env_suffix: str, shared_work_dir_bucket: Optional[str]) -> None:
         """
@@ -54,40 +54,34 @@ class PaviExecutionEnvironment:
                 scope=scope, id='pavi-pipeline-nf-workdir-bucket',
                 bucket_name=shared_work_dir_bucket)
 
+        # Create the IAM policy to grant access to the nextflow output bucket
+        s3_bucket_access_statements = [
+            iam.PolicyStatement(
+                sid="S3BucketWriteAll",
+                effect=iam.Effect.ALLOW,
+                actions=['s3:Put*', 's3:DeleteObject'],
+                resources=[self.nf_output_bucket.bucket_arn + '/*']
+            ),
+            iam.PolicyStatement(
+                sid="S3BucketReadAll",
+                effect=iam.Effect.ALLOW,
+                actions=['s3:ListBucket*', 's3:Get*'],
+                resources=[self.nf_output_bucket.bucket_arn, self.nf_output_bucket.bucket_arn + '/*']
+            )
+        ]
+        s3_workdir_bucket_policy_doc = iam.PolicyDocument(statements=s3_bucket_access_statements)
+
         # Create the compute environment
-        s3_workdir_bucket_policy_doc = iam.PolicyDocument(
-            statements=[
-                iam.PolicyStatement(
-                    sid="S3BucketWriteAll",
-                    effect=iam.Effect.ALLOW,
-                    actions=['s3:Put*'],
-                    resources=[self.nf_output_bucket.bucket_arn + '/*']
-                ),
-                iam.PolicyStatement(
-                    sid="S3BucketReadAll",
-                    effect=iam.Effect.ALLOW,
-                    actions=['s3:ListBucket*', 's3:Get*'],
-                    resources=[self.nf_output_bucket.bucket_arn, self.nf_output_bucket.bucket_arn + '/*']
-                )
-            ]
-        )
-        s3_workdir_bucket_policy = iam.ManagedPolicy(scope, 'pavi-s3-nextflow-bucket-policy',
-                                                     managed_policy_name='agr-pavi-pipeline-nf-bucket-access',
-                                                     description='Grant required access to PAVI pipeline nextflow bucket to run nextflow pipelines using it.',
-                                                     document=s3_workdir_bucket_policy_doc)
-        cdk_tags.of(s3_workdir_bucket_policy).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(s3_workdir_bucket_policy).add("Managed_by", "PAVI")  # type: ignore
-
-        self.nf_bucket_access_policy = s3_workdir_bucket_policy
-
         instance_role = iam.Role(scope, 'pavi-pipeline-compute-environment-instance-role',
                                  description='Role granting permissions for Nextflow ECS execution',
                                  assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),  # type: ignore
                                  managed_policies=[
                                      iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEC2ContainerServiceforEC2Role"),
-                                     iam.ManagedPolicy.from_managed_policy_name(scope, "iam-ecr-read-policy", "ReadOnlyAccessECR"),
-                                     self.nf_bucket_access_policy
-                                 ])
+                                     iam.ManagedPolicy.from_managed_policy_name(scope, "iam-ecr-read-policy", "ReadOnlyAccessECR")
+                                 ],
+                                 inline_policies={
+                                     'nf-s3-bucket-access-policy': s3_workdir_bucket_policy_doc
+                                 })
         cdk_tags.of(instance_role).add("Product", "PAVI")  # type: ignore
         cdk_tags.of(instance_role).add("Managed_by", "PAVI")  # type: ignore
 
@@ -123,3 +117,33 @@ class PaviExecutionEnvironment:
 
         cdk_tags.of(self.job_queue).add("Product", "PAVI")  # type: ignore
         cdk_tags.of(self.job_queue).add("Managed_by", "PAVI")  # type: ignore
+
+        # Create the IAM policy to grant access to execute the nextflow pipeline using above AWS execution environment
+        nf_aws_execution_statements = s3_bucket_access_statements.copy()
+        nf_aws_execution_statements.append(
+            iam.PolicyStatement(
+                sid="AllowBatchJobMgmt",
+                effect=iam.Effect.ALLOW,
+                actions=['batch:CancelJob', 'batch:SubmitJob', 'batch:TerminateJob',
+                         'batch:ListJobs', 'batch:DescribeJobs',
+                         'batch:RegisterJobDefinition', 'batch:DescribeJobDefinitions'],
+                resources=['*']
+            )
+        )
+        nf_aws_execution_statements.append(
+            iam.PolicyStatement(
+                sid="AllowQueueAndComputeEnvDescribe",
+                effect=iam.Effect.ALLOW,
+                actions=['batch:DescribeJobQueues', 'batch:DescribeComputeEnvironments'],
+                resources=['*']
+            )
+        )
+
+        nf_aws_execution_policy = iam.ManagedPolicy(scope, 'pavi-nextflow-aws-execution-policy',
+                                                    managed_policy_name='agr-pavi-pipeline-nf-aws-execution-policy',
+                                                    description='Grant required access to PAVI execution environment to run nextflow pipelines using it.',
+                                                    statements=nf_aws_execution_statements)
+        cdk_tags.of(nf_aws_execution_policy).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(nf_aws_execution_policy).add("Managed_by", "PAVI")  # type: ignore
+
+        self.nf_aws_execution_policy = nf_aws_execution_policy
