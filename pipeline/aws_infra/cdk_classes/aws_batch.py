@@ -16,7 +16,7 @@ class PaviExecutionEnvironment:
 
     compute_environment: aws_batch.ManagedEc2EcsComputeEnvironment
     job_queue: aws_batch.JobQueue
-    nf_workdir_bucket: s3.Bucket | s3.IBucket
+    nf_output_bucket: s3.Bucket | s3.IBucket
     nf_bucket_access_policy: iam.ManagedPolicy
 
     def __init__(self, scope: Stack, env_suffix: str, shared_work_dir_bucket: Optional[str]) -> None:
@@ -37,7 +37,7 @@ class PaviExecutionEnvironment:
             bucket_name = 'agr-pavi-pipeline-nextflow'
             if env_suffix:
                 bucket_name += f'-{env_suffix}'
-            self.nf_workdir_bucket = s3.Bucket(
+            self.nf_output_bucket = s3.Bucket(
                 scope=scope, id='pavi-pipeline-nf-workdir-bucket',
                 bucket_name=bucket_name,
                 access_control=s3.BucketAccessControl.PRIVATE,
@@ -47,10 +47,10 @@ class PaviExecutionEnvironment:
                 removal_policy=RemovalPolicy.RETAIN,
                 versioned=False
             )
-            cdk_tags.of(self.nf_workdir_bucket).add("Product", "PAVI")
-            cdk_tags.of(self.nf_workdir_bucket).add("Managed_by", "PAVI")
+            cdk_tags.of(self.nf_output_bucket).add("Product", "PAVI")  # type: ignore
+            cdk_tags.of(self.nf_output_bucket).add("Managed_by", "PAVI")  # type: ignore
         else:
-            self.nf_workdir_bucket = s3.Bucket.from_bucket_name(
+            self.nf_output_bucket = s3.Bucket.from_bucket_name(
                 scope=scope, id='pavi-pipeline-nf-workdir-bucket',
                 bucket_name=shared_work_dir_bucket)
 
@@ -61,13 +61,13 @@ class PaviExecutionEnvironment:
                     sid="S3BucketWriteAll",
                     effect=iam.Effect.ALLOW,
                     actions=['s3:Put*'],
-                    resources=[self.nf_workdir_bucket.bucket_arn + '/*']
+                    resources=[self.nf_output_bucket.bucket_arn + '/*']
                 ),
                 iam.PolicyStatement(
                     sid="S3BucketReadAll",
                     effect=iam.Effect.ALLOW,
                     actions=['s3:ListBucket*', 's3:Get*'],
-                    resources=[self.nf_workdir_bucket.bucket_arn, self.nf_workdir_bucket.bucket_arn + '/*']
+                    resources=[self.nf_output_bucket.bucket_arn, self.nf_output_bucket.bucket_arn + '/*']
                 )
             ]
         )
