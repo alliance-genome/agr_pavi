@@ -88,8 +88,8 @@ class PaviExecutionEnvironment:
                                      iam.ManagedPolicy.from_managed_policy_name(scope, "iam-ecr-read-policy", "ReadOnlyAccessECR"),
                                      self.nf_bucket_access_policy
                                  ])
-        cdk_tags.of(instance_role).add("Product", "PAVI")
-        cdk_tags.of(instance_role).add("Managed_by", "PAVI")
+        cdk_tags.of(instance_role).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(instance_role).add("Managed_by", "PAVI")  # type: ignore
 
         ce_name = 'pavi_pipeline_ecs'
         if env_suffix:
@@ -105,8 +105,8 @@ class PaviExecutionEnvironment:
 
         self.compute_environment.apply_removal_policy(RemovalPolicy.DESTROY)
 
-        cdk_tags.of(self.compute_environment).add("Product", "PAVI")
-        cdk_tags.of(self.compute_environment).add("Managed_by", "PAVI")
+        cdk_tags.of(self.compute_environment).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(self.compute_environment).add("Managed_by", "PAVI")  # type: ignore
 
         self.compute_environment.tags.set_tag('Name', 'PAVI pipeline execution worker', priority=None, apply_to_launched_instances=True)
 
@@ -121,5 +121,5 @@ class PaviExecutionEnvironment:
 
         self.job_queue.add_compute_environment(self.compute_environment, order=1)  # type: ignore
 
-        cdk_tags.of(self.job_queue).add("Product", "PAVI")
-        cdk_tags.of(self.job_queue).add("Managed_by", "PAVI")
+        cdk_tags.of(self.job_queue).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(self.job_queue).add("Managed_by", "PAVI")  # type: ignore
