@@ -16,7 +16,8 @@ class PaviExecutionEnvironment:
 
     compute_environment: aws_batch.ManagedEc2EcsComputeEnvironment
     job_queue: aws_batch.JobQueue
-    nf_workdir_bucket: s3.Bucket | s3.IBucket
+    nf_output_bucket: s3.Bucket | s3.IBucket
+    nf_bucket_access_policy: iam.ManagedPolicy
 
     def __init__(self, scope: Stack, env_suffix: str, shared_work_dir_bucket: Optional[str]) -> None:
         """
@@ -36,7 +37,7 @@ class PaviExecutionEnvironment:
             bucket_name = 'agr-pavi-pipeline-nextflow'
             if env_suffix:
                 bucket_name += f'-{env_suffix}'
-            self.nf_workdir_bucket = s3.Bucket(
+            self.nf_output_bucket = s3.Bucket(
                 scope=scope, id='pavi-pipeline-nf-workdir-bucket',
                 bucket_name=bucket_name,
                 access_control=s3.BucketAccessControl.PRIVATE,
@@ -46,10 +47,10 @@ class PaviExecutionEnvironment:
                 removal_policy=RemovalPolicy.RETAIN,
                 versioned=False
             )
-            cdk_tags.of(self.nf_workdir_bucket).add("Product", "PAVI")
-            cdk_tags.of(self.nf_workdir_bucket).add("Managed_by", "PAVI")
+            cdk_tags.of(self.nf_output_bucket).add("Product", "PAVI")  # type: ignore
+            cdk_tags.of(self.nf_output_bucket).add("Managed_by", "PAVI")  # type: ignore
         else:
-            self.nf_workdir_bucket = s3.Bucket.from_bucket_name(
+            self.nf_output_bucket = s3.Bucket.from_bucket_name(
                 scope=scope, id='pavi-pipeline-nf-workdir-bucket',
                 bucket_name=shared_work_dir_bucket)
 
@@ -60,31 +61,35 @@ class PaviExecutionEnvironment:
                     sid="S3BucketWriteAll",
                     effect=iam.Effect.ALLOW,
                     actions=['s3:Put*'],
-                    resources=[self.nf_workdir_bucket.bucket_arn + '/*']
+                    resources=[self.nf_output_bucket.bucket_arn + '/*']
                 ),
                 iam.PolicyStatement(
                     sid="S3BucketReadAll",
                     effect=iam.Effect.ALLOW,
                     actions=['s3:ListBucket*', 's3:Get*'],
-                    resources=[self.nf_workdir_bucket.bucket_arn, self.nf_workdir_bucket.bucket_arn + '/*']
+                    resources=[self.nf_output_bucket.bucket_arn, self.nf_output_bucket.bucket_arn + '/*']
                 )
             ]
         )
-        cdk_tags.of(s3_workdir_bucket_policy_doc).add("Product", "PAVI")
-        cdk_tags.of(s3_workdir_bucket_policy_doc).add("Managed_by", "PAVI")
+        s3_workdir_bucket_policy = iam.ManagedPolicy(scope, 'pavi-s3-nextflow-bucket-policy',
+                                                     managed_policy_name='agr-pavi-pipeline-nf-bucket-access',
+                                                     description='Grant required access to PAVI pipeline nextflow bucket to run nextflow pipelines using it.',
+                                                     document=s3_workdir_bucket_policy_doc)
+        cdk_tags.of(s3_workdir_bucket_policy).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(s3_workdir_bucket_policy).add("Managed_by", "PAVI")  # type: ignore
+
+        self.nf_bucket_access_policy = s3_workdir_bucket_policy
 
         instance_role = iam.Role(scope, 'pavi-pipeline-compute-environment-instance-role',
                                  description='Role granting permissions for Nextflow ECS execution',
                                  assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),  # type: ignore
                                  managed_policies=[
                                      iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEC2ContainerServiceforEC2Role"),
-                                     iam.ManagedPolicy.from_managed_policy_name(scope, "iam-ecr-read-policy", "ReadOnlyAccessECR")
-                                 ],
-                                 inline_policies={
-                                     's3-workdir-policy': s3_workdir_bucket_policy_doc
-                                 })
-        cdk_tags.of(instance_role).add("Product", "PAVI")
-        cdk_tags.of(instance_role).add("Managed_by", "PAVI")
+                                     iam.ManagedPolicy.from_managed_policy_name(scope, "iam-ecr-read-policy", "ReadOnlyAccessECR"),
+                                     self.nf_bucket_access_policy
+                                 ])
+        cdk_tags.of(instance_role).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(instance_role).add("Managed_by", "PAVI")  # type: ignore
 
         ce_name = 'pavi_pipeline_ecs'
         if env_suffix:
@@ -100,8 +105,8 @@ class PaviExecutionEnvironment:
 
         self.compute_environment.apply_removal_policy(RemovalPolicy.DESTROY)
 
-        cdk_tags.of(self.compute_environment).add("Product", "PAVI")
-        cdk_tags.of(self.compute_environment).add("Managed_by", "PAVI")
+        cdk_tags.of(self.compute_environment).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(self.compute_environment).add("Managed_by", "PAVI")  # type: ignore
 
         self.compute_environment.tags.set_tag('Name', 'PAVI pipeline execution worker', priority=None, apply_to_launched_instances=True)
 
@@ -116,5 +121,5 @@ class PaviExecutionEnvironment:
 
         self.job_queue.add_compute_environment(self.compute_environment, order=1)  # type: ignore
 
-        cdk_tags.of(self.job_queue).add("Product", "PAVI")
-        cdk_tags.of(self.job_queue).add("Managed_by", "PAVI")
+        cdk_tags.of(self.job_queue).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(self.job_queue).add("Managed_by", "PAVI")  # type: ignore
