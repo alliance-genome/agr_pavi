@@ -71,12 +71,12 @@ class PaviExecutionEnvironment:
                 )
             ]
         )
-        s3_workdir_bucket_policy = iam.ManagedPolicy(scope,'pavi-s3-nextflow-bucket-policy',
+        s3_workdir_bucket_policy = iam.ManagedPolicy(scope, 'pavi-s3-nextflow-bucket-policy',
                                                      managed_policy_name='agr-pavi-pipeline-nf-bucket-access',
                                                      description='Grant required access to PAVI pipeline nextflow bucket to run nextflow pipelines using it.',
                                                      document=s3_workdir_bucket_policy_doc)
-        cdk_tags.of(s3_workdir_bucket_policy).add("Product", "PAVI") # type: ignore
-        cdk_tags.of(s3_workdir_bucket_policy).add("Managed_by", "PAVI") # type: ignore
+        cdk_tags.of(s3_workdir_bucket_policy).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(s3_workdir_bucket_policy).add("Managed_by", "PAVI")  # type: ignore
 
         self.nf_bucket_access_policy = s3_workdir_bucket_policy
 
