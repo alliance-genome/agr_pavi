@@ -66,5 +66,6 @@ run-integration-test-container: python-dependencies python-test-dependencies
 	sleep 30 # Allow container some startup time before attempting to connect
 	export EXTERNAL_API_BASE_URL="http://localhost:8080" && \
 	  export API_PIPELINE_IMAGE_TAG=${TAG_NAME} && \
-	  python -m pytest tests/integration
+	  python -m pytest tests/integration \
+	  || (echo "Container logs:" && docker logs agr.pavi.dev.api.server && exit 1)
 	docker-compose down
