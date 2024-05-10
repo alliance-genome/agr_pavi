@@ -5,7 +5,6 @@ from uuid import UUID
 
 client = TestClient(app)
 
-# NOT_FOUND_UUID = '073a0fde-07f1-11ef-925f-efc29a5ca054'
 NOT_FOUND_UUID: UUID = '00000000-0000-0000-0000-000000000000'
 
 
