@@ -62,10 +62,10 @@ run-tests-dev: python-dependencies python-test-dependencies nextflow.sh protein-
 	python -m pytest --cov --cov-fail-under=80 --cov-report html
 
 run-integration-test-container: python-dependencies python-test-dependencies
-	docker-compose --env-file dev.env up -d agr.pavi.dev.api
+	export API_PIPELINE_IMAGE_TAG=${TAG_NAME} && \
+	  docker-compose --env-file dev.env up -d agr.pavi.dev.api
 	sleep 30 # Allow container some startup time before attempting to connect
 	export EXTERNAL_API_BASE_URL="http://localhost:8080" && \
-	  export API_PIPELINE_IMAGE_TAG=${TAG_NAME} && \
 	  python -m pytest tests/integration \
 	  || (echo "Container logs:" && docker logs agr.pavi.dev.api.server && exit 1)
 	docker-compose down

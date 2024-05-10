@@ -25,6 +25,7 @@ services:
       - AWS_ROLE_SESSION_NAME
       - AWS_SESSION_TOKEN
       - AWS_WEB_IDENTITY_TOKEN_FILE
+      - API_PIPELINE_IMAGE_TAG
     volumes:
       - ~/.aws:/root/.aws
 
