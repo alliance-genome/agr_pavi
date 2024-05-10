@@ -38,7 +38,7 @@ def multipart_WB_transcript1() -> MultiPartSeqRegion:
     return MultiPartSeqRegion(seq_region_list)
 
 
-def test_multipart_seq_region_class(multipart_WB_transcript1: MultiPartSeqRegion):
+def test_multipart_seq_region_class(multipart_WB_transcript1: MultiPartSeqRegion) -> None:
 
     ## Test Class initiation
     # WBGene00000149 Transcript:C54H2.5.1 Exon 1 (mRNA start)
@@ -69,7 +69,7 @@ def test_multipart_seq_region_class(multipart_WB_transcript1: MultiPartSeqRegion
     assert protein_seq == 'MNQFRAPGGQNEMLAKAEDAAEDFFRKTRTYLPHIARLCLVSTFLEDGIRMYFQWDDQKQFMQESWSCGWFIATLFVIYNFFGQFIPVLMIMLRKKVLVACGILASIVILQTIAYHILWDLKFLARNIAVGGGLLLLLAETQEEKASLFAGVPTMGDSNKPKSYMLLAGRVLLIFMFMSLMHFEMSFMQVLEIVVGFALITLVSIGYKTKLSAIVLVIWLFGLNLWLNAWWTIPSDRFYRDFMKYDFFQTMSVIGGLLLVIAYGPGGVSVDDYKKRW'
 
 
-def test_incomplete_multipart_seq_region():
+def test_incomplete_multipart_seq_region() -> None:
 
     # Test translation of incomplete ORF
     # WBGene00000149 Transcript:C54H2.5.1 5' UTR
@@ -93,7 +93,7 @@ def test_incomplete_multipart_seq_region():
     assert incomplete_translation is None
 
 
-def test_orf_detection():
+def test_orf_detection() -> None:
 
     # Test detection of ORF in softmasked sequence
     # Y48G1C.9b cds
@@ -114,7 +114,7 @@ def test_orf_detection():
     assert orf['seq_end'] == 66
 
 
-def test_rel_position(multipart_WB_transcript1):
+def test_rel_position(multipart_WB_transcript1: MultiPartSeqRegion) -> None:
 
     # Report position within exon
     assert multipart_WB_transcript1.to_rel_position(5780722) == 1

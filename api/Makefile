@@ -50,7 +50,7 @@ python-test-dependencies:
 	pip install -r tests/requirements.txt
 
 run-python-type-check: python-dependencies python-test-dependencies
-	mypy --install-types --non-interactive --warn-unused-config src/
+	mypy --install-types --non-interactive --warn-unused-config ./
 
 run-python-style-check: python-dependencies python-test-dependencies
 	flake8 ./

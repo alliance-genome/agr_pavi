@@ -12,14 +12,14 @@ FASTA_URL = 'https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000146045.2_R64_genom
 DOWNLOAD_DIR = 'tests/tmp/'
 
 
-def test_is_accessible_url():
+def test_is_accessible_url() -> None:
     response = is_accessible_url(FASTA_URL)
 
     assert isinstance(response, bool)
     assert response is True
 
 
-def test_download_from_url():
+def test_download_from_url() -> None:
 
     expected_rel_file_path = os.path.join(DOWNLOAD_DIR, 'GCF_000146045.2_R64_genomic.fna.gz')
     expected_abs_file_path = str(Path(expected_rel_file_path).resolve())
