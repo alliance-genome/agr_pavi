@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from main import app
 from os import environ, getcwd, getenv
+from typing import Any
 from uuid import UUID
 
 from .helper_fns import poll_job_progress
@@ -20,7 +21,7 @@ else:
     environ["API_EXECUTION_ENV"] = 'local'
 
 
-def test_pipeline_workflow():
+def test_pipeline_workflow() -> None:
 
     # Initiate pipeline
     input_data: str
@@ -30,7 +31,7 @@ def test_pipeline_workflow():
     response = client.post(url='/pipeline-job/', content=input_data)
     assert response.status_code == 201
 
-    response_dict: dict = response.json()
+    response_dict: dict[str, Any] = response.json()
     assert all(key in response_dict.keys() for key in ['uuid', 'status'])
 
     job_uuid: UUID = response_dict['uuid']
@@ -43,6 +44,5 @@ def test_pipeline_workflow():
 
     assert response.status_code == 200, f'Result retrieval for {job_uuid} did not return success.'
 
-    input_data: str
     with open('../pipeline/workflow/tests/resources/integration-test-results.aln', mode='r') as expected_result_file:
         assert response.text == expected_result_file.read()
