@@ -8,8 +8,23 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 jobs:
+  container-build-context:
+    name: define container image build context variables
+    runs-on: ubuntu-22.04
+    outputs:
+      tagname: ${{ steps.store_tagname.outputs.tagname }}
+    steps:
+    - name: Store image tag in env
+      id: store_tagname
+      shell: bash
+      run: |
+        echo "tagname=PR-${{ github.event.pull_request.number }}-validation" >> $GITHUB_OUTPUT
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
+    needs:
+      - container-build-context
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
@@ -20,6 +35,17 @@ jobs:
             pipeline/seq_retrieval/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+      # This step will configure environment variables to be used by all steps
+      # involving AWS interaction further down
+      - name: AWS credentials configuration
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
+          role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-seq-retrieval-image-upload
+          aws-region: us-east-1
+      - name: Amazon ECR login
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
       - name: Build container image
         uses: docker/build-push-action@v5
         with:
@@ -32,6 +58,11 @@ jobs:
         with:
           name: seq_retrieval_image
           path: /tmp/pavi_seq_retrieval_docker_image.tar
+      - name: Load, tag and push image to registry
+        run: |
+          docker load --input /tmp/pavi_seq_retrieval_docker_image.tar
+          docker tag agr_pavi/pipeline_seq_retrieval:latest ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{needs.container-build-context.outputs.tagname}}
+          docker push ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{needs.container-build-context.outputs.tagname}}
   pipeline-seq-retrieval-code-checks:
     name: pipeline/seq_retrieval code checks
     runs-on: ubuntu-22.04
@@ -60,6 +91,10 @@ jobs:
           make run-unit-tests
   pipeline-alignment-container-image-build:
     name: pipeline/alignment container-image build
+    needs:
+      - container-build-context
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
@@ -70,6 +105,17 @@ jobs:
             pipeline/alignment/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+      # This step will configure environment variables to be used by all steps
+      # involving AWS interaction further down
+      - name: AWS credentials configuration
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
+          role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-alignment-image-upload
+          aws-region: us-east-1
+      - name: Amazon ECR login
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
       - name: Build container image
         uses: docker/build-push-action@v5
         with:
@@ -82,6 +128,11 @@ jobs:
         with:
           name: alignment_image
           path: /tmp/pavi_alignment_docker_image.tar
+      - name: Load, tag and push image to registry
+        run: |
+          docker load --input /tmp/pavi_alignment_docker_image.tar
+          docker tag agr_pavi/pipeline_alignment:latest ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{needs.container-build-context.outputs.tagname}}
+          docker push ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{needs.container-build-context.outputs.tagname}}
   pipeline-alignment-unit-testing:
     name: pipeline/alignment unit testing
     needs:
@@ -114,8 +165,11 @@ jobs:
   pipeline-workflow-integration-testing:
     name: pipeline/workflow integration testing
     needs:
+      - container-build-context
       - pipeline-seq-retrieval-container-image-build
       - pipeline-alignment-container-image-build
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -146,9 +200,20 @@ jobs:
       - name: Load alignment Docker image
         run: |
           docker load --input /tmp/pavi_alignment_docker_image.tar
-      - name: Run integration test
+      - name: Run local integration test
         run: |
-          make run-integration-test
+          make run-integration-test-local
+      # This step will configure environment variables to be used by all steps
+      # involving AWS interaction further down
+      - name: AWS credentials configuration
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
+          role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-workflow-aws-test
+          aws-region: us-east-1
+      - name: Run AWS integration test
+        run: |
+          make run-integration-test-aws TAG_NAME=${{needs.container-build-context.outputs.tagname}}
   pipeline-aws-infra-code-checks:
     name: pipeline/aws_infra code checks
     permissions:
@@ -156,7 +221,7 @@ jobs:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        working-directory: pipeline/aws_infra
+        working-directory: ./pipeline/aws_infra
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -193,3 +258,128 @@ jobs:
         aws-region: us-east-1
     - name: Validate production CDK stack code
       run: cdk diff PaviPipelineCdkStack
+  api-code-checks:
+    name: API code checks
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./api/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            api/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python typing test
+        run: |
+          make run-python-type-check
+      - name: Python style test
+        run: |
+          make run-python-style-check
+  api-container-image-build:
+    name: API container-image build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build container image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./
+          file: api/Dockerfile
+          push: false
+          tags: agr_pavi/api:latest
+          outputs: type=docker,dest=/tmp/pavi_api_docker_image.tar
+      - name: Upload image as artifact (share between jobs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: api_image
+          path: /tmp/pavi_api_docker_image.tar
+  api-unit-integration-testing:
+    name: API unit and integration testing
+    needs:
+      - pipeline-seq-retrieval-container-image-build
+      - pipeline-alignment-container-image-build
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./api/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Download seq_retrieval image artifact (from previous job)
+        uses: actions/download-artifact@v4
+        with:
+          name: seq_retrieval_image
+          path: /tmp
+      - name: Download alignment image artifact (from previous job)
+        uses: actions/download-artifact@v4
+        with:
+          name: alignment_image
+          path: /tmp
+      - name: Load seq_retrieval Docker image
+        run: |
+          docker load --input /tmp/pavi_seq_retrieval_docker_image.tar
+      - name: Load alignment Docker image
+        run: |
+          docker load --input /tmp/pavi_alignment_docker_image.tar
+      - name: Run unit and integration tests
+        run: |
+          make run-tests
+  api-container-integration-testing:
+    name: API container integration testing (AWS batch execution)
+    needs:
+      - container-build-context
+      - pipeline-seq-retrieval-container-image-build
+      - pipeline-alignment-container-image-build
+      - api-container-image-build
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./api/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            api/
+            pipeline/workflow/tests/
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Download API image artifact (from previous job)
+        uses: actions/download-artifact@v4
+        with:
+          name: api_image
+          path: /tmp
+      - name: Load API Docker image
+        run: |
+          docker load --input /tmp/pavi_api_docker_image.tar
+      # This step will configure environment variables to be used by all steps
+      # involving AWS interaction further down
+      - name: AWS credentials configuration
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
+          role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-api-aws-test
+          aws-region: us-east-1
+      - name: Run container integration test (AWS execution)
+        run: |
+          make run-integration-test-container TAG_NAME=${{needs.container-build-context.outputs.tagname}}

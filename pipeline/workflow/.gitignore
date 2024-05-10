@@ -1,6 +1,6 @@
 # NextFlow output files
-nextflow
+nextflow.sh
+.nextflow.*
 .nextflow/
-.nextflow.log.*
 work/
 pipeline-results/

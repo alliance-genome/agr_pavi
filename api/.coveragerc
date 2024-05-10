@@ -1,0 +1,16 @@
+[run]
+source = src
+omit =
+    *__init__*
+
+[report]
+exclude_lines =
+    # Exclude defensive assertion code
+    raise AssertionError
+    raise NotImplementedError
+
+    # Exclude main method calling (not testable through unit testing)
+    if __name__ == .__main__.:
+
+    # Exclude all functions labeled with "pragma: no cover"
+    pragma: no cover
