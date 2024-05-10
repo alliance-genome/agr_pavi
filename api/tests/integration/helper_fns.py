@@ -24,7 +24,7 @@ def poll_job_progress(client: TestClient | Client, job_uuid: UUID, timeout: int 
     walltime = 0
     while walltime < timeout:
         response = client.get(f'/pipeline-job/{job_uuid}')
-        assert response.status_code == 200
+        assert response.status_code == 200, f'Polling status for {job_uuid} did not return success.'
 
         response_dict: dict[str, Any] = response.json()
         assert all(key in response_dict.keys() for key in ['uuid', 'status'])
@@ -36,4 +36,4 @@ def poll_job_progress(client: TestClient | Client, job_uuid: UUID, timeout: int 
             sleep(interval)
             walltime += interval
 
-    assert walltime < timeout, 'API failed to report job completion before timeout.'
+    assert walltime < timeout, f'API failed to report job completion for {job_uuid} before timeout.'

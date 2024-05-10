@@ -41,7 +41,7 @@ def test_pipeline_workflow():
     # Collect and compare pipeline result
     response = client.get(f'/pipeline-job/{job_uuid}/alignment-result')
 
-    assert response.status_code == 200
+    assert response.status_code == 200, f'Result retrieval for {job_uuid} did not return success.'
 
     input_data: str
     with open('../pipeline/workflow/tests/resources/integration-test-results.aln', mode='r') as expected_result_file:
