@@ -23,7 +23,7 @@ run-unit-tests-dev: check-venv-active run-unit-tests
 	@:
 
 run-python-type-check: python-dependencies python-test-dependencies
-	mypy --install-types --non-interactive --warn-unused-config .
+	mypy --install-types --non-interactive --warn-unused-config ./
 
 run-python-style-check: python-dependencies python-test-dependencies
 	flake8 ./
