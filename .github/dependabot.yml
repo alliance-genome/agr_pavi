@@ -11,3 +11,11 @@ updates:
     directory: "/pipeline/seq_retrieval/"
     schedule:
       interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/pipeline/aws_infra/"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/api/"
+    schedule:
+      interval: "monthly"
