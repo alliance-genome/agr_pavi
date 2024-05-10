@@ -12,6 +12,7 @@ from uuid import uuid1, UUID
 
 api_results_path_prefix = getenv("API_RESULTS_PATH_PREFIX", './')
 api_execution_env = getenv("API_EXECUTION_ENV", 'local')
+api_pipeline_image_tag = getenv("API_PIPELINE_IMAGE_TAG", 'latest')
 
 
 class Pipeline_seq_region(BaseModel):
@@ -51,6 +52,7 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
         seqregions_file.write(seq_regions_json)
 
     subprocess.run(['./nextflow.sh', 'run', '-profile', api_execution_env, 'protein-msa.nf',
+                    '--image_tag', api_pipeline_image_tag,
                     '--input_seq_regions_file', seqregions_filename,
                     '--publish_dir_prefix', api_results_path_prefix,
                     '--publish_dir', f'pipeline-results_{uuid}'])
