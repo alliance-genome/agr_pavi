@@ -221,7 +221,7 @@ jobs:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        working-directory: pipeline/aws_infra
+        working-directory: ./pipeline/aws_infra
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -360,7 +360,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            pipeline/api/
+            api/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Download API image artifact (from previous job)
