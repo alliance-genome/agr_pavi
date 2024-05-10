@@ -361,6 +361,7 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             api/
+            pipeline/workflow/tests/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Download API image artifact (from previous job)
