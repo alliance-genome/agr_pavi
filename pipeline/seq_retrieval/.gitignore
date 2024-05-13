@@ -1,13 +1,3 @@
-# CDK files
-## asset staging directory
-.cdk.staging
-cdk.out
-
-## CLI installation artifacts
-node_modules/
-package.json
-package-lock.json
-
 # Python files
 ## Byte-compiled / optimized / DLL files
 __pycache__/
