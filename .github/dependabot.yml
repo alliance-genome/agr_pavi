@@ -19,3 +19,7 @@ updates:
     directory: "/api/"
     schedule:
       interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/shared_aws_infra/"
+    schedule:
+      interval: "monthly"
