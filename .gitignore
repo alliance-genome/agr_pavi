@@ -162,6 +162,7 @@ cython_debug/
 
 # VS Code
 .vscode/
+*.code-workspace
 
 # tmp directories used for downloading and storing local testing resources
 tmp/
