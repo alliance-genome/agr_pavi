@@ -229,6 +229,7 @@ jobs:
         fetch-depth: 0
         sparse-checkout: |
           pipeline/aws_infra/
+          shared_aws_infra/
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -398,6 +399,7 @@ jobs:
         fetch-depth: 0
         sparse-checkout: |
           api/aws_infra/
+          shared_aws_infra/
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
