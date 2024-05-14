@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        working-directory: pipeline/aws_infra
+        working-directory: api/aws_infra
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
