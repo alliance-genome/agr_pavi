@@ -186,6 +186,6 @@ jobs:
         file: api/Dockerfile
         push: true
         tags: |
-          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{ env.tagname }}
-          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{ github.event.pull_request.base.ref }}
+          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ env.tagname }}
+          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
