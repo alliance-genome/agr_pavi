@@ -2,6 +2,8 @@
 source = src
 omit =
     *__init__*
+    # Exclude AWS infra code
+    aws_infra/*
 
 [report]
 exclude_lines =
