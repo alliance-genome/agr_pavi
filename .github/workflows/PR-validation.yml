@@ -229,6 +229,7 @@ jobs:
         fetch-depth: 0
         sparse-checkout: |
           pipeline/aws_infra/
+          shared_aws_infra/
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -383,3 +384,48 @@ jobs:
       - name: Run container integration test (AWS execution)
         run: |
           make run-integration-test-container TAG_NAME=${{needs.container-build-context.outputs.tagname}}
+  api-aws-infra-code-checks:
+    name: api/aws_infra code checks
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./api/aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        sparse-checkout: |
+          api/aws_infra/
+          shared_aws_infra/
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: CDK resource assertions (unit tests)
+      run: |
+        make run-unit-tests
+    - name: Python typing test
+      run: |
+        make run-python-type-check
+    - name: Python style test
+      run: |
+        make run-python-style-check
+    - name: Setup node.js (CDK requirement)
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+    - name: Install CDK CLI
+      run: npm install -g aws-cdk
+    - name: Install CDK stack dependencies
+      run: pip install -r requirements.txt
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
+        aws-region: us-east-1
+    - name: Validate production CDK stack code
+      run: cdk diff PaviApiCdkStack

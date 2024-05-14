@@ -17,7 +17,8 @@ container-image:
 	docker build ${ADDITIONAL_BUILD_ARGS} -f api/Dockerfile -t ${CONTAINER_NAME} .
 
 run-container-dev:
-	docker-compose --env-file dev.env up agr.pavi.dev.api
+	export API_PIPELINE_IMAGE_TAG=main && \
+	  docker-compose --env-file dev.env up agr.pavi.dev.api
 
 nextflow.sh:
 	make -f ../pipeline/workflow/Makefile nextflow.sh

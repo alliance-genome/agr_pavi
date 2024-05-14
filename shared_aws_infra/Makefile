@@ -23,25 +23,3 @@ endif
 
 python-dependencies:
 	pip install -r requirements.txt
-
-python-test-dependencies:
-	pip install -r tests/requirements.txt
-
-run-unit-tests: python-dependencies python-test-dependencies
-	python -m pytest
-
-run-unit-tests-dev: check-venv-active run-unit-tests
-	@:
-
-run-python-type-check: python-dependencies python-test-dependencies
-	mypy --install-types --non-interactive --warn-unused-config ./
-
-run-python-style-check: python-dependencies python-test-dependencies
-	flake8 ./
-
-validate: check-node run-unit-tests
-# Validate production stack code
-	cdk diff PaviPipelineCdkStack
-
-validate-dev: check-venv-active validate
-	@:

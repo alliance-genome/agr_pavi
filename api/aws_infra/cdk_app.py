@@ -13,13 +13,11 @@ from shared_aws_infra.agr_aws_env import agr_aws_environment  # noqa: E402
 
 
 app = App()
-CdkInfraStack(app, "PaviPipelineCdkStack",
+CdkInfraStack(app, "PaviApiCdkStack",
               env=agr_aws_environment)
 
-CdkInfraStack(app, "PaviPipelineCdkStack-dev", env_suffix="dev",
-              shared_seq_retrieval_image_repo='agr_pavi/pipeline_seq_retrieval',
-              shared_alignment_image_repo='agr_pavi/pipeline_alignment',
-              shared_work_dir_bucket='agr-pavi-pipeline-nextflow',
+CdkInfraStack(app, "PaviApiCdkStack-dev", env_suffix="dev",
+              shared_api_image_repo='agr_pavi/api',
               env=agr_aws_environment)
 
 app.synth()
