@@ -10,10 +10,10 @@ from pathlib import Path
 from sys import path as sys_path
 from typing import Any, Optional
 
-shared_aws_infra_path = Path(__file__).parent.parent.parent.parent.joinpath('shared_aws_infra')
-sys_path.append(str(shared_aws_infra_path))
+repo_root_path = Path(__file__).parent.parent.parent.parent
+sys_path.append(str(repo_root_path))
 
-from shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository  # noqa: E402
+from shared_aws_infra.shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository  # noqa: E402
 from cdk_classes.aws_batch import PaviExecutionEnvironment  # noqa: E402
 
 
