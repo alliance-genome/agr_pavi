@@ -35,9 +35,8 @@ class CdkInfraStack(Stack):
         # Import or create api_ecr_repo
         if not shared_api_image_repo:
             self.shared_api_image_repo = PaviEcrRepository(self, id='PAVI-api-repo', component_name='api',
-                                                            env_suffix=env_suffix)
+                                                           env_suffix=env_suffix)
         else:
             self.seq_retrieval_ecr_repo = ecr.Repository.from_repository_name(self, id='PAVI-api-repo', repository_name=shared_api_image_repo)
             cdk_tags.of(self.seq_retrieval_ecr_repo).add("Product", "PAVI")
             cdk_tags.of(self.seq_retrieval_ecr_repo).add("Managed_by", "PAVI")
-
