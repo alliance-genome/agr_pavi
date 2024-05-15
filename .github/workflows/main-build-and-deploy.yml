@@ -48,8 +48,8 @@ jobs:
       run: make validate
     - name: cdk deploy
       run: cdk deploy PaviPipelineCdkStack --require-approval never
-  api-deploy-aws-infra:
-    name: Deploy/update AWS infrastructure for API
+  api-deploy-image-repo:
+    name: Deploy/update container image repository stack for API
     needs: [on-merge-and-deploy]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
@@ -81,7 +81,7 @@ jobs:
     - name: CDK validations (resource assertions and cdk diff)
       run: make validate
     - name: cdk deploy
-      run: cdk deploy PaviApiCdkStack --require-approval never
+      run: cdk deploy PaviApiImageRepoCdkStack --require-approval never
   pipeline-seq-retrieval-build-and-push-docker-image:
     needs: [on-merge-and-deploy, pipeline-deploy-aws-infra]
     permissions:
@@ -155,7 +155,7 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
   api-build-and-push-docker-image:
-    needs: [on-merge-and-deploy, api-deploy-aws-infra]
+    needs: [on-merge-and-deploy, api-deploy-image-repo]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04

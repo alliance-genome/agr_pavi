@@ -1,6 +1,0 @@
-[tool.pytest.ini_options]
-addopts = [
-    "--import-mode=importlib",
-    "--ignore=aws_infra",
-]
-pythonpath = "src"
