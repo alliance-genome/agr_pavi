@@ -8,7 +8,7 @@ from aws_cdk import App
 from aws_cdk.aws_config import ResourceType
 import aws_cdk.assertions as assertions
 
-from cdk_classes.cdk_infra_stack import CdkInfraStack
+from cdk_classes.cdk_image_repo_stack import CdkImageRepoStack
 
 from pathlib import Path
 from sys import path as sys_path
@@ -19,7 +19,7 @@ sys_path.append(str(repo_root_path))
 from shared_aws_infra.agr_aws_env import agr_aws_environment  # noqa: E402
 
 app = App()
-stack = CdkInfraStack(app, "pytest-stack", env=agr_aws_environment)
+stack = CdkImageRepoStack(app, "pytest-stack", env=agr_aws_environment)
 template = assertions.Template.from_stack(stack)
 
 

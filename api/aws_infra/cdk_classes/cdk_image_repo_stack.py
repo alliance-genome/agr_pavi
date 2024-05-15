@@ -16,7 +16,7 @@ sys_path.append(str(repo_root_path))
 from shared_aws_infra.shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository  # noqa: E402
 
 
-class CdkInfraStack(Stack):
+class CdkImageRepoStack(Stack):
 
     api_ecr_repo: ecr.Repository | ecr.IRepository
 
