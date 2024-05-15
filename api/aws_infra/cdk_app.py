@@ -14,10 +14,10 @@ from shared_aws_infra.agr_aws_env import agr_aws_environment  # noqa: E402
 
 app = App()
 CdkImageRepoStack(app, "PaviApiImageRepoCdkStack",
-              env=agr_aws_environment)
+                  env=agr_aws_environment)
 
 CdkImageRepoStack(app, "PaviApiImageRepoCdkStack-dev", env_suffix="dev",
-              shared_api_image_repo='agr_pavi/api',
-              env=agr_aws_environment)
+                  shared_api_image_repo='agr_pavi/api',
+                  env=agr_aws_environment)
 
 app.synth()
