@@ -17,7 +17,6 @@ from zipfile import ZipFile
 class CdkEBApplicationStack(Stack):
 
     eb_application: eb.CfnApplication
-    eb_instance_profile: iam.InstanceProfile
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs: Any) -> None:
         """
@@ -46,23 +45,10 @@ class CdkEBApplicationStack(Stack):
             ))
         # eb_application_name = self.eb_application.ref
 
-        # Define role and instance profile
-        eb_role = iam.Role(self, 'eb-iam-role',
-                           #    role_name=f'{eb_application_name}-aws-elasticbeanstalk-ec2-role',
-                           assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),  # type: ignore
-                           managed_policies=[
-                               iam.ManagedPolicy.from_aws_managed_policy_name('AWSElasticBeanstalkWebTier'),
-                               iam.ManagedPolicy.from_managed_policy_name(self, "iam-ecr-read-policy", "ReadOnlyAccessECR")]
-                           )
-
-        self.eb_instance_profile = iam.InstanceProfile(self, 'eb-instance-profile',
-                                                       #    instance_profile_name=f'{eb_application_name}-InstanceProfile',
-                                                       role=eb_role  # type: ignore
-                                                       )
-
 
 class CdkApplicationStack(Stack):
 
+    eb_instance_profile: iam.InstanceProfile
     s3_asset: s3_assets.Asset
     eb_app_version: eb.CfnApplicationVersion
     eb_env: eb.CfnEnvironment
@@ -79,6 +65,20 @@ class CdkApplicationStack(Stack):
             env_suffix: environment suffix, added to created resource names
         """
         super().__init__(scope, construct_id, **kwargs)
+
+        # Define role and instance profile
+        eb_role = iam.Role(
+            self, 'eb-iam-role',
+            #    role_name=f'{eb_application_name}-aws-elasticbeanstalk-ec2-role',
+            assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),  # type: ignore
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name('AWSElasticBeanstalkWebTier'),
+                iam.ManagedPolicy.from_managed_policy_name(self, "iam-ecr-read-policy", "ReadOnlyAccessECR")])
+
+        self.eb_instance_profile = iam.InstanceProfile(
+            self, 'eb-instance-profile',
+            #    instance_profile_name=f'{eb_application_name}-InstanceProfile',
+            role=eb_role)  # type: ignore
 
         # Create app zip
         dir_path = path.dirname(path.realpath(__file__))
@@ -124,7 +124,7 @@ class CdkApplicationStack(Stack):
             eb.CfnEnvironment.OptionSettingProperty(
                 namespace='aws:autoscaling:launchconfiguration',
                 option_name='IamInstanceProfile',
-                value=eb_app_stack.eb_instance_profile.instance_profile_name
+                value=self.eb_instance_profile.instance_profile_name
             ),
             eb.CfnEnvironment.OptionSettingProperty(
                 namespace='aws:autoscaling:launchconfiguration',
