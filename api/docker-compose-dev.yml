@@ -1,0 +1,26 @@
+version: "3.2"
+
+services:
+
+  agr.pavi.dev-local.api:
+    container_name: agr.pavi.dev-local.api.server
+    image: ${REGISTRY}agr_pavi/api:${AGR_PAVI_RELEASE}
+    ports:
+      - "8080:8080"
+    networks:
+      - pavi
+    environment:
+      - AWS_PROFILE
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_ROLE_ARN
+      - AWS_ROLE_SESSION_NAME
+      - AWS_SESSION_TOKEN
+      - AWS_WEB_IDENTITY_TOKEN_FILE
+      - API_PIPELINE_IMAGE_TAG
+    volumes:
+      - ~/.aws:/root/.aws
+
+networks:
+  # The presence of these objects is sufficient to define them
+  pavi:

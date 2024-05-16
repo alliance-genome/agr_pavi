@@ -5,6 +5,7 @@ from pathlib import Path
 from sys import path as sys_path
 
 from cdk_classes.cdk_image_repo_stack import CdkImageRepoStack
+from cdk_classes.cdk_application_stack import CdkEBApplicationStack, CdkApplicationStack
 
 repo_root_path = Path(__file__).parent.parent.parent.parent
 sys_path.append(str(repo_root_path))
@@ -16,8 +17,17 @@ app = App()
 CdkImageRepoStack(app, "PaviApiImageRepoCdkStack",
                   env=agr_aws_environment)
 
-CdkImageRepoStack(app, "PaviApiImageRepoCdkStack-dev", env_suffix="dev",
-                  shared_api_image_repo='agr_pavi/api',
-                  env=agr_aws_environment)
+eb_app_stack = CdkEBApplicationStack(app, "PaviApiEbApplicationCdkStack",
+                                     env=agr_aws_environment)
+
+CdkApplicationStack(app, "PaviApiEbMainStack",
+                    eb_app_stack=eb_app_stack,
+                    env=agr_aws_environment,
+                    env_suffix='main')
+
+CdkApplicationStack(app, "PaviApiEbDevStack",
+                    eb_app_stack=eb_app_stack,
+                    env=agr_aws_environment,
+                    env_suffix='dev')
 
 app.synth()

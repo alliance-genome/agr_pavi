@@ -1,5 +1,5 @@
 """
-Unit testing for the cdk_infra_stack,
+Unit testing for the cdk_image_repo_stack,
 to ensure breaking changes are caught and handled
 before getting applied to the live AWS resources.
 """
@@ -13,7 +13,7 @@ from cdk_classes.cdk_image_repo_stack import CdkImageRepoStack
 from pathlib import Path
 from sys import path as sys_path
 
-repo_root_path = Path(__file__).parent.parent.parent.parent
+repo_root_path = Path(__file__).parent.parent.parent.parent.parent
 sys_path.append(str(repo_root_path))
 
 from shared_aws_infra.agr_aws_env import agr_aws_environment  # noqa: E402

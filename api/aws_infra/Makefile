@@ -42,6 +42,7 @@ run-python-style-check: python-dependencies python-test-dependencies
 validate: check-node run-unit-tests
 # Validate production stack code
 	cdk diff PaviApiImageRepoCdkStack
+	cdk diff PaviApiEbMainStack
 
 validate-dev: check-venv-active validate
 	@:
