@@ -2,7 +2,8 @@ from aws_cdk import (
     aws_elasticbeanstalk as eb,
     aws_iam as iam,
     Stack,
-    aws_s3_assets as s3_assets
+    aws_s3_assets as s3_assets,
+    RemovalPolicy
 )
 
 from constructs import Construct
@@ -26,8 +27,23 @@ class CdkEBApplicationStack(Stack):
         """
         super().__init__(scope, construct_id, **kwargs)
 
+        # Define application version removal policy, to prevent failing deployments caused by
+        # accumulating application versions over the account-level limit (1000 on 2023/05/16)
+        version_removal_policy = eb.CfnApplication.ApplicationVersionLifecycleConfigProperty(
+            max_count_rule=eb.CfnApplication.MaxCountRuleProperty(
+                delete_source_from_s3=True,
+                enabled=True,
+                max_count=2))
+
         # Create EB application
-        self.eb_application = eb.CfnApplication(self, id='PAVI-api-eb-app', application_name='PAVI-api')
+        self.eb_application = eb.CfnApplication(
+            self, id='PAVI-api-eb-app', application_name='PAVI-api',
+            resource_lifecycle_config=eb.CfnApplication.ApplicationResourceLifecycleConfigProperty(
+                service_role=iam.Role.from_role_name(
+                    self, 'eb-service-role',
+                    role_name='AWSServiceRoleForElasticBeanstalk').role_arn,
+                version_lifecycle_config=version_removal_policy
+            ))
         # eb_application_name = self.eb_application.ref
 
         # Define role and instance profile
@@ -85,13 +101,16 @@ class CdkApplicationStack(Stack):
         eb_app_name = eb_app_stack.eb_application.ref
 
         # Create EB application version using S3 asset
-        self.eb_app_version = eb.CfnApplicationVersion(self, 'eb-app-version',
-                                                       application_name=eb_app_name,
-                                                       source_bundle={
-                                                           's3Bucket': self.s3_asset.s3_bucket_name,
-                                                           's3Key': self.s3_asset.s3_object_key
-                                                       })
+        self.eb_app_version = eb.CfnApplicationVersion(
+            self, 'eb-app-version',
+            application_name=eb_app_name,
+            source_bundle={
+                's3Bucket': self.s3_asset.s3_bucket_name,
+                's3Key': self.s3_asset.s3_object_key
+            }
+        )
         self.eb_app_version.add_dependency(eb_app_stack.eb_application)
+        self.eb_app_version.apply_removal_policy(RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE)
 
         # Create EB environment to run the application
         # Environment-defined settings are defined here,
