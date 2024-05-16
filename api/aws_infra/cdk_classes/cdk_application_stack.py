@@ -94,6 +94,8 @@ class CdkApplicationStack(Stack):
         self.eb_app_version.add_dependency(eb_app_stack.eb_application)
 
         # Create EB environment to run the application
+        # Environment-defined settings are defined here,
+        # Settings that are bundeled into the application version are defined in .ebextensions/
         optionSettingProperties: list[eb.CfnEnvironment.OptionSettingProperty] = [
             eb.CfnEnvironment.OptionSettingProperty(
                 namespace='aws:elasticbeanstalk:environment',
@@ -109,21 +111,6 @@ class CdkApplicationStack(Stack):
                 namespace='aws:autoscaling:launchconfiguration',
                 option_name='EC2KeyName',
                 value='AGR-ssl2'
-            ),
-            eb.CfnEnvironment.OptionSettingProperty(
-                namespace='aws:autoscaling:asg',
-                option_name='MinSize',
-                value='1'
-            ),
-            eb.CfnEnvironment.OptionSettingProperty(
-                namespace='aws:autoscaling:asg',
-                option_name='MaxSize',
-                value='1'
-            ),
-            eb.CfnEnvironment.OptionSettingProperty(
-                namespace='aws:ec2:instances',
-                option_name='InstanceTypes',
-                value='t2.micro'
             ),
             eb.CfnEnvironment.OptionSettingProperty(
                 namespace='aws:elasticbeanstalk:application:environment',
