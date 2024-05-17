@@ -122,6 +122,11 @@ class CdkApplicationStack(Stack):
                 value='application'
             ),
             eb.CfnEnvironment.OptionSettingProperty(
+                namespace='aws:elasticbeanstalk:environment',
+                option_name='ServiceRole',
+                value='aws-elasticbeanstalk-service-role'
+            ),
+            eb.CfnEnvironment.OptionSettingProperty(
                 namespace='aws:autoscaling:launchconfiguration',
                 option_name='IamInstanceProfile',
                 value=self.eb_instance_profile.instance_profile_name
