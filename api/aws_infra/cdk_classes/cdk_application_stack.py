@@ -26,21 +26,25 @@ class CdkEBApplicationStack(Stack):
         """
         super().__init__(scope, construct_id, **kwargs)
 
+        eb_service_role = iam.Role.from_role_name(
+            self, id='eb-service-role',
+            role_name='aws-elasticbeanstalk-service-role')
+
         # Define application version removal policy, to prevent failing deployments caused by
         # accumulating application versions over the account-level limit (1000 on 2023/05/16)
         version_removal_policy = eb.CfnApplication.ApplicationVersionLifecycleConfigProperty(
             max_count_rule=eb.CfnApplication.MaxCountRuleProperty(
                 delete_source_from_s3=True,
                 enabled=True,
+                # max_count = number of application versions to retain, BEFORE new env creation.
+                # Total will be max_count+1 after update completed.
                 max_count=2))
 
         # Create EB application
         self.eb_application = eb.CfnApplication(
             self, id='PAVI-api-eb-app', application_name='PAVI-api',
             resource_lifecycle_config=eb.CfnApplication.ApplicationResourceLifecycleConfigProperty(
-                service_role=iam.Role.from_role_name(
-                    self, 'eb-service-role',
-                    role_name='AWSServiceRoleForElasticBeanstalk').role_arn,
+                service_role=eb_service_role.role_arn,
                 version_lifecycle_config=version_removal_policy
             ))
         # eb_application_name = self.eb_application.ref
@@ -65,6 +69,10 @@ class CdkApplicationStack(Stack):
             env_suffix: environment suffix, added to created resource names
         """
         super().__init__(scope, construct_id, **kwargs)
+
+        eb_service_role = iam.Role.from_role_name(
+            self, id='eb-service-role',
+            role_name='aws-elasticbeanstalk-service-role')
 
         # Define role and instance profile
         eb_ec2_role = iam.Role(
@@ -125,7 +133,7 @@ class CdkApplicationStack(Stack):
             eb.CfnEnvironment.OptionSettingProperty(
                 namespace='aws:elasticbeanstalk:environment',
                 option_name='ServiceRole',
-                value='aws-elasticbeanstalk-service-role'
+                value=eb_service_role.role_arn
             ),
             eb.CfnEnvironment.OptionSettingProperty(
                 namespace='aws:autoscaling:launchconfiguration',
