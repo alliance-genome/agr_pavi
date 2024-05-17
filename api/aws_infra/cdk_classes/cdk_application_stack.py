@@ -1,9 +1,10 @@
 from aws_cdk import (
     aws_elasticbeanstalk as eb,
     aws_iam as iam,
+    RemovalPolicy,
     Stack,
     aws_s3_assets as s3_assets,
-    RemovalPolicy
+    Tags as cdk_tags
 )
 
 from constructs import Construct
@@ -47,7 +48,9 @@ class CdkEBApplicationStack(Stack):
                 service_role=eb_service_role.role_arn,
                 version_lifecycle_config=version_removal_policy
             ))
-        # eb_application_name = self.eb_application.ref
+
+        cdk_tags.of(self.eb_application).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(self.eb_application).add("Managed_by", "PAVI")  # type: ignore
 
 
 class CdkApplicationStack(Stack):
@@ -83,11 +86,15 @@ class CdkApplicationStack(Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name('AWSElasticBeanstalkWebTier'),
                 iam.ManagedPolicy.from_aws_managed_policy_name('CloudWatchAgentServerPolicy'),
                 iam.ManagedPolicy.from_managed_policy_name(self, "iam-ecr-read-policy", "ReadOnlyAccessECR")])
+        cdk_tags.of(eb_ec2_role).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(eb_ec2_role).add("Managed_by", "PAVI")  # type: ignore
 
         self.eb_instance_profile = iam.InstanceProfile(
             self, 'eb-instance-profile',
             #    instance_profile_name=f'{eb_application_name}-InstanceProfile',
             role=eb_ec2_role)  # type: ignore
+        cdk_tags.of(self.eb_instance_profile).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(self.eb_instance_profile).add("Managed_by", "PAVI")  # type: ignore
 
         # Create app zip
         dir_path = path.dirname(path.realpath(__file__))
@@ -106,6 +113,8 @@ class CdkApplicationStack(Stack):
 
         # Upload app zip as s3 asset
         self.s3_asset = s3_assets.Asset(self, 'AppZip', path=app_zip_path)
+        cdk_tags.of(self.s3_asset).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(self.s3_asset).add("Managed_by", "PAVI")  # type: ignore
 
         eb_app_name = eb_app_stack.eb_application.ref
 
@@ -120,6 +129,8 @@ class CdkApplicationStack(Stack):
         )
         self.eb_app_version.add_dependency(eb_app_stack.eb_application)
         self.eb_app_version.apply_removal_policy(RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE)
+        cdk_tags.of(self.eb_app_version).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(self.eb_app_version).add("Managed_by", "PAVI")  # type: ignore
 
         # Create EB environment to run the application
         # Environment-defined settings are defined here,
@@ -173,3 +184,5 @@ class CdkApplicationStack(Stack):
                                         solution_stack_name='64bit Amazon Linux 2023 v4.3.1 running Docker',
                                         version_label=self.eb_app_version.ref,
                                         option_settings=optionSettingProperties)
+        cdk_tags.of(self.eb_env).add("Product", "PAVI")  # type: ignore
+        cdk_tags.of(self.eb_env).add("Managed_by", "PAVI")  # type: ignore
