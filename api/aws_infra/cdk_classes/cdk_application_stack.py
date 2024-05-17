@@ -67,18 +67,19 @@ class CdkApplicationStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         # Define role and instance profile
-        eb_role = iam.Role(
-            self, 'eb-iam-role',
+        eb_ec2_role = iam.Role(
+            self, 'eb-ec2-role',
             #    role_name=f'{eb_application_name}-aws-elasticbeanstalk-ec2-role',
             assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),  # type: ignore
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('AWSElasticBeanstalkWebTier'),
+                iam.ManagedPolicy.from_aws_managed_policy_name('CloudWatchAgentServerPolicy'),
                 iam.ManagedPolicy.from_managed_policy_name(self, "iam-ecr-read-policy", "ReadOnlyAccessECR")])
 
         self.eb_instance_profile = iam.InstanceProfile(
             self, 'eb-instance-profile',
             #    instance_profile_name=f'{eb_application_name}-InstanceProfile',
-            role=eb_role)  # type: ignore
+            role=eb_ec2_role)  # type: ignore
 
         # Create app zip
         dir_path = path.dirname(path.realpath(__file__))
