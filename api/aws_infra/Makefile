@@ -27,7 +27,7 @@ python-dependencies:
 python-test-dependencies:
 	pip install -r tests/requirements.txt
 
-run-unit-tests: python-dependencies python-test-dependencies
+run-unit-tests: python-dependencies python-test-dependencies check-node
 	python -m pytest
 
 run-unit-tests-dev: check-venv-active run-unit-tests
