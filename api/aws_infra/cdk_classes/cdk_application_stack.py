@@ -73,6 +73,8 @@ class CdkApplicationStack(Stack):
         """
         super().__init__(scope, construct_id, **kwargs)
 
+        self.add_dependency(eb_app_stack)
+
         eb_service_role = iam.Role.from_role_name(
             self, id='eb-service-role',
             role_name='aws-elasticbeanstalk-service-role')
@@ -116,7 +118,7 @@ class CdkApplicationStack(Stack):
         cdk_tags.of(self.s3_asset).add("Product", "PAVI")  # type: ignore
         cdk_tags.of(self.s3_asset).add("Managed_by", "PAVI")  # type: ignore
 
-        eb_app_name = eb_app_stack.eb_application.ref
+        eb_app_name = str(eb_app_stack.eb_application.application_name)
 
         # Create EB application version using S3 asset
         self.eb_app_version = eb.CfnApplicationVersion(
