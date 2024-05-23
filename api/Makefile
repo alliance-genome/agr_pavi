@@ -18,7 +18,7 @@ container-image:
 
 run-container-dev:
 	export API_PIPELINE_IMAGE_TAG=main && \
-	  docker-compose --env-file dev.env up agr.pavi.dev.api
+	  docker-compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.api
 
 nextflow.sh:
 	make -f ../pipeline/workflow/Makefile nextflow.sh
@@ -64,9 +64,9 @@ run-tests-dev: python-dependencies python-test-dependencies nextflow.sh protein-
 
 run-integration-test-container: python-dependencies python-test-dependencies
 	export API_PIPELINE_IMAGE_TAG=${TAG_NAME} && \
-	  docker-compose --env-file dev.env up -d agr.pavi.dev.api
+	  docker-compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
 	sleep 30 # Allow container some startup time before attempting to connect
 	export EXTERNAL_API_BASE_URL="http://localhost:8080" && \
 	  python -m pytest tests/integration \
-	  || (echo "Container logs:" && docker logs agr.pavi.dev.api.server && exit 1)
-	docker-compose down
+	  || (echo "Container logs:" && docker logs agr.pavi.dev-local.api.server && exit 1)
+	docker-compose -f docker-compose-dev.yml down

@@ -425,4 +425,4 @@ jobs:
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
         aws-region: us-east-1
     - name: Validate production CDK stack code
-      run: make validate
+      run: make validate-all

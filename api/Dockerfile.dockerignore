@@ -7,3 +7,5 @@ api/src/seq_regions*.json
 api/src/.nextflow*
 api/src/pipeline-results*/
 api/src/work/
+# AWS infra code and config files
+api/aws_infra/
