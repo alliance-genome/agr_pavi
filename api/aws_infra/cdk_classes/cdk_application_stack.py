@@ -2,7 +2,6 @@ from aws_cdk import (
     aws_elasticbeanstalk as eb,
     aws_iam as iam,
     Stack,
-    aws_s3_assets as s3_assets,
     Tags as cdk_tags
 )
 
@@ -53,8 +52,6 @@ class CdkEBApplicationStack(Stack):
 class CdkEbEnvironmentStack(Stack):
 
     eb_instance_profile: iam.InstanceProfile
-    s3_asset: s3_assets.Asset
-    eb_app_version: eb.CfnApplicationVersion
     eb_env: eb.CfnEnvironment
 
     def __init__(self, scope: Construct, construct_id: str,
