@@ -1,5 +1,14 @@
 .PHONY: check-venv-active check-node
+
 SUPPORTED_NODE := ^v18\.
+
+AWS_DEFAULT_REGION := us-east-1
+AWS_ACCT_NR := 100225593120
+
+PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty)-$(shell git rev-parse --abbrev-ref HEAD)-$(shell date +%Y%m%d-%H%M%S)
+DEPLOY_ENVIRONMENT ?= PaviApiEbDevStack
+PAVI_IMAGE_TAG ?= main
+PAVI_IMAGE_REGISTRY ?= ${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/
 
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
@@ -42,7 +51,11 @@ run-python-style-check: python-dependencies python-test-dependencies
 validate: check-node run-unit-tests
 # Validate production stack code
 	cdk diff PaviApiImageRepoCdkStack
-	cdk diff PaviApiEbMainStack
+	cdk diff PaviApiEbApplicationCdkStack
+	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
+	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
+	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
+	  cdk diff PaviApiEbMainStack
 
 validate-dev: check-venv-active validate
 	@:

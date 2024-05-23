@@ -1,7 +1,6 @@
 from aws_cdk import (
     aws_elasticbeanstalk as eb,
     aws_iam as iam,
-    RemovalPolicy,
     Stack,
     aws_s3_assets as s3_assets,
     Tags as cdk_tags
@@ -9,10 +8,8 @@ from aws_cdk import (
 
 from constructs import Construct
 
+from os import getenv
 from typing import Any
-
-from os import getenv, listdir, path
-from zipfile import ZipFile
 
 
 class CdkEBApplicationStack(Stack):
@@ -73,8 +70,6 @@ class CdkApplicationStack(Stack):
         """
         super().__init__(scope, construct_id, **kwargs)
 
-        self.add_dependency(eb_app_stack)
-
         eb_service_role = iam.Role.from_role_name(
             self, id='eb-service-role',
             role_name='aws-elasticbeanstalk-service-role')
@@ -98,41 +93,8 @@ class CdkApplicationStack(Stack):
         cdk_tags.of(self.eb_instance_profile).add("Product", "PAVI")  # type: ignore
         cdk_tags.of(self.eb_instance_profile).add("Managed_by", "PAVI")  # type: ignore
 
-        # Create app zip
-        dir_path = path.dirname(path.realpath(__file__))
-        app_zip_path = 'eb_app.zip'
-        with ZipFile(app_zip_path, 'w') as zipObj:
-            # Add docker-compose file
-            docker_compose_file = f'{dir_path}/../../docker-compose.yml'
-            zipObj.write(docker_compose_file, path.basename(path.normpath(docker_compose_file)))
-
-            # Add all files in .ebextensions/
-            ebextensions_path = f'{dir_path}/../.ebextensions/'
-            for filename in listdir(ebextensions_path):
-                full_file_path = path.join(ebextensions_path, filename)
-                if path.isfile(full_file_path):
-                    zipObj.write(full_file_path, path.join('.ebextensions/', filename))
-
-        # Upload app zip as s3 asset
-        self.s3_asset = s3_assets.Asset(self, 'AppZip', path=app_zip_path)
-        cdk_tags.of(self.s3_asset).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(self.s3_asset).add("Managed_by", "PAVI")  # type: ignore
-
         eb_app_name = str(eb_app_stack.eb_application.application_name)
-
-        # Create EB application version using S3 asset
-        self.eb_app_version = eb.CfnApplicationVersion(
-            self, 'eb-app-version',
-            application_name=eb_app_name,
-            source_bundle={
-                's3Bucket': self.s3_asset.s3_bucket_name,
-                's3Key': self.s3_asset.s3_object_key
-            }
-        )
-        self.eb_app_version.add_dependency(eb_app_stack.eb_application)
-        self.eb_app_version.apply_removal_policy(RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE)
-        cdk_tags.of(self.eb_app_version).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(self.eb_app_version).add("Managed_by", "PAVI")  # type: ignore
+        app_version_label = getenv('PAVI_DEPLOY_VERSION_LABEL')
 
         # Create EB environment to run the application
         # Environment-defined settings are defined here,
@@ -184,7 +146,7 @@ class CdkApplicationStack(Stack):
                                         environment_name=f'{eb_app_name}-{env_suffix}',
                                         application_name=eb_app_name,
                                         solution_stack_name='64bit Amazon Linux 2023 v4.3.1 running Docker',
-                                        version_label=self.eb_app_version.ref,
+                                        version_label=app_version_label,
                                         option_settings=optionSettingProperties)
         cdk_tags.of(self.eb_env).add("Product", "PAVI")  # type: ignore
         cdk_tags.of(self.eb_env).add("Managed_by", "PAVI")  # type: ignore
