@@ -1,6 +1,7 @@
 from aws_cdk import (
     aws_elasticbeanstalk as eb,
     aws_iam as iam,
+    aws_s3 as s3,
     Stack,
     Tags as cdk_tags
 )
@@ -71,6 +72,20 @@ class EbEnvironmentCdkStack(Stack):
             self, id='eb-service-role',
             role_name='aws-elasticbeanstalk-service-role')
 
+        # Define permissions to read pipeline results
+        pipeline_nextflow_bucket = s3.Bucket.from_bucket_name(
+            self, id='pipeline-s3-bucket',
+            bucket_name='agr-pavi-pipeline-nextflow')
+
+        s3_bucket_access_statements = [
+            iam.PolicyStatement(
+                sid="S3BucketReadAll",
+                effect=iam.Effect.ALLOW,
+                actions=['s3:ListBucket*', 's3:Get*'],
+                resources=[pipeline_nextflow_bucket.bucket_arn, pipeline_nextflow_bucket.bucket_arn + '/*'])]
+
+        s3_pipeline_bucket_policy_doc = iam.PolicyDocument(statements=s3_bucket_access_statements)
+
         # Define role and instance profile
         eb_ec2_role = iam.Role(
             self, 'eb-ec2-role',
@@ -79,7 +94,9 @@ class EbEnvironmentCdkStack(Stack):
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('AWSElasticBeanstalkWebTier'),
                 iam.ManagedPolicy.from_aws_managed_policy_name('CloudWatchAgentServerPolicy'),
-                iam.ManagedPolicy.from_managed_policy_name(self, "iam-ecr-read-policy", "ReadOnlyAccessECR")])
+                iam.ManagedPolicy.from_managed_policy_name(self, "iam-ecr-read-policy", "ReadOnlyAccessECR")],
+            inline_policies={'read-pipeline-results': s3_pipeline_bucket_policy_doc})
+
         cdk_tags.of(eb_ec2_role).add("Product", "PAVI")  # type: ignore
         cdk_tags.of(eb_ec2_role).add("Managed_by", "PAVI")  # type: ignore
 
