@@ -8,7 +8,7 @@ from aws_cdk import App
 from aws_cdk.aws_config import ResourceType
 import aws_cdk.assertions as assertions
 
-from cdk_classes.cdk_image_repo_stack import CdkImageRepoStack
+from cdk_classes.image_repo_stack import CdkImageRepoStack
 
 from pathlib import Path
 from sys import path as sys_path

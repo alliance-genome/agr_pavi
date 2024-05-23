@@ -11,7 +11,7 @@ from os import getenv
 from typing import Any
 
 
-class CdkEBApplicationStack(Stack):
+class EBApplicationCdkStack(Stack):
 
     eb_application: eb.CfnApplication
 
@@ -49,13 +49,13 @@ class CdkEBApplicationStack(Stack):
         cdk_tags.of(self.eb_application).add("Managed_by", "PAVI")  # type: ignore
 
 
-class CdkEbEnvironmentStack(Stack):
+class EbEnvironmentCdkStack(Stack):
 
     eb_instance_profile: iam.InstanceProfile
     eb_env: eb.CfnEnvironment
 
     def __init__(self, scope: Construct, construct_id: str,
-                 eb_app_stack: CdkEBApplicationStack,
+                 eb_app_stack: EBApplicationCdkStack,
                  env_suffix: str,
                  **kwargs: Any) -> None:
         """
