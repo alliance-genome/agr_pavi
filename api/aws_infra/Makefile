@@ -59,7 +59,7 @@ validate-environment-stack: check-node run-unit-tests
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
-	  cdk diff PaviApiEbDevStack
+	  cdk diff PaviApiEbMainStack
 
 validate-all: check-node run-unit-tests validate-image-stack validate-application-stack validate-environment-stack
 	@:
