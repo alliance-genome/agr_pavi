@@ -35,7 +35,7 @@ class EBApplicationCdkStack(Stack):
                 enabled=True,
                 # max_count = number of application versions to retain, BEFORE new env creation.
                 # Total will be max_count+1 after update completed.
-                max_count=2))
+                max_count=20))
 
         # Create EB application
         self.eb_application = eb.CfnApplication(
