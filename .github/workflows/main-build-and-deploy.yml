@@ -79,7 +79,7 @@ jobs:
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
         aws-region: us-east-1
     - name: CDK validations (resource assertions and cdk diff)
-      run: make validate
+      run: make validate-image-stack
     - name: cdk deploy
       run: cdk deploy PaviApiImageRepoCdkStack --require-approval never
   pipeline-seq-retrieval-build-and-push-docker-image:
@@ -189,3 +189,50 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ env.tagname }}
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
+  api-deploy-application:
+    name: Deploy application (version) for API
+    needs:
+      - on-merge-and-deploy
+      - api-build-and-push-docker-image
+      - pipeline-alignment-build-and-push-docker-image
+      - pipeline-seq-retrieval-build-and-push-docker-image
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: api/aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Store release tag in env
+      shell: bash
+      run: |
+        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
+    - name: Setup node.js (CDK requirement)
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+    - name: Install CDK
+      run: npm install -g aws-cdk
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install CDK stack dependencies
+      run: pip install -r requirements.txt
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-api-cdk-deploy
+        aws-region: us-east-1
+    - name: CDK validations (resource assertions and cdk diff)
+      run: make validate-application-stack validate-environment-stack
+    - name: Deploy application (and version)
+      run: make deploy-application PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" ADD_CDK_ARGS="--require-approval never"
+    - name: Deploy to main environment
+      run: make deploy-environment PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
+            DEPLOY_ENVIRONMENT=PaviApiEbMainStack ADD_CDK_ARGS="--require-approval never"
