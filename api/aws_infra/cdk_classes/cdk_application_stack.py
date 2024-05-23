@@ -50,7 +50,7 @@ class CdkEBApplicationStack(Stack):
         cdk_tags.of(self.eb_application).add("Managed_by", "PAVI")  # type: ignore
 
 
-class CdkApplicationStack(Stack):
+class CdkEbEnvironmentStack(Stack):
 
     eb_instance_profile: iam.InstanceProfile
     s3_asset: s3_assets.Asset
