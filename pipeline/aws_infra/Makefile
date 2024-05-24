@@ -1,5 +1,9 @@
 .PHONY: check-venv-active check-node
+
 SUPPORTED_NODE := ^v18\.
+
+PAVI_COMPUTE_MIN_VCPU ?= 2
+ADD_CDK_ARGS ?=
 
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
@@ -41,7 +45,12 @@ run-python-style-check: python-dependencies python-test-dependencies
 
 validate: check-node run-unit-tests
 # Validate production stack code
-	cdk diff PaviPipelineCdkStack
+	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
+	  cdk diff PaviPipelineCdkStack
 
 validate-dev: check-venv-active validate
 	@:
+
+deploy:
+	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
+	  cdk deploy PaviPipelineCdkStack ${ADD_CDK_ARGS}

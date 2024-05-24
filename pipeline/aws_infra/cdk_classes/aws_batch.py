@@ -9,7 +9,11 @@ from aws_cdk import (
     Tags as cdk_tags
 )
 
+from os import getenv
 from typing import Optional
+
+min_compute_vcpu: int = int(getenv('PAVI_COMPUTE_MIN_VCPU', 0))
+'''Minimum vCPU capacity to maintain in the compute environment when inactive.'''
 
 
 class PaviExecutionEnvironment:
@@ -95,7 +99,8 @@ class PaviExecutionEnvironment:
             instance_role=instance_role,  # type: ignore
             spot=False,
             terminate_on_update=False, update_timeout=Duration.minutes(10),
-            update_to_latest_image_version=True)
+            update_to_latest_image_version=True,
+            minv_cpus=min_compute_vcpu)
 
         self.compute_environment.apply_removal_policy(RemovalPolicy.DESTROY)
 
