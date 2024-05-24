@@ -25,7 +25,7 @@ def test_pipeline_workflow() -> None:
 
     # Initiate pipeline
     input_data: str
-    with open('../pipeline/workflow/tests/integration/test_seq_regions.json', mode='r') as input_file:
+    with open('../tests/resources/test_seq_regions.json', mode='r') as input_file:
         input_data = input_file.read()
 
     response = client.post(url='/pipeline-job/', content=input_data)
@@ -44,5 +44,5 @@ def test_pipeline_workflow() -> None:
 
     assert response.status_code == 200, f'Result retrieval for {job_uuid} did not return success.'
 
-    with open('../pipeline/workflow/tests/resources/integration-test-results.aln', mode='r') as expected_result_file:
+    with open('../tests/resources/integration-test-results.aln', mode='r') as expected_result_file:
         assert response.text == expected_result_file.read()
