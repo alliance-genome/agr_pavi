@@ -47,7 +47,7 @@ jobs:
     - name: CDK validations (resource assertions and cdk diff)
       run: make validate
     - name: cdk deploy
-      run: cdk deploy PaviPipelineCdkStack --require-approval never
+      run: make deploy ADD_CDK_ARGS="--require-approval never"
   api-deploy-image-repo:
     name: Deploy/update container image repository stack for API
     needs: [on-merge-and-deploy]
