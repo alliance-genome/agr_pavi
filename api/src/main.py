@@ -51,13 +51,18 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
     with open(seqregions_filename, mode='w') as seqregions_file:
         seqregions_file.write(seq_regions_json)
 
-    subprocess.run(['./nextflow.sh', 'run', '-profile', api_execution_env, 'protein-msa.nf',
-                    '--image_tag', api_pipeline_image_tag,
-                    '--input_seq_regions_file', seqregions_filename,
-                    '--publish_dir_prefix', api_results_path_prefix,
-                    '--publish_dir', f'pipeline-results_{uuid}'])
-
-    jobs[uuid].status = 'completed'
+    try:
+        subprocess.run(
+            ['./nextflow.sh', 'run', '-profile', api_execution_env, 'protein-msa.nf',
+             '--image_tag', api_pipeline_image_tag,
+             '--input_seq_regions_file', seqregions_filename,
+             '--publish_dir_prefix', api_results_path_prefix,
+             '--publish_dir', f'pipeline-results_{uuid}'],
+            check=True)
+    except subprocess.CalledProcessError:
+        jobs[uuid].status = 'failed'
+    else:
+        jobs[uuid].status = 'completed'
 
 
 app = FastAPI()
@@ -69,7 +74,7 @@ async def help_msg() -> dict[str, str]:
     return {"help": "Welcome to the PAVI API! For more information on how to use it, see the docs at {host}/docs"}
 
 
-@app.post('/pipeline-job/', status_code=201)
+@app.post('/pipeline-job/', status_code=201, response_model_exclude_none=True)
 async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region], background_tasks: BackgroundTasks) -> Pipeline_job:
     new_task: Pipeline_job = Pipeline_job(uuid=uuid1())
     jobs[new_task.uuid] = new_task
@@ -78,7 +83,7 @@ async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region
     return new_task
 
 
-@app.get("/pipeline-job/{uuid}", responses={404: {'model': HTTP_exception_response}})
+@app.get("/pipeline-job/{uuid}", response_model_exclude_none=True, responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_details(uuid: UUID) -> Pipeline_job:
     if uuid not in jobs.keys():
         raise HTTPException(status_code=404, detail='Job not found.')
