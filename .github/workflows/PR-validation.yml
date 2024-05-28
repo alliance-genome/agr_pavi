@@ -38,7 +38,7 @@ jobs:
       - name: Update lock file
         shell: bash
         run: |
-          make python-dependencies-lock-update
+          make poetry python-dependencies-lock-update
       - name: Upload updated lock file as artifact
         id: seq_retrieval
         uses: actions/upload-artifact@v4
