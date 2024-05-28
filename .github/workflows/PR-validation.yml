@@ -19,10 +19,33 @@ jobs:
       shell: bash
       run: |
         echo "tagname=PR-${{ github.event.pull_request.number }}-validation" >> $GITHUB_OUTPUT
+  pipeline-seq-retrieval-update-dependency-lock-file:
+    name: update dependency lock files to include new dependency releases
+    runs-on: ubuntu-22.04
+    outputs:
+      pipeline_seq_retrieval: ${{ steps.seq_retrieval.outputs.lockfile }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/seq_retrieval/
+      - name: Update lock file
+        shell: bash
+        run: |
+          make python-dependencies-lock-update
+      - name: Upload updated lock file as artifact
+        id: seq_retrieval
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_deps_lock
+          path: poetry.lock
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     needs:
       - container-build-context
+      - pipeline-seq-retrieval-update-dependency-lock-file
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -33,6 +56,11 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             pipeline/seq_retrieval/
+      - name: Download updated seq_retrieval dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_deps_lock
+          path: ./
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       # This step will configure environment variables to be used by all steps
@@ -65,6 +93,8 @@ jobs:
           docker push ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{needs.container-build-context.outputs.tagname}}
   pipeline-seq-retrieval-code-checks:
     name: pipeline/seq_retrieval code checks
+    needs:
+      - pipeline-seq-retrieval-update-dependency-lock-file
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -77,9 +107,16 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             pipeline/seq_retrieval/
+      - name: Download updated seq_retrieval dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_deps_lock
+          path: ./
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install poetry 1.8.3
+        run: pipx install poetry==1.8.3
       - name: Python typing test
         run: |
           make run-python-type-check

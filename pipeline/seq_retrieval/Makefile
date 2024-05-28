@@ -29,14 +29,23 @@ push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
+# Target to install poetry
+POETRY_VERSION=1.8.3
+poetry:
+	export POETRY_VERSION=${POETRY_VERSION} && \
+	  curl -sSL https://install.python-poetry.org | python3.12 -
+
 python-dependencies:
-	pip install -r requirements.txt
+	poetry install --only main
 
 python-dependencies-update:
-	pip install -U -r requirements.txt
+	poetry update
+
+python-dependencies-lock-update:
+	poetry lock --no-interaction
 
 python-test-dependencies:
-	pip install -r tests/requirements.txt
+	poetry install --only test
 
 run-python-type-check: python-dependencies python-test-dependencies
 	mypy --install-types --non-interactive --warn-unused-config ./
