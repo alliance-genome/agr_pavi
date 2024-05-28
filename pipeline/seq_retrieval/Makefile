@@ -33,7 +33,7 @@ push-container-image: registry-docker-login
 POETRY_VERSION=1.8.3
 poetry:
 	export POETRY_VERSION=${POETRY_VERSION} && \
-	  curl -sSL https://install.python-poetry.org | python3.12 -
+	  curl -sSL https://install.python-poetry.org | python3 -
 
 python-dependencies:
 	poetry install --only main
