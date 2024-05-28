@@ -47,7 +47,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pipeline_seq_retrieval_deps_lock
-          path: poetry.lock
+          path: pipeline/seq_retrieval/poetry.lock
+          if-no-files-found: error
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     needs:
