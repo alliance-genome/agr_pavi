@@ -78,3 +78,6 @@ python-dependencies-dev: check-venv-active python-dependencies
 python-dependencies-dev-update: check-venv-active python-dependencies-update
 
 run-python-type-check-dev: check-venv-active run-python-type-check
+
+venv/:
+	python3.12 -m venv venv/
