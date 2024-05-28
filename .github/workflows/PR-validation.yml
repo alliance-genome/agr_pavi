@@ -24,6 +24,10 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       pipeline_seq_retrieval: ${{ steps.seq_retrieval.outputs.lockfile }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/seq_retrieval/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
