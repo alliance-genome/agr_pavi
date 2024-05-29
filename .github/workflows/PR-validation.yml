@@ -470,3 +470,26 @@ jobs:
         aws-region: us-east-1
     - name: Validate production CDK stack code
       run: make validate-all
+  commit-deps-lock-updates:
+    runs-on: ubuntu-22.04
+    #Only commit updated lock files on successfull validation (to prevent PR cluttering)
+    needs:
+      - pipeline-seq-retrieval-update-dependency-lock-file
+      - pipeline-seq-retrieval-code-checks
+      - pipeline-workflow-integration-testing
+      - api-container-integration-testing
+      - api-unit-integration-testing
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Download updated seq_retrieval dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_deps_lock
+          path: ./
+      # Commit all changed dependency lock files back to the open PR
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Auto-updated deps lock files
+          file_pattern: '*/poetry.lock'
