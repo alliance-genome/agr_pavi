@@ -29,34 +29,40 @@ push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
-# Target to install poetry
-POETRY_VERSION=1.8.3
-poetry:
-	export POETRY_VERSION=${POETRY_VERSION} && \
-	  curl -sSL https://install.python-poetry.org | python3.12 -
+pip-tools:
+	pip install pip-tools==7.4.1
 
-python-dependencies:
-	poetry install --only main
+requirements.txt:
+	pip-compile --no-strip-extras -o requirements.txt
+
+tests/requirements.txt:
+	pip-compile --no-strip-extras --extra=test -o tests/requirements.txt
+
+python-dependencies: requirements.txt
+	pip install -r requirements.txt
 
 python-dependencies-update:
-	poetry update
+	pip install -U -r requirements.txt
 
 python-dependencies-lock-update:
-	poetry lock --no-interaction
+	pip-compile --no-strip-extras --upgrade -o requirements.txt
 
-python-test-dependencies:
-	poetry install --only test
+python-test-dependencies: tests/requirements.txt
+	pip install -r tests/requirements.txt
 
-run-python-type-check: python-dependencies python-test-dependencies
+python-test-dependencies-lock-update:
+	pip-compile --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
+
+run-python-type-check: python-test-dependencies
 	mypy --install-types --non-interactive --warn-unused-config ./
 
-run-python-style-check: python-dependencies python-test-dependencies
+run-python-style-check: python-test-dependencies
 	flake8 ./
 
-run-unit-tests: python-dependencies python-test-dependencies
+run-unit-tests: python-test-dependencies
 	python -m pytest --cov --cov-fail-under=80
 
-run-unit-tests-dev: python-dependencies python-test-dependencies
+run-unit-tests-dev: python-test-dependencies
 	python -m pytest --cov --cov-fail-under=80 --cov-report html
 
 run-code-checks: run-python-type-check run-python-style-check run-unit-tests

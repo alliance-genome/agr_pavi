@@ -11,9 +11,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     ./aws/install && \
     rm -rf ./aws/
 
-COPY Makefile pyproject.toml poetry.toml poetry.lock ./
-RUN make poetry
-ENV PATH="/root/.local/bin:${PATH}"
+COPY Makefile pyproject.toml requirements.txt ./
 RUN make python-dependencies
 
 COPY src/ ./
