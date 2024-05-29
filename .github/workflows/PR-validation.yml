@@ -67,6 +67,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: pipeline_seq_retrieval_deps_lock
+          path: pipeline/seq_retrieval/poetry.lock
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       # This step will configure environment variables to be used by all steps
@@ -117,6 +118,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: pipeline_seq_retrieval_deps_lock
+          path: pipeline/seq_retrieval/poetry.lock
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -483,6 +485,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: pipeline_seq_retrieval_deps_lock
+          path: pipeline/seq_retrieval/poetry.lock
       - name: Debug printing
         run: |
           git status
