@@ -39,6 +39,7 @@ jobs:
           sparse-checkout: |
             pipeline/seq_retrieval/
       - name: Update lock file
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
           make poetry python-dependencies-lock-update
