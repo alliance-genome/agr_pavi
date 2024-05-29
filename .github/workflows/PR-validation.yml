@@ -491,3 +491,4 @@ jobs:
         with:
           commit_message: Auto-updated deps lock files
           file_pattern: '*/poetry.lock'
+          disable_globbing: true
