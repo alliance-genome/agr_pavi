@@ -483,6 +483,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: pipeline_seq_retrieval_deps_lock
+      - name: Debug printing
+        run: |
+          git status
+      - name: Debug printing
+        run: |
+          cat pipeline/seq_retrieval/poetry.lock
       # Commit all changed dependency lock files back to the open PR
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
