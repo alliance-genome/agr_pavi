@@ -119,7 +119,7 @@ jobs:
             pipeline/seq_retrieval/
       - name: Remove repository-stored poetry.lock file
         run: |
-          rm pipeline/seq_retrieval/poetry.lock
+          rm poetry.lock
       - name: Download updated seq_retrieval dependencies lock file
         uses: actions/download-artifact@v4
         with:
