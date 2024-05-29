@@ -20,10 +20,8 @@ jobs:
       run: |
         echo "tagname=PR-${{ github.event.pull_request.number }}-validation" >> $GITHUB_OUTPUT
   pipeline-seq-retrieval-update-dependency-lock-file:
-    name: update dependency lock files to include new dependency releases
+    name: pipeline/seq_retrieval update and upload dependency lock file
     runs-on: ubuntu-22.04
-    outputs:
-      pipeline_seq_retrieval: ${{ steps.seq_retrieval.outputs.lockfile }}
     defaults:
       run:
         shell: bash
