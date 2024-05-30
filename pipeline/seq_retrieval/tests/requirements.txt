@@ -12,7 +12,7 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via seq-retrieval (pyproject.toml)
-coverage[toml]==7.5.1
+coverage[toml]==7.5.3
     # via pytest-cov
 flake8==7.0.0
     # via seq-retrieval (pyproject.toml)
