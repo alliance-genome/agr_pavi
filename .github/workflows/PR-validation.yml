@@ -87,6 +87,34 @@ jobs:
           name: pipeline_aws_infra_tests_deps_lock
           path: pipeline/aws_infra/tests/requirements.txt
           if-no-files-found: error
+  shared-aws-infra-update-dependency-lock-file:
+    name: shared_aws_infra update and upload dependency lock file
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./shared_aws_infra/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            shared_aws_infra/
+      - name: Update lock files
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+        shell: bash
+        run: |
+          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
+      - name: Upload updated (main) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared_aws_infra_deps_lock
+          path: shared_aws_infra/requirements.txt
+          if-no-files-found: error
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     needs:
@@ -305,6 +333,7 @@ jobs:
     name: pipeline/aws_infra code checks
     needs:
       - pipeline-aws-infra-update-dependency-lock-file
+      - shared-aws-infra-update-dependency-lock-file
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -528,6 +557,7 @@ jobs:
     needs:
       - pipeline-seq-retrieval-update-dependency-lock-file
       - pipeline-seq-retrieval-code-checks
+      - shared-aws-infra-update-dependency-lock-file
       - pipeline-aws-infra-update-dependency-lock-file
       - pipeline-aws-infra-code-checks
       - pipeline-workflow-integration-testing
@@ -557,6 +587,11 @@ jobs:
         with:
           name: pipeline_aws_infra_tests_deps_lock
           path: pipeline/aws_infra/tests
+      - name: Download updated shared_aws_infra (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_aws_infra_deps_lock
+          path: shared_aws_infra
       # Commit all changed dependency lock files back to the open PR
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
