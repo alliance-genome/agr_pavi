@@ -6,7 +6,7 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-.PHONY: check-venv-active run-python-type-check clean
+.PHONY: check-venv-active run-python-type-check clean pip-tools
 
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
@@ -29,25 +29,40 @@ push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
-python-dependencies:
+pip-tools:
+	pip install pip-tools==7.4.1
+
+requirements.txt:
+	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
+
+tests/requirements.txt:
+	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
+
+python-dependencies: requirements.txt
 	pip install -r requirements.txt
 
 python-dependencies-update:
 	pip install -U -r requirements.txt
 
-python-test-dependencies:
+python-dependencies-lock-update:
+	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
+
+python-test-dependencies: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
-run-python-type-check: python-dependencies python-test-dependencies
+python-test-dependencies-lock-update:
+	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
+
+run-python-type-check: python-test-dependencies
 	mypy --install-types --non-interactive --warn-unused-config ./
 
-run-python-style-check: python-dependencies python-test-dependencies
+run-python-style-check: python-test-dependencies
 	flake8 ./
 
-run-unit-tests: python-dependencies python-test-dependencies
+run-unit-tests: python-test-dependencies
 	python -m pytest --cov --cov-fail-under=80
 
-run-unit-tests-dev: python-dependencies python-test-dependencies
+run-unit-tests-dev: python-test-dependencies
 	python -m pytest --cov --cov-fail-under=80 --cov-report html
 
 run-code-checks: run-python-type-check run-python-style-check run-unit-tests
@@ -57,7 +72,7 @@ run-build-checks: containter-image
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
 	@echo 'No active python virtual environment found.'\
-		  'Please active the virtual environment first by running `source venv/bin/activate`,'\
+		  'Please active the virtual environment first by running `source .venv/bin/activate`,'\
 		  'or read README.md for instructions on how to set up a new one.'
 	@exit 1
 else
@@ -69,3 +84,6 @@ python-dependencies-dev: check-venv-active python-dependencies
 python-dependencies-dev-update: check-venv-active python-dependencies-update
 
 run-python-type-check-dev: check-venv-active run-python-type-check
+
+.venv/:
+	python3.12 -m venv .venv/

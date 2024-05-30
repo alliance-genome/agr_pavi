@@ -11,8 +11,8 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     ./aws/install && \
     rm -rf ./aws/
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY Makefile pyproject.toml requirements.txt ./
+RUN make python-dependencies
 
 COPY src/ ./
 RUN chmod a+x main.py

@@ -1,7 +1,7 @@
 name: PR validation
 on:
   pull_request:
-    types: [synchronize, opened, reopened, edited]
+    types: [synchronize, opened, reopened, edited, labeled, unlabeled]
     branches:
       - main
 concurrency:
@@ -19,10 +19,45 @@ jobs:
       shell: bash
       run: |
         echo "tagname=PR-${{ github.event.pull_request.number }}-validation" >> $GITHUB_OUTPUT
+  pipeline-seq-retrieval-update-dependency-lock-file:
+    name: pipeline/seq_retrieval update and upload dependency lock file
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/seq_retrieval/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/seq_retrieval/
+      - name: Update lock files
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+        shell: bash
+        run: |
+          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
+      - name: Upload updated (main) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_deps_lock
+          path: pipeline/seq_retrieval/requirements.txt
+          if-no-files-found: error
+      - name: Upload updated (test) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_tests_deps_lock
+          path: pipeline/seq_retrieval/tests/requirements.txt
+          if-no-files-found: error
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     needs:
       - container-build-context
+      - pipeline-seq-retrieval-update-dependency-lock-file
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -33,6 +68,11 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             pipeline/seq_retrieval/
+      - name: Download updated seq_retrieval (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_deps_lock
+          path: pipeline/seq_retrieval
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       # This step will configure environment variables to be used by all steps
@@ -65,6 +105,8 @@ jobs:
           docker push ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{needs.container-build-context.outputs.tagname}}
   pipeline-seq-retrieval-code-checks:
     name: pipeline/seq_retrieval code checks
+    needs:
+      - pipeline-seq-retrieval-update-dependency-lock-file
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -77,6 +119,16 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             pipeline/seq_retrieval/
+      - name: Download updated seq_retrieval (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_deps_lock
+          path: pipeline/seq_retrieval
+      - name: Download updated seq_retrieval (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_tests_deps_lock
+          path: pipeline/seq_retrieval/tests
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -424,3 +476,32 @@ jobs:
         aws-region: us-east-1
     - name: Validate production CDK stack code
       run: make validate-all
+  commit-deps-lock-updates:
+    runs-on: ubuntu-22.04
+    #Only commit updated lock files on successfull validation (to prevent PR cluttering)
+    needs:
+      - pipeline-seq-retrieval-update-dependency-lock-file
+      - pipeline-seq-retrieval-code-checks
+      - pipeline-workflow-integration-testing
+      - api-container-integration-testing
+      - api-unit-integration-testing
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Download updated seq_retrieval (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_deps_lock
+          path: pipeline/seq_retrieval
+      - name: Download updated seq_retrieval (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_seq_retrieval_tests_deps_lock
+          path: pipeline/seq_retrieval/tests
+      # Commit all changed dependency lock files back to the open PR
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Auto-updated deps lock files
+          file_pattern: '*/requirements.txt'
+          disable_globbing: true
