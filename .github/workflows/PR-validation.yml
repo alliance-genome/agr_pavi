@@ -53,6 +53,40 @@ jobs:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline/seq_retrieval/tests/requirements.txt
           if-no-files-found: error
+  pipeline-aws-infra-update-dependency-lock-file:
+    name: pipeline/aws_infra update and upload dependency lock file
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/aws_infra/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/aws_infra/
+      - name: Update lock files
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+        shell: bash
+        run: |
+          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
+      - name: Upload updated (main) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline_aws_infra_deps_lock
+          path: pipeline/aws_infra/requirements.txt
+          if-no-files-found: error
+      - name: Upload updated (test) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline_aws_infra_tests_deps_lock
+          path: pipeline/aws_infra/tests/requirements.txt
+          if-no-files-found: error
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     needs:
@@ -269,6 +303,8 @@ jobs:
           make run-integration-test-aws TAG_NAME=${{needs.container-build-context.outputs.tagname}}
   pipeline-aws-infra-code-checks:
     name: pipeline/aws_infra code checks
+    needs:
+      - pipeline-aws-infra-update-dependency-lock-file
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -283,6 +319,16 @@ jobs:
         sparse-checkout: |
           pipeline/aws_infra/
           shared_aws_infra/
+    - name: Download updated pipeline/aws_infra (main) dependencies lock file
+      uses: actions/download-artifact@v4
+      with:
+        name: pipeline_aws_infra_deps_lock
+        path: pipeline/aws_infra
+    - name: Download updated aws_infra (test) dependencies lock file
+      uses: actions/download-artifact@v4
+      with:
+        name: pipeline_aws_infra_tests_deps_lock
+        path: pipeline/aws_infra/tests
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -482,6 +528,8 @@ jobs:
     needs:
       - pipeline-seq-retrieval-update-dependency-lock-file
       - pipeline-seq-retrieval-code-checks
+      - pipeline-aws-infra-update-dependency-lock-file
+      - pipeline-aws-infra-code-checks
       - pipeline-workflow-integration-testing
       - api-container-integration-testing
       - api-unit-integration-testing
@@ -499,6 +547,16 @@ jobs:
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline/seq_retrieval/tests
+      - name: Download updated pipeline/aws_infra (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_aws_infra_deps_lock
+          path: pipeline/aws_infra
+      - name: Download updated pipeline/aws_infra (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline_aws_infra_tests_deps_lock
+          path: pipeline/aws_infra/tests
       # Commit all changed dependency lock files back to the open PR
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
