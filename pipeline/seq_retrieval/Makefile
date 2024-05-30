@@ -6,7 +6,7 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-.PHONY: check-venv-active run-python-type-check clean
+.PHONY: check-venv-active run-python-type-check clean pip-tools
 
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
@@ -33,10 +33,10 @@ pip-tools:
 	pip install pip-tools==7.4.1
 
 requirements.txt:
-	pip-compile --no-strip-extras -o requirements.txt
+	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
 
 tests/requirements.txt:
-	pip-compile --no-strip-extras --extra=test -o tests/requirements.txt
+	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
 
 python-dependencies: requirements.txt
 	pip install -r requirements.txt
@@ -45,13 +45,13 @@ python-dependencies-update:
 	pip install -U -r requirements.txt
 
 python-dependencies-lock-update:
-	pip-compile --no-strip-extras --upgrade -o requirements.txt
+	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
 
 python-test-dependencies: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
 python-test-dependencies-lock-update:
-	pip-compile --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
+	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
 
 run-python-type-check: python-test-dependencies
 	mypy --install-types --non-interactive --warn-unused-config ./
