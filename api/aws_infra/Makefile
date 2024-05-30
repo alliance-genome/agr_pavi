@@ -43,17 +43,26 @@ requirements.txt:
 tests/requirements.txt:
 	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
 
+tests/dev-requirements.txt:
+	pip-compile --generate-hashes --no-strip-extras --extra=test --extra=dev -o tests/dev-requirements.txt
+
 python-dependencies-lock-update:
 	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
 
 python-test-dependencies-lock-update:
 	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
 
+python-dev-dependencies-lock-update:
+	pip-compile --generate-hashes --no-strip-extras --extra=test --extra=dev --upgrade -o tests/dev-requirements.txt
+
 python-dependencies: requirements.txt
 	pip install -r requirements.txt
 
 python-test-dependencies: tests/requirements.txt
 	pip install -r tests/requirements.txt
+
+python-dev-dependencies: tests/dev-requirements.txt
+	pip install -r tests/dev-requirements.txt
 
 run-unit-tests: check-node python-test-dependencies
 	python -m pytest
