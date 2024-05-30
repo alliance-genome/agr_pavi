@@ -30,9 +30,9 @@ cattrs==23.2.3 \
     --hash=sha256:0341994d94971052e9ee70662542699a3162ea1e0c62f7ce1b4a57f563685108 \
     --hash=sha256:a934090d95abaa9e911dac357e3a8699e0b4b14f8529bcc7d2b1ad9d51672b9f
     # via jsii
-constructs==10.0.0 \
-    --hash=sha256:cd3c74eaafa9730f586e0f9b986030f3e05e4aa2fa7e400ad44d1b0c7988a2e0 \
-    --hash=sha256:cfeeff31d855574d97a12fe72a3f023792adb857276666f4c8a35a6e19e3fd99
+constructs==10.3.0 \
+    --hash=sha256:2972f514837565ff5b09171cfba50c0159dfa75ee86a42921ea8c86f2941b3d2 \
+    --hash=sha256:518551135ec236f9cc6b86500f4fbbe83b803ccdc6c2cb7684e0b7c4d234e7b1
     # via
     #   aws-cdk-lib
     #   pipeline-aws_infra (pyproject.toml)
@@ -75,6 +75,7 @@ typeguard==2.13.3 \
     #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-lib
+    #   constructs
     #   jsii
 typing-extensions==4.12.0 \
     --hash=sha256:8cbcdc8606ebcb0d95453ad7dc5065e6237b6aa230a31e81d0f440c30fed5fd8 \
