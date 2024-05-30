@@ -108,7 +108,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update python-dev-dependencies-lock-update
+          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
