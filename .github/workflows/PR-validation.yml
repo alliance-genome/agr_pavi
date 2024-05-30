@@ -121,12 +121,6 @@ jobs:
           name: api_aws_infra_tests_deps_lock
           path: api/aws_infra/tests/requirements.txt
           if-no-files-found: error
-      - name: Upload updated (dev) lock file as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: api_aws_infra_dev_deps_lock
-          path: api/aws_infra/tests/dev-requirements.txt
-          if-no-files-found: error
   shared-aws-infra-update-dependency-lock-file:
     name: shared_aws_infra update and upload dependency lock file
     runs-on: ubuntu-22.04
@@ -655,11 +649,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: api_aws_infra_tests_deps_lock
-          path: api/aws_infra/tests
-      - name: Download updated api/aws_infra (dev) dependencies lock file
-        uses: actions/download-artifact@v4
-        with:
-          name: api_aws_infra_dev_deps_lock
           path: api/aws_infra/tests
       # Commit all changed dependency lock files back to the open PR
       - uses: stefanzweifel/git-auto-commit-action@v5
