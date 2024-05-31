@@ -1,4 +1,4 @@
-.PHONY: check-venv-active check-node
+.PHONY: check-venv-active check-node pip-tools
 
 SUPPORTED_NODE := ^v18\.
 
@@ -11,10 +11,13 @@ PAVI_IMAGE_TAG ?= main
 PAVI_IMAGE_REGISTRY ?= ${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/
 ADD_CDK_ARGS ?=
 
+.venv/:
+	python3.12 -m venv .venv/
+
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)
 	@echo 'No active python virtual environment found.'\
-		  'Please active the virtual environment first by running `source venv/bin/activate`,'\
+		  'Please active the virtual environment first by running `source .venv/bin/activate`,'\
 		  'or read README.md for instructions on how to set up a new one.'
 	@exit 1
 else
@@ -31,22 +34,37 @@ else
 	@:
 endif
 
-python-dependencies:
+pip-tools:
+	pip install pip-tools==7.4.1
+
+requirements.txt:
+	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
+
+tests/requirements.txt:
+	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
+
+python-dependencies-lock-update:
+	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
+
+python-test-dependencies-lock-update:
+	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
+
+python-dependencies: requirements.txt
 	pip install -r requirements.txt
 
-python-test-dependencies:
+python-test-dependencies: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
-run-unit-tests: python-dependencies python-test-dependencies check-node
+run-unit-tests: check-node python-test-dependencies
 	python -m pytest
 
 run-unit-tests-dev: check-venv-active run-unit-tests
 	@:
 
-run-python-type-check: python-dependencies python-test-dependencies
+run-python-type-check: python-test-dependencies
 	mypy --install-types --non-interactive --warn-unused-config ./
 
-run-python-style-check: python-dependencies python-test-dependencies
+run-python-style-check: python-test-dependencies
 	flake8 ./
 
 validate-image-stack: check-node run-unit-tests
