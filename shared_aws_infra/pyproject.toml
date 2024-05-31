@@ -8,6 +8,6 @@ authors = [
 
 requires-python = "==3.12.*"
 dependencies = [
-    "aws-cdk-lib==2.141.*",
+    "aws-cdk-lib==2.143.*",
     "constructs==10.*"
 ]
