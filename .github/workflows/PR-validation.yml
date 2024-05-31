@@ -560,6 +560,9 @@ jobs:
       - name: Load alignment Docker image
         run: |
           docker load --input /tmp/pavi_alignment_docker_image.tar
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Run unit and integration tests
         run: |
           make run-tests
@@ -604,6 +607,9 @@ jobs:
       - name: Load API Docker image
         run: |
           docker load --input /tmp/pavi_api_docker_image.tar
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       # This step will configure environment variables to be used by all steps
       # involving AWS interaction further down
       - name: AWS credentials configuration
