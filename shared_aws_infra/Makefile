@@ -1,4 +1,4 @@
-.PHONY: check-venv-active check-node
+.PHONY: check-venv-active check-node pip-tools
 SUPPORTED_NODE := ^v18\.
 
 .venv/:
@@ -30,8 +30,26 @@ pip-tools:
 requirements.txt:
 	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
 
+tests/requirements.txt:
+	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
+
 python-dependencies-lock-update:
 	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
 
+python-test-dependencies-lock-update:
+	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
+
 python-dependencies: requirements.txt
 	pip install -r requirements.txt
+
+python-test-dependencies: tests/requirements.txt
+	pip install -r tests/requirements.txt
+
+run-unit-tests: check-node python-test-dependencies
+	python -m pytest
+
+run-python-type-check: python-test-dependencies
+	mypy --install-types --non-interactive --warn-unused-config ./
+
+run-python-style-check: python-test-dependencies
+	flake8 ./

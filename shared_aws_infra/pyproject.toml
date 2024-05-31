@@ -11,3 +11,10 @@ dependencies = [
     "aws-cdk-lib==2.143.*",
     "constructs==10.*"
 ]
+
+[project.optional-dependencies]
+test = [
+    "flake8==7.0.*",
+    "mypy==1.10.*",
+    "pytest==8.2.*"
+]
