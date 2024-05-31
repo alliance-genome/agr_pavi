@@ -13,7 +13,7 @@ dependencies = [
     "boto3==1.34.*",
     "click==8.1.*",
     # CDK requirements
-    "aws-cdk-lib==2.141.*",
+    "aws-cdk-lib==2.143.*",
     "constructs==10.*"
 ]
 
