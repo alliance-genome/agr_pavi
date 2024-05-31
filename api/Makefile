@@ -2,6 +2,8 @@ CONTAINER_NAME=agr_pavi/api
 TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
 
+.PHONY: check-venv-active pip-tools
+
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
 	@rm -f nextflow.sh

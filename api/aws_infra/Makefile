@@ -1,4 +1,4 @@
-.PHONY: check-venv-active check-node
+.PHONY: check-venv-active check-node pip-tools
 
 SUPPORTED_NODE := ^v18\.
 
