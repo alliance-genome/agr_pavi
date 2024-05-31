@@ -28,4 +28,4 @@ ENV API_EXECUTION_ENV="aws"
 ENV API_PIPELINE_IMAGE_TAG="main"
 
 # Start the API server application
-CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD [ "fastapi", "run", "main:app", "--host", "0.0.0.0", "--port", "8080"]
