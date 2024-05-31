@@ -34,7 +34,7 @@ nextflow.config:
 run-api-server-dev: python-dependencies nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 export API_EXECUTION_ENV="local" && \
-	 uvicorn --app-dir src/ --reload main:app
+	 fastapi dev src/main.py
 
 .venv/:
 	python3.12 -m venv .venv/

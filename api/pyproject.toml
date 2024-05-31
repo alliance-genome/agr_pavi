@@ -9,9 +9,8 @@ authors = [
 
 requires-python = "==3.12.*"
 dependencies = [
-    "fastapi==0.110.*",
-    "smart-open[s3]==7.0.*",
-    "uvicorn[standard]==0.29.*"
+    "fastapi==0.111.*",
+    "smart-open[s3]==7.0.*"
 ]
 
 [project.optional-dependencies]
