@@ -19,7 +19,7 @@ jobs:
       shell: bash
       run: |
         echo "tagname=PR-${{ github.event.pull_request.number }}-validation" >> $GITHUB_OUTPUT
-  pipeline-seq-retrieval-update-dependency-lock-file:
+  pipeline-seq-retrieval-update-dependency-lock-files:
     name: pipeline/seq_retrieval update and upload dependency lock file
     runs-on: ubuntu-22.04
     defaults:
@@ -53,7 +53,7 @@ jobs:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline/seq_retrieval/tests/requirements.txt
           if-no-files-found: error
-  api-update-dependency-lock-file:
+  api-update-dependency-lock-files:
     name: api update and upload dependency lock file
     runs-on: ubuntu-22.04
     defaults:
@@ -87,7 +87,7 @@ jobs:
           name: api_tests_deps_lock
           path: api/tests/requirements.txt
           if-no-files-found: error
-  pipeline-aws-infra-update-dependency-lock-file:
+  pipeline-aws-infra-update-dependency-lock-files:
     name: pipeline/aws_infra update and upload dependency lock file
     runs-on: ubuntu-22.04
     defaults:
@@ -121,7 +121,7 @@ jobs:
           name: pipeline_aws_infra_tests_deps_lock
           path: pipeline/aws_infra/tests/requirements.txt
           if-no-files-found: error
-  api-aws-infra-update-dependency-lock-file:
+  api-aws-infra-update-dependency-lock-files:
     name: api/aws_infra update and upload dependency lock file
     runs-on: ubuntu-22.04
     defaults:
@@ -155,7 +155,7 @@ jobs:
           name: api_aws_infra_tests_deps_lock
           path: api/aws_infra/tests/requirements.txt
           if-no-files-found: error
-  shared-aws-infra-update-dependency-lock-file:
+  shared-aws-infra-update-dependency-lock-files:
     name: shared_aws_infra update and upload dependency lock file
     runs-on: ubuntu-22.04
     defaults:
@@ -187,7 +187,7 @@ jobs:
     name: pipeline/seq_retrieval container-image build
     needs:
       - container-build-context
-      - pipeline-seq-retrieval-update-dependency-lock-file
+      - pipeline-seq-retrieval-update-dependency-lock-files
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -236,7 +236,7 @@ jobs:
   pipeline-seq-retrieval-code-checks:
     name: pipeline/seq_retrieval code checks
     needs:
-      - pipeline-seq-retrieval-update-dependency-lock-file
+      - pipeline-seq-retrieval-update-dependency-lock-files
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -396,8 +396,8 @@ jobs:
   pipeline-aws-infra-code-checks:
     name: pipeline/aws_infra code checks
     needs:
-      - pipeline-aws-infra-update-dependency-lock-file
-      - shared-aws-infra-update-dependency-lock-file
+      - pipeline-aws-infra-update-dependency-lock-files
+      - shared-aws-infra-update-dependency-lock-files
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -451,7 +451,7 @@ jobs:
   api-code-checks:
     name: API code checks
     needs:
-      - api-update-dependency-lock-file
+      - api-update-dependency-lock-files
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -486,7 +486,7 @@ jobs:
   api-container-image-build:
     name: API container-image build
     needs:
-      - api-update-dependency-lock-file
+      - api-update-dependency-lock-files
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
@@ -521,7 +521,7 @@ jobs:
   api-unit-integration-testing:
     name: API unit and integration testing
     needs:
-      - api-update-dependency-lock-file
+      - api-update-dependency-lock-files
       - pipeline-seq-retrieval-container-image-build
       - pipeline-alignment-container-image-build
     runs-on: ubuntu-22.04
@@ -570,7 +570,7 @@ jobs:
       - pipeline-seq-retrieval-container-image-build
       - pipeline-alignment-container-image-build
       - api-container-image-build
-      - api-update-dependency-lock-file
+      - api-update-dependency-lock-files
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -618,7 +618,7 @@ jobs:
   api-aws-infra-code-checks:
     name: api/aws_infra code checks
     needs:
-      - api-aws-infra-update-dependency-lock-file
+      - api-aws-infra-update-dependency-lock-files
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -673,15 +673,15 @@ jobs:
     runs-on: ubuntu-22.04
     #Only commit updated lock files on successfull validation (to prevent PR cluttering)
     needs:
-      - pipeline-seq-retrieval-update-dependency-lock-file
+      - pipeline-seq-retrieval-update-dependency-lock-files
       - pipeline-seq-retrieval-code-checks
-      - shared-aws-infra-update-dependency-lock-file
-      - pipeline-aws-infra-update-dependency-lock-file
+      - shared-aws-infra-update-dependency-lock-files
+      - pipeline-aws-infra-update-dependency-lock-files
       - pipeline-aws-infra-code-checks
       - pipeline-workflow-integration-testing
-      - api-aws-infra-update-dependency-lock-file
+      - api-aws-infra-update-dependency-lock-files
       - api-aws-infra-code-checks
-      - api-update-dependency-lock-file
+      - api-update-dependency-lock-files
       - api-container-integration-testing
       - api-unit-integration-testing
       - api-code-checks
