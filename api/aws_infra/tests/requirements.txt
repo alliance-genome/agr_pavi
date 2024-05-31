@@ -26,17 +26,17 @@ aws-cdk-lib==2.141.0 \
     --hash=sha256:3de40f107f45feb240a751ad7c259fae7d341de1cc9c97f47059b2ff86bd62eb \
     --hash=sha256:ed3b803a140437509f15fb9b1f8fdd6dad610da9a09e81ce147deade44d2b3e6
     # via api-aws_infra (pyproject.toml)
-boto3==1.34.115 \
-    --hash=sha256:0a580de3d25364da5db26ecc7dde9438ee1be1e529a7c04cc96972b6e2258378 \
-    --hash=sha256:67f5a6d6e6eff9c15711c265173b53eb4ad8d05b756b76ef33ac792cea7958f6
+boto3==1.34.116 \
+    --hash=sha256:53cb8aeb405afa1cd2b25421e27a951aeb568026675dec020587861fac96ac87 \
+    --hash=sha256:e7f5ab2d1f1b90971a2b9369760c2c6bae49dae98c084a5c3f5c78e3968ace15
     # via api-aws_infra (pyproject.toml)
-boto3-stubs==1.34.115 \
-    --hash=sha256:1d58dde687903e9b8cd01b2680219ace3981aab72f82165b58bb0a56cff2ce3f \
-    --hash=sha256:fd06dc6cfb2503fcd4314e63d52eae4889f84e06ff4f92dca4a1f6cae68bfb00
+boto3-stubs==1.34.116 \
+    --hash=sha256:0cd1844a0607043b3b012af388150ba45c5b960631ff52ffa20d856a635adec6 \
+    --hash=sha256:fe843a8a33accdf6ec2748b8a857046311be0bc849c3d56e3157d6a464cd0c8f
     # via api-aws_infra (pyproject.toml)
-botocore==1.34.115 \
-    --hash=sha256:15b8ad1ee0e9cd57884fb0bcaf3a9551d2552e44a02c2ffb55ec583eebdb888e \
-    --hash=sha256:a5d5e28b9c847b17a1ecb7660b46b83d9512b125f671e03e93d14bf6f0b274c2
+botocore==1.34.116 \
+    --hash=sha256:269cae7ba99081519a9f87d7298e238d9e68ba94eb4f8ddfa906224c34cb8b6c \
+    --hash=sha256:ec4d42c816e9b2d87a2439ad277e7dda16a4a614ef6839cf66f4c1a58afa547c
     # via
     #   boto3
     #   s3transfer
