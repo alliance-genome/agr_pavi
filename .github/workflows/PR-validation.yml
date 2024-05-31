@@ -53,6 +53,40 @@ jobs:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline/seq_retrieval/tests/requirements.txt
           if-no-files-found: error
+  api-update-dependency-lock-file:
+    name: api update and upload dependency lock file
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./api/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            api/
+      - name: Update lock files
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+        shell: bash
+        run: |
+          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
+      - name: Upload updated (main) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api_deps_lock
+          path: api/requirements.txt
+          if-no-files-found: error
+      - name: Upload updated (test) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api_tests_deps_lock
+          path: api/tests/requirements.txt
+          if-no-files-found: error
   pipeline-aws-infra-update-dependency-lock-file:
     name: pipeline/aws_infra update and upload dependency lock file
     runs-on: ubuntu-22.04
@@ -420,6 +454,8 @@ jobs:
       run: make validate
   api-code-checks:
     name: API code checks
+    needs:
+      - api-update-dependency-lock-file
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -432,6 +468,16 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             api/
+      - name: Download updated api (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_deps_lock
+          path: api
+      - name: Download updated api (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_tests_deps_lock
+          path: api/tests
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -443,12 +489,24 @@ jobs:
           make run-python-style-check
   api-container-image-build:
     name: API container-image build
+    needs:
+      - api-update-dependency-lock-file
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Download updated api (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_deps_lock
+          path: api
+      - name: Download updated api (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_tests_deps_lock
+          path: api/tests
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build container image
@@ -467,6 +525,7 @@ jobs:
   api-unit-integration-testing:
     name: API unit and integration testing
     needs:
+      - api-update-dependency-lock-file
       - pipeline-seq-retrieval-container-image-build
       - pipeline-alignment-container-image-build
     runs-on: ubuntu-22.04
@@ -479,6 +538,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Download updated api (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_deps_lock
+          path: api
+      - name: Download updated api (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_tests_deps_lock
+          path: api/tests
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Download seq_retrieval image artifact (from previous job)
@@ -507,6 +576,7 @@ jobs:
       - pipeline-seq-retrieval-container-image-build
       - pipeline-alignment-container-image-build
       - api-container-image-build
+      - api-update-dependency-lock-file
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -522,6 +592,16 @@ jobs:
           sparse-checkout: |
             api/
             tests/resources/
+      - name: Download updated api (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_deps_lock
+          path: api
+      - name: Download updated api (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_tests_deps_lock
+          path: api/tests
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Download API image artifact (from previous job)
@@ -609,8 +689,10 @@ jobs:
       - pipeline-workflow-integration-testing
       - api-aws-infra-update-dependency-lock-file
       - api-aws-infra-code-checks
+      - api-update-dependency-lock-file
       - api-container-integration-testing
       - api-unit-integration-testing
+      - api-code-checks
     steps:
       - uses: actions/checkout@v4
         with:
@@ -625,6 +707,16 @@ jobs:
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline/seq_retrieval/tests
+      - name: Download updated api (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_deps_lock
+          path: api
+      - name: Download updated api (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: api_tests_deps_lock
+          path: api/tests
       - name: Download updated pipeline/aws_infra (main) dependencies lock file
         uses: actions/download-artifact@v4
         with:
