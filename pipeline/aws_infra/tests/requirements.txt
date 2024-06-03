@@ -48,9 +48,9 @@ iniconfig==2.0.0 \
     --hash=sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3 \
     --hash=sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374
     # via pytest
-jsii==1.98.0 \
-    --hash=sha256:3067d523126ce8178374dd958c60350efc831fc2ef3eb94a0a755d64fa4cc22d \
-    --hash=sha256:64bbaf9c494626bc0afd1b95834f0dba66a2f2ecbb0da97fa3000c4b01d67857
+jsii==1.99.0 \
+    --hash=sha256:36e4c033d39b962c9d53910aa3e32cd16efa2109e4113fbd9d1be2e595350fe1 \
+    --hash=sha256:e352232efb2c1994e882aab8c571c764055336b5c97c0f67ac654fbf3caa2411
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-kubectl-v20
@@ -142,9 +142,9 @@ typeguard==2.13.3 \
     #   aws-cdk-lib
     #   constructs
     #   jsii
-typing-extensions==4.12.0 \
-    --hash=sha256:8cbcdc8606ebcb0d95453ad7dc5065e6237b6aa230a31e81d0f440c30fed5fd8 \
-    --hash=sha256:b349c66bea9016ac22978d800cfff206d5f9816951f12a7d0ec5578b0a819594
+typing-extensions==4.12.1 \
+    --hash=sha256:6024b58b69089e5a89c347397254e35f1bf02a907728ec7fee9bf0fe837d203a \
+    --hash=sha256:915f5e35ff76f56588223f15fdd5938f9a1cf9195c0de25130c627e4d597f6d1
     # via
     #   jsii
     #   mypy
