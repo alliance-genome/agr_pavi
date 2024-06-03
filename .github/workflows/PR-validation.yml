@@ -735,6 +735,8 @@ jobs:
       - api-container-integration-testing
       - api-unit-integration-testing
       - api-code-checks
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
