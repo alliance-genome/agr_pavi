@@ -22,9 +22,9 @@ aws-cdk-asset-node-proxy-agent-v6==2.0.3 \
     --hash=sha256:b62cb10c69a42cab135e6bc670e3d2d3121fd4f53a0f61e53449da4b12738a6f \
     --hash=sha256:ef2ff0634ab037e2ebddbe69d7c92515a847c6c8bb2abdfc85b089f5e87761cb
     # via aws-cdk-lib
-aws-cdk-lib==2.144.0 \
-    --hash=sha256:355cdb0550c49de6bc74c8a97c6b015d2f54f5a65b4c1776591d7691850e3386 \
-    --hash=sha256:6c98bec065d4cd254f7a46c64331637df5197b9c2a2e0d1aed9fabab30bdaa28
+aws-cdk-lib==2.143.1 \
+    --hash=sha256:28d278202033cbf13ae7cb2818ed435ac34807f0eed66e3f939582744349364b \
+    --hash=sha256:983dde996eb380b72db23e395f7b6ad91a79234b74c073b6125e87d3cd4317b4
     # via api-aws_infra (pyproject.toml)
 boto3==1.34.117 \
     --hash=sha256:1506589e30566bbb2f4997b60968ff7d4ef8a998836c31eedd36437ac3b7408a \
