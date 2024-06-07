@@ -1,0 +1,15 @@
+version: "3.2"
+
+services:
+
+  agr.pavi.webui:
+    container_name: agr.pavi.${NET}.webui.server
+    image: ${REGISTRY}agr_pavi/webui:${AGR_PAVI_RELEASE}
+    ports:
+      - "3000:3000"
+    networks:
+      - pavi
+
+networks:
+  # The presence of these objects is sufficient to define them
+  pavi:
