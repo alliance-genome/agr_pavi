@@ -4,7 +4,7 @@ SUPPORTED_NODE := ^v20\.
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
-	@:
+	@rm -rf node_modules/
 
 check-node:
 	@$(eval NODE_VERSION=$(shell node --version))
