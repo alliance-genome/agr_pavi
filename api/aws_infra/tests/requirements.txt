@@ -26,23 +26,23 @@ aws-cdk-lib==2.144.0 \
     --hash=sha256:355cdb0550c49de6bc74c8a97c6b015d2f54f5a65b4c1776591d7691850e3386 \
     --hash=sha256:6c98bec065d4cd254f7a46c64331637df5197b9c2a2e0d1aed9fabab30bdaa28
     # via api-aws_infra (pyproject.toml)
-boto3==1.34.117 \
-    --hash=sha256:1506589e30566bbb2f4997b60968ff7d4ef8a998836c31eedd36437ac3b7408a \
-    --hash=sha256:c8a383b904d6faaf7eed0c06e31b423db128e4c09ce7bd2afc39d1cd07030a51
+boto3==1.34.123 \
+    --hash=sha256:42b140fc850cf261ee4b1e8ef527fa071b1f1592a6d6a68d34b29f37cc46b4dd \
+    --hash=sha256:56bec52d485d5670ce96d53ae7b2cd4ae4e8a705fb2298a21093cdd77d642331
     # via api-aws_infra (pyproject.toml)
-boto3-stubs==1.34.117 \
-    --hash=sha256:d9ac034dd943d545d1f067ad7976cdbc729c689d16c961b8bc26ec595838beac \
-    --hash=sha256:f2cf09536486d08dd6e132b742de17df16ab635f7bdc8106a56abce55583a62a
+boto3-stubs==1.34.123 \
+    --hash=sha256:2fdbbce40108c2d838e3e8efaf6f839c23d897167e8d6168daf3655d41aa66af \
+    --hash=sha256:dd7106a254a2e0cfb0c4f83a6bf3b8a63aa7817667517af5de55bc4c05ed19be
     # via api-aws_infra (pyproject.toml)
-botocore==1.34.117 \
-    --hash=sha256:26a431997f882bcdd1e835f44c24b2a1752b1c4e5183c2ce62999ce95d518d6c \
-    --hash=sha256:4637ca42e6c51aebc4d9a2d92f97bf4bdb042e3f7985ff31a659a11e4c170e73
+botocore==1.34.123 \
+    --hash=sha256:8c34ada2a708c82e7174bff700611643db7ce2cb18f1130c35045c24310d299d \
+    --hash=sha256:a8577f6574600c4d159b5cd103ee05744a443d77f7778304e17307940b369c4f
     # via
     #   boto3
     #   s3transfer
-botocore-stubs==1.34.94 \
-    --hash=sha256:64d80a3467e3b19939e9c2750af33328b3087f8f524998dbdf7ed168227f507d \
-    --hash=sha256:b0345f55babd8b901c53804fc5c326a4a0bd2e23e3b71f9ea5d9f7663466e6ba
+botocore-stubs==1.34.123 \
+    --hash=sha256:13f3602d90b1e6f4cabf42702ff62aae26ef73f6b10220670a118bdbfa77d29d \
+    --hash=sha256:917c83db9caacd0308688bda2a2f9bde53fbee9d7e8fd250458dbf54556b8194
     # via boto3-stubs
 cattrs==23.2.3 \
     --hash=sha256:0341994d94971052e9ee70662542699a3162ea1e0c62f7ce1b4a57f563685108 \
@@ -122,9 +122,9 @@ mypy-extensions==1.0.0 \
     --hash=sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d \
     --hash=sha256:75dbf8955dc00442a438fc4d0666508a9a97b6bd41aa2f0ffe9d2f2725af0782
     # via mypy
-packaging==24.0 \
-    --hash=sha256:2ddfb553fdf02fb784c234c7ba6ccc288296ceabec964ad2eae3777778130bc5 \
-    --hash=sha256:eb82c5e3e56209074766e6885bb04b8c38a0c015d0a30036ebe7ece34c9989e9
+packaging==24.1 \
+    --hash=sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002 \
+    --hash=sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124
     # via pytest
 pluggy==1.5.0 \
     --hash=sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1 \
@@ -148,9 +148,9 @@ pyflakes==3.2.0 \
     --hash=sha256:1c61603ff154621fb2a9172037d84dca3500def8c8b630657d1701f026f8af3f \
     --hash=sha256:84b5be138a2dfbb40689ca07e2152deb896a65c3a3e24c251c5c62489568074a
     # via flake8
-pytest==8.2.1 \
-    --hash=sha256:5046e5b46d8e4cac199c373041f26be56fdb81eb4e67dc11d4e10811fc3408fd \
-    --hash=sha256:faccc5d332b8c3719f40283d0d44aa5cf101cec36f88cde9ed8f2bc0538612b1
+pytest==8.2.2 \
+    --hash=sha256:c434598117762e2bd304e526244f67bf66bbd7b5d6cf22138be51ff661980343 \
+    --hash=sha256:de4bb8104e201939ccdc688b27a89a7be2079b22e2bd2b07f806b6ba71117977
     # via api-aws_infra (pyproject.toml)
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
@@ -176,17 +176,17 @@ typeguard==2.13.3 \
     #   aws-cdk-lib
     #   constructs
     #   jsii
-types-awscrt==0.20.9 \
-    --hash=sha256:3ae374b553e7228ba41a528cf42bd0b2ad7303d806c73eff4aaaac1515e3ea4e \
-    --hash=sha256:64898a2f4a2468f66233cb8c29c5f66de907cf80ba1ef5bb1359aef2f81bb521
+types-awscrt==0.20.11 \
+    --hash=sha256:3236ba5097176080189135345acfcfeae18bac88869043daf55883649ce6e2ff \
+    --hash=sha256:ad5ce9fb511414430326f19a513e23d3bc7143c10cdbe1cdaeb2222ad567698f
     # via botocore-stubs
 types-s3transfer==0.10.1 \
     --hash=sha256:02154cce46528287ad76ad1a0153840e0492239a0887e8833466eccf84b98da0 \
     --hash=sha256:49a7c81fa609ac1532f8de3756e64b58afcecad8767933310228002ec7adff74
     # via boto3-stubs
-typing-extensions==4.12.1 \
-    --hash=sha256:6024b58b69089e5a89c347397254e35f1bf02a907728ec7fee9bf0fe837d203a \
-    --hash=sha256:915f5e35ff76f56588223f15fdd5938f9a1cf9195c0de25130c627e4d597f6d1
+typing-extensions==4.12.2 \
+    --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
+    --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
     # via
     #   jsii
     #   mypy
