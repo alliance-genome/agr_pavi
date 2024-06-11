@@ -87,6 +87,34 @@ jobs:
           name: api_tests_deps_lock
           path: api/tests/requirements.txt
           if-no-files-found: error
+  webui-update-dependency-lock-files:
+    name: webui update and upload dependency lock file
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./webui/
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            webui/
+      - name: Update lock files
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+        shell: bash
+        run: |
+          make dependencies-lock-update
+      - name: Upload updated lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webui_deps_lock
+          path: webui/package-lock.json
+          if-no-files-found: error
   pipeline-aws-infra-update-dependency-lock-files:
     name: pipeline/aws_infra update and upload dependency lock file
     runs-on: ubuntu-22.04
@@ -718,6 +746,61 @@ jobs:
         aws-region: us-east-1
     - name: Validate production CDK stack code
       run: make validate-all
+  webui-code-checks:
+    name: webUI code checks
+    needs:
+      - webui-update-dependency-lock-files
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./webui/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            webui/
+      - name: Download updated webui dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: webui_deps_lock
+          path: webui
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Code typing test
+        run: |
+          make run-type-check
+      - name: Code style test
+        run: |
+          make run-style-check
+  webui-container-image-build:
+    name: webUI container-image build
+    needs:
+      - webui-update-dependency-lock-files
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download updated webui dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: webui_deps_lock
+          path: webui
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build container image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./webui/
+          file: webui/Dockerfile
+          push: false
+          tags: agr_pavi/webui:latest
+          outputs: type=docker,dest=/tmp/pavi_webui_docker_image.tar
   commit-deps-lock-updates:
     runs-on: ubuntu-22.04
     #Only commit updated lock files on successfull validation (to prevent PR cluttering)
@@ -735,6 +818,7 @@ jobs:
       - api-container-integration-testing
       - api-unit-integration-testing
       - api-code-checks
+      - webui-update-dependency-lock-files
     permissions:
       contents: write
     steps:
@@ -791,6 +875,11 @@ jobs:
         with:
           name: api_aws_infra_tests_deps_lock
           path: api/aws_infra/tests
+      - name: Download updated webui dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: webui_deps_lock
+          path: webui
       # Commit all changed dependency lock files back to the open PR
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:

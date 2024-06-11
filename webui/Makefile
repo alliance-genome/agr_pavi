@@ -19,8 +19,20 @@ endif
 container-image:
 	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
 
+dependencies: check-node
+	npm install
+
+dependencies-lock-update: check-node
+	npm update --package-lock-only
+
 run-container-dev:
 	docker-compose -f docker-compose.yml --env-file dev.env up agr.pavi.webui
 
-run-server-dev: check-node
+run-server-dev: check-node dependencies
 	npm run dev
+
+run-style-check: check-node dependencies
+	npm run lint
+
+run-type-check: check-node dependencies
+	npm run typecheck
