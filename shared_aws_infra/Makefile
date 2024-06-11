@@ -33,23 +33,23 @@ requirements.txt:
 tests/requirements.txt:
 	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
 
-python-dependencies-lock-update:
+deps-lock-update:
 	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
 
-python-test-dependencies-lock-update:
+test-deps-lock-update:
 	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
 
-python-dependencies: requirements.txt
+deps: requirements.txt
 	pip install -r requirements.txt
 
-python-test-dependencies: tests/requirements.txt
+test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
-run-unit-tests: check-node python-test-dependencies
+run-unit-tests: check-node test-deps
 	python -m pytest
 
-run-python-type-check: python-test-dependencies
+run-type-checks: test-deps
 	mypy --install-types --non-interactive --warn-unused-config ./
 
-run-python-style-check: python-test-dependencies
+run-style-checks: test-deps
 	flake8 ./

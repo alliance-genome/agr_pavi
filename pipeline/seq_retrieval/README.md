@@ -45,7 +45,7 @@ deactivate
 Type hints are required wherever possible and `mypy` is used to enforce this on PR validation.  
 To check all code part of the seq_retrieval module in this folder (on local development), run:
 ```shell
-make run-python-type-check-dev
+make run-type-checks-dev
 ```
 
 **Detailed explanation**  
@@ -117,14 +117,14 @@ which would otherwise result in silent unexpected behavior and bugs.
 To run `mypy` on the seq_retrieval module in this folder in your local development environment,
 run the following shell command:
 ```shell
-make run-python-type-check-dev
+make run-type-checks-dev
 ```
 
 `mypy` checks are automatically run and enforced as part of the PR validation
 and all reported errors must be fixed to enable merging each PR into `main`.  
 If the `pipeline/seq_retrieval code checks` status check fails on a PR in github,
 click the details link and check which step failed, and investigate the step output
-for hints on what to fix. The python type checks are run in the `Python typing test` step.
+for hints on what to fix. The python type checks are run in the `Code typing test` step.
 
 #### Code documentation (docstrings)
 All modules, functions, classes and methods should have their input, attributes and output documented
@@ -137,7 +137,7 @@ For detailed list of all rules available through flake8, see https://www.flake8r
 
 To check if your code complies with all style rules set by flake8, run the following command:
 ```shell
-make run-python-style-check
+make run-style-checks
 ```
 With the flake8 output, we can now return to the code and fix the errors reported
 which would otherwise result in inconsistent code style and reduced readability.
@@ -146,7 +146,7 @@ These style checks are automatically run and enforced as part of the PR validati
 and all reported errors must be fixed to enable merging each PR into `main`.  
 If the `pipeline/seq_retrieval code checks` status check fails on a PR in github,
 click the details link and check which step failed, and investigate the step output
-for hints on what to fix. The python style checks are run in the `Python style test` step.
+for hints on what to fix. The python style checks are run in the `Code style test` step.
 
 #### Unit testing
 [Pytest](https://pytest.org/) is being used for unit testing.

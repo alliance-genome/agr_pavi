@@ -6,7 +6,7 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-.PHONY: check-venv-active run-python-type-check clean pip-tools
+.PHONY: check-venv-active run-type-checks clean pip-tools
 
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
@@ -38,34 +38,34 @@ requirements.txt:
 tests/requirements.txt:
 	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
 
-python-dependencies: requirements.txt
+deps: requirements.txt
 	pip install -r requirements.txt
 
-python-dependencies-update:
+deps-update:
 	pip install -U -r requirements.txt
 
-python-dependencies-lock-update:
+deps-lock-update:
 	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
 
-python-test-dependencies: tests/requirements.txt
+test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
-python-test-dependencies-lock-update:
+test-deps-lock-update:
 	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
 
-run-python-type-check: python-test-dependencies
+run-type-checks: test-deps
 	mypy --install-types --non-interactive --warn-unused-config ./
 
-run-python-style-check: python-test-dependencies
+run-style-checks: test-deps
 	flake8 ./
 
-run-unit-tests: python-test-dependencies
+run-unit-tests: test-deps
 	python -m pytest --cov --cov-fail-under=80
 
-run-unit-tests-dev: python-test-dependencies
+run-unit-tests-dev: test-deps
 	python -m pytest --cov --cov-fail-under=80 --cov-report html
 
-run-code-checks: run-python-type-check run-python-style-check run-unit-tests
+run-code-checks: run-type-checks run-style-checks run-unit-tests
 
 run-build-checks: containter-image
 
@@ -79,11 +79,11 @@ else
 	@:
 endif
 
-python-dependencies-dev: check-venv-active python-dependencies
+deps-dev: check-venv-active deps
 
-python-dependencies-dev-update: check-venv-active python-dependencies-update
+deps-dev-update: check-venv-active deps-update
 
-run-python-type-check-dev: check-venv-active run-python-type-check
+run-type-checks-dev: check-venv-active run-type-checks
 
 .venv/:
 	python3.12 -m venv .venv/

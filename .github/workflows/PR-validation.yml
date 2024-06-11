@@ -40,7 +40,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
+          make pip-tools deps-lock-update test-deps-lock-update
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -74,7 +74,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
+          make pip-tools deps-lock-update test-deps-lock-update
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -108,7 +108,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make dependencies-lock-update
+          make deps-lock-update
       - name: Upload updated lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -136,7 +136,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
+          make pip-tools deps-lock-update test-deps-lock-update
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -170,7 +170,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
+          make pip-tools deps-lock-update test-deps-lock-update
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -204,7 +204,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools python-dependencies-lock-update python-test-dependencies-lock-update
+          make pip-tools deps-lock-update test-deps-lock-update
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -246,12 +246,12 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    - name: Python typing test
+    - name: Code typing test
       run: |
-        make run-python-type-check
-    - name: Python style test
+        make run-type-checks
+    - name: Code style test
       run: |
-        make run-python-style-check
+        make run-style-checks
     - name: Unit tests
       run: make run-unit-tests
   pipeline-seq-retrieval-container-image-build:
@@ -333,12 +333,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Python typing test
+      - name: Code typing test
         run: |
-          make run-python-type-check
-      - name: Python style test
+          make run-type-checks
+      - name: Code style test
         run: |
-          make run-python-style-check
+          make run-style-checks
       - name: Run unit tests
         run: |
           make run-unit-tests
@@ -497,12 +497,12 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    - name: Python typing test
+    - name: Code typing test
       run: |
-        make run-python-type-check
-    - name: Python style test
+        make run-type-checks
+    - name: Code style test
       run: |
-        make run-python-style-check
+        make run-style-checks
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -548,12 +548,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Python typing test
+      - name: Code typing test
         run: |
-          make run-python-type-check
-      - name: Python style test
+          make run-type-checks
+      - name: Code style test
         run: |
-          make run-python-style-check
+          make run-style-checks
   api-container-image-build:
     name: API container-image build
     needs:
@@ -724,12 +724,12 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    - name: Python typing test
+    - name: Code typing test
       run: |
-        make run-python-type-check
-    - name: Python style test
+        make run-type-checks
+    - name: Code style test
       run: |
-        make run-python-style-check
+        make run-style-checks
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -772,10 +772,10 @@ jobs:
           node-version: "20"
       - name: Code typing test
         run: |
-          make run-type-check
+          make run-type-checks
       - name: Code style test
         run: |
-          make run-style-check
+          make run-style-checks
   webui-container-image-build:
     name: webUI container-image build
     needs:
