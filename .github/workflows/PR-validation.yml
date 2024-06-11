@@ -819,6 +819,8 @@ jobs:
       - api-unit-integration-testing
       - api-code-checks
       - webui-update-dependency-lock-files
+      - webui-code-checks
+      - webui-container-image-build
     permissions:
       contents: write
     steps:
