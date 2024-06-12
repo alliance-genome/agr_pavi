@@ -27,3 +27,7 @@ updates:
     directory: "/shared_aws_infra/"
     schedule:
       interval: "monthly"
+  - package-ecosystem: "npm"
+    directory: "/webui/"
+    schedule:
+      interval: "monthly"
