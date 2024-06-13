@@ -1,6 +1,8 @@
 CONTAINER_NAME=agr_pavi/webui
 ADDITIONAL_BUILD_ARGS=
 SUPPORTED_NODE := ^v20\.
+PAVI_API_PORT ?= 8000
+PAVI_API_BASE_URL ?= http://localhost:${PAVI_API_PORT}
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
@@ -29,7 +31,8 @@ run-container-dev:
 	docker-compose -f docker-compose.yml --env-file dev.env up agr.pavi.webui
 
 run-server-dev: check-node deps
-	npm run dev
+	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
+	 npm run dev
 
 run-style-checks: check-node deps
 	npm run lint
