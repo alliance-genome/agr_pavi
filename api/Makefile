@@ -31,7 +31,7 @@ protein-msa.nf:
 nextflow.config:
 	ln -s ../pipeline/workflow/nextflow.config nextflow.config
 
-run-api-server-dev: deps nextflow.sh protein-msa.nf nextflow.config
+run-server-dev: deps nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 export API_EXECUTION_ENV="local" && \
 	 fastapi dev src/main.py
