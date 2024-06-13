@@ -29,7 +29,7 @@ def test_success_pipeline_workflow() -> None:
     with open('../tests/resources/test_seq_regions.json', mode='r') as input_file:
         input_data = input_file.read()
 
-    response = client.post(url='/pipeline-job/', content=input_data)
+    response = client.post(url='/api/pipeline-job/', content=input_data)
     assert response.status_code == 201
 
     response_dict: dict[str, Any] = response.json()
@@ -43,7 +43,7 @@ def test_success_pipeline_workflow() -> None:
     assert final_response['status'] == 'completed'
 
     # Collect and compare pipeline result
-    response = client.get(f'/pipeline-job/{job_uuid}/alignment-result')
+    response = client.get(f'/api/pipeline-job/{job_uuid}/alignment-result')
 
     assert response.status_code == 200, f'Result retrieval for {job_uuid} did not return success.'
 
@@ -58,7 +58,7 @@ def test_invalid_pipeline_submission() -> None:
     with open('../tests/resources/invalid_seq_regions.json', mode='r') as input_file:
         invalid_input_data = input_file.read()
 
-    response = client.post(url='/pipeline-job/', content=invalid_input_data)
+    response = client.post(url='/api/pipeline-job/', content=invalid_input_data)
     assert codes.is_client_error(response.status_code)
 
 
@@ -69,7 +69,7 @@ def test_fail_pipeline_workflow() -> None:
     with open('../tests/resources/pipeline_failure_seq_regions.json', mode='r') as input_file:
         input_data = input_file.read()
 
-    response = client.post(url='/pipeline-job/', content=input_data)
+    response = client.post(url='/api/pipeline-job/', content=input_data)
     assert response.status_code == 201
 
     response_dict: dict[str, Any] = response.json()
@@ -83,6 +83,6 @@ def test_fail_pipeline_workflow() -> None:
     assert final_response['status'] == 'failed'
 
     # Pipeline results should not be found
-    response = client.get(f'/pipeline-job/{job_uuid}/alignment-result')
+    response = client.get(f'/api/pipeline-job/{job_uuid}/alignment-result')
 
     assert response.status_code == 404, f'Result retrieval for {job_uuid} did not return not-found.'

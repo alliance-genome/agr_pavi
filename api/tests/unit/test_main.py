@@ -8,19 +8,19 @@ client = TestClient(app)
 NOT_FOUND_UUID: UUID = UUID('00000000-0000-0000-0000-000000000000')
 
 
-def test_root_accessible() -> None:
-    response = client.get("/")
+def test_api_root_accessible() -> None:
+    response = client.get("/api/")
 
     assert response.status_code == 200
 
 
 def test_job_not_found() -> None:
-    response = client.get(f'/pipeline-job/{NOT_FOUND_UUID}')
+    response = client.get(f'/api/pipeline-job/{NOT_FOUND_UUID}')
 
     assert response.status_code == 404
 
 
 def test_result_not_found() -> None:
-    response = client.get(f'/pipeline-job/{NOT_FOUND_UUID}/alignment-result')
+    response = client.get(f'/api/pipeline-job/{NOT_FOUND_UUID}/alignment-result')
 
     assert response.status_code == 404
