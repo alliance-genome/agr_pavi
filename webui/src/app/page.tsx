@@ -51,10 +51,12 @@ export default function Home() {
                 return true;
             }
         }
-        catch (e) { }
+        catch (e) {
+            // Invalid JSON, nothing to do
+        }
 
         return false;
-    };
+    }
 
     const submitNewPipelineJob = async(inputStr: string) => {
         const validJSON: boolean = isValidJSON(inputStr)
@@ -102,7 +104,7 @@ export default function Home() {
         <div>
             <PrimeReactProvider>
                 <InputTextarea onChange={e => setPayload(e.target.value)} /><br />
-                <Button label='Submit' onClick={e => submitNewPipelineJob(payload)} /><br />
+                <Button label='Submit' onClick={() => submitNewPipelineJob(payload)} /><br />
                 <div>{displayMsg}</div>
             </PrimeReactProvider>
         </div>
