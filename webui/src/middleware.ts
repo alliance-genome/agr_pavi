@@ -25,5 +25,5 @@ export function middleware(request: NextRequest) {
 
 // Only apply middleware to API paths (and supporting /openapi.json call)
 export const config = {
-  matcher: ['/api/:path*', '/openapi.json'],
+    matcher: ['/api/:path*', '/openapi.json'],
 }
