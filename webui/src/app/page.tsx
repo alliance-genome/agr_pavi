@@ -11,6 +11,7 @@ export default function Home() {
     interface jobType {
         uuid?: string,
         status: string,
+        inputValidationPassed?: boolean
     }
 
     const initJob: jobType = {
@@ -25,7 +26,15 @@ export default function Home() {
             return ''
         }
         else if (job['status'] === 'failed to submit') {
-            return 'Job failed to submit. Correct input and try again.'
+            let msg = 'Job failed to submit.'
+            if (job['inputValidationPassed'] === false ){
+                msg += ' Correct the input and try again.'
+            }
+            else{
+                msg += ' Try again and contact the developers if this error persists.'
+            }
+
+            return msg
         } else {
             return `job ${job['uuid']||''} is now ${job['status']}.`
         }
@@ -63,10 +72,12 @@ export default function Home() {
         console.log(`Submit request received.`)
         if ( validJSON ) {
             console.log(`Valid JSON received, sending job submission request to API.`)
+
             setJob({
                 uuid: undefined,
                 status: 'submitting',
             });
+
             fetch('/api/pipeline-job/', {
                 method: 'POST',
                 headers: {
@@ -75,9 +86,15 @@ export default function Home() {
                 },
                 body: inputStr
             })
-            .then((response) => {
-                console.log(`API job submission response received, parsing response.`)
-                return Promise.all([response, response.json()]);
+            .then((response: Response) => {
+                console.log(`API job submission response received, processing response.`)
+
+                if ( 500 <= response.status && response.status <= 599 ){
+                    // No point in attempting to process the body, as no body is expected.
+                    throw new Error('Server error received.', {cause: 'server error'})
+                }
+
+                return Promise.all([Promise.resolve(response), response.json()]);
             })
             .then(([response, body]) => {
                 if (response.ok) {
@@ -85,15 +102,28 @@ export default function Home() {
                     setJob({
                         uuid: body['uuid'],
                         status: body['status'],
+                        inputValidationPassed: true
                     });
                 } else {
-                    console.log(`Failure response received from API job submission.`)
-                    setJob({
-                        status: 'failed to submit',
-                    });
+                    const errMsg = 'Failure response received from API job submission.'
+                    console.error(errMsg)
+                    if( 400 <= response.status && response.status <= 499 ){
+                        throw new Error(errMsg, {cause: 'user error'})
+                    }
+                    else{
+                        throw new Error(errMsg, {cause: 'unkown'})
+                    }
+
                 }
             })
-            .catch((e) => console.log('error', e));
+            .catch((e: Error) => {
+                console.error('Error caught while submitting job:', e)
+                setJob({
+                    uuid: undefined,
+                    status: 'failed to submit',
+                    inputValidationPassed: e.cause && e.cause === 'user error'? false: undefined
+                });
+            });
         }
         else{
             setDisplayMsg('Invalid json string. Enter a valid JSON string and try again.')
