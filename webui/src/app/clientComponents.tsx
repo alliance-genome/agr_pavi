@@ -22,7 +22,7 @@ const JobSubmitForm: FC<props> = ({submitFn}) => {
     const [displayMsg, setDisplayMsg] = useState('')
 
     const jobDisplayMsg = useCallback( () => {
-        if (job['status'] === 'expected') {
+        if (job['status'] === 'expected' || job['status'] === 'submitting') {
             return ''
         }
         else if (job['status'] === 'failed to submit') {
@@ -65,7 +65,8 @@ const JobSubmitForm: FC<props> = ({submitFn}) => {
         <div>
             <PrimeReactProvider>
                 <InputTextarea onChange={e => setPayload(e.target.value)} /><br />
-                <Button label='Submit' onClick={handleSubmit} /><br />
+                <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
+                        loading={job['status'] === 'submitting'} /><br />
                 <div>{displayMsg}</div>
             </PrimeReactProvider>
         </div>
