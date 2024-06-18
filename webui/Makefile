@@ -28,7 +28,8 @@ deps-lock-update: check-node
 	npm update --package-lock-only
 
 run-container-dev:
-	docker-compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.webui
+	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
+	 docker-compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.webui
 
 run-server-dev: check-node deps
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \

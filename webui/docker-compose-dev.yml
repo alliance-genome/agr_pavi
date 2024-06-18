@@ -5,6 +5,8 @@ services:
   agr.pavi.dev-local.webui:
     container_name: agr.pavi.${NET}.webui.server
     image: ${REGISTRY}agr_pavi/webui:${AGR_PAVI_RELEASE}
+    environment:
+      - PAVI_API_BASE_URL
     ports:
       - "3000:3000"
     network_mode: host
