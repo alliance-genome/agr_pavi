@@ -5,7 +5,7 @@ The API is built using the [fastAPI](https://fastapi.tiangolo.com/) framework.
 # Development
 During active code development, run the API server through the following command:
 ```bash
-make run-api-server-dev
+make run-server-dev
 ```
 This will run an API server which automatically reloades when code changes are saved, and make the API available at http://localhost:8000/.
 

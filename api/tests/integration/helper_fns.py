@@ -27,7 +27,7 @@ def poll_job_progress(client: TestClient | Client, job_uuid: UUID, timeout: int 
     walltime = 0
     final_response: dict[str, str]
     while walltime < timeout:
-        response = client.get(f'/pipeline-job/{job_uuid}')
+        response = client.get(f'/api/pipeline-job/{job_uuid}')
         assert response.status_code == 200, f'Polling status for {job_uuid} did not return success.'
 
         response_dict: dict[str, Any] = response.json()

@@ -1,4 +1,4 @@
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import APIRouter, BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from os import getenv
 from pydantic import BaseModel
@@ -66,15 +66,19 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
 
 
 app = FastAPI()
+router = APIRouter(
+    prefix="/api"
+)
+
 jobs: dict[UUID, Pipeline_job] = {}
 
 
-@app.get("/")
+@router.get("/")
 async def help_msg() -> dict[str, str]:
     return {"help": "Welcome to the PAVI API! For more information on how to use it, see the docs at {host}/docs"}
 
 
-@app.post('/pipeline-job/', status_code=201, response_model_exclude_none=True)
+@router.post('/pipeline-job/', status_code=201, response_model_exclude_none=True)
 async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region], background_tasks: BackgroundTasks) -> Pipeline_job:
     new_task: Pipeline_job = Pipeline_job(uuid=uuid1())
     jobs[new_task.uuid] = new_task
@@ -83,14 +87,14 @@ async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region
     return new_task
 
 
-@app.get("/pipeline-job/{uuid}", response_model_exclude_none=True, responses={404: {'model': HTTP_exception_response}})
+@router.get("/pipeline-job/{uuid}", response_model_exclude_none=True, responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_details(uuid: UUID) -> Pipeline_job:
     if uuid not in jobs.keys():
         raise HTTPException(status_code=404, detail='Job not found.')
     return jobs[uuid]
 
 
-@app.get("/pipeline-job/{uuid}/alignment-result", responses={404: {'model': HTTP_exception_response}})
+@router.get("/pipeline-job/{uuid}/alignment-result", responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
     try:
         file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/alignment-output.aln', mode="rb")
@@ -104,3 +108,5 @@ async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
                 yield from file_like
 
         return StreamingResponse(iterfile(), media_type="text/plain")
+
+app.include_router(router)

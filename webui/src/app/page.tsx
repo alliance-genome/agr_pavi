@@ -1,12 +1,15 @@
 import { PrimeReactProvider } from 'primereact/api';
-import {Button} from 'primereact/button'
 
-export default function Home() {
-  return (
-    <div>
-      <PrimeReactProvider>
-        <Button label='Style-testing button'></Button>
-      </PrimeReactProvider>
-    </div>
-  );
+import JobSubmitForm, { DarkModeToggle } from './clientComponents';
+import submitNewPipelineJob from './serverActions';
+
+export default async function Page() {
+    return (
+        <PrimeReactProvider>
+            {/* eslint-disable-next-line @next/next/no-css-tags */}
+            <link id="theme-link" rel="stylesheet" href="/themes/mdc-light-indigo/theme.css" />
+            <DarkModeToggle />
+            <JobSubmitForm submitFn={submitNewPipelineJob}></JobSubmitForm>
+        </PrimeReactProvider>
+    );
 }
