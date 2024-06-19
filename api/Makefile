@@ -80,7 +80,7 @@ run-tests: test-deps nextflow.sh protein-msa.nf nextflow.config
 	python -m pytest --cov --cov-fail-under=80
 
 run-tests-dev: test-deps nextflow.sh protein-msa.nf nextflow.config
-	python -m pytest --cov --cov-fail-under=80 --cov-report html
+	python -m pytest --cov --cov-fail-under=80 --cov-report html -v
 
 run-integration-test-container: test-deps
 	export API_PIPELINE_IMAGE_TAG=${TAG_NAME} && \

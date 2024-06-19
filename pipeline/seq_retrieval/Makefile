@@ -63,7 +63,7 @@ run-unit-tests: test-deps
 	python -m pytest --cov --cov-fail-under=80
 
 run-unit-tests-dev: test-deps
-	python -m pytest --cov --cov-fail-under=80 --cov-report html
+	python -m pytest --cov --cov-fail-under=80 --cov-report html -v
 
 run-code-checks: run-type-checks run-style-checks run-unit-tests
 
