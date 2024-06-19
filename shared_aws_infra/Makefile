@@ -5,6 +5,7 @@ SUPPORTED_NODE := ^v18\.
 	python3.12 -m venv .venv/
 
 build:
+	pip install build==1.*
 	python3.12 -m build
 
 install:
