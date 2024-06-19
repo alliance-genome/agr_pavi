@@ -87,6 +87,6 @@ run-integration-test-container: test-deps
 	  docker-compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
 	sleep 30 # Allow container some startup time before attempting to connect
 	export EXTERNAL_API_BASE_URL="http://localhost:8080" && \
-	  python -m pytest tests/integration \
+	  python -m pytest tests/b_integration \
 	  || (echo "Container logs:" && docker logs agr.pavi.dev-local.api.server && exit 1)
 	docker-compose -f docker-compose-dev.yml down
