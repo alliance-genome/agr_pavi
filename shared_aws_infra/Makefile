@@ -1,8 +1,18 @@
-.PHONY: check-venv-active check-node pip-tools
+.PHONY: check-venv-active check-node pip-tools clean install
 SUPPORTED_NODE := ^v18\.
 
 .venv/:
 	python3.12 -m venv .venv/
+
+build:
+	python3.12 -m build
+
+install:
+	cp dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl /tmp/
+
+clean:
+	rm -rf build/ || true
+	rm dist/* || true
 
 check-venv-active:
 ifeq ($(VIRTUAL_ENV),)

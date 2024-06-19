@@ -1,6 +1,6 @@
 [project]
-name = "shared_aws_infra"
-version = "0.1.0"
+name = "pavi_shared_aws_infra"
+version = "0.0.0"
 description = "PAVI shared AWS resource definitions"
 authors = [
     {name = "Manuel Luypaert", email = "luypaert@ebi.ac.uk"}
@@ -18,3 +18,7 @@ test = [
     "mypy==1.10.*",
     "pytest==8.2.*"
 ]
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"

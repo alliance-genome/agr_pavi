@@ -6,15 +6,10 @@ from aws_cdk import (
 
 from constructs import Construct
 
-from pathlib import Path
-from sys import path as sys_path
 from typing import Any, Optional
 
-repo_root_path = Path(__file__).parent.parent.parent.parent
-sys_path.append(str(repo_root_path))
-
-from shared_aws_infra.shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository  # noqa: E402
-from cdk_classes.aws_batch import PaviExecutionEnvironment  # noqa: E402
+from pavi_shared_aws_infra.shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository
+from cdk_classes.aws_batch import PaviExecutionEnvironment
 
 
 class CdkInfraStack(Stack):

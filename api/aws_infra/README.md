@@ -1,9 +1,9 @@
 
 # AGR PAVI infra using CDK (Python)
 
-This is the AWS infrastructure component of the AGR PAVI application.
-This includes all AWS resources and infrastructure required to make the main
-application executable in AWS, and is defined and deployed using
+This is the AWS infrastructure component of the AGR PAVI API.
+This includes all AWS resources and infrastructure required to make the API
+executable in AWS, and is defined and deployed using
 AWS CDK and written as Python code in this subdirectory.
 
 AWS CDK is an open-source framework that enables writing
@@ -45,6 +45,13 @@ Once done working with the code in this directory, deactivate the virtualenv:
 ```bash
 $ deactivate
 ```
+
+## Dependencies
+The code in this subdirectory depends on a set of shared AWS infra modules and variables,
+found in the the `/shared_aws_infra` directory in this repository.
+
+Before proceeding to run or make any changes in this repository, build and install
+this shared AWS infra module by following the [build-and-install](../../shared_aws_infra/README.md#build-and-install) instructions in the README.
 
 ## Important files
 Two standard CDK configuration files can be found at the root level of this directory:

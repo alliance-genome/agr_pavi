@@ -10,15 +10,7 @@ import aws_cdk.assertions as assertions
 
 from cdk_classes.application_stack import EBApplicationCdkStack, EbEnvironmentCdkStack
 
-from pathlib import Path
-from sys import path as sys_path
-
-print(__file__)
-repo_root_path = Path(__file__).parent.parent.parent.parent.parent
-print(repo_root_path)
-sys_path.append(str(repo_root_path))
-
-from shared_aws_infra.agr_aws_env import agr_aws_environment  # noqa: E402
+from pavi_shared_aws_infra.agr_aws_env import agr_aws_environment
 
 app = App()
 eb_app_stack = EBApplicationCdkStack(app, "pytest-api-EB-Application-stack", env=agr_aws_environment)
