@@ -80,13 +80,13 @@ run-tests: test-deps nextflow.sh protein-msa.nf nextflow.config
 	python -m pytest --cov --cov-fail-under=80
 
 run-tests-dev: test-deps nextflow.sh protein-msa.nf nextflow.config
-	python -m pytest --cov --cov-fail-under=80 --cov-report html
+	python -m pytest --cov --cov-fail-under=80 --cov-report html -v
 
 run-integration-test-container: test-deps
 	export API_PIPELINE_IMAGE_TAG=${TAG_NAME} && \
 	  docker-compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
 	sleep 30 # Allow container some startup time before attempting to connect
 	export EXTERNAL_API_BASE_URL="http://localhost:8080" && \
-	  python -m pytest tests/integration \
+	  python -m pytest tests/b_integration \
 	  || (echo "Container logs:" && docker logs agr.pavi.dev-local.api.server && exit 1)
 	docker-compose -f docker-compose-dev.yml down

@@ -802,6 +802,11 @@ jobs:
           tags: agr_pavi/webui:latest
           outputs: type=docker,dest=/tmp/pavi_webui_docker_image.tar
   commit-deps-lock-updates:
+    #TODO: Moving the commit from before to after merge to prevent need for repetitive forced reruns of PR-validation.
+    #       * Convert this job into job that tars up all updated dependency files and uploads them as a single artifact.
+    #       * The new artifact should then be downloaded, unpacked and committed in the main-build-and-deploy workflow.
+    #       * PR validation should get an additional job that reports in the open PR if dependency files have been updated,
+    #         with a link to the updated files or summary report to enable inspection before merge (download and report git diff?).
     runs-on: ubuntu-22.04
     #Only commit updated lock files on successfull validation (to prevent PR cluttering)
     needs:
