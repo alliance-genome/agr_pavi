@@ -15,9 +15,9 @@ external_api_base_url = getenv('EXTERNAL_API_BASE_URL')
 
 client: TestClient | Client
 if external_api_base_url:
-    client = Client(base_url=external_api_base_url)
+    client = Client(base_url=external_api_base_url, follow_redirects=False)
 else:
-    client = TestClient(app)
+    client = TestClient(app, follow_redirects=False)
     environ["API_RESULTS_PATH_PREFIX"] = f'{getcwd()}/'
     environ["API_EXECUTION_ENV"] = 'local'
 
