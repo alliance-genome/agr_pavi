@@ -78,6 +78,10 @@ async def help_msg() -> dict[str, str]:
     return {"help": "Welcome to the PAVI API! For more information on how to use it, see the docs at {host}/docs"}
 
 
+@router.get("/health", description='Health endpoint to check API health', tags=['metadata'])
+async def health() -> dict[str, str]:
+    return {"status": "up"}
+
 @router.post('/pipeline-job/', status_code=201, response_model_exclude_none=True)
 async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region], background_tasks: BackgroundTasks) -> Pipeline_job:
     new_task: Pipeline_job = Pipeline_job(uuid=uuid1())

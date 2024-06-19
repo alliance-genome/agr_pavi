@@ -8,6 +8,15 @@ client = TestClient(app)
 NOT_FOUND_UUID: UUID = UUID('00000000-0000-0000-0000-000000000000')
 
 
+# Health endpoint is used by ELB health checks.
+# If path or response status-code changes then .ebextensions/loadbalancer.yml.config
+# needs to be updated (HealthCheckPath)
+def test_health_reporting() -> None:
+    response = client.get("/api/health/")
+
+    assert response.status_code == 200
+
+
 def test_api_root_accessible() -> None:
     response = client.get("/api/")
 
