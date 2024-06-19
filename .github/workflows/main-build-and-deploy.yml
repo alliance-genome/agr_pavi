@@ -230,7 +230,7 @@ jobs:
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-api-cdk-deploy
         aws-region: us-east-1
     - name: CDK validations (resource assertions and cdk diff)
-      run: make validate-application-stack validate-environment-stack
+      run: make validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}"
     - name: Deploy application (and version)
       run: make deploy-application PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" ADD_CDK_ARGS="--require-approval never"
     - name: Deploy to main environment
