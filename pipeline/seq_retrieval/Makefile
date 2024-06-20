@@ -38,31 +38,31 @@ requirements.txt:
 tests/requirements.txt:
 	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
 
-deps: requirements.txt
+install-deps: requirements.txt
 	pip install -r requirements.txt
 
-deps-update:
+install-deps-update:
 	pip install -U -r requirements.txt
 
-deps-lock-update:
+update-deps-lock:
 	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
 
-test-deps: tests/requirements.txt
+install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
-test-deps-lock-update:
+update-test-deps-lock:
 	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
 
-run-type-checks: test-deps
+run-type-checks: install-test-deps
 	mypy --install-types --non-interactive --warn-unused-config ./
 
-run-style-checks: test-deps
+run-style-checks: install-test-deps
 	flake8 ./
 
-run-unit-tests: test-deps
+run-unit-tests: install-test-deps
 	python -m pytest --cov --cov-fail-under=80
 
-run-unit-tests-dev: test-deps
+run-unit-tests-dev: install-test-deps
 	python -m pytest --cov --cov-fail-under=80 --cov-report html -v
 
 run-code-checks: run-type-checks run-style-checks run-unit-tests
@@ -79,9 +79,9 @@ else
 	@:
 endif
 
-deps-dev: check-venv-active deps
+install-deps-dev: check-venv-active install-deps
 
-deps-dev-update: check-venv-active deps-update
+install-deps-dev-update: check-venv-active deps-update
 
 run-type-checks-dev: check-venv-active run-type-checks
 

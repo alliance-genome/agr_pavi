@@ -40,7 +40,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -74,7 +74,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -108,7 +108,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make deps-lock-update
+          make update-deps-lock
       - name: Upload updated lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -143,7 +143,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -184,7 +184,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -218,7 +218,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:

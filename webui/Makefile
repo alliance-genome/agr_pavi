@@ -21,22 +21,22 @@ endif
 container-image:
 	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
 
-deps: check-node
+install-deps: check-node
 	npm install
 
-deps-lock-update: check-node
+update-deps-lock: check-node
 	npm update --package-lock-only
 
 run-container-dev:
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
 	 docker-compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.webui
 
-run-server-dev: check-node deps
+run-server-dev: check-node install-deps
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
 	 npm run dev
 
-run-style-checks: check-node deps
+run-style-checks: check-node install-deps
 	npm run lint
 
-run-type-checks: check-node deps
+run-type-checks: check-node install-deps
 	npm run typecheck

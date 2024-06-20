@@ -51,23 +51,23 @@ requirements.txt:
 tests/requirements.txt:
 	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
 
-deps-lock-update:
+update-deps-lock:
 	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
 
-test-deps-lock-update:
+update-test-deps-lock:
 	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
 
-deps: requirements.txt
+install-deps: requirements.txt
 	pip install -r requirements.txt
 
-test-deps: tests/requirements.txt
+install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
-run-unit-tests: check-node test-deps
+run-unit-tests: check-node install-test-deps
 	python -m pytest
 
-run-type-checks: test-deps
+run-type-checks: install-test-deps
 	mypy --install-types --non-interactive --warn-unused-config ./
 
-run-style-checks: test-deps
+run-style-checks: install-test-deps
 	flake8 ./
