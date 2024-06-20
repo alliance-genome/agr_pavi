@@ -9,10 +9,11 @@ build:
 # Setting SOURCE_DATE_EPOCH to commit date,
 # so that build produces whl with reproducable hash given same source-code
 # ,resulting in reproducable builds that don't result in hash mismatches on rebuild
-	REF=$(git log -n 1 --format=%H) && \
-	SOURCE_DATE_EPOCH=$(git show --no-patch --format=%ct ${REF})
-	export SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH} && \
-	python3.12 -m build
+#TODO: figure out why this worked and then suddenly broke? Individual commands work but make run does not? $(shell ...)?
+	REF=$$(git log -n 1 --format=%H ./) && \
+	 export SOURCE_DATE_EPOCH=$$(git show --no-patch --format=%ct $$REF) && \
+	 echo $$SOURCE_DATE_EPOCH && \
+	 python3.12 -m build
 
 install:
 	cp dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl /tmp/
