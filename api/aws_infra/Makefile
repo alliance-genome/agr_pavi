@@ -87,7 +87,7 @@ validate-all-dev: check-venv-active validate-all
 
 deploy-application:
 	cdk deploy PaviApiEbApplicationCdkStack ${ADD_CDK_ARGS}
-	python -m aws_helpers.deploy_eb_app_version --eb_app_name PAVI-api --version_label ${PAVI_DEPLOY_VERSION_LABEL}
+	python -m pavi_shared_aws_infra.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-api --version_label ${PAVI_DEPLOY_VERSION_LABEL}
 
 deploy-environment:
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
