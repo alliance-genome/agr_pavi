@@ -102,7 +102,7 @@ packaging==24.1 \
     --hash=sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124
     # via pytest
 pavi-shared-aws-infra @ file:///tmp/pavi_shared_aws_infra-0.0.0-py3-none-any.whl \
-    --hash=sha256:8f97373a935d268beab0d647520af76d4cde06ccae58cf986f555f6f0baf4ad3
+    --hash=sha256:e84a4a121d0981d5c6a164db9690db054f3ee7a06fc97d689e10f29bd1ccad4a
     # via pipeline-aws_infra (pyproject.toml)
 pluggy==1.5.0 \
     --hash=sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1 \
