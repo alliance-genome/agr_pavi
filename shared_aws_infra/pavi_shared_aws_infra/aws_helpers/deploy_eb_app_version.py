@@ -1,5 +1,5 @@
 import click
-from os import listdir, path
+from os import getcwd, listdir, path
 from zipfile import ZipFile
 
 from .eb.eb_app_version import eb_app_version_exists, create_eb_app_version
@@ -24,15 +24,15 @@ def main(eb_app_name: str, version_label: str) -> None:
     if not eb_app_version_exists(eb_app_name=eb_app_name, version_label=version_label):
         print(f'Creating new application version with label "{version_label}".')
         # Create app zip
-        dir_path = path.dirname(path.realpath(__file__))
+        dir_path = getcwd()
         app_zip_path = 'eb_app.zip'
         with ZipFile(app_zip_path, 'w') as zipObj:
             ## Add docker-compose file
-            docker_compose_file = f'{dir_path}/../../docker-compose.yml'
+            docker_compose_file = f'{dir_path}/../docker-compose.yml'
             zipObj.write(docker_compose_file, path.basename(path.normpath(docker_compose_file)))
 
             ## Add all files in .ebextensions/
-            ebextensions_path = f'{dir_path}/../.ebextensions/'
+            ebextensions_path = f'{dir_path}/.ebextensions/'
             for filename in listdir(ebextensions_path):
                 full_file_path = path.join(ebextensions_path, filename)
                 if path.isfile(full_file_path):
