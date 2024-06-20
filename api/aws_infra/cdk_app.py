@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from aws_cdk import App
 
-from cdk_classes.image_repo_stack import CdkImageRepoStack
-from cdk_classes.application_stack import EBApplicationCdkStack, EbEnvironmentCdkStack
+from pavi_shared_aws_infra.shared_cdk_classes.image_repo_stack import CdkImageRepoStack
+from pavi_shared_aws_infra.shared_cdk_classes.application_stack import EBApplicationCdkStack, EbEnvironmentCdkStack
 
 from pavi_shared_aws_infra.agr_aws_env import agr_aws_environment
 

@@ -8,8 +8,7 @@ from aws_cdk import App
 from aws_cdk.aws_config import ResourceType
 import aws_cdk.assertions as assertions
 
-from cdk_classes.application_stack import EBApplicationCdkStack, EbEnvironmentCdkStack
-
+from pavi_shared_aws_infra.shared_cdk_classes.application_stack import EBApplicationCdkStack, EbEnvironmentCdkStack
 from pavi_shared_aws_infra.agr_aws_env import agr_aws_environment
 
 app = App()
