@@ -31,7 +31,7 @@ protein-msa.nf:
 nextflow.config:
 	ln -s ../pipeline/workflow/nextflow.config nextflow.config
 
-run-server-dev: deps nextflow.sh protein-msa.nf nextflow.config
+run-server-dev: install-deps nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 export API_EXECUTION_ENV="local" && \
 	 fastapi dev src/main.py
@@ -58,31 +58,31 @@ requirements.txt:
 tests/requirements.txt:
 	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
 
-deps-lock-update:
+update-deps-lock:
 	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
 
-test-deps-lock-update:
+update-test-deps-lock:
 	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
 
-deps: requirements.txt
+install-deps: requirements.txt
 	pip install -r requirements.txt
 
-test-deps: tests/requirements.txt
+install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
-run-type-checks: test-deps
+run-type-checks: install-test-deps
 	mypy --install-types --non-interactive --warn-unused-config ./
 
-run-style-checks: test-deps
+run-style-checks: install-test-deps
 	flake8 ./
 
-run-tests: test-deps nextflow.sh protein-msa.nf nextflow.config
+run-tests: install-test-deps nextflow.sh protein-msa.nf nextflow.config
 	python -m pytest --cov --cov-fail-under=80
 
-run-tests-dev: test-deps nextflow.sh protein-msa.nf nextflow.config
+run-tests-dev: install-test-deps nextflow.sh protein-msa.nf nextflow.config
 	python -m pytest --cov --cov-fail-under=80 --cov-report html -v
 
-run-integration-test-container: test-deps
+run-integration-test-container: install-test-deps
 	export API_PIPELINE_IMAGE_TAG=${TAG_NAME} && \
 	  docker-compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
 	sleep 30 # Allow container some startup time before attempting to connect

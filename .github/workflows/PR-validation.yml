@@ -40,7 +40,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -74,7 +74,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -108,7 +108,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make deps-lock-update
+          make update-deps-lock
       - name: Upload updated lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -117,6 +117,8 @@ jobs:
           if-no-files-found: error
   pipeline-aws-infra-update-dependency-lock-files:
     name: pipeline/aws_infra update and upload dependency lock file
+    needs:
+      - shared-aws-infra-package-build
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -132,11 +134,16 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             pipeline/aws_infra/
+      - name: Download shared AWS infra package
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_aws_infra_package
+          path: /tmp/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -151,6 +158,8 @@ jobs:
           if-no-files-found: error
   api-aws-infra-update-dependency-lock-files:
     name: api/aws_infra update and upload dependency lock file
+    needs:
+      - shared-aws-infra-package-build
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -166,11 +175,16 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             api/aws_infra/
+      - name: Download shared AWS infra package
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_aws_infra_package
+          path: /tmp/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -204,7 +218,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools deps-lock-update test-deps-lock-update
+          make pip-tools update-deps-lock update-test-deps-lock
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -254,6 +268,43 @@ jobs:
         make run-style-checks
     - name: Unit tests
       run: make run-unit-tests
+  shared-aws-infra-package-build:
+    name: shared_aws_infra python package build
+    needs:
+      - shared-aws-infra-code-checks
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./shared_aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        sparse-checkout: |
+          shared_aws_infra/
+    - name: Download updated shared_aws_infra (main) dependencies lock file
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_deps_lock
+        path: shared_aws_infra
+    - name: Download updated shared_aws_infra (test) dependencies lock file
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_test_deps_lock
+        path: shared_aws_infra/tests
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Build package
+      run: |
+        make build
+    - name: Upload package as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: shared_aws_infra/dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     needs:
@@ -468,7 +519,7 @@ jobs:
     name: pipeline/aws_infra code checks
     needs:
       - pipeline-aws-infra-update-dependency-lock-files
-      - shared-aws-infra-update-dependency-lock-files
+      - shared-aws-infra-package-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -482,7 +533,6 @@ jobs:
         fetch-depth: 0
         sparse-checkout: |
           pipeline/aws_infra/
-          shared_aws_infra/
     - name: Download updated pipeline/aws_infra (main) dependencies lock file
       uses: actions/download-artifact@v4
       with:
@@ -493,6 +543,11 @@ jobs:
       with:
         name: pipeline_aws_infra_tests_deps_lock
         path: pipeline/aws_infra/tests
+    - name: Download shared AWS infra package
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: /tmp/
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -696,6 +751,7 @@ jobs:
     name: api/aws_infra code checks
     needs:
       - api-aws-infra-update-dependency-lock-files
+      - shared-aws-infra-package-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -709,7 +765,6 @@ jobs:
         fetch-depth: 0
         sparse-checkout: |
           api/aws_infra/
-          shared_aws_infra/
     - name: Download updated api/aws_infra (main) dependencies lock file
       uses: actions/download-artifact@v4
       with:
@@ -720,6 +775,11 @@ jobs:
       with:
         name: api_aws_infra_tests_deps_lock
         path: api/aws_infra/tests
+    - name: Download shared AWS infra package
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: /tmp/
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -813,7 +873,7 @@ jobs:
       - pipeline-seq-retrieval-update-dependency-lock-files
       - pipeline-seq-retrieval-code-checks
       - shared-aws-infra-update-dependency-lock-files
-      - shared-aws-infra-code-checks
+      - shared-aws-infra-package-build
       - pipeline-aws-infra-update-dependency-lock-files
       - pipeline-aws-infra-code-checks
       - pipeline-workflow-integration-testing

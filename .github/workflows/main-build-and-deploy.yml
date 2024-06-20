@@ -14,9 +14,36 @@ jobs:
       shell: bash
       run: |
         echo "PR merge detected and deployment wanted."
+  shared-aws-infra-package-build:
+    name: shared_aws_infra python package build
+    needs:
+      - on-merge-and-deploy
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./shared_aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        sparse-checkout: |
+          shared_aws_infra/
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Build package
+      run: |
+        make build
+    - name: Upload package as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: shared_aws_infra/dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
   pipeline-deploy-aws-infra:
     name: Deploy/update AWS infrastructure for pipeline
-    needs: [on-merge-and-deploy]
+    needs: [shared-aws-infra-package-build]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -36,6 +63,11 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+    - name: Download shared AWS infra package
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: /tmp/
     - name: Install CDK stack dependencies
       run: pip install -r requirements.txt
     - name: AWS credentials configuration
@@ -50,7 +82,7 @@ jobs:
       run: make deploy ADD_CDK_ARGS="--require-approval never"
   api-deploy-image-repo:
     name: Deploy/update container image repository stack for API
-    needs: [on-merge-and-deploy]
+    needs: [shared-aws-infra-package-build]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -70,6 +102,11 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+    - name: Download shared AWS infra package
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: /tmp/
     - name: Install CDK stack dependencies
       run: pip install -r requirements.txt
     - name: AWS credentials configuration
@@ -193,6 +230,7 @@ jobs:
     name: Deploy application (version) for API
     needs:
       - on-merge-and-deploy
+      - shared-aws-infra-package-build
       - api-build-and-push-docker-image
       - pipeline-alignment-build-and-push-docker-image
       - pipeline-seq-retrieval-build-and-push-docker-image
@@ -221,6 +259,11 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+    - name: Download shared AWS infra package
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: /tmp/
     - name: Install CDK stack dependencies
       run: pip install -r requirements.txt
     - name: AWS credentials configuration
