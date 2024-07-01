@@ -78,11 +78,11 @@ class PyTestEbEnvironment(Stack):
 
 app = App()
 eb_app_stack = EBApplicationCdkStack(
-    app, "pytest-api-EB-Application-stack", component_name='api', env=agr_aws_environment
+    app, "pytest-test-EB-Application-stack", component_name='testcomponent', env=agr_aws_environment
 )
 
 eb_env_stack = PyTestEbEnvironment(
-    app, "pytest-api-env-stack",
+    app, "pytest-testcomponent-env-stack",
     'pytest', eb_app_stack,
     env=agr_aws_environment)
 
@@ -95,7 +95,7 @@ eb_env_template = assertions.Template.from_stack(eb_env_stack)
 def test_eb_application() -> None:
     eb_app_template.has_resource(type=ResourceType.ELASTIC_BEANSTALK_APPLICATION.compliance_resource_type, props={
         "Properties": {
-            "ApplicationName": "PAVI-api"
+            "ApplicationName": "PAVI-testcomponent"
         }
     })
 
@@ -103,11 +103,11 @@ def test_eb_application() -> None:
 # If below environment name changes, then ensure this change is intentional.
 # The environment name change could potentially break DNS rules or have unexpected deployment consequences
 # (several environment getting mashed together if prefixing did not happen appropriately)
-# All EB environments must belong to 'PAVI-api' EB application.
+# All EB environments must belong to 'PAVI-testcomponent' EB application.
 def test_eb_app_version() -> None:
     eb_env_template.has_resource(type=ResourceType.ELASTIC_BEANSTALK_ENVIRONMENT.compliance_resource_type, props={
         "Properties": {
-            "ApplicationName": "PAVI-api",
-            "EnvironmentName": "PAVI-api-pytest"
+            "ApplicationName": "PAVI-testcomponent",
+            "EnvironmentName": "PAVI-testcomponent-pytest"
         }
     })
