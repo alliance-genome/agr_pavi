@@ -1,28 +1,30 @@
 #!/usr/bin/env python3
 from aws_cdk import App
 
-from pavi_shared_aws_infra.shared_cdk_classes.image_repo_stack import CdkImageRepoStack
-from pavi_shared_aws_infra.shared_cdk_classes.application_stack import EBApplicationCdkStack, EbEnvironmentCdkStack
+from cdk_classes.api_eb_app import ApiEbApplicationCdkStack
+from cdk_classes.api_eb_env import ApiEbEnvironmentCdkStack
+from cdk_classes.api_image_repo import ApiImageRepoCdkStack
 
 from pavi_shared_aws_infra.agr_aws_env import agr_aws_environment
 
 
 app = App()
-CdkImageRepoStack(
+
+ApiImageRepoCdkStack(
     app, "PaviApiImageRepoCdkStack",
     env=agr_aws_environment)
 
-eb_app_stack = EBApplicationCdkStack(
+eb_app_stack = ApiEbApplicationCdkStack(
     app, "PaviApiEbApplicationCdkStack",
     env=agr_aws_environment)
 
-EbEnvironmentCdkStack(
+ApiEbEnvironmentCdkStack(
     app, "PaviApiEbMainStack",
     eb_app_stack=eb_app_stack,
     env_suffix='main',
     env=agr_aws_environment)
 
-EbEnvironmentCdkStack(
+ApiEbEnvironmentCdkStack(
     app, "PaviApiEbDevStack",
     eb_app_stack=eb_app_stack,
     env_suffix='dev',
