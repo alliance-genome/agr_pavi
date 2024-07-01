@@ -66,8 +66,8 @@ install-test-deps-update-dev: check-venv-active requirements.txt
 run-unit-tests: check-node install-test-deps
 	python -m pytest
 
-run-unit-tests-dev: check-venv-active run-unit-tests
-	@:
+run-unit-tests-dev: check-venv-active check-node install-test-deps
+	python -m pytest -v
 
 run-type-checks: install-test-deps
 	mypy --install-types --non-interactive --warn-unused-config ./
