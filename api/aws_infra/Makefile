@@ -52,8 +52,16 @@ update-test-deps-lock:
 install-deps: requirements.txt
 	pip install -r requirements.txt
 
+install-deps-update-dev: check-venv-active requirements.txt
+	pip uninstall pavi_shared_aws_infra
+	pip install -U -r requirements.txt
+
 install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
+
+install-test-deps-update-dev: check-venv-active requirements.txt
+	pip uninstall -y pavi_shared_aws_infra
+	pip install -U -r tests/requirements.txt
 
 run-unit-tests: check-node install-test-deps
 	python -m pytest
