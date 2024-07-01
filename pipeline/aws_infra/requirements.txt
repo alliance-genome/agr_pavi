@@ -22,9 +22,9 @@ aws-cdk-asset-node-proxy-agent-v6==2.0.3 \
     --hash=sha256:b62cb10c69a42cab135e6bc670e3d2d3121fd4f53a0f61e53449da4b12738a6f \
     --hash=sha256:ef2ff0634ab037e2ebddbe69d7c92515a847c6c8bb2abdfc85b089f5e87761cb
     # via aws-cdk-lib
-aws-cdk-lib==2.146.0 \
-    --hash=sha256:4a4becc173d8b4fad35ba86c5d0b2f52e2c4ebe9e3dc08c9dd276fed3602f689 \
-    --hash=sha256:63e1c3084a49a001f1e6e5399af9b4ac6b1c3566b28a6b2e3f25e0d4c00df0af
+aws-cdk-lib==2.147.2 \
+    --hash=sha256:a9f12ab26d651c7b66097f3f387153aee9521dff090cfa5678b35986fd0b7247 \
+    --hash=sha256:b2add3d5845ab57ce2f4328326037caa4af88c7719baf1e46c6c169741c0cac3
     # via
     #   pavi-shared-aws-infra
     #   pipeline-aws_infra (pyproject.toml)
@@ -32,9 +32,9 @@ boto3==1.34.136 \
     --hash=sha256:0314e6598f59ee0f34eb4e6d1a0f69fa65c146d2b88a6e837a527a9956ec2731 \
     --hash=sha256:d41037e2c680ab8d6c61a0a4ee6bf1fdd9e857f43996672830a95d62d6f6fa79
     # via pavi-shared-aws-infra
-botocore==1.34.130 \
-    --hash=sha256:a242b3b0a836b14f308a309565cd63e88654cec238f9b73abbbd3c0526db4c81 \
-    --hash=sha256:a3b36e9dac1ed31c4cb3a5c5e540a7d8a9b90ff1d17f87734e674154b41776d8
+botocore==1.34.136 \
+    --hash=sha256:7f7135178692b39143c8f152a618d2a3b71065a317569a7102d2306d4946f42f \
+    --hash=sha256:c63fe9032091fb9e9477706a3ebfa4d0c109b807907051d892ed574f9b573e61
     # via
     #   boto3
     #   s3transfer
@@ -63,9 +63,9 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jsii==1.100.0 \
-    --hash=sha256:3564188028b5b2ddf7fbd50bb28555125e684a6c4540f591c9be088bc073fdb8 \
-    --hash=sha256:b267f651086cbdbb2ba336099361ebfc109dbe86f3c8671636338090c4b4d2f4
+jsii==1.101.0 \
+    --hash=sha256:043c4d3d0d09af3c7265747f4da9c95770232477f75c846640df4c63d01b19cb \
+    --hash=sha256:b78b87f8316560040ad0b9dca1682d73b6532a33acf4ecf56185d1ae5edb54fa
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-kubectl-v20
@@ -73,7 +73,7 @@ jsii==1.100.0 \
     #   aws-cdk-lib
     #   constructs
 pavi-shared-aws-infra @ file:///tmp/pavi_shared_aws_infra-0.0.0-py3-none-any.whl \
-    --hash=sha256:525e5fc44ad53e7dd219360a53fb9d55ab3b268a69c7a35eebb822e863bb9744
+    --hash=sha256:0b743112a121f7fb83d7b946339c24b5933fa92a3cb99bb4e1bbec67f4ab249f
     # via pipeline-aws_infra (pyproject.toml)
 publication==0.0.3 \
     --hash=sha256:0248885351febc11d8a1098d5c8e3ab2dabcf3e8c0c96db1e17ecd12b53afbe6 \
@@ -91,9 +91,9 @@ python-dateutil==2.9.0.post0 \
     # via
     #   botocore
     #   jsii
-s3transfer==0.10.1 \
-    --hash=sha256:5683916b4c724f799e600f41dd9e10a9ff19871bf87623cc8f491cb4f5fa0a19 \
-    --hash=sha256:ceb252b11bcf87080fb7850a224fb6e05c8a776bab8f2b64b7f25b969464839d
+s3transfer==0.10.2 \
+    --hash=sha256:0711534e9356d3cc692fdde846b4a1e4b0cb6519971860796e6bc4c7aea00ef6 \
+    --hash=sha256:eca1c20de70a39daee580aef4986996620f365c4e0fda6a86100231d62f1bf69
     # via boto3
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
