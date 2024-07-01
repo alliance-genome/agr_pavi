@@ -15,9 +15,9 @@ anyio==4.4.0 \
     #   httpx
     #   starlette
     #   watchfiles
-boto3==1.34.130 \
-    --hash=sha256:b781d267dd5e7583966e05697f6bd45e2f46c01dc619ba0860b042963ee69296 \
-    --hash=sha256:c163fb7135a94e7b8c8c478a44071c843f05e212fa4bec3105f8a437ecbf1bcb
+boto3==1.34.136 \
+    --hash=sha256:0314e6598f59ee0f34eb4e6d1a0f69fa65c146d2b88a6e837a527a9956ec2731 \
+    --hash=sha256:d41037e2c680ab8d6c61a0a4ee6bf1fdd9e857f43996672830a95d62d6f6fa79
     # via smart-open
 botocore==1.34.136 \
     --hash=sha256:7f7135178692b39143c8f152a618d2a3b71065a317569a7102d2306d4946f42f \
@@ -398,9 +398,9 @@ rich==13.7.1 \
     --hash=sha256:4edbae314f59eb482f54e9e30bf00d33350aaa94f4bfcd4e9e3110e64d0d7222 \
     --hash=sha256:9be308cb1fe2f1f57d67ce99e95af38a1e2bc71ad9813b0e247cf7ffbcc3a432
     # via typer
-s3transfer==0.10.1 \
-    --hash=sha256:5683916b4c724f799e600f41dd9e10a9ff19871bf87623cc8f491cb4f5fa0a19 \
-    --hash=sha256:ceb252b11bcf87080fb7850a224fb6e05c8a776bab8f2b64b7f25b969464839d
+s3transfer==0.10.2 \
+    --hash=sha256:0711534e9356d3cc692fdde846b4a1e4b0cb6519971860796e6bc4c7aea00ef6 \
+    --hash=sha256:eca1c20de70a39daee580aef4986996620f365c4e0fda6a86100231d62f1bf69
     # via boto3
 shellingham==1.5.4 \
     --hash=sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686 \
