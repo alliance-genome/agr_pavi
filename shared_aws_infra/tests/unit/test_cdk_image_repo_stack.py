@@ -27,7 +27,7 @@ template = assertions.Template.from_stack(stack)
 # If the below ECR repository name changes, then ensure this change is intentional,
 # as it can potentially break a lot of AWS infrastructure of other PAVI components
 # implementing the ImageRepoCdkStack class (and depending on the name format to stay the same).
-def test_api_ecr_repo() -> None:
+def test_ecr_repo_name() -> None:
     template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
         "Properties": {
             "RepositoryName": "agr_pavi/new_component"
