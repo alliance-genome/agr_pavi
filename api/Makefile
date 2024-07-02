@@ -1,8 +1,9 @@
 CONTAINER_NAME=agr_pavi/api
 TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
+EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-venv-active pip-tools
+.PHONY: check-venv-active pip-tools _vars-% _write-lock-file
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
@@ -52,22 +53,22 @@ endif
 pip-tools:
 	pip install pip-tools==7.4.1
 
-requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
+requirements.txt: _vars-no-upgrade _vars-main-deps _write-lock-file
+	@:
 
-tests/requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
+tests/requirements.txt: _vars-no-upgrade _vars-test-deps _write-lock-file
+	@:
 
-update-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
+update-deps-lock: _vars-upgrade-all _vars-main-deps _write-lock-file
+	@:
 
-update-test-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
+update-test-deps-lock: _vars-upgrade-all _vars-test-deps _write-lock-file
+	@:
 
-install-deps: requirements.txt
+install-deps:
 	pip install -r requirements.txt
 
-install-test-deps: tests/requirements.txt
+install-test-deps:
 	pip install -r tests/requirements.txt
 
 run-type-checks: install-test-deps
@@ -90,3 +91,18 @@ run-integration-test-container: install-test-deps
 	  python -m pytest tests/b_integration \
 	  || (echo "Container logs:" && docker logs agr.pavi.dev-local.api.server && exit 1)
 	docker-compose -f docker-compose-dev.yml down
+
+_vars-main-deps:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=-o requirements.txt)
+
+_vars-test-deps:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--extra=test -o tests/requirements.txt)
+
+_vars-no-upgrade:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--no-upgrade)
+
+_vars-upgrade-all:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--upgrade)
+
+_write-lock-file:
+	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

@@ -1,12 +1,13 @@
 CONTAINER_NAME=agr_pavi/pipeline_seq_retrieval
 TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
+EXTRA_PIP_COMPILE_ARGS ?=
 
 AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-.PHONY: check-venv-active run-type-checks clean pip-tools
+.PHONY: check-venv-active run-type-checks clean pip-tools _vars-% _write-lock-file
 
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
@@ -32,26 +33,26 @@ push-container-image: registry-docker-login
 pip-tools:
 	pip install pip-tools==7.4.1
 
-requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
+requirements.txt: _vars-no-upgrade _vars-main-deps _write-lock-file
+	@:
 
-tests/requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
+tests/requirements.txt: _vars-no-upgrade _vars-test-deps _write-lock-file
+	@:
 
-install-deps: requirements.txt
+update-deps-lock: _vars-upgrade-all _vars-main-deps _write-lock-file
+	@:
+
+update-test-deps-lock: _vars-upgrade-all _vars-test-deps _write-lock-file
+	@:
+
+install-deps:
 	pip install -r requirements.txt
 
 install-deps-update:
 	pip install -U -r requirements.txt
 
-update-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
-
-install-test-deps: tests/requirements.txt
+install-test-deps:
 	pip install -r tests/requirements.txt
-
-update-test-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
 
 run-type-checks: install-test-deps
 	mypy --install-types --non-interactive --warn-unused-config ./
@@ -87,3 +88,18 @@ run-type-checks-dev: check-venv-active run-type-checks
 
 .venv/:
 	python3.12 -m venv .venv/
+
+_vars-main-deps:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=-o requirements.txt)
+
+_vars-test-deps:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--extra=test -o tests/requirements.txt)
+
+_vars-no-upgrade:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--no-upgrade)
+
+_vars-upgrade-all:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--upgrade)
+
+_write-lock-file:
+	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

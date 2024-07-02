@@ -1,5 +1,3 @@
-.PHONY: check-venv-active check-node pip-tools
-
 SUPPORTED_NODE := ^v18\.
 
 AWS_DEFAULT_REGION := us-east-1
@@ -10,6 +8,9 @@ DEPLOY_ENVIRONMENT ?= PaviWebUiEbDevStack
 PAVI_IMAGE_TAG ?= main
 PAVI_IMAGE_REGISTRY ?= ${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/
 ADD_CDK_ARGS ?=
+EXTRA_PIP_COMPILE_ARGS ?=
+
+.PHONY: check-venv-active check-node pip-tools _vars-% _write-lock-file
 
 .venv/:
 	python3.12 -m venv .venv/
@@ -37,29 +38,30 @@ endif
 pip-tools:
 	pip install pip-tools==7.4.1
 
-requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
+requirements.txt: _vars-no-upgrade _vars-main-deps _write-lock-file
+	@:
 
-tests/requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
+tests/requirements.txt: _vars-no-upgrade _vars-test-deps _write-lock-file
+	@:
 
-update-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
+update-deps-lock: _vars-upgrade-all _vars-main-deps _write-lock-file
+	@:
 
-update-test-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
+update-test-deps-lock: _vars-upgrade-all _vars-test-deps _write-lock-file
+	@:
 
-install-deps: requirements.txt
+
+install-deps:
 	pip install -r requirements.txt
 
-install-deps-update-dev: check-venv-active requirements.txt
+install-deps-update-dev: check-venv-active
 	pip uninstall pavi_shared_aws_infra
 	pip install -U -r requirements.txt
 
-install-test-deps: tests/requirements.txt
+install-test-deps:
 	pip install -r tests/requirements.txt
 
-install-test-deps-update-dev: check-venv-active requirements.txt
+install-test-deps-update-dev: check-venv-active
 	pip uninstall -y pavi_shared_aws_infra
 	pip install -U -r tests/requirements.txt
 
@@ -107,3 +109,18 @@ deploy-environment:
 
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
+
+_vars-main-deps:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=-o requirements.txt)
+
+_vars-test-deps:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--extra=test -o tests/requirements.txt)
+
+_vars-no-upgrade:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--no-upgrade)
+
+_vars-upgrade-all:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--upgrade)
+
+_write-lock-file:
+	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

@@ -1,5 +1,6 @@
-.PHONY: check-venv-active check-node pip-tools clean install
+.PHONY: check-venv-active check-node pip-tools clean install _vars-% _write-lock-file
 SUPPORTED_NODE := ^v18\.
+EXTRA_PIP_COMPILE_ARGS ?=
 
 .venv/:
 	python3.12 -m venv .venv/
@@ -44,22 +45,22 @@ endif
 pip-tools:
 	pip install pip-tools==7.4.1
 
-requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
+requirements.txt: _vars-no-upgrade _vars-main-deps _write-lock-file
+	@:
 
-tests/requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
+tests/requirements.txt: _vars-no-upgrade _vars-test-deps _write-lock-file
+	@:
 
-update-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
+update-deps-lock: _vars-upgrade-all _vars-main-deps _write-lock-file
+	@:
 
-update-test-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
+update-test-deps-lock: _vars-upgrade-all _vars-test-deps _write-lock-file
+	@:
 
-install-deps: requirements.txt
+install-deps:
 	pip install -r requirements.txt
 
-install-test-deps: tests/requirements.txt
+install-test-deps:
 	pip install -r tests/requirements.txt
 
 run-unit-tests: check-node install-test-deps
@@ -73,3 +74,17 @@ run-type-checks: install-test-deps
 
 run-style-checks: install-test-deps
 	flake8 ./
+_vars-main-deps:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=-o requirements.txt)
+
+_vars-test-deps:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--extra=test -o tests/requirements.txt)
+
+_vars-no-upgrade:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--no-upgrade)
+
+_vars-upgrade-all:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=--upgrade)
+
+_write-lock-file:
+	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
