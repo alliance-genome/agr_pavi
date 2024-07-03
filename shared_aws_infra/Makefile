@@ -87,6 +87,7 @@ run-type-checks: install-test-deps
 
 run-style-checks: install-test-deps
 	flake8 ./
+
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
 

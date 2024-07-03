@@ -97,6 +97,7 @@ validate-dev: check-venv-active validate
 deploy:
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
 	  cdk deploy PaviPipelineCdkStack ${ADD_CDK_ARGS}
+
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
 
