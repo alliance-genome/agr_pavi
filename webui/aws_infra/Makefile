@@ -10,7 +10,7 @@ PAVI_IMAGE_REGISTRY ?= ${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.co
 ADD_CDK_ARGS ?=
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-venv-active check-node pip-tools _vars-% _write-lock-file
+.PHONY: check-% deploy-% install-% pip-tools print-% run-% update-% validate-% _vars-% _write-lock-file
 
 .venv/:
 	python3.12 -m venv .venv/

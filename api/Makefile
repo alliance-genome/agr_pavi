@@ -3,7 +3,7 @@ TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-venv-active pip-tools _vars-% _write-lock-file
+.PHONY: check-% clean install-% pip-tools run-% update-% _vars-% _write-lock-file
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)

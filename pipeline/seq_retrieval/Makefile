@@ -7,7 +7,7 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-.PHONY: check-venv-active run-type-checks clean pip-tools _vars-% _write-lock-file
+.PHONY: check-% clean container-image install-% pip-tools push-% registry-docker-login run-% update-% _vars-% _write-lock-file
 
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)

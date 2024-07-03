@@ -1,7 +1,7 @@
 SUPPORTED_NODE := ^v18\.
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-venv-active check-node pip-tools clean install _vars-% _write-lock-file
+.PHONY: check-% clean install install-% pip-tools run-% update-% _vars-% _write-lock-file
 
 .venv/:
 	python3.12 -m venv .venv/

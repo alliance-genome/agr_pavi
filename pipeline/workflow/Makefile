@@ -4,7 +4,7 @@ AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 TAG_NAME?=main
 
-.PHONY: build-workflow-local-deps run-workflow-local registry-docker-login
+.PHONY: build-% clean registry-docker-login run-%
 
 clean:
 	@rm -f nextflow.sh
