@@ -44,6 +44,12 @@ update-deps-lock: _vars-upgrade-all _vars-main-deps _write-lock-file
 update-test-deps-lock: _vars-upgrade-all _vars-test-deps _write-lock-file
 	@:
 
+update-deps-lock-shared-aws-infra-only: _vars-upgrade-shared-aws-infra-only _vars-main-deps _write-lock-file
+	@:
+
+update-test-deps-lock-shared-aws-infra-only: _vars-upgrade-shared-aws-infra-only _vars-test-deps _write-lock-file
+	@:
+
 install-deps:
 	pip install -r requirements.txt
 
@@ -84,6 +90,9 @@ _vars-no-upgrade:
 
 _vars-upgrade-all:
 	$(eval EXTRA_PIP_COMPILE_ARGS +=--upgrade)
+
+_vars-upgrade-shared-aws-infra-only:
+	$(eval EXTRA_PIP_COMPILE_ARGS +=-P pavi_shared_aws_infra)
 
 _write-lock-file:
 	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
