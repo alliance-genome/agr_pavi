@@ -53,22 +53,34 @@ endif
 pip-tools:
 	pip install pip-tools==7.4.1
 
-requirements.txt: _vars-no-upgrade _vars-main-deps _write-lock-file
-	@:
+requirements.txt:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) _vars-main-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-tests/requirements.txt: _vars-no-upgrade _vars-test-deps _write-lock-file
-	@:
+tests/requirements.txt:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) _vars-test-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-deps-lock: _vars-upgrade-all _vars-main-deps _write-lock-file
-	@:
+update-deps-lock:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) _vars-main-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-test-deps-lock: _vars-upgrade-all _vars-test-deps _write-lock-file
-	@:
+update-test-deps-lock:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) _vars-test-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-install-deps:
+install-deps: requirements.txt
 	pip install -r requirements.txt
 
-install-test-deps:
+install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
 run-type-checks: install-test-deps
@@ -93,16 +105,16 @@ run-integration-test-container: install-test-deps
 	docker-compose -f docker-compose-dev.yml down
 
 _vars-main-deps:
-	$(eval EXTRA_PIP_COMPILE_ARGS +=-o requirements.txt)
+	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
 
 _vars-test-deps:
-	$(eval EXTRA_PIP_COMPILE_ARGS +=--extra=test -o tests/requirements.txt)
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--extra=test -o tests/requirements.txt"
 
 _vars-no-upgrade:
-	$(eval EXTRA_PIP_COMPILE_ARGS +=--no-upgrade)
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--no-upgrade"
 
 _vars-upgrade-all:
-	$(eval EXTRA_PIP_COMPILE_ARGS +=--upgrade)
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
 
 _write-lock-file:
 	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

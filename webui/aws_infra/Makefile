@@ -38,32 +38,50 @@ endif
 pip-tools:
 	pip install pip-tools==7.4.1
 
-requirements.txt: _vars-no-upgrade _vars-main-deps _write-lock-file
-	@:
+requirements.txt:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) _vars-main-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-tests/requirements.txt: _vars-no-upgrade _vars-test-deps _write-lock-file
-	@:
+tests/requirements.txt:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) _vars-test-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-deps-lock: _vars-upgrade-all _vars-main-deps _write-lock-file
-	@:
+update-deps-lock:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) _vars-main-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-test-deps-lock: _vars-upgrade-all _vars-test-deps _write-lock-file
-	@:
+update-test-deps-lock:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) _vars-test-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-deps-lock-shared-aws-infra-only: _vars-upgrade-shared-aws-infra-only _vars-main-deps _write-lock-file
-	@:
+update-deps-lock-shared-aws-infra-only:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-shared-aws-infra-only))
+	$(eval $(shell $(MAKE) _vars-main-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-test-deps-lock-shared-aws-infra-only: _vars-upgrade-shared-aws-infra-only _vars-test-deps _write-lock-file
-	@:
+update-test-deps-lock-shared-aws-infra-only:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-shared-aws-infra-only))
+	$(eval $(shell $(MAKE) _vars-test-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-install-deps:
+install-deps: requirements.txt
 	pip install -r requirements.txt
 
 install-deps-update-dev: check-venv-active
 	pip uninstall pavi_shared_aws_infra
 	pip install -U -r requirements.txt
 
-install-test-deps:
+install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
 install-test-deps-update-dev: check-venv-active
@@ -116,19 +134,19 @@ print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
 
 _vars-main-deps:
-	$(eval EXTRA_PIP_COMPILE_ARGS +=-o requirements.txt)
+	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
 
 _vars-test-deps:
-	$(eval EXTRA_PIP_COMPILE_ARGS +=--extra=test -o tests/requirements.txt)
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--extra=test -o tests/requirements.txt"
 
 _vars-no-upgrade:
-	$(eval EXTRA_PIP_COMPILE_ARGS +=--no-upgrade)
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--no-upgrade"
 
 _vars-upgrade-all:
-	$(eval EXTRA_PIP_COMPILE_ARGS +=--upgrade)
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
 
 _vars-upgrade-shared-aws-infra-only:
-	$(eval EXTRA_PIP_COMPILE_ARGS +=-P pavi_shared_aws_infra)
+	@echo "EXTRA_PIP_COMPILE_ARGS+=-P pavi_shared_aws_infra"
 
 _write-lock-file:
 	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
