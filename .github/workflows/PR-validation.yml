@@ -947,7 +947,28 @@ jobs:
         with:
           name: webui_deps_lock
           path: webui
-      # Commit all changed dependency lock files back to the open PR
+      # Commit all shared_aws_infra dependency lock files back to the open PR
+      # (independent commit required to pin hash representing the package)
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Auto-updated pavi_shared_aws_infra deps lock files
+          file_pattern: 'shared_aws_infra/requirements.txt shared_aws_infra/tests/requirements.txt'
+          disable_globbing: true
+      # Build pavi_shared_aws_infra package (to ensure hash includes latest commit date)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and install the pavi_shared_aws_infra package
+        working-directory: shared_aws_infra/
+        run: |
+          make clean build install
+      - name: Update pavi_shared_aws_infra dependencies
+        run: |
+          make -C api/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+          make -C pipeline/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+          make -C webui/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+      # Commit all remaining changed dependency lock files back to the open PR
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Auto-updated deps lock files
