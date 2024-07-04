@@ -951,5 +951,5 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Auto-updated deps lock files
-          file_pattern: '*requirements.txt'
+          file_pattern: '*requirements.txt *package-lock.json'
           disable_globbing: true
