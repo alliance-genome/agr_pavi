@@ -1072,7 +1072,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Build and install the pavi_shared_aws_infra package
-        working-directory: shared_aws_infra/
+        working-directory: ./shared_aws_infra
         run: |
           make clean build install
       - name: Update pavi_shared_aws_infra dependencies
