@@ -1059,9 +1059,10 @@ jobs:
         with:
           name: webui_deps_lock
           path: webui
-      # Commit all shared_aws_infra dependency lock files back to the open PR
-      # (independent commit required to pin hash representing the package)
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      # Independent shared_aws_infra lock files commit required to pin hash representing the package
+      # to be included in depending aws_infra components' lock files.
+      - name: commit shared_aws_infra dependency lock file changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Auto-updated pavi_shared_aws_infra deps lock files
           file_pattern: 'shared_aws_infra/requirements.txt shared_aws_infra/tests/requirements.txt'
@@ -1080,8 +1081,8 @@ jobs:
           make -C api/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
           make -C pipeline/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
           make -C webui/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-      # Commit all remaining changed dependency lock files back to the open PR
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: commit remaining dependency lock file changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Auto-updated deps lock files
           file_pattern: '*requirements.txt *package-lock.json'
