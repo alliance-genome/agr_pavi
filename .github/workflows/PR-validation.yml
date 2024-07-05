@@ -217,7 +217,7 @@ jobs:
         python-version: "3.12"
     - name: Build package
       run: |
-        make build
+        make clean build
     - name: Upload package as artifact
       uses: actions/upload-artifact@v4
       with:
