@@ -120,7 +120,7 @@ jobs:
     - name: Deploy CDK stack
       run: make deploy-image-stack ADD_CDK_ARGS="--require-approval never"
   webui-deploy-image-repo:
-    name: Deploy/update container image repository stack for API
+    name: Deploy/update container image repository stack for web UI
     needs: [shared-aws-infra-package-build]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
