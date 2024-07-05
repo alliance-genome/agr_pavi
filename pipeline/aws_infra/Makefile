@@ -1,6 +1,7 @@
 SUPPORTED_NODE := ^v18\.
 
 PAVI_COMPUTE_MIN_VCPU ?= 2
+CDK_STACK_NAME ?= PaviPipelineCdkStack
 ADD_CDK_ARGS ?=
 EXTRA_PIP_COMPILE_ARGS ?=
 
@@ -89,14 +90,14 @@ run-style-checks: install-test-deps
 validate: check-node run-unit-tests
 # Validate production stack code
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
-	  cdk diff PaviPipelineCdkStack
+	  cdk diff ${CDK_STACK_NAME}
 
 validate-dev: check-venv-active validate
 	@:
 
 deploy:
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
-	  cdk deploy PaviPipelineCdkStack ${ADD_CDK_ARGS}
+	  cdk deploy ${CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"

@@ -4,9 +4,11 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR := 100225593120
 
 PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty)-$(shell git rev-parse --abbrev-ref HEAD)-$(shell date +%Y%m%d-%H%M%S)
-DEPLOY_ENVIRONMENT ?= PaviApiEbDevStack
+EB_ENV_CDK_STACK_NAME ?= PaviApiEbDevStack
 PAVI_IMAGE_TAG ?= main
 PAVI_IMAGE_REGISTRY ?= ${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/
+IMAGE_REPO_CDK_STACK_NAME ?= PaviApiImageRepoCdkStack
+EB_APP_CDK_STACK_NAME ?= PaviApiEbApplicationCdkStack
 ADD_CDK_ARGS ?=
 EXTRA_PIP_COMPILE_ARGS ?=
 
@@ -101,10 +103,10 @@ run-style-checks: install-test-deps
 	flake8 ./
 
 validate-image-stack: check-node run-unit-tests
-	cdk diff PaviApiImageRepoCdkStack
+	cdk diff ${IMAGE_REPO_CDK_STACK_NAME}
 
 validate-application-stack: check-node run-unit-tests
-	cdk diff PaviApiEbApplicationCdkStack
+	cdk diff ${EB_APP_CDK_STACK_NAME}
 
 validate-environment-stack: check-node run-unit-tests
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
@@ -118,15 +120,18 @@ validate-all: check-node run-unit-tests validate-image-stack validate-applicatio
 validate-all-dev: check-venv-active validate-all
 	@:
 
+deploy-image-stack:
+	cdk deploy ${IMAGE_REPO_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+
 deploy-application:
-	cdk deploy PaviApiEbApplicationCdkStack ${ADD_CDK_ARGS}
+	cdk deploy ${EB_APP_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 	python -m pavi_shared_aws_infra.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-api --version_label ${PAVI_DEPLOY_VERSION_LABEL}
 
 deploy-environment:
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
-	  cdk deploy ${DEPLOY_ENVIRONMENT} ${ADD_CDK_ARGS}
+	  cdk deploy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
