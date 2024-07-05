@@ -1076,7 +1076,6 @@ jobs:
       - name: Build and install the pavi_shared_aws_infra package
         working-directory: ./shared_aws_infra
         run: |
-          pwd
           make clean build install
       - name: Update pavi_shared_aws_infra dependencies
         run: |
