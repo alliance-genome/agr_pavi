@@ -119,6 +119,45 @@ jobs:
       run: make validate-image-stack
     - name: Deploy CDK stack
       run: make deploy-image-stack ADD_CDK_ARGS="--require-approval never"
+  webui-deploy-image-repo:
+    name: Deploy/update container image repository stack for API
+    needs: [shared-aws-infra-package-build]
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: webui/aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Setup node.js (CDK requirement)
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+    - name: Install CDK
+      run: npm install -g aws-cdk
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Download shared AWS infra package
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: /tmp/
+    - name: Install CDK stack dependencies
+      run: pip install -r requirements.txt
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
+        aws-region: us-east-1
+    - name: CDK validations (resource assertions and cdk diff)
+      run: make validate-image-stack
+    - name: Deploy CDK stack
+      run: make deploy-image-stack ADD_CDK_ARGS="--require-approval never"
   pipeline-seq-retrieval-build-and-push-docker-image:
     needs: [on-merge-and-deploy, pipeline-deploy-aws-infra]
     permissions:
@@ -225,6 +264,40 @@ jobs:
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ env.tagname }}
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ github.event.pull_request.base.ref }}
+        platforms: linux/amd64
+  webui-build-and-push-docker-image:
+    needs: [on-merge-and-deploy, webui-deploy-image-repo]
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Store release tag in env
+      shell: bash
+      run: |
+        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
+    # This step will configure environment variables to be used by all steps
+    # involving AWS interaction further down
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-webui
+        aws-region: us-east-1
+    - name: Amazon ECR login
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+    - name: Build and push container image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./webui/
+        push: true
+        tags: |
+          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/webui:${{ env.tagname }}
+          ${{ steps.login-ecr.outputs.registry }}/agr_pavi/webui:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
   api-deploy-application:
     name: Deploy application (version) for API
