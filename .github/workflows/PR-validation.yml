@@ -305,6 +305,47 @@ jobs:
           name: api_aws_infra_tests_deps_lock
           path: api/aws_infra/tests/requirements.txt
           if-no-files-found: error
+  webui-aws-infra-update-dependency-lock-files:
+    name: webui/aws_infra update and upload dependency lock file
+    needs:
+      - shared-aws-infra-package-build
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./webui/aws_infra/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            webui/aws_infra/
+      - name: Download shared AWS infra package
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_aws_infra_package
+          path: /tmp/
+      - name: Update lock files
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+        shell: bash
+        run: |
+          make pip-tools update-deps-lock update-test-deps-lock
+      - name: Upload updated (main) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webui_aws_infra_deps_lock
+          path: webui/aws_infra/requirements.txt
+          if-no-files-found: error
+      - name: Upload updated (test) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webui_aws_infra_tests_deps_lock
+          path: webui/aws_infra/tests/requirements.txt
+          if-no-files-found: error
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     needs:
@@ -806,6 +847,65 @@ jobs:
         aws-region: us-east-1
     - name: Validate production CDK stack code
       run: make validate-all
+  webui-aws-infra-code-checks:
+    name: webui/aws_infra code checks
+    needs:
+      - webui-aws-infra-update-dependency-lock-files
+      - shared-aws-infra-package-build
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./webui/aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        sparse-checkout: |
+          webui/aws_infra/
+    - name: Download updated webui/aws_infra (main) dependencies lock file
+      uses: actions/download-artifact@v4
+      with:
+        name: webui_aws_infra_deps_lock
+        path: webui/aws_infra
+    - name: Download updated webui/aws_infra (test) dependencies lock file
+      uses: actions/download-artifact@v4
+      with:
+        name: webui_aws_infra_tests_deps_lock
+        path: webui/aws_infra/tests
+    - name: Download shared AWS infra package
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: /tmp/
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Code typing test
+      run: |
+        make run-type-checks
+    - name: Code style test
+      run: |
+        make run-style-checks
+    - name: Setup node.js (CDK requirement)
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+    - name: Install CDK CLI
+      run: npm install -g aws-cdk
+    - name: Install CDK stack dependencies
+      run: pip install -r requirements.txt
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
+        aws-region: us-east-1
+    - name: Validate production CDK stack code
+      run: make validate-all
   webui-code-checks:
     name: webUI code checks
     needs:
@@ -876,6 +976,8 @@ jobs:
       - api-aws-infra-code-checks
       - pipeline-aws-infra-update-dependency-lock-files
       - pipeline-aws-infra-code-checks
+      - webui-aws-infra-update-dependency-lock-files
+      - webui-aws-infra-code-checks
       - api-update-dependency-lock-files
       - api-container-integration-testing
       - api-unit-integration-testing
@@ -942,6 +1044,16 @@ jobs:
         with:
           name: api_aws_infra_tests_deps_lock
           path: api/aws_infra/tests
+      - name: Download updated webui/aws_infra (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: webui_aws_infra_deps_lock
+          path: webui/aws_infra
+      - name: Download updated webui/aws_infra (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: webui_aws_infra_tests_deps_lock
+          path: webui/aws_infra/tests
       - name: Download updated webui dependencies lock file
         uses: actions/download-artifact@v4
         with:
