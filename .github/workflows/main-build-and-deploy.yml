@@ -250,7 +250,7 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
-        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-pipeline-seq-retrieval
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-api
         aws-region: us-east-1
     - name: Amazon ECR login
       id: login-ecr
