@@ -5,6 +5,7 @@ AWS_ACCT_NR := 100225593120
 
 PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty)-$(shell git rev-parse --abbrev-ref HEAD)-$(shell date +%Y%m%d-%H%M%S)
 EB_ENV_CDK_STACK_NAME ?= PaviWebUiEbDevStack
+PAVI_API_ENV_NAME ?= PAVI-api-dev
 PAVI_IMAGE_TAG ?= main
 PAVI_IMAGE_REGISTRY ?= ${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/
 IMAGE_REPO_CDK_STACK_NAME ?= PaviWebUiImageRepoCdkStack
@@ -109,6 +110,7 @@ validate-application-stack: check-node run-unit-tests
 	cdk diff ${EB_APP_CDK_STACK_NAME}
 
 validate-environment-stack: check-node run-unit-tests
+	$(eval $(shell $(MAKE) _vars-pavi-api-base-url))
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
@@ -129,6 +131,7 @@ deploy-application:
 	python -m pavi_shared_aws_infra.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-webui --version_label ${PAVI_DEPLOY_VERSION_LABEL}
 
 deploy-environment:
+	$(eval $(shell $(MAKE) _vars-pavi-api-base-url))
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
@@ -137,6 +140,9 @@ deploy-environment:
 
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
+
+_vars-pavi-api-base-url:
+	@echo PAVI_API_BASE_URL?=http://$(shell aws elasticbeanstalk describe-environments --environment-names ${PAVI_API_ENV_NAME} --query "Environments[?Status=='Ready'].CNAME | [0]")
 
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
