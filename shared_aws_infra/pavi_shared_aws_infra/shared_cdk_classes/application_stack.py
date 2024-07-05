@@ -119,7 +119,7 @@ def defineEbEnvironmentCdkConstructs(
         stack, 'eb-environment',
         environment_name=f'{eb_app_name}-{env_suffix}',
         application_name=eb_app_name,
-        solution_stack_name='64bit Amazon Linux 2023 v4.3.1 running Docker',
+        solution_stack_name='64bit Amazon Linux 2023 v4.3.4 running Docker',
         version_label=app_version_label,
         option_settings=optionSettingProperties)
     cdk_tags.of(eb_env).add("Product", "PAVI")  # type: ignore

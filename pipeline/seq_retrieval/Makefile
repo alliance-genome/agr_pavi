@@ -1,12 +1,13 @@
 CONTAINER_NAME=agr_pavi/pipeline_seq_retrieval
 TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
+EXTRA_PIP_COMPILE_ARGS ?=
 
 AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-.PHONY: check-venv-active run-type-checks clean pip-tools
+.PHONY: check-% clean container-image install-% pip-tools push-% registry-docker-login run-% update-% _vars-% _write-lock-file
 
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
@@ -33,10 +34,28 @@ pip-tools:
 	pip install pip-tools==7.4.1
 
 requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) _vars-main-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 tests/requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) _vars-test-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+
+update-deps-lock:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) _vars-main-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+
+update-test-deps-lock:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) _vars-test-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 install-deps: requirements.txt
 	pip install -r requirements.txt
@@ -44,14 +63,8 @@ install-deps: requirements.txt
 install-deps-update:
 	pip install -U -r requirements.txt
 
-update-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
-
 install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
-
-update-test-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
 
 run-type-checks: install-test-deps
 	mypy --install-types --non-interactive --warn-unused-config ./
@@ -87,3 +100,18 @@ run-type-checks-dev: check-venv-active run-type-checks
 
 .venv/:
 	python3.12 -m venv .venv/
+
+_vars-main-deps:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
+
+_vars-test-deps:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--extra=test -o tests/requirements.txt"
+
+_vars-no-upgrade:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--no-upgrade"
+
+_vars-upgrade-all:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
+
+_write-lock-file:
+	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

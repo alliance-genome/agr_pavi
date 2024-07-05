@@ -115,88 +115,6 @@ jobs:
           name: webui_deps_lock
           path: webui/package-lock.json
           if-no-files-found: error
-  pipeline-aws-infra-update-dependency-lock-files:
-    name: pipeline/aws_infra update and upload dependency lock file
-    needs:
-      - shared-aws-infra-package-build
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./pipeline/aws_infra/
-    steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Check out repository code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          sparse-checkout: |
-            pipeline/aws_infra/
-      - name: Download shared AWS infra package
-        uses: actions/download-artifact@v4
-        with:
-          name: shared_aws_infra_package
-          path: /tmp/
-      - name: Update lock files
-        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
-        run: |
-          make pip-tools update-deps-lock update-test-deps-lock
-      - name: Upload updated (main) lock file as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pipeline_aws_infra_deps_lock
-          path: pipeline/aws_infra/requirements.txt
-          if-no-files-found: error
-      - name: Upload updated (test) lock file as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pipeline_aws_infra_tests_deps_lock
-          path: pipeline/aws_infra/tests/requirements.txt
-          if-no-files-found: error
-  api-aws-infra-update-dependency-lock-files:
-    name: api/aws_infra update and upload dependency lock file
-    needs:
-      - shared-aws-infra-package-build
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./api/aws_infra/
-    steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Check out repository code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          sparse-checkout: |
-            api/aws_infra/
-      - name: Download shared AWS infra package
-        uses: actions/download-artifact@v4
-        with:
-          name: shared_aws_infra_package
-          path: /tmp/
-      - name: Update lock files
-        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
-        run: |
-          make pip-tools update-deps-lock update-test-deps-lock
-      - name: Upload updated (main) lock file as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: api_aws_infra_deps_lock
-          path: api/aws_infra/requirements.txt
-          if-no-files-found: error
-      - name: Upload updated (test) lock file as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: api_aws_infra_tests_deps_lock
-          path: api/aws_infra/tests/requirements.txt
-          if-no-files-found: error
   shared-aws-infra-update-dependency-lock-files:
     name: shared_aws_infra update and upload dependency lock file
     runs-on: ubuntu-22.04
@@ -299,12 +217,135 @@ jobs:
         python-version: "3.12"
     - name: Build package
       run: |
-        make build
+        make clean build
     - name: Upload package as artifact
       uses: actions/upload-artifact@v4
       with:
         name: shared_aws_infra_package
         path: shared_aws_infra/dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
+  pipeline-aws-infra-update-dependency-lock-files:
+    name: pipeline/aws_infra update and upload dependency lock file
+    needs:
+      - shared-aws-infra-package-build
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pipeline/aws_infra/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            pipeline/aws_infra/
+      - name: Download shared AWS infra package
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_aws_infra_package
+          path: /tmp/
+      - name: Update lock files
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+        shell: bash
+        run: |
+          make pip-tools update-deps-lock update-test-deps-lock
+      - name: Upload updated (main) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline_aws_infra_deps_lock
+          path: pipeline/aws_infra/requirements.txt
+          if-no-files-found: error
+      - name: Upload updated (test) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline_aws_infra_tests_deps_lock
+          path: pipeline/aws_infra/tests/requirements.txt
+          if-no-files-found: error
+  api-aws-infra-update-dependency-lock-files:
+    name: api/aws_infra update and upload dependency lock file
+    needs:
+      - shared-aws-infra-package-build
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./api/aws_infra/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            api/aws_infra/
+      - name: Download shared AWS infra package
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_aws_infra_package
+          path: /tmp/
+      - name: Update lock files
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+        shell: bash
+        run: |
+          make pip-tools update-deps-lock update-test-deps-lock
+      - name: Upload updated (main) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api_aws_infra_deps_lock
+          path: api/aws_infra/requirements.txt
+          if-no-files-found: error
+      - name: Upload updated (test) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api_aws_infra_tests_deps_lock
+          path: api/aws_infra/tests/requirements.txt
+          if-no-files-found: error
+  webui-aws-infra-update-dependency-lock-files:
+    name: webui/aws_infra update and upload dependency lock file
+    needs:
+      - shared-aws-infra-package-build
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./webui/aws_infra/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            webui/aws_infra/
+      - name: Download shared AWS infra package
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_aws_infra_package
+          path: /tmp/
+      - name: Update lock files
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+        shell: bash
+        run: |
+          make pip-tools update-deps-lock update-test-deps-lock
+      - name: Upload updated (main) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webui_aws_infra_deps_lock
+          path: webui/aws_infra/requirements.txt
+          if-no-files-found: error
+      - name: Upload updated (test) lock file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webui_aws_infra_tests_deps_lock
+          path: webui/aws_infra/tests/requirements.txt
+          if-no-files-found: error
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
     needs:
@@ -806,6 +847,65 @@ jobs:
         aws-region: us-east-1
     - name: Validate production CDK stack code
       run: make validate-all
+  webui-aws-infra-code-checks:
+    name: webui/aws_infra code checks
+    needs:
+      - webui-aws-infra-update-dependency-lock-files
+      - shared-aws-infra-package-build
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./webui/aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        sparse-checkout: |
+          webui/aws_infra/
+    - name: Download updated webui/aws_infra (main) dependencies lock file
+      uses: actions/download-artifact@v4
+      with:
+        name: webui_aws_infra_deps_lock
+        path: webui/aws_infra
+    - name: Download updated webui/aws_infra (test) dependencies lock file
+      uses: actions/download-artifact@v4
+      with:
+        name: webui_aws_infra_tests_deps_lock
+        path: webui/aws_infra/tests
+    - name: Download shared AWS infra package
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_infra_package
+        path: /tmp/
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Code typing test
+      run: |
+        make run-type-checks
+    - name: Code style test
+      run: |
+        make run-style-checks
+    - name: Setup node.js (CDK requirement)
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+    - name: Install CDK CLI
+      run: npm install -g aws-cdk
+    - name: Install CDK stack dependencies
+      run: pip install -r requirements.txt
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
+        aws-region: us-east-1
+    - name: Validate production CDK stack code
+      run: make validate-all
   webui-code-checks:
     name: webUI code checks
     needs:
@@ -870,19 +970,21 @@ jobs:
     runs-on: ubuntu-22.04
     #Only commit updated lock files on successfull validation (to prevent PR cluttering)
     needs:
-      - pipeline-seq-retrieval-update-dependency-lock-files
-      - pipeline-seq-retrieval-code-checks
       - shared-aws-infra-update-dependency-lock-files
       - shared-aws-infra-package-build
-      - pipeline-aws-infra-update-dependency-lock-files
-      - pipeline-aws-infra-code-checks
-      - pipeline-workflow-integration-testing
       - api-aws-infra-update-dependency-lock-files
       - api-aws-infra-code-checks
+      - pipeline-aws-infra-update-dependency-lock-files
+      - pipeline-aws-infra-code-checks
+      - webui-aws-infra-update-dependency-lock-files
+      - webui-aws-infra-code-checks
       - api-update-dependency-lock-files
       - api-container-integration-testing
       - api-unit-integration-testing
       - api-code-checks
+      - pipeline-seq-retrieval-update-dependency-lock-files
+      - pipeline-seq-retrieval-code-checks
+      - pipeline-workflow-integration-testing
       - webui-update-dependency-lock-files
       - webui-code-checks
       - webui-container-image-build
@@ -892,6 +994,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
+          fetch-depth: 0
       - name: Download updated seq_retrieval (main) dependencies lock file
         uses: actions/download-artifact@v4
         with:
@@ -942,14 +1045,46 @@ jobs:
         with:
           name: api_aws_infra_tests_deps_lock
           path: api/aws_infra/tests
+      - name: Download updated webui/aws_infra (main) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: webui_aws_infra_deps_lock
+          path: webui/aws_infra
+      - name: Download updated webui/aws_infra (test) dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: webui_aws_infra_tests_deps_lock
+          path: webui/aws_infra/tests
       - name: Download updated webui dependencies lock file
         uses: actions/download-artifact@v4
         with:
           name: webui_deps_lock
           path: webui
-      # Commit all changed dependency lock files back to the open PR
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      # Independent shared_aws_infra lock files commit required to pin hash representing the package
+      # to be included in depending aws_infra components' lock files.
+      - name: commit shared_aws_infra dependency lock file changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Auto-updated pavi_shared_aws_infra deps lock files
+          file_pattern: 'shared_aws_infra/requirements.txt shared_aws_infra/tests/requirements.txt'
+          disable_globbing: true
+      # Build pavi_shared_aws_infra package (to ensure hash includes latest commit date)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and install the pavi_shared_aws_infra package
+        working-directory: ./shared_aws_infra
+        run: |
+          make clean build install
+      - name: Update pavi_shared_aws_infra dependencies
+        run: |
+          make -C api/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+          make -C pipeline/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+          make -C webui/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+      - name: commit remaining dependency lock file changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Auto-updated deps lock files
-          file_pattern: '*requirements.txt'
+          file_pattern: '*requirements.txt *package-lock.json'
           disable_globbing: true

@@ -1,8 +1,9 @@
 CONTAINER_NAME=agr_pavi/api
 TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
+EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-venv-active pip-tools
+.PHONY: check-% clean install-% pip-tools run-% update-% _vars-% _write-lock-file
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
@@ -53,16 +54,28 @@ pip-tools:
 	pip install pip-tools==7.4.1
 
 requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras -o requirements.txt
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) _vars-main-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 tests/requirements.txt:
-	pip-compile --generate-hashes --no-strip-extras --extra=test -o tests/requirements.txt
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) _vars-test-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 update-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --upgrade -o requirements.txt
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) _vars-main-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 update-test-deps-lock:
-	pip-compile --generate-hashes --no-strip-extras --extra=test --upgrade -o tests/requirements.txt
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) _vars-test-deps))
+	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 install-deps: requirements.txt
 	pip install -r requirements.txt
@@ -90,3 +103,18 @@ run-integration-test-container: install-test-deps
 	  python -m pytest tests/b_integration \
 	  || (echo "Container logs:" && docker logs agr.pavi.dev-local.api.server && exit 1)
 	docker-compose -f docker-compose-dev.yml down
+
+_vars-main-deps:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
+
+_vars-test-deps:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--extra=test -o tests/requirements.txt"
+
+_vars-no-upgrade:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--no-upgrade"
+
+_vars-upgrade-all:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
+
+_write-lock-file:
+	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

@@ -1,11 +1,18 @@
 SUPPORTED_NODE := ^v18\.
 
-PAVI_COMPUTE_MIN_VCPU ?= 2
-CDK_STACK_NAME ?= PaviPipelineCdkStack
+AWS_DEFAULT_REGION := us-east-1
+AWS_ACCT_NR := 100225593120
+
+PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty)-$(shell git rev-parse --abbrev-ref HEAD)-$(shell date +%Y%m%d-%H%M%S)
+EB_ENV_CDK_STACK_NAME ?= PaviWebUiEbDevStack
+PAVI_IMAGE_TAG ?= main
+PAVI_IMAGE_REGISTRY ?= ${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/
+IMAGE_REPO_CDK_STACK_NAME ?= PaviWebUiImageRepoCdkStack
+EB_APP_CDK_STACK_NAME ?= PaviWebUiEbApplicationCdkStack
 ADD_CDK_ARGS ?=
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-% deploy install-% pip-tools run-% update-% validate validate-% _vars-% _write-lock-file
+.PHONY: check-% deploy-% install-% pip-tools print-% run-% update-% validate-% _vars-% _write-lock-file
 
 .venv/:
 	python3.12 -m venv .venv/
@@ -72,14 +79,22 @@ update-test-deps-lock-shared-aws-infra-only:
 install-deps: requirements.txt
 	pip install -r requirements.txt
 
+install-deps-update-dev: check-venv-active
+	pip uninstall pavi_shared_aws_infra
+	pip install -U -r requirements.txt
+
 install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
+
+install-test-deps-update-dev: check-venv-active
+	pip uninstall -y pavi_shared_aws_infra
+	pip install -U -r tests/requirements.txt
 
 run-unit-tests: check-node install-test-deps
 	python -m pytest
 
-run-unit-tests-dev: check-venv-active run-unit-tests
-	@:
+run-unit-tests-dev: check-venv-active check-node install-test-deps
+	python -m pytest -v
 
 run-type-checks: install-test-deps
 	mypy --install-types --non-interactive --warn-unused-config ./
@@ -87,17 +102,41 @@ run-type-checks: install-test-deps
 run-style-checks: install-test-deps
 	flake8 ./
 
-validate: check-node run-unit-tests
-# Validate production stack code
-	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
-	  cdk diff ${CDK_STACK_NAME}
+validate-image-stack: check-node run-unit-tests
+	cdk diff ${IMAGE_REPO_CDK_STACK_NAME}
 
-validate-dev: check-venv-active validate
+validate-application-stack: check-node run-unit-tests
+	cdk diff ${EB_APP_CDK_STACK_NAME}
+
+validate-environment-stack: check-node run-unit-tests
+	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
+	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
+	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
+	  export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
+	  cdk diff PaviWebUiEbMainStack
+
+validate-all: check-node run-unit-tests validate-image-stack validate-application-stack validate-environment-stack
 	@:
 
-deploy:
-	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
-	  cdk deploy ${CDK_STACK_NAME} ${ADD_CDK_ARGS}
+validate-all-dev: check-venv-active validate-all
+	@:
+
+deploy-image-stack:
+	cdk deploy ${IMAGE_REPO_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+
+deploy-application:
+	cdk deploy ${EB_APP_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+	python -m pavi_shared_aws_infra.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-webui --version_label ${PAVI_DEPLOY_VERSION_LABEL}
+
+deploy-environment:
+	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
+	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
+	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
+	  export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
+	  cdk deploy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+
+print-deploy-version-label:
+	@echo ${PAVI_DEPLOY_VERSION_LABEL}
 
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
