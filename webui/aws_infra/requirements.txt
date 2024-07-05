@@ -73,7 +73,7 @@ jsii==1.101.0 \
     #   aws-cdk-lib
     #   constructs
 pavi-shared-aws-infra @ file:///tmp/pavi_shared_aws_infra-0.0.0-py3-none-any.whl \
-    --hash=sha256:1f2529071f9e6bc9b5fe98fbfda7837a26de6afb7456350a5c4bcd9f54983f37
+    --hash=sha256:c6ac11dc41bf2774d5ee49cd3eb3bb2acc35c02d81d1715e325e23c49ae27a9d
     # via webui-aws_infra (pyproject.toml)
 publication==0.0.3 \
     --hash=sha256:0248885351febc11d8a1098d5c8e3ab2dabcf3e8c0c96db1e17ecd12b53afbe6 \
