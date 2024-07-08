@@ -77,5 +77,9 @@
         ]
       }
     ]
+  },
+  "hosted-zone:account=100225593120:domainName=alliancegenome.org:privateZone=true:region=us-east-1": {
+    "Id": "/hostedzone/Z007692222A6W93AZVSPD",
+    "Name": "alliancegenome.org."
   }
 }

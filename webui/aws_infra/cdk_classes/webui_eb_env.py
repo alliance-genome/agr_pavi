@@ -1,6 +1,7 @@
 from aws_cdk import (
     aws_elasticbeanstalk as eb,
     aws_iam as iam,
+    aws_route53 as route53,
     Stack,
     Tags as cdk_tags
 )
@@ -59,7 +60,16 @@ class WebUiEbEnvironmentCdkStack(Stack):
             )
         ]
 
-        defineEbEnvironmentCdkConstructs(
+        env_constructs = defineEbEnvironmentCdkConstructs(
             self, env_suffix=env_suffix,
             eb_app_stack=eb_app_stack, eb_ec2_role=self.eb_ec2_role,
             extra_option_setting_properties=self.extra_option_setting_properties)
+
+        # Add domain name configuration
+        private_hosted_zone = route53.HostedZone.from_lookup(
+            self, 'privated-hosted-zone',
+            domain_name='alliancegenome.org', private_zone=True)
+        route53.CnameRecord(
+            self, 'pavi-environment-cname',
+            zone=private_hosted_zone, record_name=f'{env_suffix}-pavi',
+            domain_name=env_constructs.eb_env.attr_endpoint_url)
