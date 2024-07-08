@@ -80,14 +80,14 @@ update-test-deps-lock-shared-aws-infra-only:
 install-deps: requirements.txt
 	pip install -r requirements.txt
 
-install-deps-update-dev: check-venv-active
-	pip uninstall pavi_shared_aws_infra
+install-deps-update-dev: check-venv-active update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+	pip uninstall -y pavi_shared_aws_infra
 	pip install -U -r requirements.txt
 
 install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
-install-test-deps-update-dev: check-venv-active
+install-test-deps-update-dev: check-venv-active update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
 	pip uninstall -y pavi_shared_aws_infra
 	pip install -U -r tests/requirements.txt
 
