@@ -1,6 +1,7 @@
 from aws_cdk import (
     aws_elasticbeanstalk as eb,
     aws_iam as iam,
+    CfnOutput,
     Stack,
     Tags as cdk_tags
 )
@@ -134,5 +135,12 @@ def defineEbEnvironmentCdkConstructs(
         option_settings=optionSettingProperties)
     cdk_tags.of(eb_env).add("Product", "PAVI")  # type: ignore
     cdk_tags.of(eb_env).add("Managed_by", "PAVI")  # type: ignore
+
+    CfnOutput(
+        stack, 'cfn-output-endpoint-url',
+        key='endpointUrl',
+        value=eb_env.attr_endpoint_url,
+        export_name=f'{stack.stack_name}:endpointUrl'
+    )
 
     return EbEnvironmentCdkConstructs(eb_env=eb_env)

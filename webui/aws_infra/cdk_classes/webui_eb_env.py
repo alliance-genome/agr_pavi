@@ -2,6 +2,7 @@ from aws_cdk import (
     aws_elasticbeanstalk as eb,
     aws_iam as iam,
     aws_route53 as route53,
+    Fn as CfnFn,
     Stack,
     Tags as cdk_tags
 )
@@ -42,6 +43,8 @@ class WebUiEbEnvironmentCdkStack(Stack):
         # Create EB environment to run the application
         # Environment-defined settings are defined here,
         # Settings that are bundeled into the application version are defined in .ebextensions/
+        pavi_api_endpoint_domain = CfnFn.import_value(f'{getenv('PAVI_API_STACK_NAME')}:endpointUrl')
+        pavi_api_base_url = f'http://{pavi_api_endpoint_domain}'
         self.extra_option_setting_properties = [
             eb.CfnEnvironment.OptionSettingProperty(
                 namespace='aws:elasticbeanstalk:application:environment',
@@ -56,7 +59,7 @@ class WebUiEbEnvironmentCdkStack(Stack):
             eb.CfnEnvironment.OptionSettingProperty(
                 namespace='aws:elasticbeanstalk:application:environment',
                 option_name='PAVI_API_BASE_URL',
-                value=getenv('PAVI_API_BASE_URL')
+                value=pavi_api_base_url
             )
         ]
 
