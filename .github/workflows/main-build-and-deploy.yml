@@ -187,6 +187,8 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
     - name: Build and push container image
       uses: docker/build-push-action@v6
+      env:
+          DOCKER_BUILD_SUMMARY: false
       with:
         context: ./pipeline/seq_retrieval/
         push: true
@@ -223,6 +225,8 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
     - name: Build and push container image
       uses: docker/build-push-action@v6
+      env:
+          DOCKER_BUILD_SUMMARY: false
       with:
         context: ./pipeline/alignment/
         push: true
@@ -257,6 +261,8 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
     - name: Build and push container image
       uses: docker/build-push-action@v6
+      env:
+          DOCKER_BUILD_SUMMARY: false
       with:
         context: ./
         file: api/Dockerfile
@@ -292,6 +298,8 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
     - name: Build and push container image
       uses: docker/build-push-action@v6
+      env:
+          DOCKER_BUILD_SUMMARY: false
       with:
         context: ./webui/
         push: true
