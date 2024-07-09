@@ -12,6 +12,11 @@ export function middleware(request: NextRequest) {
 
     //Proxy root API requests to API server docs
     if (request_path === local_api_path) {
+        const url = request.nextUrl.clone()
+        url.pathname = local_api_path+'/docs'
+        return NextResponse.redirect(url)
+    }
+    else if (request_path === local_api_path+'/docs') {
         return NextResponse.rewrite(new URL('/docs', API_BASE))
     }
     //Proxy all other API requests to respective API server endpoints

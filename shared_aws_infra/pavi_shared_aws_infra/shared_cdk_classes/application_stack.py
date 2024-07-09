@@ -1,6 +1,7 @@
 from aws_cdk import (
     aws_elasticbeanstalk as eb,
     aws_iam as iam,
+    CfnOutput,
     Stack,
     Tags as cdk_tags
 )
@@ -51,12 +52,22 @@ class EBApplicationCdkStack(Stack):
         cdk_tags.of(self.eb_application).add("Managed_by", "PAVI")  # type: ignore
 
 
+class EbEnvironmentCdkConstructs:
+    """
+    Container holding result of defineEbEnvironmentCdkConstructs()
+    """
+    eb_env: eb.CfnEnvironment
+
+    def __init__(self, eb_env: eb.CfnEnvironment):
+        self.eb_env = eb_env
+
+
 def defineEbEnvironmentCdkConstructs(
         stack: Stack,
         eb_app_stack: EBApplicationCdkStack,
         eb_ec2_role: iam.Role | iam.IRole,
         env_suffix: str,
-        extra_option_setting_properties: list[eb.CfnEnvironment.OptionSettingProperty] = []) -> None:
+        extra_option_setting_properties: list[eb.CfnEnvironment.OptionSettingProperty] = []) -> EbEnvironmentCdkConstructs:
     """
     Args:
         stack: CDK stack to which the defined constructs will belong
@@ -124,3 +135,12 @@ def defineEbEnvironmentCdkConstructs(
         option_settings=optionSettingProperties)
     cdk_tags.of(eb_env).add("Product", "PAVI")  # type: ignore
     cdk_tags.of(eb_env).add("Managed_by", "PAVI")  # type: ignore
+
+    CfnOutput(
+        stack, 'cfn-output-endpoint-url',
+        key='endpointUrl',
+        value=eb_env.attr_endpoint_url,
+        export_name=f'{stack.stack_name}:endpointUrl'
+    )
+
+    return EbEnvironmentCdkConstructs(eb_env=eb_env)

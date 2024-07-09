@@ -5,6 +5,7 @@ AWS_ACCT_NR := 100225593120
 
 PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty)-$(shell git rev-parse --abbrev-ref HEAD)-$(shell date +%Y%m%d-%H%M%S)
 EB_ENV_CDK_STACK_NAME ?= PaviApiEbDevStack
+VALIDATE_ENV_STACK_NAME ?= PaviApiEbMainStack
 PAVI_IMAGE_TAG ?= main
 PAVI_IMAGE_REGISTRY ?= ${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/
 IMAGE_REPO_CDK_STACK_NAME ?= PaviApiImageRepoCdkStack
@@ -79,14 +80,14 @@ update-test-deps-lock-shared-aws-infra-only:
 install-deps: requirements.txt
 	pip install -r requirements.txt
 
-install-deps-update-dev: check-venv-active
-	pip uninstall pavi_shared_aws_infra
+install-deps-update-dev: check-venv-active update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+	pip uninstall -y pavi_shared_aws_infra
 	pip install -U -r requirements.txt
 
 install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
-install-test-deps-update-dev: check-venv-active
+install-test-deps-update-dev: check-venv-active update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
 	pip uninstall -y pavi_shared_aws_infra
 	pip install -U -r tests/requirements.txt
 
@@ -112,11 +113,16 @@ validate-environment-stack: check-node run-unit-tests
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
-	  cdk diff PaviApiEbMainStack
+	  cdk diff ${VALIDATE_ENV_STACK_NAME}
+
+validate-environment-stack-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
+validate-environment-stack-dev: validate-environment-stack
+	@:
 
 validate-all: check-node run-unit-tests validate-image-stack validate-application-stack validate-environment-stack
 	@:
 
+validate-all-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
 validate-all-dev: check-venv-active validate-all
 	@:
 
