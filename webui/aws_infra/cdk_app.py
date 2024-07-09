@@ -21,7 +21,7 @@ eb_app_stack = WebUiEbApplicationCdkStack(
 WebUiEbEnvironmentCdkStack(
     app, "PaviWebUiEbMainStack",
     eb_app_stack=eb_app_stack,
-    env_suffix='main',
+    env_suffix='main', prod_cname=True,
     env=agr_aws_environment)
 
 WebUiEbEnvironmentCdkStack(
