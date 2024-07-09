@@ -104,10 +104,26 @@ def test_eb_application() -> None:
 # The environment name change could potentially break DNS rules or have unexpected deployment consequences
 # (several environment getting mashed together if prefixing did not happen appropriately)
 # All EB environments must belong to 'PAVI-testcomponent' EB application.
-def test_eb_app_version() -> None:
+def test_eb_app_environment() -> None:
     eb_env_template.has_resource(type=ResourceType.ELASTIC_BEANSTALK_ENVIRONMENT.compliance_resource_type, props={
         "Properties": {
             "ApplicationName": "PAVI-testcomponent",
             "EnvironmentName": "PAVI-testcomponent-pytest"
         }
     })
+
+
+# CfnOutput of API environment is accessed by webUI environment. If below unit test breaks, this change could
+# potentially break the passthrough of the API env URL to connect to the webUI.
+def test_eb_app_environment_output() -> None:
+    eb_env_template.has_output(
+        logical_id='endpointUrl',
+        props={
+            "Export": {
+                "Name": "pytest-testcomponent-env-stack:endpointUrl"
+            },
+            "Value": {
+                "Fn::GetAtt": ["ebenvironment", "EndpointURL"]
+            }
+        }
+    )
