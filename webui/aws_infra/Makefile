@@ -5,6 +5,7 @@ AWS_ACCT_NR := 100225593120
 
 PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty)-$(shell git rev-parse --abbrev-ref HEAD)-$(shell date +%Y%m%d-%H%M%S)
 EB_ENV_CDK_STACK_NAME ?= PaviWebUiEbDevStack
+VALIDATE_ENV_STACK_NAME ?= PaviWebUiEbMainStack
 PAVI_API_STACK_NAME ?= PaviApiEbDevStack
 PAVI_IMAGE_TAG ?= main
 PAVI_IMAGE_REGISTRY ?= ${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/
@@ -114,11 +115,16 @@ validate-environment-stack: check-node run-unit-tests
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
 	  export PAVI_API_STACK_NAME=${PAVI_API_STACK_NAME} && \
-	  cdk diff PaviWebUiEbMainStack
+	  cdk diff ${VALIDATE_ENV_STACK_NAME}
+
+validate-environment-stack-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
+validate-environment-stack-dev: validate-environment-stack
+	@:
 
 validate-all: check-node run-unit-tests validate-image-stack validate-application-stack validate-environment-stack
 	@:
 
+validate-all-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
 validate-all-dev: check-venv-active validate-all
 	@:
 
