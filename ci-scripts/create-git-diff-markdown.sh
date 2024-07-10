@@ -14,4 +14,3 @@ echo '</details>' >> ${OUTFILE}
 echo '' >> ${OUTFILE}
 
 echo ${OUTFILE}
-cat ${OUTFILE}
