@@ -13,3 +13,4 @@ echo '```diff' > ${OUTFILE}
 echo '</details>' > ${OUTFILE}
 
 echo ${OUTFILE}
+cat ${OUTFILE}
