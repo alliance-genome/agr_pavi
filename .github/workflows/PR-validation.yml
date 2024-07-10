@@ -1069,7 +1069,7 @@ jobs:
       - name: calculate diff for each individual file
         run: |
           mkdir diff-files/
-          cat diff-files.txt | xargs -I {} bash ci-scripts/create-git-diff-markdown.sh {} diff-files/
+          cat diff-files.txt | xargs -I {} bash ci-scripts/create-git-diff-markdown.sh {} diff-files
       - name: Generate and store change message
         run: |
           {
