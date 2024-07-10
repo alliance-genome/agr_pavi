@@ -1080,4 +1080,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr comment ${{ github.event.pull_request._links.comments }} --body-file git-diff-message.md
+          gh pr comment ${{ github.event.pull_request._links.comments.href }} --body-file git-diff-message.md
