@@ -1074,7 +1074,7 @@ jobs:
             echo '```diff'
             cat git-diff.out
             echo '```'
-            echo 'A bundle with all dependency lock files is available as artifact [here](${{ github.repository.html_url }}/${{ github.run_id }}) as `deps_lock_files_bundle`.'
+            echo 'A bundle with all dependency lock files is available as artifact [here](${{ github.event.repository.html_url }}/${{ github.run_id }}) as `deps_lock_files_bundle`.'
           } > git-diff-message.md
       - name: Post PR comment with change message
         env:
