@@ -1069,12 +1069,15 @@ jobs:
       - name: Generate and store change message
         run: |
           {
-            echo 'The validation workflow automatically applied the following dependency lock file updates.'
-            echo 'Note that hashes for the pavi_share_aws_infra package will change after merge, as they are commit-date dependent.'
+            echo 'The validation workflow automatically applied the below dependency lock file updates.'
+            echo '<details>'
+            echo '<summary>Click to show diff</summary>'
             echo '```diff'
             cat git-diff.out
             echo '```'
-            echo 'A bundle with all dependency lock files is available as artifact [here](${{ github.event.repository.html_url }}/${{ github.run_id }}) as `deps_lock_files_bundle`.'
+            echo '</details>'
+            echo 'Note that hashes for the pavi_share_aws_infra package can change after merge, as the package hash is commit-date dependent.'
+            echo 'A bundle with all dependency lock files is available [here](${{ github.event.repository.html_url }}/${{ github.run_id }}) as artifact called `deps_lock_files_bundle`.'
           } > git-diff-message.md
       - name: Post PR comment with change message
         env:
