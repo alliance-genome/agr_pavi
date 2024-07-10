@@ -9,7 +9,7 @@ echo '<summary>'${FILEPATH}'</summary>' >> ${OUTFILE}
 echo '' >> ${OUTFILE}
 echo '```diff' >> ${OUTFILE}
 git diff -- ${FILEPATH} >> ${OUTDIR}/${FILEPATH}.md
-echo '```diff' >> ${OUTFILE}
+echo '```' >> ${OUTFILE}
 echo '</details>' >> ${OUTFILE}
 echo '' >> ${OUTFILE}
 
