@@ -11,6 +11,7 @@ echo '```diff' >> ${OUTFILE}
 git diff -- ${FILEPATH} >> ${OUTDIR}/${FILEPATH}.md
 echo '```diff' >> ${OUTFILE}
 echo '</details>' >> ${OUTFILE}
+echo '' >> ${OUTFILE}
 
 echo ${OUTFILE}
 cat ${OUTFILE}
