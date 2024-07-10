@@ -1063,23 +1063,21 @@ jobs:
           name: deps_lock_files_bundle
           path: deps-lock-files.tar.gz
       # Share diff of changes in PR
-      - name: calculate and store diff of changes
-        id: step_one
+      - name: calculate diff of changes and store as file
+        run: |
+            git diff -- > git-diff.out
+      - name: Generate and store change message
         run: |
           {
-            echo 'GIT_DIFF_VIEW<<EOF'
-            git diff --
-            echo EOF
-          } >> "$GITHUB_ENV"
-      - name: Post PR comment with diff view
+            echo 'The validation workflow automatically applied the following dependency lock file updates.'
+            echo 'Note that hashes for the pavi_share_aws_infra package will change after merge, as they are commit-date dependent.'
+            echo '```diff'
+            cat git-diff.out
+            echo '```'
+            echo 'A bundle with all dependency lock files is available as artifact [here](${{ github.repository.html_url }}/${{ github.run_id }}) as `deps_lock_files_bundle`.'
+          } > git-diff-message.md
+      - name: Post PR comment with change message
         env:
           GH_TOKEN: ${{ github.token }}
-          pr-comment: |
-            The validation workflow automatically applied the following dependency lock file updates.
-            Note that hashes for the pavi_share_aws_infra package will change after merge, as they are commit-date dependent.
-            ```diff
-            (${{ env.GIT_DIFF_VIEW }})
-            ```
-            A bundle with all dependency lock files is available as artifact [here](${{ github.repository.html_url }}/${{ github.run_id }}) as `deps_lock_files_bundle`.
         run: |
-          gh pr comment ${{ github.event.pull_request._links.comments }} --body "${{ env.pr-comment }}"
+          gh pr comment ${{ github.event.pull_request._links.comments }} --body-file git-diff-message.md
