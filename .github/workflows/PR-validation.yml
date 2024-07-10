@@ -1063,19 +1063,19 @@ jobs:
           name: deps_lock_files_bundle
           path: deps-lock-files.tar.gz
       # Share diff of changes in PR
-      - name: calculate diff of changes and store as file
+      - name: Generate list of files that were updated
         run: |
-            git diff -- > git-diff.out
+            git diff --name-only -- > diff-files.txt
+      - name: calculate diff for each individual file
+        run: |
+          mkdir diff-files/
+          cat diff-files.txt | xargs -I {} bash ci-scripts/create-git-diff.sh {} diff-files/
       - name: Generate and store change message
         run: |
           {
             echo 'The validation workflow automatically applied the below dependency lock file updates.'
-            echo '<details>'
-            echo '<summary>Click to show diff</summary>'
-            echo '```diff'
-            cat git-diff.out
-            echo '```'
-            echo '</details>'
+            cat diff-files.txt | xargs -I {} cat diff-files/{}.md
+            echo ''
             echo 'Note that hashes for the pavi_share_aws_infra package can change after merge, as the package hash is commit-date dependent.'
             echo 'A bundle with all dependency lock files is available [here](${{ github.event.repository.html_url }}/${{ github.run_id }}) as artifact called `deps_lock_files_bundle`.'
           } > git-diff-message.md
