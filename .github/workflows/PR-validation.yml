@@ -969,35 +969,19 @@ jobs:
           push: false
           tags: agr_pavi/webui:latest
           outputs: type=docker,dest=/tmp/pavi_webui_docker_image.tar
-  commit-deps-lock-updates:
-    #TODO: Moving the commit from before to after merge to prevent need for repetitive forced reruns of PR-validation.
-    #       * Convert this job into job that tars up all updated dependency files and uploads them as a single artifact.
-    #       * The new artifact should then be downloaded, unpacked and committed in the main-build-and-deploy workflow.
-    #       * PR validation should get an additional job that reports in the open PR if dependency files have been updated,
-    #         with a link to the updated files or summary report to enable inspection before merge (download and report git diff?).
+  stage-deps-lock-updates:
     runs-on: ubuntu-22.04
-    #Only commit updated lock files on successfull validation (to prevent PR cluttering)
+    # Always stage updated lock files, even on failure,
+    #  to highlight dependency changes which could be the cause of the failure.
     needs:
       - shared-aws-infra-update-dependency-lock-files
       - shared-aws-infra-package-build
       - api-aws-infra-update-dependency-lock-files
-      - api-aws-infra-code-checks
       - pipeline-aws-infra-update-dependency-lock-files
-      - pipeline-aws-infra-code-checks
       - webui-aws-infra-update-dependency-lock-files
-      - webui-aws-infra-code-checks
       - api-update-dependency-lock-files
-      - api-container-integration-testing
-      - api-unit-integration-testing
-      - api-code-checks
       - pipeline-seq-retrieval-update-dependency-lock-files
-      - pipeline-seq-retrieval-code-checks
-      - pipeline-workflow-integration-testing
       - webui-update-dependency-lock-files
-      - webui-code-checks
-      - webui-container-image-build
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1068,31 +1052,34 @@ jobs:
         with:
           name: webui_deps_lock
           path: webui
-      # Independent shared_aws_infra lock files commit required to pin hash representing the package
-      # to be included in depending aws_infra components' lock files.
-      - name: commit shared_aws_infra dependency lock file changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: Auto-updated pavi_shared_aws_infra deps lock files
-          file_pattern: 'shared_aws_infra/requirements.txt shared_aws_infra/tests/requirements.txt'
-          disable_globbing: true
-      # Build pavi_shared_aws_infra package (to ensure hash includes latest commit date)
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Build and install the pavi_shared_aws_infra package
-        working-directory: ./shared_aws_infra
+      - name: Bundle all deps lock files
         run: |
-          make clean build install
-      - name: Update pavi_shared_aws_infra dependencies
-        run: |
-          make -C api/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-          make -C pipeline/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-          make -C webui/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-      - name: commit remaining dependency lock file changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+          find . -regex '.*/\(requirements\.txt\|package-lock\.json\)' -print | \
+          tar -czv -f deps-lock-files.tar.gz --files-from -
+      # Upload the deps-lock-files bundle as workflow artifact (to be downloaded on PR merge)
+      - name: Upload deps-lock-files bundle as artifact
+        uses: actions/upload-artifact@v4
         with:
-          commit_message: Auto-updated deps lock files
-          file_pattern: '*requirements.txt *package-lock.json'
-          disable_globbing: true
+          name: deps_lock_files_bundle
+          path: deps-lock-files.tar.gz
+      # Share diff of changes in PR
+      - name: calculate and store diff of changes
+        id: step_one
+        run: |
+          {
+            echo 'GIT_DIFF_VIEW<<EOF'
+            git diff --
+            echo EOF
+          } >> "$GITHUB_ENV"
+      - name: Post PR comment with diff view
+        env:
+          GH_TOKEN: ${{ github.token }}
+          pr-comment: |
+            The validation workflow automatically applied the following dependency lock file updates.
+            Note that hashes for the pavi_share_aws_infra package will change after merge, as they are commit-date dependent.
+            ```diff
+            (${{ env.GIT_DIFF_VIEW }})
+            ```
+            A bundle with all dependency lock files is available as artifact [here](${{ github.repository.html_url }}/${{ github.run_id }}) as `deps_lock_files_bundle`.
+        run: |
+          gh pr comment ${{ github.event.pull_request._links.comments }} --body "${{ env.pr-comment }}"

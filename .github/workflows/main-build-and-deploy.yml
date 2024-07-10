@@ -5,8 +5,8 @@ on:
     branches:
       - main
 jobs:
-  on-merge-and-deploy:
-    name: Skip on unmerged or 'no-deploy' PRs
+  on-merge:
+    name: Skip on unmerged
     if: github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'no-deploy')
     runs-on: ubuntu-22.04
     steps:
@@ -14,36 +14,78 @@ jobs:
       shell: bash
       run: |
         echo "PR merge detected and deployment wanted."
-  shared-aws-infra-package-build:
-    name: shared_aws_infra python package build
-    needs:
-      - on-merge-and-deploy
+  on-deploy:
+    name: Skip on 'no-deploy' PRs
+    needs: on-merge
+    if: github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'no-deploy')
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: ./shared_aws_infra
     steps:
-    - name: Check out repository code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        sparse-checkout: |
-          shared_aws_infra/
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-    - name: Build package
+    - name: Confirm execution
+      shell: bash
       run: |
-        make build
-    - name: Upload package as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: shared_aws_infra_package
-        path: shared_aws_infra/dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
+        echo "PR merge detected and deployment wanted."
+  commit-deps-lock-updates:
+    runs-on: ubuntu-22.04
+    needs:
+      - on-merge
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          fetch-depth: 0
+      - name: Download updated dependencies lock files bundle
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: deps_lock_files_bundle
+          pr: ${{ github.event.pull_request.number }}
+          workflow: PR-validation.yml
+          workflow_conclusion: success
+          workflow_search: false
+          allow_forks: false
+          if_no_artifact_found: fail
+          skip_unpack: true
+      - name: Unpack the bundle
+        run: |
+          tar -xzv -f deps-lock-files.tar.gz
+      # Independent shared_aws_infra lock files commit required to pin hash representing the package
+      # to be included in depending aws_infra components' lock files.
+      - name: commit shared_aws_infra dependency lock file changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Auto-updated pavi_shared_aws_infra deps lock files
+          file_pattern: 'shared_aws_infra/requirements.txt shared_aws_infra/tests/requirements.txt'
+          disable_globbing: true
+      # Build pavi_shared_aws_infra package (to ensure hash includes latest commit date)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and install the pavi_shared_aws_infra package
+        working-directory: ./shared_aws_infra
+        run: |
+          make clean build install
+      - name: Upload package as artifact
+        id: shared-aws-infra-package
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared_aws_infra_package
+          path: shared_aws_infra/dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
+      - name: Update pavi_shared_aws_infra dependencies
+        run: |
+          make -C api/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+          make -C pipeline/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+          make -C webui/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+      - name: commit remaining dependency lock file changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Auto-updated deps lock files
+          file_pattern: '*requirements.txt *package-lock.json'
+          disable_globbing: true
   pipeline-deploy-aws-infra:
     name: Deploy/update AWS infrastructure for pipeline
-    needs: [shared-aws-infra-package-build]
+    needs: [commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -53,6 +95,8 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.base_ref }}
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -82,7 +126,7 @@ jobs:
       run: make deploy ADD_CDK_ARGS="--require-approval never"
   api-deploy-image-repo:
     name: Deploy/update container image repository stack for API
-    needs: [shared-aws-infra-package-build]
+    needs: [commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -92,6 +136,8 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.base_ref }}
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -121,7 +167,7 @@ jobs:
       run: make deploy-image-stack ADD_CDK_ARGS="--require-approval never"
   webui-deploy-image-repo:
     name: Deploy/update container image repository stack for web UI
-    needs: [shared-aws-infra-package-build]
+    needs: [commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -131,6 +177,8 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.base_ref }}
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -159,7 +207,7 @@ jobs:
     - name: Deploy CDK stack
       run: make deploy-image-stack ADD_CDK_ARGS="--require-approval never"
   pipeline-seq-retrieval-build-and-push-docker-image:
-    needs: [on-merge-and-deploy, pipeline-deploy-aws-infra]
+    needs: [on-deploy, pipeline-deploy-aws-infra, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -167,6 +215,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.base_ref }}
         fetch-depth: 0
         sparse-checkout: |
           pipeline/seq_retrieval/
@@ -197,7 +246,7 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
   pipeline-alignment-build-and-push-docker-image:
-    needs: [on-merge-and-deploy, pipeline-deploy-aws-infra]
+    needs: [on-deploy, pipeline-deploy-aws-infra, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -205,6 +254,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.base_ref }}
         fetch-depth: 0
         sparse-checkout: |
           pipeline/alignment/
@@ -235,7 +285,7 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
   api-build-and-push-docker-image:
-    needs: [on-merge-and-deploy, api-deploy-image-repo]
+    needs: [on-deploy, api-deploy-image-repo, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -243,6 +293,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.base_ref }}
         fetch-depth: 0
     - name: Store release tag in env
       shell: bash
@@ -272,7 +323,7 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
   webui-build-and-push-docker-image:
-    needs: [on-merge-and-deploy, webui-deploy-image-repo]
+    needs: [on-deploy, webui-deploy-image-repo, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -280,6 +331,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.base_ref }}
         fetch-depth: 0
     - name: Store release tag in env
       shell: bash
@@ -310,8 +362,8 @@ jobs:
   api-deploy-application:
     name: Deploy application (version) for API
     needs:
-      - on-merge-and-deploy
-      - shared-aws-infra-package-build
+      - on-deploy
+      - commit-deps-lock-updates
       - api-build-and-push-docker-image
       - pipeline-alignment-build-and-push-docker-image
       - pipeline-seq-retrieval-build-and-push-docker-image
@@ -325,6 +377,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.base_ref }}
         fetch-depth: 0
     - name: Store release tag in env
       shell: bash
@@ -363,8 +416,8 @@ jobs:
   webui-deploy-application:
     name: Deploy application (version) for web UI
     needs:
-      - on-merge-and-deploy
-      - shared-aws-infra-package-build
+      - on-deploy
+      - commit-deps-lock-updates
       - webui-build-and-push-docker-image
       - api-deploy-application
     permissions:
@@ -377,6 +430,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.base_ref }}
         fetch-depth: 0
     - name: Store release tag in env
       shell: bash
