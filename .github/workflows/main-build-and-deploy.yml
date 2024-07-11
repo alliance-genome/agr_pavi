@@ -110,7 +110,7 @@ jobs:
           disable_globbing: true
   pipeline-deploy-aws-infra:
     name: Deploy/update AWS infrastructure for pipeline
-    needs: [commit-deps-lock-updates]
+    needs: [commit-deps-lock-updates, on-deploy]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -151,7 +151,7 @@ jobs:
       run: make deploy ADD_CDK_ARGS="--require-approval never"
   api-deploy-image-repo:
     name: Deploy/update container image repository stack for API
-    needs: [commit-deps-lock-updates]
+    needs: [commit-deps-lock-updates, on-deploy]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -192,7 +192,7 @@ jobs:
       run: make deploy-image-stack ADD_CDK_ARGS="--require-approval never"
   webui-deploy-image-repo:
     name: Deploy/update container image repository stack for web UI
-    needs: [commit-deps-lock-updates]
+    needs: [commit-deps-lock-updates, on-deploy]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04

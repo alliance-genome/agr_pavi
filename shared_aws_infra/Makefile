@@ -11,7 +11,7 @@ build:
 # Setting SOURCE_DATE_EPOCH to commit date,
 # so that build produces whl with reproducable hash given same source-code,
 # resulting in reproducable builds that don't result in hash mismatches on rebuild
-	REF=$$(git log -n 1 --format=%H ./pavi_shared_aws_infra) && \
+	REF=$$(git log -n 1 --no-merges --format=%H ./pavi_shared_aws_infra) && \
 	 echo "REF: $$REF" && \
 	 export SOURCE_DATE_EPOCH=$$(git show --no-patch --format=%ct $$REF) && \
 	 echo "SOURCE_DATE_EPOCH: $$SOURCE_DATE_EPOCH" && \
