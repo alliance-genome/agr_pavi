@@ -36,6 +36,7 @@ jobs:
           ref: ${{ github.base_ref }}
           fetch-depth: 0
       - name: Download updated dependencies lock files bundle
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: dawidd6/action-download-artifact@v6
         with:
           name: deps_lock_files_bundle
@@ -47,11 +48,13 @@ jobs:
           if_no_artifact_found: fail
           skip_unpack: true
       - name: Unpack the bundle
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         run: |
           tar -xzv -f deps-lock-files.tar.gz
       # Independent shared_aws_infra lock files commit required to pin hash representing the package
       # to be included in depending aws_infra components' lock files.
       - name: commit shared_aws_infra dependency lock file changes
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Auto-updated pavi_shared_aws_infra deps lock files
@@ -73,11 +76,13 @@ jobs:
           name: shared_aws_infra_package
           path: shared_aws_infra/dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
       - name: Update pavi_shared_aws_infra dependencies
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         run: |
           make -C api/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
           make -C pipeline/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
           make -C webui/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
       - name: commit remaining dependency lock file changes
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Auto-updated deps lock files

@@ -1064,13 +1064,21 @@ jobs:
           path: deps-lock-files.tar.gz
       # Share diff of changes in PR
       - name: Generate list of files that were updated
+        id: diff-files
         run: |
             git diff --name-only -- > diff-files.txt
-      - name: calculate diff for each individual file
+            {
+              echo 'content<<EOF'
+              cat diff-files.txt
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+      - name: Calculate diff for each individual file
+        if: ${{ steps.diff-files.outputs.content }}
         run: |
           mkdir diff-files/
           cat diff-files.txt | xargs -I {} bash ci-scripts/create-git-diff-markdown.sh {} diff-files
       - name: Generate and store change message
+        if: ${{ steps.diff-files.outputs.content }}
         run: |
           {
             echo 'The validation workflow automatically applied the below dependency lock file updates.'
@@ -1079,8 +1087,22 @@ jobs:
             echo 'Note that hashes for the pavi_share_aws_infra package can change after merge, as the package hash is commit-date dependent.'
             echo 'A bundle with all dependency lock files is available [here](${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}) as artifact called `deps_lock_files_bundle`.'
           } > git-diff-message.md
+      - name: Generate and store no-change message
+        if: ${{ !steps.diff-files.outputs.content }}
+        run: |
+          {
+            echo 'Automatic dependency lock file updates enabled, but no updates found. No dependency updates will be made when merging this PR.'
       - name: Post PR comment with change message
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh pr comment ${{ github.event.pull_request._links.html.href }} --body-file git-diff-message.md
+  report-no-deps-lock-updates-label:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Post PR comment with notification no updates will be made
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment ${{ github.event.pull_request._links.html.href }} --body '`no-deps-lock-updates` label detected, so automatic dependency lock file updates are disabled. No dependency updates will be made when merging this PR.'
