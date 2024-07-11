@@ -11,11 +11,12 @@ build:
 # Setting SOURCE_DATE_EPOCH to commit date,
 # so that build produces whl with reproducable hash given same source-code,
 # resulting in reproducable builds that don't result in hash mismatches on rebuild
-	REF=$$(git log -n 1 --format=%H ./) && \
+	REF=$$(git log -n 1 --format=%H ./pavi_shared_aws_infra) && \
 	 echo "REF: $$REF" && \
 	 export SOURCE_DATE_EPOCH=$$(git show --no-patch --format=%ct $$REF) && \
 	 echo "SOURCE_DATE_EPOCH: $$SOURCE_DATE_EPOCH" && \
 	 python3.12 -m build
+	 pip hash dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
 
 install:
 	cp dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl /tmp/
@@ -76,6 +77,12 @@ install-deps: requirements.txt
 
 install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
+
+install-deps-update-dev: requirements.txt
+	pip install -U -r requirements.txt
+
+install-test-deps-update-dev: tests/requirements.txt
+	pip install -U -r tests/requirements.txt
 
 run-unit-tests: check-node install-test-deps
 	python -m pytest
