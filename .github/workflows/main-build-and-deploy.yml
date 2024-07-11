@@ -58,7 +58,6 @@ jobs:
           workflow_search: false
           allow_forks: false
           if_no_artifact_found: fail
-          skip_unpack: true
       - name: Unpack the bundle
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         run: |
