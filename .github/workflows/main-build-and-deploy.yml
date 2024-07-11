@@ -4,6 +4,9 @@ on:
     types: [closed]
     branches:
       - main
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 jobs:
   on-merge:
     name: Skip on unmerged
