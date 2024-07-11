@@ -972,6 +972,8 @@ jobs:
   stage-deps-lock-updates:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
     runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
     # Always stage updated lock files, even on failure,
     #  to highlight dependency changes which could be the cause of the failure.
     needs:
@@ -1100,6 +1102,8 @@ jobs:
   report-no-deps-lock-updates-label:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
     runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
     steps:
       - name: Post PR comment with notification no updates will be made
         env:
