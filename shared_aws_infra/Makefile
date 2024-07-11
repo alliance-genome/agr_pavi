@@ -77,6 +77,12 @@ install-deps: requirements.txt
 install-test-deps: tests/requirements.txt
 	pip install -r tests/requirements.txt
 
+install-deps-update-dev: requirements.txt
+	pip install -U -r requirements.txt
+
+install-test-deps-update-dev: tests/requirements.txt
+	pip install -U -r tests/requirements.txt
+
 run-unit-tests: check-node install-test-deps
 	python -m pytest
 
