@@ -47,6 +47,7 @@ jobs:
           ref: ${{ github.base_ref }}
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true
       - name: Download updated dependencies lock files bundle
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: dawidd6/action-download-artifact@v6
