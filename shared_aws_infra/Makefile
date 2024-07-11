@@ -16,6 +16,7 @@ build:
 	 export SOURCE_DATE_EPOCH=$$(git show --no-patch --format=%ct $$REF) && \
 	 echo "SOURCE_DATE_EPOCH: $$SOURCE_DATE_EPOCH" && \
 	 python3.12 -m build
+	 pip hash dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
 
 install:
 	cp dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl /tmp/
