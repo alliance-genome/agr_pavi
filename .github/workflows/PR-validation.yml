@@ -1090,8 +1090,8 @@ jobs:
       - name: Generate and store no-change message
         if: ${{ !steps.diff-files.outputs.content }}
         run: |
-          {
-            echo 'Automatic dependency lock file updates enabled, but no updates found. No dependency updates will be made when merging this PR.'
+          echo 'Automatic dependency lock file updates enabled, but no updates found. No (additional) dependency updates will be made when merging this PR.' \
+           > git-diff-message.md
       - name: Post PR comment with change message
         env:
           GH_TOKEN: ${{ github.token }}
@@ -1105,4 +1105,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr comment ${{ github.event.pull_request._links.html.href }} --body '`no-deps-lock-updates` label detected, so automatic dependency lock file updates are disabled. No dependency updates will be made when merging this PR.'
+          gh pr comment ${{ github.event.pull_request._links.html.href }} --body '`no-deps-lock-updates` label detected, so automatic dependency lock file updates are disabled. No (additional) dependency updates will be made when merging this PR.'
