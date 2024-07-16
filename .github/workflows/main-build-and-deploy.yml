@@ -84,6 +84,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline --all
       - name: Build and install the pavi_shared_aws_infra package
         working-directory: ./shared_aws_infra
         run: |
