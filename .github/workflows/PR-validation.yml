@@ -1110,15 +1110,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh pr comment ${{ github.event.pull_request._links.html.href }} --body '`no-deps-lock-updates` label detected, so automatic dependency lock file updates are disabled. No (additional) dependency updates will be made when merging this PR.'
-  post-merge-checkout-history-debugging:
+  pre-merge-checkout-default:
     runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
         with:
-          python-version: "3.12"
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
+  pre-merge-checkout-base:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
@@ -1130,7 +1141,19 @@ jobs:
       - name: Debug printing (git history graph)
         run: |
           git log --graph --oneline
-      - name: Build and install the pavi_shared_aws_infra package
-        working-directory: ./shared_aws_infra
+  pre-merge-checkout-head:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Debug printing (git status)
         run: |
-          make clean build install
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline

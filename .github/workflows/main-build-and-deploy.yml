@@ -65,6 +65,12 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         run: |
           tar -xzv -f deps-lock-files.tar.gz
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
       # Independent shared_aws_infra lock files commit required to pin hash representing the package
       # to be included in depending aws_infra components' lock files.
       - name: commit shared_aws_infra dependency lock file changes
@@ -114,6 +120,12 @@ jobs:
           commit_message: Auto-updated deps lock files [skip actions]
           file_pattern: '*requirements.txt *package-lock.json'
           disable_globbing: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
   pipeline-deploy-aws-infra:
     name: Deploy/update AWS infrastructure for pipeline
     needs: [commit-deps-lock-updates, on-deploy]
@@ -487,3 +499,50 @@ jobs:
       run: make deploy-environment PAVI_API_ENV_NAME="PAVI-api-main" \
             PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
             EB_ENV_CDK_STACK_NAME=PaviWebUiEbMainStack ADD_CDK_ARGS="--require-approval never"
+  post-merge-checkout-default:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
+  post-merge-checkout-base:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
+  post-merge-checkout-head:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
