@@ -1115,6 +1115,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
