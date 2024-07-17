@@ -1125,7 +1125,7 @@ jobs:
           git status
       - name: Debug printing (git history graph)
         run: |
-          git log --graph --oneline --all
+          git log --graph --oneline
       - name: Build and install the pavi_shared_aws_infra package
         working-directory: ./shared_aws_infra
         run: |
