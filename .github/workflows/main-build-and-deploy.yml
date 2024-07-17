@@ -28,11 +28,14 @@ jobs:
       run: |
         echo "PR merge detected and deployment wanted."
   commit-deps-lock-updates:
+    name: Commit dependency lock updates as proposed during PR validation
     runs-on: ubuntu-22.04
     needs:
       - on-merge
     permissions:
       contents: write
+    outputs:
+      latest-commit-sha: ${{ github.env.latest_commit_sha }}
     steps:
       - name: create token for committing and pushing as agr-github-actions app
         uses: actions/create-github-app-token@v1
@@ -50,6 +53,9 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
+      - name: Store checkout sha in env variable
+        run: |
+          echo "latest_commit_sha=$(git log -1 --format=%H)" >> "$GITHUB_ENV"
       - name: Download updated dependencies lock files bundle
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: dawidd6/action-download-artifact@v6
@@ -74,6 +80,7 @@ jobs:
       # Independent shared_aws_infra lock files commit required to pin hash representing the package
       # to be included in depending aws_infra components' lock files.
       - name: commit shared_aws_infra dependency lock file changes
+        id: shared-aws-infra-deps-lock-commit
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -84,6 +91,10 @@ jobs:
           commit_message: Auto-updated pavi_shared_aws_infra deps lock files [skip actions]
           file_pattern: 'shared_aws_infra/requirements.txt shared_aws_infra/tests/requirements.txt'
           disable_globbing: true
+      - name: Store commit sha in env variable (if updated)
+        if: steps.shared-aws-infra-deps-lock-commit.outputs.commit_hash
+        run: |
+          echo "latest_commit_sha=${{ steps.shared-aws-infra-deps-lock-commit.outputs.commit_hash }}" >> "$GITHUB_ENV"
       # Build pavi_shared_aws_infra package (to ensure hash includes latest commit date)
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -112,6 +123,7 @@ jobs:
           make -C pipeline/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
           make -C webui/aws_infra/ pip-tools update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
       - name: commit remaining dependency lock file changes
+        id: remaining-aws-infra-deps-lock-commit
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -122,6 +134,10 @@ jobs:
           commit_message: Auto-updated deps lock files [skip actions]
           file_pattern: '*requirements.txt *package-lock.json'
           disable_globbing: true
+      - name: Store commit sha in env variable (if updated)
+        if: steps.remaining-aws-infra-deps-lock-commit.outputs.commit_hash
+        run: |
+          echo "latest_commit_sha=${{ steps.remaining-aws-infra-deps-lock-commit.outputs.commit_hash }}" >> "$GITHUB_ENV"
       - name: Debug printing (git status)
         run: |
           git status
@@ -140,6 +156,8 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -179,6 +197,8 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -218,6 +238,8 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -255,6 +277,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
         sparse-checkout: |
           pipeline/seq_retrieval/
     - name: Store release tag in env
@@ -293,6 +316,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
         sparse-checkout: |
           pipeline/alignment/
     - name: Store release tag in env
@@ -331,6 +355,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Store release tag in env
       shell: bash
       run: |
@@ -368,6 +393,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Store release tag in env
       shell: bash
       run: |
@@ -413,6 +439,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Store release tag in env
       shell: bash
       run: |
@@ -465,6 +492,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Store release tag in env
       shell: bash
       run: |
