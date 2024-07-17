@@ -560,3 +560,21 @@ jobs:
       - name: Debug printing (git history graph)
         run: |
           git log --graph --oneline
+  post-merge-checkout-post-commit:
+    runs-on: ubuntu-22.04
+    needs:
+      - commit-deps-lock-updates
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
