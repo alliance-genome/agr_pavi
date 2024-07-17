@@ -47,7 +47,6 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.base_ref }}
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
@@ -66,13 +65,18 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         run: |
           tar -xzv -f deps-lock-files.tar.gz
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
       # Independent shared_aws_infra lock files commit required to pin hash representing the package
       # to be included in depending aws_infra components' lock files.
       - name: commit shared_aws_infra dependency lock file changes
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          branch: ${{ github.base_ref }}
           commit_user_name: ${{ steps.app-token.outputs.app-slug }}[bot]
           commit_user_email: ${{ steps.app-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com
           commit_author: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
@@ -89,7 +93,7 @@ jobs:
           git status
       - name: Debug printing (git history graph)
         run: |
-          git log --graph --oneline --all
+          git log --graph --oneline
       - name: Build and install the pavi_shared_aws_infra package
         working-directory: ./shared_aws_infra
         run: |
@@ -110,13 +114,18 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          branch: ${{ github.base_ref }}
           commit_user_name: ${{ steps.app-token.outputs.app-slug }}[bot]
           commit_user_email: ${{ steps.app-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com
           commit_author: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
           commit_message: Auto-updated deps lock files [skip actions]
           file_pattern: '*requirements.txt *package-lock.json'
           disable_globbing: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
   pipeline-deploy-aws-infra:
     name: Deploy/update AWS infrastructure for pipeline
     needs: [commit-deps-lock-updates, on-deploy]
@@ -129,8 +138,6 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.base_ref }}
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -170,8 +177,6 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.base_ref }}
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -211,8 +216,6 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.base_ref }}
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -249,7 +252,6 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.base_ref }}
         fetch-depth: 0
         sparse-checkout: |
           pipeline/seq_retrieval/
@@ -288,7 +290,6 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.base_ref }}
         fetch-depth: 0
         sparse-checkout: |
           pipeline/alignment/
@@ -327,7 +328,6 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.base_ref }}
         fetch-depth: 0
     - name: Store release tag in env
       shell: bash
@@ -365,7 +365,6 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.base_ref }}
         fetch-depth: 0
     - name: Store release tag in env
       shell: bash
@@ -411,7 +410,6 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.base_ref }}
         fetch-depth: 0
     - name: Store release tag in env
       shell: bash
@@ -464,7 +462,6 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.base_ref }}
         fetch-depth: 0
     - name: Store release tag in env
       shell: bash
@@ -502,3 +499,50 @@ jobs:
       run: make deploy-environment PAVI_API_ENV_NAME="PAVI-api-main" \
             PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
             EB_ENV_CDK_STACK_NAME=PaviWebUiEbMainStack ADD_CDK_ARGS="--require-approval never"
+  post-merge-checkout-default:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
+  post-merge-checkout-base:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
+  post-merge-checkout-head:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Debug printing (git status)
+        run: |
+          git status
+      - name: Debug printing (git history graph)
+        run: |
+          git log --graph --oneline
