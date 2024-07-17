@@ -530,19 +530,3 @@ jobs:
       - name: Debug printing (git history graph)
         run: |
           git log --graph --oneline
-  post-merge-checkout-head:
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-          persist-credentials: true
-      - name: Debug printing (git status)
-        run: |
-          git status
-      - name: Debug printing (git history graph)
-        run: |
-          git log --graph --oneline
