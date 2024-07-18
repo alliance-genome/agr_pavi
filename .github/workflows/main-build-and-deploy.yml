@@ -93,6 +93,7 @@ jobs:
           commit_message: Auto-updated pavi_shared_aws_infra deps lock files [skip actions]
           file_pattern: 'shared_aws_infra/requirements.txt shared_aws_infra/tests/requirements.txt'
           disable_globbing: true
+          skip_checkout: true
       - name: Store commit sha in env variable (if updated)
         if: steps.shared-aws-infra-deps-lock-commit.outputs.commit_hash
         run: |
@@ -136,6 +137,7 @@ jobs:
           commit_message: Auto-updated deps lock files [skip actions]
           file_pattern: '*requirements.txt *package-lock.json'
           disable_globbing: true
+          skip_checkout: true
       - name: Store commit sha in env variable (if updated)
         if: steps.remaining-aws-infra-deps-lock-commit.outputs.commit_hash
         run: |
