@@ -281,6 +281,8 @@ jobs:
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
+    env:
+      tagname:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -320,6 +322,8 @@ jobs:
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
+    env:
+      tagname:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -359,6 +363,8 @@ jobs:
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
+    env:
+      tagname:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -397,6 +403,8 @@ jobs:
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
+    env:
+      tagname:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -440,6 +448,8 @@ jobs:
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
+    env:
+      tagname:
     defaults:
       run:
         working-directory: api/aws_infra
@@ -493,6 +503,8 @@ jobs:
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
+    env:
+      tagname:
     defaults:
       run:
         working-directory: webui/aws_infra
