@@ -36,6 +36,7 @@ jobs:
       contents: write
     outputs:
       latest-commit-sha: ${{ steps.store-output.outputs.latest-commit-sha }}
+      git-describe: ${{ steps.store-output.outputs.git-describe }}
     env:
       latest_commit_sha:
     steps:
@@ -101,6 +102,7 @@ jobs:
         id: store-output
         run: |
           echo "latest-commit-sha=${{ env.latest_commit_sha }}" >> "$GITHUB_OUTPUT"
+          echo "git-describe=$(git describe --tags)" >> $GITHUB_OUTPUT
       - name: Debug printing (git status)
         run: |
           git status
@@ -271,19 +273,14 @@ jobs:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     env:
-      tagname:
+      tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
         sparse-checkout: |
           pipeline/seq_retrieval/
-    - name: Store release tag in env
-      shell: bash
-      run: |
-        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
@@ -312,19 +309,14 @@ jobs:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     env:
-      tagname:
+      tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
         sparse-checkout: |
           pipeline/alignment/
-    - name: Store release tag in env
-      shell: bash
-      run: |
-        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
@@ -353,17 +345,12 @@ jobs:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     env:
-      tagname:
+      tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
-    - name: Store release tag in env
-      shell: bash
-      run: |
-        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
@@ -393,17 +380,12 @@ jobs:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     env:
-      tagname:
+      tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
-    - name: Store release tag in env
-      shell: bash
-      run: |
-        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
@@ -439,7 +421,7 @@ jobs:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     env:
-      tagname:
+      tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     defaults:
       run:
         working-directory: api/aws_infra
@@ -447,12 +429,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
-    - name: Store release tag in env
-      shell: bash
-      run: |
-        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
@@ -494,7 +471,7 @@ jobs:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     env:
-      tagname:
+      tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     defaults:
       run:
         working-directory: webui/aws_infra
@@ -502,12 +479,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
-    - name: Store release tag in env
-      shell: bash
-      run: |
-        echo "tagname=$(git describe --tags)" >> $GITHUB_ENV
     - name: Setup node.js (CDK requirement)
       uses: actions/setup-node@v4
       with:
