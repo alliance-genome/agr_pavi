@@ -27,5 +27,3 @@ test = [
 [build-system]
 requires = ["setuptools == 71.0.0"]
 build-backend = "setuptools.build_meta"
-[tool.setuptools]
-packages = ["pavi_shared_aws_infra"]
