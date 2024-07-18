@@ -94,6 +94,7 @@ jobs:
           file_pattern: 'shared_aws_infra/requirements.txt shared_aws_infra/tests/requirements.txt'
           disable_globbing: true
           skip_checkout: true
+          skip_fetch: true
       - name: Store commit sha in env variable (if updated)
         if: steps.shared-aws-infra-deps-lock-commit.outputs.commit_hash
         run: |
@@ -138,6 +139,7 @@ jobs:
           file_pattern: '*requirements.txt *package-lock.json'
           disable_globbing: true
           skip_checkout: true
+          skip_fetch: true
       - name: Store commit sha in env variable (if updated)
         if: steps.remaining-aws-infra-deps-lock-commit.outputs.commit_hash
         run: |
