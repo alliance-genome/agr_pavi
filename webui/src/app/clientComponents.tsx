@@ -1,19 +1,23 @@
 'use client';
 
 import { Button } from 'primereact/button'
+import { FloatLabel } from 'primereact/floatlabel';
+import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { ToggleButton } from "primereact/togglebutton";
 import { PrimeReactContext } from 'primereact/api';
 import { FC, useCallback, useContext, useEffect, useState } from 'react';
 
-import { jobType } from './types';
+import { geneInfo, jobType } from './types';
 
 interface props {
-    submitFn: Function
+    submitFn: Function,
+    geneInfoFn: Function
 }
 
-const JobSubmitForm: FC<props> = ({submitFn}) => {
+const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
     const [payload, setPayload] = useState("")
+    const [gene, setGene] = useState({})
 
     const initJob: jobType = {
         'uuid': undefined,
@@ -54,6 +58,15 @@ const JobSubmitForm: FC<props> = ({submitFn}) => {
         setJob(submitResponse)
     }
 
+    const fetchGeneInfo = async(geneId: string) => {
+        console.log('Fetching gene info for geneID', geneId, '...')
+
+        const geneInfo: geneInfo = await geneInfoFn(geneId)
+        console.log('Gene info received:', geneInfo)
+
+        setGene(geneInfo)
+    }
+
     // Update displayMsg on every job update
     useEffect(
         () => {
@@ -62,8 +75,22 @@ const JobSubmitForm: FC<props> = ({submitFn}) => {
         [job, jobDisplayMsg]
     );
 
+    // Print console message every time gene object updated
+    useEffect(
+        () => {
+            console.log(`New gene object: ${gene}`)
+        },
+        [gene]
+    );
+
     return (
         <div>
+            <FloatLabel>
+                <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
+                           onBlur={e=> fetchGeneInfo(e.target.value)} />
+                <label htmlFor="gene">Gene</label>
+            </FloatLabel>
+            <br />
             <InputTextarea onChange={e => setPayload(e.target.value)} /><br />
             <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
                     loading={job['status'] === 'submitting'} /><br />
@@ -90,10 +117,12 @@ export const DarkModeToggle: FC<{}> = () => {
     }
 
     return (
-        <ToggleButton onLabel="" onIcon="pi pi-moon"
-                      offLabel="" offIcon="pi pi-sun"
-                      tooltip='toggle dark mode'
-                      checked={darkMode} onChange={(e) => toggleDarkMode(e.value)} />
+        <div >
+            <ToggleButton onLabel="" onIcon="pi pi-moon"
+                        offLabel="" offIcon="pi pi-sun"
+                        tooltip='toggle dark mode'
+                        checked={darkMode} onChange={(e) => toggleDarkMode(e.value)} />
+        </div>
     );
 }
 

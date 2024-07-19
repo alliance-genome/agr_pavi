@@ -3,3 +3,9 @@ export interface jobType {
     status: string,
     inputValidationPassed?: boolean
 }
+
+export interface geneInfo {
+    id: string,
+    species: any,
+    genomeLocations: Array<any>
+}

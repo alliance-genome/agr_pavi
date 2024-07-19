@@ -1,7 +1,7 @@
 import { PrimeReactProvider } from 'primereact/api';
 
 import JobSubmitForm, { DarkModeToggle } from './clientComponents';
-import submitNewPipelineJob from './serverActions';
+import { fetchGeneInfo, submitNewPipelineJob } from './serverActions';
 
 export default async function Page() {
     return (
@@ -9,7 +9,8 @@ export default async function Page() {
             {/* eslint-disable-next-line @next/next/no-css-tags */}
             <link id="theme-link" rel="stylesheet" href="/themes/mdc-light-indigo/theme.css" />
             <DarkModeToggle />
-            <JobSubmitForm submitFn={submitNewPipelineJob}></JobSubmitForm>
+            <br />
+            <JobSubmitForm submitFn={submitNewPipelineJob} geneInfoFn={fetchGeneInfo}></JobSubmitForm>
         </PrimeReactProvider>
     );
 }
