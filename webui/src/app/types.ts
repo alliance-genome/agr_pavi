@@ -6,6 +6,7 @@ export interface jobType {
 
 export interface geneInfo {
     id: string,
+    symbol: string,
     species: any,
     genomeLocations: Array<any>
 }

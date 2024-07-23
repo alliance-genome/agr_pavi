@@ -108,7 +108,7 @@ export async function fetchGeneInfo (geneId: string): Promise<geneInfo> {
     })
     .then(([response, body]) => {
         if (response.ok) {
-            console.log(`Gene info for gene ${geneId} received successfully.`)
+            console.log(`Gene info for gene ${geneId} received successfully: ${JSON.stringify(body)}`)
             return body;
         } else {
             const errMsg = 'Failure response received from gene API.'

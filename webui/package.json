@@ -10,6 +10,9 @@
         "typecheck": "tsc --noEmit --strict"
     },
     "dependencies": {
+        "@jbrowse/core": "2.4.2",
+        "@jbrowse/plugin-legacy-jbrowse": "2.4.2",
+        "generic-sequence-panel": "^1.5.1",
         "next": "14.2.5",
         "primeflex": "^3.3.1",
         "primeicons": "^7.0.0",
@@ -18,10 +21,10 @@
         "react-dom": "^18"
     },
     "devDependencies": {
+        "@tsconfig/next": "~2.0.3",
         "@types/node": "^20",
         "@types/react": "^18",
         "@types/react-dom": "^18",
-        "@tsconfig/next": "~2.0.3",
         "eslint-config-next": "14.2.5",
         "postcss": "^8",
         "typescript": "~5.5"
