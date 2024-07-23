@@ -8,10 +8,11 @@ import { ToggleButton } from "primereact/togglebutton";
 import { PrimeReactContext } from 'primereact/api';
 import { FC, useCallback, useContext, useEffect, useState } from 'react';
 import { fetchTranscripts } from 'generic-sequence-panel';
-import { Feature, dedupe } from "@jbrowse/core/util";
-import { revlist } from "@jbrowse/core/BaseFeatureWidget/util";
-// import NCListFeature from "@jbrowse/plugin-legacy-jbrowse/src/NCListAdapter/NCListFeature";
-import NCListFeature from "./jbrowse-utils/NCListFeature";
+import { Feature } from '@jbrowse/core/util';
+import { dedupe, revlist } from '@jbrowse/core/BaseFeatureWidget/util';
+import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
+// import NCListFeature from "@jbrowse/plugin-legacy-jbrowse/dist/NCListAdapter/NCListFeature";
+// import NCListFeature from "./jbrowse-utils/NCListFeature";
 
 import { geneInfo, jobType } from './types';
 import { MultiSelect } from 'primereact/multiselect';
