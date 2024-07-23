@@ -179,7 +179,7 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
         <div>
             <FloatLabel>
                 <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
-                           onBlur={e=> fetchGeneInfo(e.target.value)} />
+                           onBlur={e => fetchGeneInfo(e.target.value)} />
                 <label htmlFor="gene">Gene</label>
             </FloatLabel><br />
             <FloatLabel>
