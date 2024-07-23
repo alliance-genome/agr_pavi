@@ -1,21 +1,19 @@
 'use client';
 
-import { Button } from 'primereact/button'
+import { dedupe, revlist } from '@jbrowse/core/BaseFeatureWidget/util';
+import { Feature } from '@jbrowse/core/util';
+import { fetchTranscripts } from 'generic-sequence-panel';
+import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
+import { PrimeReactContext } from 'primereact/api';
+import { Button } from 'primereact/button';
 import { FloatLabel } from 'primereact/floatlabel';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { MultiSelect } from 'primereact/multiselect';
 import { ToggleButton } from "primereact/togglebutton";
-import { PrimeReactContext } from 'primereact/api';
 import { FC, useCallback, useContext, useEffect, useState } from 'react';
-import { fetchTranscripts } from 'generic-sequence-panel';
-import { Feature } from '@jbrowse/core/util';
-import { dedupe, revlist } from '@jbrowse/core/BaseFeatureWidget/util';
-import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
-// import NCListFeature from "@jbrowse/plugin-legacy-jbrowse/dist/NCListAdapter/NCListFeature";
-// import NCListFeature from "./jbrowse-utils/NCListFeature";
 
 import { geneInfo, jobType } from './types';
-import { MultiSelect } from 'primereact/multiselect';
 
 interface props {
     submitFn: Function,
