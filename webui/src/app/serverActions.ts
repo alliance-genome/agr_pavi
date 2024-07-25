@@ -50,7 +50,10 @@ export async function submitNewPipelineJob (inputStr: string): Promise<jobType> 
 
             return Promise.all([Promise.resolve(response), response.json()]);
         })
-        .then(([response, body]) => {
+        .then((promises: Array<any>) => {
+            const response: Response = promises[0]
+            const body: jobType = promises[1]
+
             if (response.ok) {
                 console.log(`Job with uuid ${body['uuid']} submitted successfully.`)
                 return {
@@ -90,7 +93,7 @@ export async function submitNewPipelineJob (inputStr: string): Promise<jobType> 
     }
 }
 
-export async function fetchGeneInfo (geneId: string): Promise<geneInfo> {
+export async function fetchGeneInfo (geneId: string): Promise<geneInfo|undefined> {
 
     console.log(`New gene info request received.`)
 
@@ -111,7 +114,7 @@ export async function fetchGeneInfo (geneId: string): Promise<geneInfo> {
     .then(([response, body]) => {
         if (response.ok) {
             console.log(`Gene info for gene ${geneId} received successfully: ${JSON.stringify(body)}`)
-            return body;
+            return body as geneInfo;
         } else {
             const errMsg = 'Failure response received from gene API.'
             console.error(errMsg)
@@ -127,7 +130,7 @@ export async function fetchGeneInfo (geneId: string): Promise<geneInfo> {
     })
     .catch((e: Error) => {
         console.error('Error caught while requesting gene info:', e)
-        return {};
+        return undefined;
     });
 
     return jobResponse
