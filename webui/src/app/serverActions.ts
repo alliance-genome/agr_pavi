@@ -6,6 +6,7 @@ import { jobType, geneInfo } from "./types";
 
 const API_BASE = (env.PAVI_API_BASE_URL || 'http://localhost:8000')+'/api'
 
+// Internal functions
 async function isValidJSON (jsonString: string): Promise<boolean>{
     try {
         var o = JSON.parse(jsonString);
@@ -25,6 +26,7 @@ async function isValidJSON (jsonString: string): Promise<boolean>{
     return false;
 }
 
+// Exported functions
 export async function submitNewPipelineJob (inputStr: string): Promise<jobType> {
 
     const validJSON: boolean = await isValidJSON(inputStr)

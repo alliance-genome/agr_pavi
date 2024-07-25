@@ -177,7 +177,7 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
         <div>
             <FloatLabel>
                 <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
-                           onBlur={e => fetchGeneInfo(e.target.value)} />
+                           onBlur={ (e) => fetchGeneInfo(e.currentTarget.value) } />
                 <label htmlFor="gene">Gene</label>
             </FloatLabel><br />
             <FloatLabel>
@@ -194,7 +194,7 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
                             label: r.get("name")
                         } ))} />
             </FloatLabel><br />
-            <InputTextarea onChange={e => setPayload(e.target.value)} /><br />
+            <InputTextarea onChange={ (e) => setPayload(e.currentTarget.value) } /><br />
             <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
                     loading={job['status'] === 'submitting'} /><br />
             <div>{displayMsg}</div>
