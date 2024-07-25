@@ -11,7 +11,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { MultiSelect } from 'primereact/multiselect';
 import { ToggleButton } from "primereact/togglebutton";
-import { FC, useCallback, useContext, useEffect, useState } from 'react';
+import { createRef, FC, useCallback, useContext, useEffect, useState } from 'react';
 
 import { geneInfo, jobType } from './types';
 
@@ -23,7 +23,9 @@ interface props {
 const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
     const [payload, setPayload] = useState("")
     const [gene, setGene] = useState<geneInfo>()
+    const transcriptMultiselectRef: React.RefObject<MultiSelect> = createRef();
     const [transcriptList, setTranscriptList] = useState<Feature[]>([])
+    const [transcriptListFocused, setTranscriptListFocused] = useState<Boolean>(false)
     const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<Array<any>>([])
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
 
@@ -67,35 +69,40 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
     }
 
     const fetchGeneInfo = async(geneId: string) => {
-        console.log('Fetching gene info for geneID', geneId, '...')
-        setTranscriptListLoading(true)
+        if( geneId ){
+            console.log('Fetching gene info for geneID', geneId, '...')
+            setTranscriptListLoading(true)
+            setSelectedTranscriptIds([])
 
-        const geneInfo: geneInfo = await geneInfoFn(geneId)
-        console.log('Gene info received:', JSON.stringify(geneInfo))
+            const geneInfo: geneInfo = await geneInfoFn(geneId)
+            console.log('Gene info received:', JSON.stringify(geneInfo))
 
-        setGene(geneInfo)
+            setGene(geneInfo)
 
-        //TODO: retrieve below JBrowse constants from constants.js file from public UI,
-        // based on selected gene's species
-        const jBrowsenclistbaseurl = 'https://s3.amazonaws.com/agrjbrowse/docker/7.0.0/human/'
-        const jBrowseurltemplate = 'tracks/All_Genes/{refseq}/trackData.jsonz'
+            //TODO: retrieve below JBrowse constants from constants.js file from public UI,
+            // based on selected gene's species
+            const jBrowsenclistbaseurl = 'https://s3.amazonaws.com/agrjbrowse/docker/7.0.0/human/'
+            const jBrowseurltemplate = 'tracks/All_Genes/{refseq}/trackData.jsonz'
 
-        //TODO: mimick or reuse agr-ui's getSingleGenomeLocation()
-        const genomeLocation = geneInfo.genomeLocations[0];
+            //TODO: mimick or reuse agr-ui's getSingleGenomeLocation()
+            const genomeLocation = geneInfo.genomeLocations[0];
 
-        const transcripts = await fetchTranscripts({
-            refseq: genomeLocation['chromosome'],
-            start: genomeLocation['start'],
-            end: genomeLocation['end'],
-            gene: geneInfo['symbol'],
-            urltemplate: jBrowseurltemplate,
-            nclistbaseurl: jBrowsenclistbaseurl
-          })
-        console.log("transcripts received:", transcripts)
+            const transcripts = await fetchTranscripts({
+                refseq: genomeLocation['chromosome'],
+                start: genomeLocation['start'],
+                end: genomeLocation['end'],
+                gene: geneInfo['symbol'],
+                urltemplate: jBrowseurltemplate,
+                nclistbaseurl: jBrowsenclistbaseurl
+            })
+            console.log("transcripts received:", transcripts)
 
-        // Define transcripts list
-        setTranscriptList(transcripts)
-        setTranscriptListLoading(false)
+            // Define transcripts list
+            setTranscriptList(transcripts)
+        }
+        else {
+            setGene(undefined)
+        }
     }
 
     const fetchExonInfo = async(transcriptIds: String[]) => {
@@ -173,6 +180,21 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
         [gene]
     );
 
+    useEffect(
+        () => {
+            console.log(`New transcript list loaded.`)
+            setTranscriptListLoading(false)
+            if(transcriptList.length > 0){
+                const select_menu = transcriptMultiselectRef.current
+                if( select_menu && transcriptListFocused ){
+                    console.log(`Opening transcript panel.`)
+                    transcriptMultiselectRef.current?.show()
+                }
+            }
+        },
+        [transcriptList]
+    );
+
     return (
         <div>
             <FloatLabel>
@@ -182,9 +204,11 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
             </FloatLabel><br />
             <FloatLabel>
                 <label htmlFor="transcripts">Transcripts</label>
-                <MultiSelect id="transcripts" loading={transcriptListLoading}
+                <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
                     display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
+                    onFocus={ () => setTranscriptListFocused(true) }
+                    onBlur={ () => setTranscriptListFocused(false) }
                     onHide={ () => fetchExonInfo(selectedTranscriptIds) }
                     options={
                     transcriptList.map(r => (
