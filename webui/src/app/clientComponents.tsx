@@ -12,7 +12,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import { ToggleButton } from "primereact/togglebutton";
-import { createRef, FC, useCallback, useContext, useEffect, useState } from 'react';
+import { createRef, FunctionComponent, useCallback, useContext, useEffect, useState } from 'react';
 
 import { geneInfo, jobType } from './types';
 
@@ -26,13 +26,10 @@ import { geneInfo, jobType } from './types';
 // * cleanup next.lock files (and others like next.config.mjs) to remove all inclusion of feature branch code
 import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/KANBAN-584_pavi-integration/src/lib/utils.js';
 
-interface props {
-    submitFn: Function,
+interface alignmentEntryProps {
     geneInfoFn: Function
 }
-
-const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
-    const [payload, setPayload] = useState("")
+const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn}) => {
     const geneMessageRef: React.RefObject<Message> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [gene, setGene] = useState<geneInfo>()
@@ -41,45 +38,6 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
     const [transcriptListFocused, setTranscriptListFocused] = useState<Boolean>(false)
     const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<Array<any>>([])
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
-
-    const initJob: jobType = {
-        'uuid': undefined,
-        'status': 'expected',
-    }
-    const [job, setJob] = useState(initJob)
-    const [displayMsg, setDisplayMsg] = useState('')
-
-    const jobDisplayMsg = useCallback( () => {
-        if (job['status'] === 'expected' || job['status'] === 'submitting') {
-            return ''
-        }
-        else if (job['status'] === 'failed to submit') {
-            let msg = 'Job failed to submit.'
-            if (job['inputValidationPassed'] === false ){
-                msg += ' Correct the input and try again.'
-            }
-            else{
-                msg += ' Try again and contact the developers if this error persists.'
-            }
-
-            return msg
-        } else {
-            return `job ${job['uuid']||''} is now ${job['status']}.`
-        }
-    }, [job])
-
-    const handleSubmit = async() => {
-        setJob({
-            uuid: undefined,
-            status: 'submitting',
-        });
-
-        console.log('Sending submit request to server action.')
-        const submitResponse: jobType = await submitFn(payload)
-
-        console.log('Submit response received, updating Job.')
-        setJob(submitResponse)
-    }
 
     const fetchGeneInfo = async(geneId: string) => {
         if( geneId ){
@@ -163,14 +121,6 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
         })
     }
 
-    // Update displayMsg on every job update
-    useEffect(
-        () => {
-            setDisplayMsg(jobDisplayMsg())
-        },
-        [job, jobDisplayMsg]
-    );
-
     // Handle transcriptList updates once gene object has been saved
     useEffect(() => {
         async function updateTranscriptList() {
@@ -215,36 +165,94 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
         [transcriptList]
     );
 
+    return <div>
+        <FloatLabel>
+            <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
+                        onBlur={ (e) => fetchGeneInfo(e.currentTarget.value) } />
+            <label htmlFor="gene">Gene</label>
+        </FloatLabel>
+        <div>
+        <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
+                        text="Failed to find gene, correct input and try again." />
+        </div>
+        <br />
+        <FloatLabel>
+            <label htmlFor="transcripts">Transcripts</label>
+            <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
+                display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
+                value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
+                onFocus={ () => setTranscriptListFocused(true) }
+                onBlur={ () => setTranscriptListFocused(false) }
+                onHide={ () => fetchExonInfo(selectedTranscriptIds) }
+                options={
+                transcriptList.map(r => (
+                    {
+                        key: r.id(),
+                        value: r.id(),
+                        label: r.get("name")
+                    } ))} />
+        </FloatLabel><br />
+    </div>
+}
+
+interface jobSumbitProps {
+    submitFn: Function,
+    geneInfoFn: Function
+}
+const JobSubmitForm: FunctionComponent<jobSumbitProps> = ({submitFn, geneInfoFn}) => {
+    //TODO: allow input of multiple AlignmentEntry records
+    const [payload, setPayload] = useState("")
+
+    const initJob: jobType = {
+        'uuid': undefined,
+        'status': 'expected',
+    }
+    const [job, setJob] = useState(initJob)
+    const [displayMsg, setDisplayMsg] = useState('')
+
+    const jobDisplayMsg = useCallback( () => {
+        if (job['status'] === 'expected' || job['status'] === 'submitting') {
+            return ''
+        }
+        else if (job['status'] === 'failed to submit') {
+            let msg = 'Job failed to submit.'
+            if (job['inputValidationPassed'] === false ){
+                msg += ' Correct the input and try again.'
+            }
+            else{
+                msg += ' Try again and contact the developers if this error persists.'
+            }
+
+            return msg
+        } else {
+            return `job ${job['uuid']||''} is now ${job['status']}.`
+        }
+    }, [job])
+
+    const handleSubmit = async() => {
+        setJob({
+            uuid: undefined,
+            status: 'submitting',
+        });
+
+        console.log('Sending submit request to server action.')
+        const submitResponse: jobType = await submitFn(payload)
+
+        console.log('Submit response received, updating Job.')
+        setJob(submitResponse)
+    }
+
+    // Update displayMsg on every job update
+    useEffect(
+        () => {
+            setDisplayMsg(jobDisplayMsg())
+        },
+        [job, jobDisplayMsg]
+    );
+
     return (
         <div>
-            <div>
-            <FloatLabel>
-                <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
-                           onBlur={ (e) => fetchGeneInfo(e.currentTarget.value) } />
-                <label htmlFor="gene">Gene</label>
-            </FloatLabel>
-            </div>
-            <div>
-            <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
-                         text="Failed to find gene, correct input and try again." />
-            </div>
-            <br />
-            <FloatLabel>
-                <label htmlFor="transcripts">Transcripts</label>
-                <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
-                    display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
-                    value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
-                    onFocus={ () => setTranscriptListFocused(true) }
-                    onBlur={ () => setTranscriptListFocused(false) }
-                    onHide={ () => fetchExonInfo(selectedTranscriptIds) }
-                    options={
-                    transcriptList.map(r => (
-                        {
-                            key: r.id(),
-                            value: r.id(),
-                            label: r.get("name")
-                        } ))} />
-            </FloatLabel><br />
+            <AlignmentEntry geneInfoFn={geneInfoFn}/>
             <InputTextarea onChange={ (e) => setPayload(e.currentTarget.value) } /><br />
             <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
                     loading={job['status'] === 'submitting'} /><br />
@@ -253,7 +261,7 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
     );
 }
 
-export const DarkModeToggle: FC<{}> = () => {
+export const DarkModeToggle: FunctionComponent<{}> = () => {
     const [darkMode, setDarkMode] = useState(false)
     const { changeTheme } = useContext(PrimeReactContext);
 
