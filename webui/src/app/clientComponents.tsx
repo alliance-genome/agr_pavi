@@ -9,6 +9,7 @@ import { Button } from 'primereact/button';
 import { FloatLabel } from 'primereact/floatlabel';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
+import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import { ToggleButton } from "primereact/togglebutton";
 import { createRef, FC, useCallback, useContext, useEffect, useState } from 'react';
@@ -32,6 +33,8 @@ interface props {
 
 const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
     const [payload, setPayload] = useState("")
+    const geneMessageRef: React.RefObject<Message> = createRef();
+    const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [gene, setGene] = useState<geneInfo>()
     const transcriptMultiselectRef: React.RefObject<MultiSelect> = createRef();
     const [transcriptList, setTranscriptList] = useState<Feature[]>([])
@@ -84,28 +87,17 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
             setTranscriptListLoading(true)
             setSelectedTranscriptIds([])
 
-            const geneInfo: geneInfo = await geneInfoFn(geneId)
-            console.log('Gene info received:', JSON.stringify(geneInfo))
-
-            setGene(geneInfo)
-
-            const speciesConfig = getSpecies(geneInfo.species.taxonId)
-            console.log('speciesConfig:', speciesConfig)
-
-            const genomeLocation = getSingleGenomeLocation(geneInfo.genomeLocations);
-
-            const transcripts = await fetchTranscripts({
-                refseq: genomeLocation['chromosome'],
-                start: genomeLocation['start'],
-                end: genomeLocation['end'],
-                gene: geneInfo['symbol'],
-                urltemplate: speciesConfig.jBrowseurltemplate,
-                nclistbaseurl: speciesConfig.jBrowsenclistbaseurl
-            })
-            console.log("transcripts received:", transcripts)
-
-            // Define transcripts list
-            setTranscriptList(transcripts)
+            const geneInfo: geneInfo | undefined = await geneInfoFn(geneId)
+            if(geneInfo){
+                console.log('Gene info received:', JSON.stringify(geneInfo))
+                setgeneMessageDisplay('none')
+                setGene(geneInfo)
+            }
+            else{
+                console.log('Error while receiving gene info: undefined geneInfo returned.')
+                setgeneMessageDisplay('initial')
+                setGene(undefined)
+            }
         }
         else {
             setGene(undefined)
@@ -179,14 +171,35 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
         [job, jobDisplayMsg]
     );
 
-    // Print console message every time gene object updated
-    useEffect(
-        () => {
+    // Handle transcriptList updates once gene object has been saved
+    useEffect(() => {
+        async function updateTranscriptList() {
             console.log(`New gene object: ${gene}`)
-        },
-        [gene]
-    );
 
+            if(gene){
+                const speciesConfig = getSpecies(gene.species.taxonId)
+                console.log('speciesConfig:', speciesConfig)
+
+                const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);
+
+                const transcripts = await fetchTranscripts({
+                    refseq: genomeLocation['chromosome'],
+                    start: genomeLocation['start'],
+                    end: genomeLocation['end'],
+                    gene: gene['symbol'],
+                    urltemplate: speciesConfig.jBrowseurltemplate,
+                    nclistbaseurl: speciesConfig.jBrowsenclistbaseurl
+                })
+                console.log("transcripts received:", transcripts)
+
+                // Define transcripts list
+                setTranscriptList(transcripts)
+            }
+        }
+        updateTranscriptList()
+    }, [gene]);
+
+    // Update transcriptList loading status and open selection panel once transcriptList object has been saved
     useEffect(
         () => {
             console.log(`New transcript list loaded.`)
@@ -204,11 +217,18 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
 
     return (
         <div>
+            <div>
             <FloatLabel>
                 <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
                            onBlur={ (e) => fetchGeneInfo(e.currentTarget.value) } />
                 <label htmlFor="gene">Gene</label>
-            </FloatLabel><br />
+            </FloatLabel>
+            </div>
+            <div>
+            <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
+                         text="Failed to find gene, correct input and try again." />
+            </div>
+            <br />
             <FloatLabel>
                 <label htmlFor="transcripts">Transcripts</label>
                 <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
