@@ -15,6 +15,16 @@ import { createRef, FC, useCallback, useContext, useEffect, useState } from 'rea
 
 import { geneInfo, jobType } from './types';
 
+//Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
+// * Server requires node 22's experimental feature http(s) module imports,
+//   which is expected to become stable in Oct 2024 (https://nodejs.org/api/esm.html#https-and-http-imports)
+// * next.js client code does not support async/await (at current), which is required for dynamic imports
+//   like `await import(`${public_website_src}/lib/utils.js`)`
+//TODO: once alliance-genome/agr_ui/PR#1345 is approved and merged:
+// * remove use of KANBAN-584_pavi-integration branch (use main instead)
+// * cleanup next.lock files (and others like next.config.mjs) to remove all inclusion of feature branch code
+import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/KANBAN-584_pavi-integration/src/lib/utils.js';
+
 interface props {
     submitFn: Function,
     geneInfoFn: Function
@@ -79,21 +89,18 @@ const JobSubmitForm: FC<props> = ({submitFn, geneInfoFn}) => {
 
             setGene(geneInfo)
 
-            //TODO: retrieve below JBrowse constants from constants.js file from public UI,
-            // based on selected gene's species
-            const jBrowsenclistbaseurl = 'https://s3.amazonaws.com/agrjbrowse/docker/7.0.0/human/'
-            const jBrowseurltemplate = 'tracks/All_Genes/{refseq}/trackData.jsonz'
+            const speciesConfig = getSpecies(geneInfo.species.taxonId)
+            console.log('speciesConfig:', speciesConfig)
 
-            //TODO: mimick or reuse agr-ui's getSingleGenomeLocation()
-            const genomeLocation = geneInfo.genomeLocations[0];
+            const genomeLocation = getSingleGenomeLocation(geneInfo.genomeLocations);
 
             const transcripts = await fetchTranscripts({
                 refseq: genomeLocation['chromosome'],
                 start: genomeLocation['start'],
                 end: genomeLocation['end'],
                 gene: geneInfo['symbol'],
-                urltemplate: jBrowseurltemplate,
-                nclistbaseurl: jBrowsenclistbaseurl
+                urltemplate: speciesConfig.jBrowseurltemplate,
+                nclistbaseurl: speciesConfig.jBrowsenclistbaseurl
             })
             console.log("transcripts received:", transcripts)
 
