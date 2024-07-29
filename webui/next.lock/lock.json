@@ -1,8 +1,8 @@
 {
-  "https://raw.githubusercontent.com/alliance-genome/agr_ui/KANBAN-584_pavi-integration/src/components/homology/constants.js": { "integrity": "sha512-Llx0d6E/MHRAGCgdKsxH39HjgJJQOWGnTT3X6UeZGQ9RgVK68Lywy122wpl6EM56HyzbcjUIuZFZNsCvJM+tTw==", "contentType": "text/plain; charset=utf-8" },
-  "https://raw.githubusercontent.com/alliance-genome/agr_ui/KANBAN-584_pavi-integration/src/constants.js": { "integrity": "sha512-SKn/Fb0SeYENvRNiBp+lvTRe0SDup8QIw9COuYsYd/nGIk1bW3kGy0DFOPo+hCGgTJU8ylZnnDLKwaPgPS/thw==", "contentType": "text/plain; charset=utf-8" },
-  "https://raw.githubusercontent.com/alliance-genome/agr_ui/KANBAN-584_pavi-integration/src/lib/utils.js": { "integrity": "sha512-8eBoiDZ9qVWVIdnJZ3pSW0PwgeWCvf1jY6+NipU7/NxZWvWizvglN3pwml4J4Dv+mU1La3dQX03lvix4QI0jHw==", "contentType": "text/plain; charset=utf-8" },
   "https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/constants.js": { "integrity": "sha512-SKn/Fb0SeYENvRNiBp+lvTRe0SDup8QIw9COuYsYd/nGIk1bW3kGy0DFOPo+hCGgTJU8ylZnnDLKwaPgPS/thw==", "contentType": "text/plain; charset=utf-8" },
   "https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js": { "integrity": "sha512-eM/DWLVNSQOmzzJlVM+q9eclOdUd+7heRjATa3qSR0XirkhiJjDieRw0/ml1C3jAP8dPjSH0qQrkjeHyz7xwNw==", "contentType": "text/plain; charset=utf-8" },
+  "https://raw.githubusercontent.com/alliance-genome/agr_ui/test/src/components/homology/constants.js": { "integrity": "sha512-Llx0d6E/MHRAGCgdKsxH39HjgJJQOWGnTT3X6UeZGQ9RgVK68Lywy122wpl6EM56HyzbcjUIuZFZNsCvJM+tTw==", "contentType": "text/plain; charset=utf-8" },
+  "https://raw.githubusercontent.com/alliance-genome/agr_ui/test/src/constants.js": { "integrity": "sha512-SKn/Fb0SeYENvRNiBp+lvTRe0SDup8QIw9COuYsYd/nGIk1bW3kGy0DFOPo+hCGgTJU8ylZnnDLKwaPgPS/thw==", "contentType": "text/plain; charset=utf-8" },
+  "https://raw.githubusercontent.com/alliance-genome/agr_ui/test/src/lib/utils.js": { "integrity": "sha512-8eBoiDZ9qVWVIdnJZ3pSW0PwgeWCvf1jY6+NipU7/NxZWvWizvglN3pwml4J4Dv+mU1La3dQX03lvix4QI0jHw==", "contentType": "text/plain; charset=utf-8" },
   "version": 1
 }

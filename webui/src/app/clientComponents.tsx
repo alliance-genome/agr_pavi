@@ -24,7 +24,7 @@ import { geneInfo, jobType } from './types';
 //TODO: once alliance-genome/agr_ui/PR#1345 is approved and merged:
 // * remove use of KANBAN-584_pavi-integration branch (use main instead)
 // * cleanup next.lock files (and others like next.config.mjs) to remove all inclusion of feature branch code
-import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/KANBAN-584_pavi-integration/src/lib/utils.js';
+import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/test/src/lib/utils.js';
 
 interface alignmentEntryProps {
     geneInfoFn: Function
