@@ -28,8 +28,9 @@ import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubuserconte
 
 interface alignmentEntryProps {
     geneInfoFn: Function
+    agrjBrowseDataRelease: string
 }
-const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn}) => {
+const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn, agrjBrowseDataRelease}) => {
     const geneMessageRef: React.RefObject<Message> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [gene, setGene] = useState<geneInfo>()
@@ -130,6 +131,8 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn}) =>
                 const speciesConfig = getSpecies(gene.species.taxonId)
                 console.log('speciesConfig:', speciesConfig)
 
+                const jBrowsenclistbaseurl = speciesConfig.jBrowsenclistbaseurltemplate.replace('{release}', agrjBrowseDataRelease)
+
                 const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);
 
                 const transcripts = await fetchTranscripts({
@@ -138,7 +141,7 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn}) =>
                     end: genomeLocation['end'],
                     gene: gene['symbol'],
                     urltemplate: speciesConfig.jBrowseurltemplate,
-                    nclistbaseurl: speciesConfig.jBrowsenclistbaseurl
+                    nclistbaseurl: jBrowsenclistbaseurl
                 })
                 console.log("transcripts received:", transcripts)
 
@@ -197,9 +200,10 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn}) =>
 
 interface jobSumbitProps {
     submitFn: Function,
-    geneInfoFn: Function
+    geneInfoFn: Function,
+    agrjBrowseDataRelease?: string
 }
-const JobSubmitForm: FunctionComponent<jobSumbitProps> = ({submitFn, geneInfoFn}) => {
+const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps) => {
     //TODO: allow input of multiple AlignmentEntry records
     const [payload, setPayload] = useState("")
 
@@ -236,7 +240,7 @@ const JobSubmitForm: FunctionComponent<jobSumbitProps> = ({submitFn, geneInfoFn}
         });
 
         console.log('Sending submit request to server action.')
-        const submitResponse: jobType = await submitFn(payload)
+        const submitResponse: jobType = await props.submitFn(payload)
 
         console.log('Submit response received, updating Job.')
         setJob(submitResponse)
@@ -252,7 +256,7 @@ const JobSubmitForm: FunctionComponent<jobSumbitProps> = ({submitFn, geneInfoFn}
 
     return (
         <div>
-            <AlignmentEntry geneInfoFn={geneInfoFn}/>
+            <AlignmentEntry geneInfoFn={props.geneInfoFn} agrjBrowseDataRelease={props.agrjBrowseDataRelease} />
             <InputTextarea onChange={ (e) => setPayload(e.currentTarget.value) } /><br />
             <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
                     loading={job['status'] === 'submitting'} /><br />
