@@ -195,6 +195,29 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
     </div>
 }
 
+interface alignmentEntryListProps {
+    geneInfoFn: Function,
+    agrjBrowseDataRelease: string
+}
+const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: alignmentEntryListProps) => {
+    const alignmentEntryBaseProps: alignmentEntryProps = {
+        geneInfoFn: props.geneInfoFn,
+        agrjBrowseDataRelease:props.agrjBrowseDataRelease
+    }
+    const [alignmentEntries, setAlignmentEntries] = useState<alignmentEntryProps[]>([alignmentEntryBaseProps])
+
+    return (
+        <table>
+            <tbody>
+                {alignmentEntries.map((entryProps, index) => (<tr key={index}><td>< AlignmentEntry {...entryProps} /></td></tr>))}
+                <tr><td>
+                    <Button label='Add more' onClick={() => setAlignmentEntries([...alignmentEntries, alignmentEntryBaseProps])} />
+                </td></tr>
+            </tbody>
+        </table>
+    )
+}
+
 interface jobSumbitProps {
     submitFn: Function,
     geneInfoFn: Function,
@@ -202,7 +225,6 @@ interface jobSumbitProps {
 }
 const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps) => {
     console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
-    //TODO: allow input of multiple AlignmentEntry records
     const [payload, setPayload] = useState("")
 
     const initJob: jobType = {
@@ -254,7 +276,7 @@ const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps)
 
     return (
         <div>
-            <AlignmentEntry geneInfoFn={props.geneInfoFn} agrjBrowseDataRelease={props.agrjBrowseDataRelease} />
+            <AlignmentEntryList geneInfoFn={props.geneInfoFn} agrjBrowseDataRelease={props.agrjBrowseDataRelease} />
             <InputTextarea onChange={ (e) => setPayload(e.currentTarget.value) } /><br />
             <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
                     loading={job['status'] === 'submitting'} /><br />
