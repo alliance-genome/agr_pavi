@@ -201,7 +201,7 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn, agr
 interface jobSumbitProps {
     submitFn: Function,
     geneInfoFn: Function,
-    agrjBrowseDataRelease?: string
+    agrjBrowseDataRelease: string
 }
 const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps) => {
     //TODO: allow input of multiple AlignmentEntry records
