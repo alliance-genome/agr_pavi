@@ -27,7 +27,7 @@ interface alignmentEntryProps {
     geneInfoFn: Function
     agrjBrowseDataRelease: string
 }
-const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn, agrjBrowseDataRelease}) => {
+const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignmentEntryProps) => {
     const geneMessageRef: React.RefObject<Message> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [gene, setGene] = useState<geneInfo>()
@@ -43,7 +43,7 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn, agr
             setTranscriptListLoading(true)
             setSelectedTranscriptIds([])
 
-            const geneInfo: geneInfo | undefined = await geneInfoFn(geneId)
+            const geneInfo: geneInfo | undefined = await props.geneInfoFn(geneId)
             if(geneInfo){
                 console.log('Gene info received:', JSON.stringify(geneInfo))
                 setgeneMessageDisplay('none')
@@ -128,7 +128,7 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = ({geneInfoFn, agr
                 const speciesConfig = getSpecies(gene.species.taxonId)
                 console.log('speciesConfig:', speciesConfig)
 
-                const jBrowsenclistbaseurl = speciesConfig.jBrowsenclistbaseurltemplate.replace('{release}', agrjBrowseDataRelease)
+                const jBrowsenclistbaseurl = speciesConfig.jBrowsenclistbaseurltemplate.replace('{release}', props.agrjBrowseDataRelease)
 
                 const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);
 
