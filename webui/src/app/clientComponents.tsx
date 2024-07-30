@@ -201,6 +201,7 @@ interface jobSumbitProps {
     agrjBrowseDataRelease: string
 }
 const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps) => {
+    console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
     //TODO: allow input of multiple AlignmentEntry records
     const [payload, setPayload] = useState("")
 
