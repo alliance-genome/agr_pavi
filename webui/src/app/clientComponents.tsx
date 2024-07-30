@@ -21,10 +21,7 @@ import { geneInfo, jobType } from './types';
 //   which is expected to become stable in Oct 2024 (https://nodejs.org/api/esm.html#https-and-http-imports)
 // * next.js client code does not support async/await (at current), which is required for dynamic imports
 //   like `await import(`${public_website_src}/lib/utils.js`)`
-//TODO: once alliance-genome/agr_ui/PR#1345 is approved and merged:
-// * remove use of KANBAN-584_pavi-integration branch (use main instead)
-// * cleanup next.lock files (and others like next.config.mjs) to remove all inclusion of feature branch code
-import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/test/src/lib/utils.js';
+import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
 
 interface alignmentEntryProps {
     geneInfoFn: Function
