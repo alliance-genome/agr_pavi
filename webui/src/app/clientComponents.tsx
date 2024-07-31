@@ -24,8 +24,8 @@ import { geneInfo, jobType } from './types';
 import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
 
 interface alignmentEntryProps {
-    geneInfoFn: Function
-    agrjBrowseDataRelease: string
+    readonly geneInfoFn: Function
+    readonly agrjBrowseDataRelease: string
 }
 const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignmentEntryProps) => {
     const geneMessageRef: React.RefObject<Message> = createRef();
@@ -194,8 +194,8 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
 }
 
 interface alignmentEntryListProps {
-    geneInfoFn: Function,
-    agrjBrowseDataRelease: string
+    readonly geneInfoFn: Function,
+    readonly agrjBrowseDataRelease: string
 }
 const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: alignmentEntryListProps) => {
     const alignmentEntryBaseProps: alignmentEntryProps = {
@@ -217,9 +217,9 @@ const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: a
 }
 
 interface jobSumbitProps {
-    submitFn: Function,
-    geneInfoFn: Function,
-    agrjBrowseDataRelease: string
+    readonly submitFn: Function,
+    readonly geneInfoFn: Function,
+    readonly agrjBrowseDataRelease: string
 }
 const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps) => {
     console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)

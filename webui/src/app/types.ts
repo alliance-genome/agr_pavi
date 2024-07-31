@@ -1,12 +1,12 @@
 export interface jobType {
-    uuid?: string,
+    readonly uuid?: string,
     status: string,
     inputValidationPassed?: boolean
 }
 
 export interface geneInfo {
-    id: string,
-    symbol: string,
-    species: any,
-    genomeLocations: Array<any>
+    readonly id: string,
+    readonly symbol: string,
+    readonly species: any,
+    readonly genomeLocations: Array<any>
 }
