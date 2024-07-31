@@ -165,34 +165,32 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
         [transcriptList]
     );
 
-    return <div>
-        <FloatLabel>
-            <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
-                        onBlur={ (e) => fetchGeneInfo(e.currentTarget.value) } />
-            <label htmlFor="gene">Gene</label>
-        </FloatLabel>
-        <div>
-        <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
-                        text="Failed to find gene, correct input and try again." />
-        </div>
-        <br />
-        <FloatLabel>
-            <label htmlFor="transcripts">Transcripts</label>
-            <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
-                display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
-                value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
-                onFocus={ () => setTranscriptListFocused(true) }
-                onBlur={ () => setTranscriptListFocused(false) }
-                onHide={ () => fetchExonInfo(selectedTranscriptIds) }
-                options={
-                transcriptList.map(r => (
-                    {
-                        key: r.id(),
-                        value: r.id(),
-                        label: r.get("name")
-                    } ))} />
-        </FloatLabel><br />
-    </div>
+    return (
+        <div className='p-inputgroup'>
+            <FloatLabel>
+                <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
+                            onBlur={ (e) => fetchGeneInfo(e.currentTarget.value) } />
+                <label htmlFor="gene">Gene</label>
+            </FloatLabel>
+            <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
+                            text="Failed to find gene, correct input and try again." />
+            <FloatLabel>
+                <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
+                    display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
+                    value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
+                    onFocus={ () => setTranscriptListFocused(true) }
+                    onBlur={ () => setTranscriptListFocused(false) }
+                    onHide={ () => fetchExonInfo(selectedTranscriptIds) }
+                    options={
+                    transcriptList.map(r => (
+                        {
+                            key: r.id(),
+                            value: r.id(),
+                            label: r.get("name")
+                        } ))} />
+                <label htmlFor="transcripts">Transcripts</label>
+            </FloatLabel><br />
+        </div>)
 }
 
 interface alignmentEntryListProps {
