@@ -209,7 +209,7 @@ const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: a
             <tbody>
                 {alignmentEntries.map((entryProps, index) => (<tr key={index}><td>< AlignmentEntry {...entryProps} /></td></tr>))}
                 <tr><td>
-                    <Button label='Add more' onClick={() => setAlignmentEntries([...alignmentEntries, alignmentEntryBaseProps])} />
+                    <Button text icon="pi pi-plus" onClick={() => setAlignmentEntries([...alignmentEntries, alignmentEntryBaseProps])} />
                 </td></tr>
             </tbody>
         </table>
