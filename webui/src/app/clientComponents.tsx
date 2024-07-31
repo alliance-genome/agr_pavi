@@ -12,7 +12,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import { ToggleButton } from "primereact/togglebutton";
-import { createRef, FunctionComponent, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createRef, FunctionComponent, useCallback, useContext, useEffect, useState } from 'react';
 
 import { geneInfo, jobType } from './types';
 
@@ -147,7 +147,7 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
             }
         }
         updateTranscriptList()
-    }, [gene]);
+    }, [gene]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Update transcriptList loading status and open selection panel once transcriptList object has been saved
     useEffect(
@@ -162,7 +162,7 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
                 }
             }
         },
-        [transcriptList]
+        [transcriptList] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
     return (
