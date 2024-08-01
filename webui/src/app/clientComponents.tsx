@@ -14,7 +14,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import { ToggleButton } from "primereact/togglebutton";
 import React, { createRef, FunctionComponent, useCallback, useContext, useEffect, useState } from 'react';
 
-import { geneInfo, jobType } from './types';
+import { geneInfo, jobType, jobSumbissionPayloadRecord, transcriptInfo } from './types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
 // * Server requires node 22's experimental feature http(s) module imports,
@@ -24,8 +24,11 @@ import { geneInfo, jobType } from './types';
 import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
 
 interface alignmentEntryProps {
+    readonly index: number
     readonly geneInfoFn: Function
     readonly agrjBrowseDataRelease: string
+    readonly updatePayloadPart: Function
+    //TODO: payloadPartstatus (pending => updating <=> ready)
 }
 const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignmentEntryProps) => {
     const geneMessageRef: React.RefObject<Message> = createRef();
@@ -36,6 +39,7 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
     const [transcriptListFocused, setTranscriptListFocused] = useState<Boolean>(false)
     const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<Array<any>>([])
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
+    const [fastaFileUrl, setFastaFileUrl] = useState<string>()
 
     const fetchGeneInfo = async(geneId: string) => {
         if( geneId ){
@@ -63,6 +67,8 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
     const fetchExonInfo = async(transcriptIds: String[]) => {
         console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
         console.log('Fetching exon info for selected transcripts...')
+
+        let transcriptsInfo: Array<transcriptInfo> = []
 
         transcriptIds.forEach((transcriptId) => {
             console.log(`Finding transcript for ID ${transcriptId}...`)
@@ -103,20 +109,50 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
                     }
 
                     if (feature.strand === -1) {
-                        new_exon['RefStart'] = transcript.get('end') - new_exon['start']
-                        new_exon['RefEnd'] = transcript.get('end') - new_exon['end'] + 1
+                        new_exon['refStart'] = transcript.get('end') - new_exon['start']
+                        new_exon['refEnd'] = transcript.get('end') - new_exon['end'] + 1
                     }
                     else {
-                        new_exon['RefStart'] = transcript.get('start') + new_exon['start'] + 1
-                        new_exon['RefEnd'] = transcript.get('start') + new_exon['end']
+                        new_exon['refStart'] = transcript.get('start') + new_exon['start'] + 1
+                        new_exon['refEnd'] = transcript.get('start') + new_exon['end']
                     }
 
                     return new_exon
                 })
 
                 console.log(`transcript ${transcript.get("name")} resulted in exons:`, exons)
+
+                const transcriptInfo: transcriptInfo = {
+                    id: transcript.id(),
+                    name: transcript.get('name'),
+                    exons: exons
+                }
+
+                transcriptsInfo.push(transcriptInfo)
             }
         })
+
+        const portion = payloadPortion(gene!,transcriptsInfo)
+        props.updatePayloadPart(props.index, portion)
+    }
+
+    const payloadPortion = (gene_info: geneInfo, transcripts_info: transcriptInfo[]) => {
+        let portion: jobSumbissionPayloadRecord[] = []
+
+        transcripts_info.forEach(transcript => {
+            portion.push({
+                name: `${gene_info.symbol}_${transcript.name}`,
+                fasta_file_url: fastaFileUrl!,
+                seq_id: getSingleGenomeLocation(gene!.genomeLocations)['chromosome'],
+                seq_strand: getSingleGenomeLocation(gene!.genomeLocations)['strand'],
+                seq_regions: transcript.exons.map((e) => ({
+                    'start': e.refStart,
+                    'end': e.refEnd
+                }))
+            })
+        });
+
+        return portion
     }
 
     // Handle transcriptList updates once gene object has been saved
@@ -127,6 +163,8 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
             if(gene){
                 const speciesConfig = getSpecies(gene.species.taxonId)
                 console.log('speciesConfig:', speciesConfig)
+
+                setFastaFileUrl(speciesConfig.jBrowsefastaurl)
 
                 const jBrowsenclistbaseurl = speciesConfig.jBrowsenclistbaseurltemplate.replace('{release}', props.agrjBrowseDataRelease)
 
@@ -198,18 +236,52 @@ interface alignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
 }
 const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: alignmentEntryListProps) => {
-    const alignmentEntryBaseProps: alignmentEntryProps = {
-        geneInfoFn: props.geneInfoFn,
-        agrjBrowseDataRelease:props.agrjBrowseDataRelease
+    //TODO: generate complete payload from all payloadParts
+    //TODO: enable passthrough of payload value to jobSumbitForm for submission
+    // const [payload, setPayload] = useState<object[]>([])
+
+    //TODO: update alignmentEntries and payloadParts to be indexed hashes to prevent race conditions and mixups on entry removal
+
+    const [alignmentEntries, setAlignmentEntries] = useState<alignmentEntryProps[]>([])
+    const [payloadParts, setPayloadParts] = useState<Array<Array<jobSumbissionPayloadRecord>|undefined>>([])
+
+    function updateAlignmentEntries(index: number, newPayloadPart?: jobSumbissionPayloadRecord[]){
+        setPayloadParts((prevState) => {
+            const newState = prevState
+            newState[index] = newPayloadPart
+            return newState
+        })
     }
-    const [alignmentEntries, setAlignmentEntries] = useState<alignmentEntryProps[]>([alignmentEntryBaseProps])
+
+    const alignmentEntryBaseProps = {
+        geneInfoFn: props.geneInfoFn,
+        agrjBrowseDataRelease: props.agrjBrowseDataRelease,
+        updatePayloadPart: updateAlignmentEntries
+    }
+    function addAlignmentEntry(){
+        setAlignmentEntries((prevState) => {
+            const newEntryIndex = prevState.length
+            console.log(`Adding new alignmentEntry at index ${newEntryIndex}`)
+
+            setPayloadParts([...payloadParts, undefined])
+            return([...prevState, {...alignmentEntryBaseProps, index: newEntryIndex}])
+        })
+    }
+    useEffect(
+        () => {
+            addAlignmentEntry()
+        },[]
+    )
+
+
+    //TODO: enable removal of entries
 
     return (
         <table>
             <tbody>
-                {alignmentEntries.map((entryProps, index) => (<tr key={index}><td>< AlignmentEntry {...entryProps} /></td></tr>))}
+                {alignmentEntries.map((entryProps, index) => (<tr key={index}><td>< AlignmentEntry {...entryProps} index={index} /></td></tr>))}
                 <tr><td>
-                    <Button text icon="pi pi-plus" onClick={() => setAlignmentEntries([...alignmentEntries, alignmentEntryBaseProps])} />
+                    <Button text icon="pi pi-plus" onClick={() => addAlignmentEntry()} />
                 </td></tr>
             </tbody>
         </table>
