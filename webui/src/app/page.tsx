@@ -1,6 +1,7 @@
 import { PrimeReactProvider } from 'primereact/api';
 
-import JobSubmitForm, { DarkModeToggle } from './clientComponents';
+import { DarkModeToggle } from './components/client/DarkModeToggle';
+import { JobSubmitForm } from './components/client/JobSubmitForm';
 import { fetchGeneInfo, submitNewPipelineJob } from './serverActions';
 
 const PUBLIC_DATA_PORTAL_URL = 'https://www.alliancegenome.org'

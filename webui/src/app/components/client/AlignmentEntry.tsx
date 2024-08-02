@@ -4,17 +4,13 @@ import { dedupe, revlist } from '@jbrowse/core/BaseFeatureWidget/util';
 import { Feature } from '@jbrowse/core/util';
 import { fetchTranscripts } from 'generic-sequence-panel';
 import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
-import { PrimeReactContext } from 'primereact/api';
-import { Button } from 'primereact/button';
 import { FloatLabel } from 'primereact/floatlabel';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
-import { ToggleButton } from "primereact/togglebutton";
-import React, { createRef, FunctionComponent, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createRef, FunctionComponent, useEffect, useState } from 'react';
 
-import { geneInfo, jobType, jobSumbissionPayloadRecord, transcriptInfo } from './types';
+import { geneInfo, jobSumbissionPayloadRecord, transcriptInfo } from '../../types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
 // * Server requires node 22's experimental feature http(s) module imports,
@@ -23,14 +19,14 @@ import { geneInfo, jobType, jobSumbissionPayloadRecord, transcriptInfo } from '.
 //   like `await import(`${public_website_src}/lib/utils.js`)`
 import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
 
-interface alignmentEntryProps {
+export interface alignmentEntryProps {
     readonly index: number
     readonly geneInfoFn: Function
     readonly agrjBrowseDataRelease: string
     readonly updatePayloadPart: Function
     //TODO: payloadPartstatus (pending => updating <=> ready)
 }
-const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignmentEntryProps) => {
+export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignmentEntryProps) => {
     const geneMessageRef: React.RefObject<Message> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [gene, setGene] = useState<geneInfo>()
@@ -230,156 +226,3 @@ const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignment
             </FloatLabel><br />
         </div>)
 }
-
-interface alignmentEntryListProps {
-    readonly geneInfoFn: Function,
-    readonly agrjBrowseDataRelease: string
-}
-const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: alignmentEntryListProps) => {
-    //TODO: generate complete payload from all payloadParts
-    //TODO: enable passthrough of payload value to jobSumbitForm for submission
-    // const [payload, setPayload] = useState<object[]>([])
-
-    //TODO: update alignmentEntries and payloadParts to be indexed hashes to prevent race conditions and mixups on entry removal
-
-    const [alignmentEntries, setAlignmentEntries] = useState<alignmentEntryProps[]>([])
-    const [payloadParts, setPayloadParts] = useState<Array<Array<jobSumbissionPayloadRecord>|undefined>>([])
-
-    function updateAlignmentEntries(index: number, newPayloadPart?: jobSumbissionPayloadRecord[]){
-        setPayloadParts((prevState) => {
-            const newState = prevState
-            newState[index] = newPayloadPart
-            return newState
-        })
-    }
-
-    const alignmentEntryBaseProps = {
-        geneInfoFn: props.geneInfoFn,
-        agrjBrowseDataRelease: props.agrjBrowseDataRelease,
-        updatePayloadPart: updateAlignmentEntries
-    }
-    function addAlignmentEntry(){
-        setAlignmentEntries((prevState) => {
-            const newEntryIndex = prevState.length
-            console.log(`Adding new alignmentEntry at index ${newEntryIndex}`)
-
-            setPayloadParts([...payloadParts, undefined])
-            return([...prevState, {...alignmentEntryBaseProps, index: newEntryIndex}])
-        })
-    }
-    useEffect(
-        () => {
-            addAlignmentEntry()
-        },[]
-    )
-
-
-    //TODO: enable removal of entries
-
-    return (
-        <table>
-            <tbody>
-                {alignmentEntries.map((entryProps, index) => (<tr key={index}><td>< AlignmentEntry {...entryProps} index={index} /></td></tr>))}
-                <tr><td>
-                    <Button text icon="pi pi-plus" onClick={() => addAlignmentEntry()} />
-                </td></tr>
-            </tbody>
-        </table>
-    )
-}
-
-interface jobSumbitProps {
-    readonly submitFn: Function,
-    readonly geneInfoFn: Function,
-    readonly agrjBrowseDataRelease: string
-}
-const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps) => {
-    console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
-    const [payload, setPayload] = useState("")
-
-    const initJob: jobType = {
-        'uuid': undefined,
-        'status': 'expected',
-    }
-    const [job, setJob] = useState(initJob)
-    const [displayMsg, setDisplayMsg] = useState('')
-
-    const jobDisplayMsg = useCallback( () => {
-        if (job['status'] === 'expected' || job['status'] === 'submitting') {
-            return ''
-        }
-        else if (job['status'] === 'failed to submit') {
-            let msg = 'Job failed to submit.'
-            if (job['inputValidationPassed'] === false ){
-                msg += ' Correct the input and try again.'
-            }
-            else{
-                msg += ' Try again and contact the developers if this error persists.'
-            }
-
-            return msg
-        } else {
-            return `job ${job['uuid']||''} is now ${job['status']}.`
-        }
-    }, [job])
-
-    const handleSubmit = async() => {
-        setJob({
-            uuid: undefined,
-            status: 'submitting',
-        });
-
-        console.log('Sending submit request to server action.')
-        const submitResponse: jobType = await props.submitFn(payload)
-
-        console.log('Submit response received, updating Job.')
-        setJob(submitResponse)
-    }
-
-    // Update displayMsg on every job update
-    useEffect(
-        () => {
-            setDisplayMsg(jobDisplayMsg())
-        },
-        [job, jobDisplayMsg]
-    );
-
-    return (
-        <div>
-            <AlignmentEntryList geneInfoFn={props.geneInfoFn} agrjBrowseDataRelease={props.agrjBrowseDataRelease} />
-            <InputTextarea onChange={ (e) => setPayload(e.currentTarget.value) } /><br />
-            <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
-                    loading={job['status'] === 'submitting'} /><br />
-            <div>{displayMsg}</div>
-        </div>
-    );
-}
-
-export const DarkModeToggle: FunctionComponent<{}> = () => {
-    const [darkMode, setDarkMode] = useState(false)
-    const { changeTheme } = useContext(PrimeReactContext);
-
-    function toggleDarkMode(darkMode: boolean) {
-        console.log(`Toggling dark mode to ${darkMode?'enabled':'disabled'}.`)
-        setDarkMode(darkMode)
-        if( changeTheme ) {
-            const oldThemeId = `mdc-${!darkMode?'dark':'light'}-indigo`
-            const newThemeId = `mdc-${darkMode?'dark':'light'}-indigo`
-            changeTheme(oldThemeId,newThemeId,'theme-link')
-        }
-        else {
-            console.warn(`changeTheme not truthy (${changeTheme}), darkMode toggle not functional.`)
-        }
-    }
-
-    return (
-        <div >
-            <ToggleButton onLabel="" onIcon="pi pi-moon"
-                        offLabel="" offIcon="pi pi-sun"
-                        tooltip='toggle dark mode'
-                        checked={darkMode} onChange={(e) => toggleDarkMode(e.value)} />
-        </div>
-    );
-}
-
-export default JobSubmitForm
