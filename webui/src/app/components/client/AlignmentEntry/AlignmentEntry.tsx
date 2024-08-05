@@ -150,8 +150,8 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
             portion.push({
                 name: `${gene_info.symbol}_${transcript.name}`,
                 fasta_file_url: fastaFileUrl!,
-                seq_id: getSingleGenomeLocation(gene!.genomeLocations)['chromosome'],
-                seq_strand: getSingleGenomeLocation(gene!.genomeLocations)['strand'],
+                seq_id: getSingleGenomeLocation(gene_info.genomeLocations)['chromosome'],
+                seq_strand: getSingleGenomeLocation(gene_info.genomeLocations)['strand'],
                 seq_regions: transcript.exons.map((e) => ({
                     'start': e.refStart,
                     'end': e.refEnd
