@@ -3,33 +3,21 @@
 import { Button } from 'primereact/button';
 import React, { FunctionComponent, useState } from 'react';
 
-import { jobSumbissionPayloadRecord } from './JobSubmitForm/types';
 import { AlignmentEntry, alignmentEntryProps } from './AlignmentEntry/AlignmentEntry'
 
 interface alignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
+    readonly addPayloadPart: Function
+    readonly updatePayloadPart: Function
 }
 export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: alignmentEntryListProps) => {
-    //TODO: generate complete payload from all payloadParts
-    //TODO: enable passthrough of payload value to jobSumbitForm for submission
-    // const [payload, setPayload] = useState<object[]>([])
-
-    //TODO: update alignmentEntries and payloadParts to be indexed hashes to prevent race conditions and mixups on entry removal
-
-    const [payloadParts, setPayloadParts] = useState<Array<Array<jobSumbissionPayloadRecord>|undefined>>([undefined])
-
-    function updatePayloadPart(index: number, newPayloadPart?: jobSumbissionPayloadRecord[]){
-        setPayloadParts((prevState) => {
-            const newState = prevState
-            newState[index] = newPayloadPart
-            return newState
-        })
-    }
 
     const alignmentEntryBaseProps = {
         agrjBrowseDataRelease: props.agrjBrowseDataRelease,
-        updatePayloadPart: updatePayloadPart
+        updatePayloadPart: props.updatePayloadPart
     }
+    //TODO: update alignmentEntries and payloadParts to be indexed hashes to prevent race conditions and mixups on entry removal?
+    //TODO: create new "initatedAlignmentEntry" function that can be used for initial entity definition, which calls addPayloadPart accordingly?
     const [alignmentEntries, setAlignmentEntries] = useState<alignmentEntryProps[]>([{...alignmentEntryBaseProps, index: 0}])
     function addAlignmentEntry(){
         setAlignmentEntries((prevState) => {
@@ -37,7 +25,7 @@ export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (p
             const newEntry: alignmentEntryProps = {...alignmentEntryBaseProps, index: newEntryIndex}
             console.log(`Adding new alignmentEntry at index ${newEntryIndex}`)
 
-            setPayloadParts([...payloadParts, undefined])
+            props.addPayloadPart()
             return([...prevState, newEntry])
         })
     }
