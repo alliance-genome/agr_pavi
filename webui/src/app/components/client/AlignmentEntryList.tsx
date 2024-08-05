@@ -3,11 +3,10 @@
 import { Button } from 'primereact/button';
 import React, { FunctionComponent, useEffect, useState } from 'react';
 
-import { jobSumbissionPayloadRecord } from '../../types';
-import { AlignmentEntry, alignmentEntryProps } from './AlignmentEntry'
+import { jobSumbissionPayloadRecord } from './JobSubmitForm/types';
+import { AlignmentEntry, alignmentEntryProps } from './AlignmentEntry/AlignmentEntry'
 
 interface alignmentEntryListProps {
-    readonly geneInfoFn: Function,
     readonly agrjBrowseDataRelease: string
 }
 export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: alignmentEntryListProps) => {
@@ -29,17 +28,17 @@ export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (p
     }
 
     const alignmentEntryBaseProps = {
-        geneInfoFn: props.geneInfoFn,
         agrjBrowseDataRelease: props.agrjBrowseDataRelease,
         updatePayloadPart: updateAlignmentEntries
     }
     function addAlignmentEntry(){
         setAlignmentEntries((prevState) => {
             const newEntryIndex = prevState.length
+            const newEntry: alignmentEntryProps = {...alignmentEntryBaseProps, index: newEntryIndex}
             console.log(`Adding new alignmentEntry at index ${newEntryIndex}`)
 
             setPayloadParts([...payloadParts, undefined])
-            return([...prevState, {...alignmentEntryBaseProps, index: newEntryIndex}])
+            return([...prevState, newEntry])
         })
     }
     useEffect(

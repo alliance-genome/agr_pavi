@@ -1,8 +1,7 @@
 import { PrimeReactProvider } from 'primereact/api';
 
 import { DarkModeToggle } from './components/client/DarkModeToggle';
-import { JobSubmitForm } from './components/client/JobSubmitForm';
-import { fetchGeneInfo, submitNewPipelineJob } from './serverActions';
+import { JobSubmitForm } from './components/client/JobSubmitForm/JobSubmitForm';
 
 const PUBLIC_DATA_PORTAL_URL = 'https://www.alliancegenome.org'
 
@@ -31,7 +30,7 @@ export default async function Page() {
             <link id="theme-link" rel="stylesheet" href="/themes/mdc-light-indigo/theme.css" />
             <DarkModeToggle />
             <br />
-            <JobSubmitForm submitFn={submitNewPipelineJob} geneInfoFn={fetchGeneInfo} agrjBrowseDataRelease={agrDataRelease} />
+            <JobSubmitForm agrjBrowseDataRelease={agrDataRelease} />
         </PrimeReactProvider>
     );
 }

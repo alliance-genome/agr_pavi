@@ -10,7 +10,10 @@ import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import React, { createRef, FunctionComponent, useEffect, useState } from 'react';
 
-import { geneInfo, jobSumbissionPayloadRecord, transcriptInfo } from '../../types';
+import { fetchGeneInfo } from './serverActions';
+
+import { geneInfo } from './types';
+import { jobSumbissionPayloadRecord } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
 // * Server requires node 22's experimental feature http(s) module imports,
@@ -21,7 +24,6 @@ import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubuserconte
 
 export interface alignmentEntryProps {
     readonly index: number
-    readonly geneInfoFn: Function
     readonly agrjBrowseDataRelease: string
     readonly updatePayloadPart: Function
     //TODO: payloadPartstatus (pending => updating <=> ready)
@@ -37,13 +39,22 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
     const [fastaFileUrl, setFastaFileUrl] = useState<string>()
 
-    const fetchGeneInfo = async(geneId: string) => {
+    interface transcriptInfoType {
+        readonly id: string,
+        readonly name: string,
+        readonly exons: Array<{
+            refStart: number
+            refEnd: number
+        }>
+    }
+
+    const processGeneEntry = async(geneId: string) => {
         if( geneId ){
             console.log('Fetching gene info for geneID', geneId, '...')
             setTranscriptListLoading(true)
             setSelectedTranscriptIds([])
 
-            const geneInfo: geneInfo | undefined = await props.geneInfoFn(geneId)
+            const geneInfo: geneInfo | undefined = await fetchGeneInfo(geneId)
             if(geneInfo){
                 console.log('Gene info received:', JSON.stringify(geneInfo))
                 setgeneMessageDisplay('none')
@@ -64,7 +75,7 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
         console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
         console.log('Fetching exon info for selected transcripts...')
 
-        let transcriptsInfo: Array<transcriptInfo> = []
+        let transcriptsInfo: Array<transcriptInfoType> = []
 
         transcriptIds.forEach((transcriptId) => {
             console.log(`Finding transcript for ID ${transcriptId}...`)
@@ -118,7 +129,7 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
 
                 console.log(`transcript ${transcript.get("name")} resulted in exons:`, exons)
 
-                const transcriptInfo: transcriptInfo = {
+                const transcriptInfo: transcriptInfoType = {
                     id: transcript.id(),
                     name: transcript.get('name'),
                     exons: exons
@@ -132,7 +143,7 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
         props.updatePayloadPart(props.index, portion)
     }
 
-    const payloadPortion = (gene_info: geneInfo, transcripts_info: transcriptInfo[]) => {
+    const payloadPortion = (gene_info: geneInfo, transcripts_info: transcriptInfoType[]) => {
         let portion: jobSumbissionPayloadRecord[] = []
 
         transcripts_info.forEach(transcript => {
@@ -203,7 +214,7 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
         <div className='p-inputgroup'>
             <FloatLabel>
                 <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
-                            onBlur={ (e) => fetchGeneInfo(e.currentTarget.value) } />
+                            onBlur={ (e) => processGeneEntry(e.currentTarget.value) } />
                 <label htmlFor="gene">Gene</label>
             </FloatLabel>
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}

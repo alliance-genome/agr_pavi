@@ -3,13 +3,12 @@
 import { Button } from 'primereact/button';
 import { InputTextarea } from 'primereact/inputtextarea';
 import React, { FunctionComponent, useCallback, useEffect, useState } from 'react';
+import { submitNewPipelineJob } from './serverActions';
 
-import { jobType } from '../../types';
-import { AlignmentEntryList } from './AlignmentEntryList';
+import { jobType } from './types';
+import { AlignmentEntryList } from '../AlignmentEntryList';
 
 interface jobSumbitProps {
-    readonly submitFn: Function,
-    readonly geneInfoFn: Function,
     readonly agrjBrowseDataRelease: string
 }
 export const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps) => {
@@ -49,7 +48,7 @@ export const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbi
         });
 
         console.log('Sending submit request to server action.')
-        const submitResponse: jobType = await props.submitFn(payload)
+        const submitResponse: jobType = await submitNewPipelineJob(payload)
 
         console.log('Submit response received, updating Job.')
         setJob(submitResponse)
@@ -65,7 +64,7 @@ export const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbi
 
     return (
         <div>
-            <AlignmentEntryList geneInfoFn={props.geneInfoFn} agrjBrowseDataRelease={props.agrjBrowseDataRelease} />
+            <AlignmentEntryList agrjBrowseDataRelease={props.agrjBrowseDataRelease} />
             <InputTextarea onChange={ (e) => setPayload(e.currentTarget.value) } /><br />
             <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
                     loading={job['status'] === 'submitting'} /><br />
