@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from 'primereact/button';
-import React, { FunctionComponent, useEffect, useState } from 'react';
+import React, { FunctionComponent, useState } from 'react';
 
 import { jobSumbissionPayloadRecord } from './JobSubmitForm/types';
 import { AlignmentEntry, alignmentEntryProps } from './AlignmentEntry/AlignmentEntry'
@@ -16,10 +16,9 @@ export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (p
 
     //TODO: update alignmentEntries and payloadParts to be indexed hashes to prevent race conditions and mixups on entry removal
 
-    const [alignmentEntries, setAlignmentEntries] = useState<alignmentEntryProps[]>([])
-    const [payloadParts, setPayloadParts] = useState<Array<Array<jobSumbissionPayloadRecord>|undefined>>([])
+    const [payloadParts, setPayloadParts] = useState<Array<Array<jobSumbissionPayloadRecord>|undefined>>([undefined])
 
-    function updateAlignmentEntries(index: number, newPayloadPart?: jobSumbissionPayloadRecord[]){
+    function updatePayloadPart(index: number, newPayloadPart?: jobSumbissionPayloadRecord[]){
         setPayloadParts((prevState) => {
             const newState = prevState
             newState[index] = newPayloadPart
@@ -29,8 +28,9 @@ export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (p
 
     const alignmentEntryBaseProps = {
         agrjBrowseDataRelease: props.agrjBrowseDataRelease,
-        updatePayloadPart: updateAlignmentEntries
+        updatePayloadPart: updatePayloadPart
     }
+    const [alignmentEntries, setAlignmentEntries] = useState<alignmentEntryProps[]>([{...alignmentEntryBaseProps, index: 0}])
     function addAlignmentEntry(){
         setAlignmentEntries((prevState) => {
             const newEntryIndex = prevState.length
@@ -41,12 +41,6 @@ export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (p
             return([...prevState, newEntry])
         })
     }
-    useEffect(
-        () => {
-            addAlignmentEntry()
-        },[]
-    )
-
 
     //TODO: enable removal of entries
 
