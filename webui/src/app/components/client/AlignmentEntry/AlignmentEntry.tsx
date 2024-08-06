@@ -140,6 +140,8 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
         })
 
         const portion = payloadPortion(gene!,transcriptsInfo)
+        console.log('AlignmentEntry portion is', portion)
+
         props.updatePayloadPart(props.index, portion)
     }
 

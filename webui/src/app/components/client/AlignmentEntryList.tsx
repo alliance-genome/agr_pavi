@@ -4,28 +4,47 @@ import { Button } from 'primereact/button';
 import React, { FunctionComponent, useState } from 'react';
 
 import { AlignmentEntry, alignmentEntryProps } from './AlignmentEntry/AlignmentEntry'
+import { payloadPartType } from './JobSubmitForm/types';
 
 interface alignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
-    readonly addPayloadPart: Function
-    readonly updatePayloadPart: Function
+    readonly payloadPartsRef: React.MutableRefObject<payloadPartType[]>
 }
 export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: alignmentEntryListProps) => {
 
+    //TODO: update alignmentEntries and payloadParts to be indexed hashes to prevent race conditions and mixups on entry removal?
+    const addPayloadPart = (value: payloadPartType = undefined) => {
+        props.payloadPartsRef.current.push(value)
+    }
+    const updatePayloadPart = (index: number, value: payloadPartType) => {
+        console.log(`AlignmentEntryList.updatePayloadPart payloadPartsRef.current:`, props.payloadPartsRef.current)
+        console.log(`AlignmentEntryList: Updating payloadPartsRef.current at index ${index} to:`, value)
+        props.payloadPartsRef.current[index] = value
+    }
+
+    interface AlignmentEntryListItem {
+        props: alignmentEntryProps
+    }
     const alignmentEntryBaseProps = {
         agrjBrowseDataRelease: props.agrjBrowseDataRelease,
-        updatePayloadPart: props.updatePayloadPart
+        updatePayloadPart: updatePayloadPart
     }
-    //TODO: update alignmentEntries and payloadParts to be indexed hashes to prevent race conditions and mixups on entry removal?
-    //TODO: create new "initatedAlignmentEntry" function that can be used for initial entity definition, which calls addPayloadPart accordingly?
-    const [alignmentEntries, setAlignmentEntries] = useState<alignmentEntryProps[]>([{...alignmentEntryBaseProps, index: 0}])
+    const initListItem = (index: number) => {
+        addPayloadPart()
+        return(
+            {props: {
+                ...alignmentEntryBaseProps,
+                index: index
+            }}
+        ) as AlignmentEntryListItem
+    }
+    const [alignmentEntries, setAlignmentEntries] = useState<AlignmentEntryListItem[]>([initListItem(0)])
     function addAlignmentEntry(){
         setAlignmentEntries((prevState) => {
             const newEntryIndex = prevState.length
-            const newEntry: alignmentEntryProps = {...alignmentEntryBaseProps, index: newEntryIndex}
+            const newEntry = initListItem(newEntryIndex)
             console.log(`Adding new alignmentEntry at index ${newEntryIndex}`)
 
-            props.addPayloadPart()
             return([...prevState, newEntry])
         })
     }
@@ -35,7 +54,7 @@ export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (p
     return (
         <table>
             <tbody>
-                {alignmentEntries.map((entryProps, index) => (<tr key={index}><td>< AlignmentEntry {...entryProps} index={index} /></td></tr>))}
+                {alignmentEntries.map((listEntry) => (<tr key={listEntry.props.index}><td>< AlignmentEntry {...listEntry.props} /></td></tr>))}
                 <tr><td>
                     <Button text icon="pi pi-plus" onClick={() => addAlignmentEntry()} />
                 </td></tr>

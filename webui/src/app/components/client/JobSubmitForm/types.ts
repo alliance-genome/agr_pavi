@@ -14,3 +14,5 @@ export interface jobSumbissionPayloadRecord {
     }>,
     fasta_file_url: string
 }
+
+export type payloadPartType = jobSumbissionPayloadRecord[] | undefined

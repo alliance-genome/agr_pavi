@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from 'primereact/button';
-import React, { FunctionComponent, useCallback, useEffect, useState } from 'react';
+import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react';
 import { submitNewPipelineJob } from './serverActions';
 
-import { jobType, jobSumbissionPayloadRecord } from './types';
+import { jobType, jobSumbissionPayloadRecord, payloadPartType } from './types';
 import { AlignmentEntryList } from '../AlignmentEntryList';
 
 interface jobSumbitProps {
@@ -13,27 +13,13 @@ interface jobSumbitProps {
 export const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps) => {
     console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
 
-    const [payloadParts, setPayloadParts] = useState<Array<Array<jobSumbissionPayloadRecord>|undefined>>([undefined])
-
-    function addPayloadPart(){
-        console.log('adding payloadPart.')
-        setPayloadParts([...payloadParts, undefined])
-    }
-
-    function updatePayloadPart(index: number, newPayloadPart?: jobSumbissionPayloadRecord[]){
-        console.log(`updating payloadPart at index ${index} to:`, newPayloadPart)
-        setPayloadParts((prevState) => {
-            const newState = prevState
-            newState[index] = newPayloadPart
-            return newState
-        })
-    }
+    const payloadPartsRef = useRef<payloadPartType[]>([])
 
     function generate_payload() {
         let payload: jobSumbissionPayloadRecord[] | undefined
-        if(payloadParts){
+        if(payloadPartsRef.current){
             payload = []
-            payloadParts.forEach((part) => {
+            payloadPartsRef.current.forEach((part) => {
                 if(part){
                     payload = payload!.concat(part)
                 }
@@ -113,7 +99,7 @@ export const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbi
     return (
         <div>
             <AlignmentEntryList agrjBrowseDataRelease={props.agrjBrowseDataRelease}
-                                updatePayloadPart={updatePayloadPart} addPayloadPart={addPayloadPart} />
+                                payloadPartsRef={payloadPartsRef} />
             {
             //TODO: block submit button when undefined payloadparts are present?
             }
