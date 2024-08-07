@@ -5,7 +5,7 @@ import React, { FunctionComponent, useCallback, useEffect, useRef, useState } fr
 import { submitNewPipelineJob } from './serverActions';
 
 import { jobType, jobSumbissionPayloadRecord, payloadPartType } from './types';
-import { AlignmentEntryList } from '../AlignmentEntryList';
+import { AlignmentEntryList } from '../AlignmentEntryList/AlignmentEntryList';
 
 interface jobSumbitProps {
     readonly agrjBrowseDataRelease: string

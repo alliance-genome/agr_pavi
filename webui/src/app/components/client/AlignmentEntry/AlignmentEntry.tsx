@@ -13,6 +13,7 @@ import React, { createRef, FunctionComponent, useEffect, useState } from 'react'
 import { fetchGeneInfo } from './serverActions';
 
 import { geneInfo } from './types';
+import { updatePayloadPartType } from '../AlignmentEntryList/types';
 import { jobSumbissionPayloadRecord } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
@@ -25,7 +26,7 @@ import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubuserconte
 export interface alignmentEntryProps {
     readonly index: number
     readonly agrjBrowseDataRelease: string
-    readonly updatePayloadPart: Function
+    readonly updatePayloadPart: updatePayloadPartType
     //TODO: payloadPartstatus (pending => updating <=> ready)
 }
 export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignmentEntryProps) => {

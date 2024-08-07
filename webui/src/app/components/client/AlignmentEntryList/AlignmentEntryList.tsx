@@ -3,8 +3,9 @@
 import { Button } from 'primereact/button';
 import React, { FunctionComponent, useState } from 'react';
 
-import { AlignmentEntry, alignmentEntryProps } from './AlignmentEntry/AlignmentEntry'
-import { payloadPartType } from './JobSubmitForm/types';
+import { AlignmentEntry, alignmentEntryProps } from '../AlignmentEntry/AlignmentEntry'
+import { payloadPartType } from '../JobSubmitForm/types';
+import { updatePayloadPartType } from './types';
 
 interface alignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
@@ -16,7 +17,7 @@ export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (p
     const addPayloadPart = (value: payloadPartType = undefined) => {
         props.payloadPartsRef.current.push(value)
     }
-    const updatePayloadPart = (index: number, value: payloadPartType) => {
+    const updatePayloadPart: updatePayloadPartType = (index: number, value: payloadPartType) => {
         console.log(`AlignmentEntryList.updatePayloadPart payloadPartsRef.current:`, props.payloadPartsRef.current)
         console.log(`AlignmentEntryList: Updating payloadPartsRef.current at index ${index} to:`, value)
         props.payloadPartsRef.current[index] = value
