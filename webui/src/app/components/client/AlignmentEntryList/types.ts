@@ -1,6 +1,6 @@
-import { payloadPartType } from "../JobSubmitForm/types"
+import { PayloadPart } from "../JobSubmitForm/types"
 
-export interface updatePayloadPartType {
+export interface UpdatePayloadPartFn {
     // eslint-disable-next-line no-unused-vars
-    (index: number, value: payloadPartType): void
+    (index: number, value: PayloadPart): void
 }

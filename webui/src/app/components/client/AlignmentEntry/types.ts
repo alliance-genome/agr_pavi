@@ -1,4 +1,4 @@
-export interface geneInfo {
+export interface GeneInfo {
     readonly id: string,
     readonly symbol: string,
     readonly species: any,

@@ -12,9 +12,9 @@ import React, { createRef, FunctionComponent, useEffect, useState } from 'react'
 
 import { fetchGeneInfo } from './serverActions';
 
-import { geneInfo } from './types';
-import { updatePayloadPartType } from '../AlignmentEntryList/types';
-import { jobSumbissionPayloadRecord } from '../JobSubmitForm/types';
+import { GeneInfo } from './types';
+import { UpdatePayloadPartFn } from '../AlignmentEntryList/types';
+import { JobSumbissionPayloadRecord } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
 // * Server requires node 22's experimental feature http(s) module imports,
@@ -23,16 +23,16 @@ import { jobSumbissionPayloadRecord } from '../JobSubmitForm/types';
 //   like `await import(`${public_website_src}/lib/utils.js`)`
 import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
 
-export interface alignmentEntryProps {
+export interface AlignmentEntryProps {
     readonly index: number
     readonly agrjBrowseDataRelease: string
-    readonly updatePayloadPart: updatePayloadPartType
+    readonly updatePayloadPart: UpdatePayloadPartFn
     //TODO: payloadPartstatus (pending => updating <=> ready)
 }
-export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: alignmentEntryProps) => {
+export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: AlignmentEntryProps) => {
     const geneMessageRef: React.RefObject<Message> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
-    const [gene, setGene] = useState<geneInfo>()
+    const [gene, setGene] = useState<GeneInfo>()
     const transcriptMultiselectRef: React.RefObject<MultiSelect> = createRef();
     const [transcriptList, setTranscriptList] = useState<Feature[]>([])
     const [transcriptListFocused, setTranscriptListFocused] = useState<Boolean>(false)
@@ -40,7 +40,7 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
     const [fastaFileUrl, setFastaFileUrl] = useState<string>()
 
-    interface transcriptInfoType {
+    interface TranscriptInfoType {
         readonly id: string,
         readonly name: string,
         readonly exons: Array<{
@@ -55,7 +55,7 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
             setTranscriptListLoading(true)
             setSelectedTranscriptIds([])
 
-            const geneInfo: geneInfo | undefined = await fetchGeneInfo(geneId)
+            const geneInfo: GeneInfo | undefined = await fetchGeneInfo(geneId)
             if(geneInfo){
                 console.log('Gene info received:', JSON.stringify(geneInfo))
                 setgeneMessageDisplay('none')
@@ -76,7 +76,7 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
         console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
         console.log('Fetching exon info for selected transcripts...')
 
-        let transcriptsInfo: Array<transcriptInfoType> = []
+        let transcriptsInfo: Array<TranscriptInfoType> = []
 
         transcriptIds.forEach((transcriptId) => {
             console.log(`Finding transcript for ID ${transcriptId}...`)
@@ -130,7 +130,7 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
 
                 console.log(`transcript ${transcript.get("name")} resulted in exons:`, exons)
 
-                const transcriptInfo: transcriptInfoType = {
+                const transcriptInfo: TranscriptInfoType = {
                     id: transcript.id(),
                     name: transcript.get('name'),
                     exons: exons
@@ -146,8 +146,8 @@ export const AlignmentEntry: FunctionComponent<alignmentEntryProps> = (props: al
         props.updatePayloadPart(props.index, portion)
     }
 
-    const payloadPortion = (gene_info: geneInfo, transcripts_info: transcriptInfoType[]) => {
-        let portion: jobSumbissionPayloadRecord[] = []
+    const payloadPortion = (gene_info: GeneInfo, transcripts_info: TranscriptInfoType[]) => {
+        let portion: JobSumbissionPayloadRecord[] = []
 
         transcripts_info.forEach(transcript => {
             portion.push({

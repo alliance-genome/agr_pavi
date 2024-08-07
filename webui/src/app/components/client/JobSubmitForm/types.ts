@@ -1,10 +1,10 @@
-export interface jobType {
+export interface JobType {
     readonly uuid?: string,
     status: string,
     inputValidationPassed?: boolean
 }
 
-export interface jobSumbissionPayloadRecord {
+export interface JobSumbissionPayloadRecord {
     name: string,
     seq_id: string,
     seq_strand: string,
@@ -15,4 +15,4 @@ export interface jobSumbissionPayloadRecord {
     fasta_file_url: string
 }
 
-export type payloadPartType = jobSumbissionPayloadRecord[] | undefined
+export type PayloadPart = JobSumbissionPayloadRecord[] | undefined

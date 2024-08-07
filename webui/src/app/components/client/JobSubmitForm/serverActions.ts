@@ -2,12 +2,12 @@
 
 import { env } from 'process'
 
-import { jobSumbissionPayloadRecord, jobType } from "./types";
+import { JobSumbissionPayloadRecord, JobType } from "./types";
 
 const API_BASE = (env.PAVI_API_BASE_URL || 'http://localhost:8000')+'/api'
 
 
-export async function submitNewPipelineJob (inputObj: jobSumbissionPayloadRecord[]): Promise<jobType> {
+export async function submitNewPipelineJob (inputObj: JobSumbissionPayloadRecord[]): Promise<JobType> {
 
     console.log(`New job submision request received.`)
 
@@ -34,7 +34,7 @@ export async function submitNewPipelineJob (inputObj: jobSumbissionPayloadRecord
     })
     .then((promises: Array<any>) => {
         const response: Response = promises[0]
-        const body: jobType = promises[1]
+        const body: JobType = promises[1]
 
         if (response.ok) {
             console.log(`Job with uuid ${body['uuid']} submitted successfully.`)

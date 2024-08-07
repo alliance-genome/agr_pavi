@@ -1,8 +1,8 @@
 'use server';
 
-import { geneInfo } from "./types";
+import { GeneInfo } from "./types";
 
-export async function fetchGeneInfo (geneId: string): Promise<geneInfo|undefined> {
+export async function fetchGeneInfo (geneId: string): Promise<GeneInfo|undefined> {
 
     console.log(`New gene info request received.`)
 
@@ -23,7 +23,7 @@ export async function fetchGeneInfo (geneId: string): Promise<geneInfo|undefined
     .then(([response, body]) => {
         if (response.ok) {
             console.log(`Gene info for gene ${geneId} received successfully: ${JSON.stringify(body)}`)
-            return body as geneInfo;
+            return body as GeneInfo;
         } else {
             const errMsg = 'Failure response received from gene API.'
             console.error(errMsg)

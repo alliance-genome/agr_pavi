@@ -4,19 +4,19 @@ import { Button } from 'primereact/button';
 import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react';
 import { submitNewPipelineJob } from './serverActions';
 
-import { jobType, jobSumbissionPayloadRecord, payloadPartType } from './types';
+import { JobType, JobSumbissionPayloadRecord, PayloadPart } from './types';
 import { AlignmentEntryList } from '../AlignmentEntryList/AlignmentEntryList';
 
-interface jobSumbitProps {
+interface JobSumbitProps {
     readonly agrjBrowseDataRelease: string
 }
-export const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbitProps) => {
+export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbitProps) => {
     console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
 
-    const payloadPartsRef = useRef<payloadPartType[]>([])
+    const payloadPartsRef = useRef<PayloadPart[]>([])
 
     function generate_payload() {
-        let payload: jobSumbissionPayloadRecord[] | undefined
+        let payload: JobSumbissionPayloadRecord[] | undefined
         if(payloadPartsRef.current){
             payload = []
             payloadPartsRef.current.forEach((part) => {
@@ -33,7 +33,7 @@ export const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbi
         return payload
     }
 
-    const initJob: jobType = {
+    const initJob: JobType = {
         'uuid': undefined,
         'status': 'expected',
     }
@@ -72,7 +72,7 @@ export const JobSubmitForm: FunctionComponent<jobSumbitProps> = (props: jobSumbi
         if( payload && payload.length > 1 ){
 
             console.log('Sending submit request to server action.')
-            const submitResponse: jobType = await submitNewPipelineJob(payload)
+            const submitResponse: JobType = await submitNewPipelineJob(payload)
 
             console.log('Submit response received, updating Job.')
             setJob(submitResponse)

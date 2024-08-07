@@ -3,28 +3,28 @@
 import { Button } from 'primereact/button';
 import React, { FunctionComponent, useState } from 'react';
 
-import { AlignmentEntry, alignmentEntryProps } from '../AlignmentEntry/AlignmentEntry'
-import { payloadPartType } from '../JobSubmitForm/types';
-import { updatePayloadPartType } from './types';
+import { AlignmentEntry, AlignmentEntryProps } from '../AlignmentEntry/AlignmentEntry'
+import { PayloadPart } from '../JobSubmitForm/types';
+import { UpdatePayloadPartFn } from './types';
 
-interface alignmentEntryListProps {
+interface AlignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
-    readonly payloadPartsRef: React.MutableRefObject<payloadPartType[]>
+    readonly payloadPartsRef: React.MutableRefObject<PayloadPart[]>
 }
-export const AlignmentEntryList: FunctionComponent<alignmentEntryListProps> = (props: alignmentEntryListProps) => {
+export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (props: AlignmentEntryListProps) => {
 
     //TODO: update alignmentEntries and payloadParts to be indexed hashes to prevent race conditions and mixups on entry removal?
-    const addPayloadPart = (value: payloadPartType = undefined) => {
+    const addPayloadPart = (value: PayloadPart = undefined) => {
         props.payloadPartsRef.current.push(value)
     }
-    const updatePayloadPart: updatePayloadPartType = (index: number, value: payloadPartType) => {
+    const updatePayloadPart: UpdatePayloadPartFn = (index: number, value: PayloadPart) => {
         console.log(`AlignmentEntryList.updatePayloadPart payloadPartsRef.current:`, props.payloadPartsRef.current)
         console.log(`AlignmentEntryList: Updating payloadPartsRef.current at index ${index} to:`, value)
         props.payloadPartsRef.current[index] = value
     }
 
     interface AlignmentEntryListItem {
-        props: alignmentEntryProps
+        props: AlignmentEntryProps
     }
     const alignmentEntryBaseProps = {
         agrjBrowseDataRelease: props.agrjBrowseDataRelease,
