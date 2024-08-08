@@ -1,3 +1,5 @@
+import { AlignmentEntryStatus } from "../AlignmentEntry/types"
+
 export interface JobType {
     readonly uuid?: string,
     status: string,
@@ -16,3 +18,14 @@ export interface JobSumbissionPayloadRecord {
 }
 
 export type PayloadPart = JobSumbissionPayloadRecord[] | undefined
+
+export interface InputPayloadPart {
+    index: number,
+    status: AlignmentEntryStatus,
+    payloadPart: PayloadPart
+}
+
+export interface InputPayloadDispatchAction {
+    type: string,
+    value: InputPayloadPart
+}

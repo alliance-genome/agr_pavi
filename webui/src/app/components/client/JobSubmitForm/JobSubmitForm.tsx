@@ -1,11 +1,13 @@
 'use client';
 
 import { Button } from 'primereact/button';
-import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react';
+import React, { FunctionComponent, useCallback, useEffect, useReducer, useState } from 'react';
 import { submitNewPipelineJob } from './serverActions';
 
-import { JobType, JobSumbissionPayloadRecord, PayloadPart } from './types';
 import { AlignmentEntryList } from '../AlignmentEntryList/AlignmentEntryList';
+import { AlignmentEntryStatus } from '../AlignmentEntry/types';
+
+import { JobType, JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from './types';
 
 interface JobSumbitProps {
     readonly agrjBrowseDataRelease: string
@@ -13,24 +15,62 @@ interface JobSumbitProps {
 export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbitProps) => {
     console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
 
-    const payloadPartsRef = useRef<PayloadPart[]>([])
+    //TODO: update inputPayloadParts to be indexed hashes to prevent race conditions and mixups on entry removal
+    const inputPayloadReducer = (prevState: InputPayloadPart[], action: InputPayloadDispatchAction) => {
+        let newState = [...prevState]
+        const entityIndex = newState.findIndex(e => e.index === action.value.index)
 
-    function generate_payload() {
-        let payload: JobSumbissionPayloadRecord[] | undefined
-        if(payloadPartsRef.current){
-            payload = []
-            payloadPartsRef.current.forEach((part) => {
-                if(part){
-                    payload = payload!.concat(part)
+        switch (action.type) {
+            case 'ADD': {
+                console.log('inputPayloadReducer ADD action called.')
+                if (entityIndex === -1){
+                    console.log(`inputPayloadReducer: adding new value at index ${action.value.index} `)
+                    newState.push(action.value)
                 }
-            })
-        }
-        else {
-            payload = undefined
-        }
 
-        console.log('returning payload :', payload)
-        return payload
+                return newState
+            }
+            case 'UPDATE': {
+                if( entityIndex !== -1 ){
+                    newState[entityIndex] = action.value
+                }
+
+                return newState
+            }
+            default: {
+                return newState
+            }
+
+        }
+    }
+    const [inputPayloadParts, dispatchInputPayloadPart] = useReducer(inputPayloadReducer, [] as InputPayloadPart[])
+
+    function generate_complete_payload() {
+        let payload = [] as JobSumbissionPayloadRecord[]
+
+        inputPayloadParts.forEach((part) => {
+            if(part.payloadPart){
+                payload = payload.concat(part.payloadPart)
+            }
+        })
+        if(payload.length === 0){
+            console.warn('empty payload generated')
+            return undefined
+        }
+        else{
+            console.log('returning payload :', payload)
+            return payload
+        }
+    }
+
+    const submitDisabled = () => {
+        const non_ready_record = inputPayloadParts.find((record) => record.status !== AlignmentEntryStatus.READY)
+        if(non_ready_record){
+            return true
+        }
+        else{
+            return false
+        }
     }
 
     const initJob: JobType = {
@@ -67,7 +107,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
             status: 'submitting',
         });
 
-        const payload = generate_payload()
+        const payload = generate_complete_payload()
 
         if( payload && payload.length > 1 ){
 
@@ -88,6 +128,10 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
         }
     }
 
+    useEffect(() => {
+        console.log('New inputPayloadParts: ', inputPayloadParts)
+    }, [inputPayloadParts])
+
     // Update displayMsg on every job update
     useEffect(
         () => {
@@ -99,12 +143,11 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     return (
         <div>
             <AlignmentEntryList agrjBrowseDataRelease={props.agrjBrowseDataRelease}
-                                payloadPartsRef={payloadPartsRef} />
-            {
-            //TODO: block submit button when undefined payloadparts are present?
-            }
+                                dispatchInputPayloadPart={dispatchInputPayloadPart} />
             <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
-                    loading={job['status'] === 'submitting'} /><br />
+                    loading={job['status'] === 'submitting'}
+                    disabled={submitDisabled()}
+                    /><br />
             <div>{displayMsg}</div>
         </div>
     );

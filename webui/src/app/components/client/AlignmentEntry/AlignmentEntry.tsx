@@ -12,9 +12,9 @@ import React, { createRef, FunctionComponent, useEffect, useState } from 'react'
 
 import { fetchGeneInfo } from './serverActions';
 
-import { GeneInfo } from './types';
-import { UpdatePayloadPartFn } from '../AlignmentEntryList/types';
-import { JobSumbissionPayloadRecord } from '../JobSubmitForm/types';
+import { AlignmentEntryStatus, GeneInfo } from './types';
+import { JobSumbissionPayloadRecord, PayloadPart,
+         InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
 // * Server requires node 22's experimental feature http(s) module imports,
@@ -26,8 +26,7 @@ import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubuserconte
 export interface AlignmentEntryProps {
     readonly index: number
     readonly agrjBrowseDataRelease: string
-    readonly updatePayloadPart: UpdatePayloadPartFn
-    //TODO: payloadPartstatus (pending => updating <=> ready)
+    readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>
 }
 export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: AlignmentEntryProps) => {
     const geneMessageRef: React.RefObject<Message> = createRef();
@@ -39,6 +38,12 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<Array<any>>([])
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
     const [fastaFileUrl, setFastaFileUrl] = useState<string>()
+    const [inputPayloadPart, setInputPayloadPart] = useState<InputPayloadPart>({
+        index: props.index,
+        status: AlignmentEntryStatus.PENDING_INPUT,
+        payloadPart: undefined
+    })
+    const [payloadPart, setPayloadPart] = useState<PayloadPart>(undefined)
 
     interface TranscriptInfoType {
         readonly id: string,
@@ -50,6 +55,11 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     }
 
     const processGeneEntry = async(geneId: string) => {
+        setInputPayloadPart(prevState => ({
+                ...prevState,
+                status: AlignmentEntryStatus.PROCESSING,
+                payloadPart: undefined
+        }))
         if( geneId ){
             console.log('Fetching gene info for geneID', geneId, '...')
             setTranscriptListLoading(true)
@@ -57,26 +67,51 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
             const geneInfo: GeneInfo | undefined = await fetchGeneInfo(geneId)
             if(geneInfo){
+                setInputPayloadPart(prevState => ({
+                    ...prevState,
+                    status: AlignmentEntryStatus.PENDING_INPUT
+                }))
                 console.log('Gene info received:', JSON.stringify(geneInfo))
                 setgeneMessageDisplay('none')
                 setGene(geneInfo)
             }
             else{
                 console.log('Error while receiving gene info: undefined geneInfo returned.')
+                setInputPayloadPart(prevState => ({
+                    ...prevState,
+                    status: AlignmentEntryStatus.FAILED_PROCESSING,
+                    payloadPart: undefined
+                }))
                 setgeneMessageDisplay('initial')
                 setGene(undefined)
             }
         }
         else {
+            setInputPayloadPart(prevState => ({
+                ...prevState,
+                status: AlignmentEntryStatus.PENDING_INPUT
+            }))
             setGene(undefined)
         }
     }
 
-    const fetchExonInfo = async(transcriptIds: String[]) => {
+    const processTranscriptEntry = async(transcriptIds: String[]) => {
+        setInputPayloadPart(prevState => ({
+            ...prevState,
+            status: AlignmentEntryStatus.PROCESSING,
+            payloadPart: undefined
+        }))
         console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
         console.log('Fetching exon info for selected transcripts...')
 
         let transcriptsInfo: Array<TranscriptInfoType> = []
+
+        if(transcriptIds.length < 1){
+            setInputPayloadPart(prevState => ({
+                ...prevState,
+                status: AlignmentEntryStatus.PENDING_INPUT
+            }))
+        }
 
         transcriptIds.forEach((transcriptId) => {
             console.log(`Finding transcript for ID ${transcriptId}...`)
@@ -84,6 +119,11 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             const transcript = transcriptList.find(r => r.id() === transcriptId)
             if( !transcript ){
                 console.error(`No transcript found for transcript ID ${transcriptId}`)
+                setInputPayloadPart(prevState => ({
+                    ...prevState,
+                    status: AlignmentEntryStatus.FAILED_PROCESSING,
+                    payloadPart: undefined
+                }))
             }
             else{
                 console.log(`Found transcript ${transcript}.`)
@@ -143,7 +183,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         const portion = payloadPortion(gene!,transcriptsInfo)
         console.log('AlignmentEntry portion is', portion)
 
-        props.updatePayloadPart(props.index, portion)
+        setPayloadPart(portion)
     }
 
     const payloadPortion = (gene_info: GeneInfo, transcripts_info: TranscriptInfoType[]) => {
@@ -213,6 +253,38 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         [transcriptList] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
+    useEffect(
+        () => {
+            console.log(`InputPayloadPart for AlignmenEntry with index ${props.index} is:`, inputPayloadPart)
+            const dispatchAction: InputPayloadDispatchAction = {
+                type: 'UPDATE',
+                value: inputPayloadPart
+            }
+            props.dispatchInputPayloadPart(dispatchAction)
+        },[inputPayloadPart]
+    );
+
+    useEffect(
+        () => {
+            if( (payloadPart === undefined || payloadPart.length < 1) ){
+                if ( inputPayloadPart.status !== AlignmentEntryStatus.PENDING_INPUT){
+                    setInputPayloadPart(prevState => ({
+                        ...prevState,
+                        status: AlignmentEntryStatus.FAILED_PROCESSING,
+                        payloadPart: undefined
+                    }))
+                }
+            }
+            else if(payloadPart.length >= 1){
+                setInputPayloadPart(prevState => ({
+                    ...prevState,
+                    status: AlignmentEntryStatus.READY,
+                    payloadPart: payloadPart
+                }))
+            }
+        },[payloadPart]
+    );
+
     return (
         <div className='p-inputgroup'>
             <FloatLabel>
@@ -223,12 +295,13 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
                             text="Failed to find gene, correct input and try again." />
             <FloatLabel>
+                {/* TODO: update to react on selected Transcript removal (without opening the overlay) */}
                 <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
                     display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
                     onFocus={ () => setTranscriptListFocused(true) }
                     onBlur={ () => setTranscriptListFocused(false) }
-                    onHide={ () => fetchExonInfo(selectedTranscriptIds) }
+                    onHide={ () => processTranscriptEntry(selectedTranscriptIds) }
                     options={
                     transcriptList.map(r => (
                         {

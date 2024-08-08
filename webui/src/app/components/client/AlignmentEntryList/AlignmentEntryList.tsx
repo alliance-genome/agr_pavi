@@ -1,37 +1,34 @@
 'use client';
 
 import { Button } from 'primereact/button';
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
 
 import { AlignmentEntry, AlignmentEntryProps } from '../AlignmentEntry/AlignmentEntry'
-import { PayloadPart } from '../JobSubmitForm/types';
-import { UpdatePayloadPartFn } from './types';
+import { InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
+import { AlignmentEntryStatus } from '../AlignmentEntry/types';
 
 interface AlignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
-    readonly payloadPartsRef: React.MutableRefObject<PayloadPart[]>
+    readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>
 }
 export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (props: AlignmentEntryListProps) => {
 
-    //TODO: update alignmentEntries and payloadParts to be indexed hashes to prevent race conditions and mixups on entry removal?
-    const addPayloadPart = (value: PayloadPart = undefined) => {
-        props.payloadPartsRef.current.push(value)
-    }
-    const updatePayloadPart: UpdatePayloadPartFn = (index: number, value: PayloadPart) => {
-        console.log(`AlignmentEntryList.updatePayloadPart payloadPartsRef.current:`, props.payloadPartsRef.current)
-        console.log(`AlignmentEntryList: Updating payloadPartsRef.current at index ${index} to:`, value)
-        props.payloadPartsRef.current[index] = value
-    }
-
+    //TODO: update alignmentEntries to be indexed hashes to prevent race conditions and mixups on entry removal
     interface AlignmentEntryListItem {
         props: AlignmentEntryProps
     }
     const alignmentEntryBaseProps = {
         agrjBrowseDataRelease: props.agrjBrowseDataRelease,
-        updatePayloadPart: updatePayloadPart
+        dispatchInputPayloadPart: props.dispatchInputPayloadPart
     }
     const initListItem = (index: number) => {
-        addPayloadPart()
+        console.log(`Initiating list item for index ${index}`)
+        const inputPayloadPart: InputPayloadPart = {
+            index: index,
+            status: AlignmentEntryStatus.PENDING_INPUT,
+            payloadPart: undefined
+        }
+        props.dispatchInputPayloadPart({type: 'ADD', value: inputPayloadPart})
         return(
             {props: {
                 ...alignmentEntryBaseProps,
@@ -39,7 +36,19 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
             }}
         ) as AlignmentEntryListItem
     }
-    const [alignmentEntries, setAlignmentEntries] = useState<AlignmentEntryListItem[]>([initListItem(0)])
+    const [alignmentEntries, setAlignmentEntries] = useState<AlignmentEntryListItem[]>([])
+    function initiateFirstAlignmentEntry(){
+        setAlignmentEntries((prevState) => {
+            let newState = [...prevState]
+            if(prevState.length === 0){
+                console.log('Initiating first alignmentEntry.')
+                const newEntry = initListItem(0)
+                newState.push(newEntry)
+            }
+
+            return(newState)
+        })
+    }
     function addAlignmentEntry(){
         setAlignmentEntries((prevState) => {
             const newEntryIndex = prevState.length
@@ -49,6 +58,13 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
             return([...prevState, newEntry])
         })
     }
+
+    useEffect(() => {
+        console.log('Initiating first entry.')
+        if(alignmentEntries.length === 0){
+            initiateFirstAlignmentEntry()
+        }
+    }, [alignmentEntries])
 
     //TODO: enable removal of entries
 
