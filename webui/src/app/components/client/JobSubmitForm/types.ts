@@ -25,6 +25,8 @@ export interface InputPayloadPart {
     payloadPart: PayloadPart
 }
 
+export type InputPayloadPartMap = Map<number, InputPayloadPart>
+
 export interface InputPayloadDispatchAction {
     type: string,
     value: InputPayloadPart

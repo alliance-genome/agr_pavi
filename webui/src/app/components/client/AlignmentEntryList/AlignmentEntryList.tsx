@@ -13,7 +13,6 @@ interface AlignmentEntryListProps {
 }
 export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (props: AlignmentEntryListProps) => {
 
-    //TODO: update alignmentEntries to be indexed hashes to prevent race conditions and mixups on entry removal
     interface AlignmentEntryListItem {
         props: AlignmentEntryProps
     }
@@ -36,14 +35,15 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
             }}
         ) as AlignmentEntryListItem
     }
-    const [alignmentEntries, setAlignmentEntries] = useState<AlignmentEntryListItem[]>([])
+    const [alignmentEntries, setAlignmentEntries] = useState<Map<number, AlignmentEntryListItem>>(new Map())
     function initiateFirstAlignmentEntry(){
         setAlignmentEntries((prevState) => {
-            let newState = [...prevState]
-            if(prevState.length === 0){
+            let newState = new Map(prevState)
+            if(prevState.size === 0){
                 console.log('Initiating first alignmentEntry.')
-                const newEntry = initListItem(0)
-                newState.push(newEntry)
+                const firstItemIndex = 0
+                const newEntry = initListItem(firstItemIndex)
+                newState.set(firstItemIndex, newEntry)
             }
 
             return(newState)
@@ -51,17 +51,22 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
     }
     function addAlignmentEntry(){
         setAlignmentEntries((prevState) => {
-            const newEntryIndex = prevState.length
-            const newEntry = initListItem(newEntryIndex)
-            console.log(`Adding new alignmentEntry at index ${newEntryIndex}`)
+            const prevKeys: number[] = Array.from(prevState.keys())
 
-            return([...prevState, newEntry])
+            const newEntryKey = prevKeys.length > 0 ? Math.max( ...prevKeys ) + 1 : 0
+            const newEntry = initListItem(newEntryKey)
+
+            console.log(`Adding new alignmentEntry at index ${newEntryKey}`)
+            const newState = new Map(prevState)
+            newState.set(newEntryKey, newEntry)
+
+            return(newState)
         })
     }
 
     useEffect(() => {
         console.log('Initiating first entry.')
-        if(alignmentEntries.length === 0){
+        if(alignmentEntries.size === 0){
             initiateFirstAlignmentEntry()
         }
     }, [alignmentEntries])
@@ -71,7 +76,7 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
     return (
         <table>
             <tbody>
-                {alignmentEntries.map((listEntry) => (<tr key={listEntry.props.index}><td>< AlignmentEntry {...listEntry.props} /></td></tr>))}
+                {Array.from(alignmentEntries.values()).map((listEntry) => (<tr key={listEntry.props.index}><td>< AlignmentEntry {...listEntry.props} /></td></tr>))}
                 <tr><td>
                     <Button text icon="pi pi-plus" onClick={() => addAlignmentEntry()} />
                 </td></tr>

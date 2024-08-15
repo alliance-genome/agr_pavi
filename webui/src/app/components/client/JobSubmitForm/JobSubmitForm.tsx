@@ -7,7 +7,7 @@ import { submitNewPipelineJob } from './serverActions';
 import { AlignmentEntryList } from '../AlignmentEntryList/AlignmentEntryList';
 import { AlignmentEntryStatus } from '../AlignmentEntry/types';
 
-import { JobType, JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from './types';
+import { JobType, JobSumbissionPayloadRecord, InputPayloadDispatchAction, InputPayloadPartMap } from './types';
 
 interface JobSumbitProps {
     readonly agrjBrowseDataRelease: string
@@ -15,24 +15,29 @@ interface JobSumbitProps {
 export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbitProps) => {
     console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
 
-    //TODO: update inputPayloadParts to be indexed hashes to prevent race conditions and mixups on entry removal
-    const inputPayloadReducer = (prevState: InputPayloadPart[], action: InputPayloadDispatchAction) => {
-        let newState = [...prevState]
-        const entityIndex = newState.findIndex(e => e.index === action.value.index)
+    const inputPayloadReducer = (prevState: InputPayloadPartMap, action: InputPayloadDispatchAction) => {
+        let newState = new Map(prevState)
+        const entityIndex = action.value.index
 
         switch (action.type) {
             case 'ADD': {
                 console.log('inputPayloadReducer ADD action called.')
-                if (entityIndex === -1){
+                if ( prevState.get(entityIndex) === undefined ){
                     console.log(`inputPayloadReducer: adding new value at index ${action.value.index} `)
-                    newState.push(action.value)
+                    newState.set(entityIndex, action.value)
+                }
+                else {
+                    console.warn(`inputPayloadReducer: addition requested but index ${action.value.index} already has existing value.`)
                 }
 
                 return newState
             }
             case 'UPDATE': {
-                if( entityIndex !== -1 ){
-                    newState[entityIndex] = action.value
+                if ( prevState.get(entityIndex) !== undefined ){
+                    newState.set(entityIndex, action.value)
+                }
+                else{
+                    console.warn(`inputPayloadReducer: Update requested to non-existing inputPayload at index ${entityIndex}.`)
                 }
 
                 return newState
@@ -43,7 +48,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
 
         }
     }
-    const [inputPayloadParts, dispatchInputPayloadPart] = useReducer(inputPayloadReducer, [] as InputPayloadPart[])
+    const [inputPayloadParts, dispatchInputPayloadPart] = useReducer(inputPayloadReducer, new Map() as InputPayloadPartMap)
 
     function generate_complete_payload() {
         let payload = [] as JobSumbissionPayloadRecord[]
@@ -64,13 +69,11 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     }
 
     const submitDisabled = () => {
-        const non_ready_record = inputPayloadParts.find((record) => record.status !== AlignmentEntryStatus.READY)
-        if(non_ready_record){
-            return true
-        }
-        else{
-            return false
-        }
+        const non_ready = [...inputPayloadParts.values()].some(
+            (record) => record.status !== AlignmentEntryStatus.READY
+        )
+
+        return non_ready
     }
 
     const initJob: JobType = {
