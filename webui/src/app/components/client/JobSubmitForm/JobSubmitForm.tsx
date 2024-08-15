@@ -23,11 +23,23 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
             case 'ADD': {
                 console.log('inputPayloadReducer ADD action called.')
                 if ( prevState.get(entityIndex) === undefined ){
-                    console.log(`inputPayloadReducer: adding new value at index ${action.value.index} `)
+                    console.log(`inputPayloadReducer: adding new value at index ${entityIndex} `)
                     newState.set(entityIndex, action.value)
                 }
                 else {
-                    console.warn(`inputPayloadReducer: addition requested but index ${action.value.index} already has existing value.`)
+                    console.warn(`inputPayloadReducer: addition requested but index ${entityIndex} already has existing value.`)
+                }
+
+                return newState
+            }
+            case 'DELETE': {
+                console.log('inputPayloadReducer DELETE action called.')
+                if ( prevState.get(entityIndex) !== undefined ){
+                    console.log(`inputPayloadReducer: deleting element at index ${entityIndex} `)
+                    newState.delete(entityIndex)
+                }
+                else {
+                    console.warn(`inputPayloadReducer: deletion requested but index ${entityIndex} does not exist.`)
                 }
 
                 return newState

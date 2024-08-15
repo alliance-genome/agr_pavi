@@ -285,6 +285,19 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         },[payloadPart]
     );
 
+    useEffect(
+        () => {
+            const inputPayloadPart: InputPayloadPart = {
+                index: props.index,
+                status: AlignmentEntryStatus.PENDING_INPUT,
+                payloadPart: null
+            }
+            props.dispatchInputPayloadPart({type: 'ADD', value: inputPayloadPart})
+
+            return props.dispatchInputPayloadPart.bind(undefined, {type: 'DELETE', value: inputPayloadPart})
+        }, []
+    )
+
     return (
         <div className='p-inputgroup'>
             <FloatLabel>

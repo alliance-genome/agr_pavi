@@ -4,8 +4,7 @@ import { Button } from 'primereact/button';
 import React, { FunctionComponent, useEffect, useState } from 'react';
 
 import { AlignmentEntry, AlignmentEntryProps } from '../AlignmentEntry/AlignmentEntry'
-import { InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
-import { AlignmentEntryStatus } from '../AlignmentEntry/types';
+import { InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
 interface AlignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
@@ -22,12 +21,6 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
     }
     const initListItem = (index: number) => {
         console.log(`Initiating list item for index ${index}`)
-        const inputPayloadPart: InputPayloadPart = {
-            index: index,
-            status: AlignmentEntryStatus.PENDING_INPUT,
-            payloadPart: undefined
-        }
-        props.dispatchInputPayloadPart({type: 'ADD', value: inputPayloadPart})
         return(
             {props: {
                 ...alignmentEntryBaseProps,
@@ -49,6 +42,10 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
             return(newState)
         })
     }
+    function cleanupAlignmentEntries(){
+        console.log('Cleaning up all alignmentEntries.')
+        setAlignmentEntries(new Map())
+    }
     function addAlignmentEntry(){
         setAlignmentEntries((prevState) => {
             const prevKeys: number[] = Array.from(prevState.keys())
@@ -65,11 +62,13 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
     }
 
     useEffect(() => {
-        console.log('Initiating first entry.')
         if(alignmentEntries.size === 0){
+            console.log('Initiating first entry.')
             initiateFirstAlignmentEntry()
         }
-    }, [alignmentEntries])
+
+        return cleanupAlignmentEntries
+    }, [])
 
     //TODO: enable removal of entries
 
