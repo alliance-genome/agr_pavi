@@ -13,8 +13,7 @@ import React, { createRef, FunctionComponent, useEffect, useState } from 'react'
 import { fetchGeneInfo } from './serverActions';
 
 import { AlignmentEntryStatus, GeneInfo } from './types';
-import { JobSumbissionPayloadRecord, PayloadPart,
-         InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
+import { JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
 // * Server requires node 22's experimental feature http(s) module imports,
@@ -43,7 +42,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         status: AlignmentEntryStatus.PENDING_INPUT,
         payloadPart: undefined
     })
-    const [payloadPart, setPayloadPart] = useState<PayloadPart>(undefined)
 
     interface TranscriptInfoType {
         readonly id: string,
@@ -112,78 +110,92 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 status: AlignmentEntryStatus.PENDING_INPUT
             }))
         }
+        else{
+            transcriptIds.forEach((transcriptId) => {
+                console.log(`Finding transcript for ID ${transcriptId}...`)
 
-        transcriptIds.forEach((transcriptId) => {
-            console.log(`Finding transcript for ID ${transcriptId}...`)
+                const transcript = transcriptList.find(r => r.id() === transcriptId)
+                if( !transcript ){
+                    console.error(`No transcript found for transcript ID ${transcriptId}`)
+                    setInputPayloadPart(prevState => ({
+                        ...prevState,
+                        status: AlignmentEntryStatus.FAILED_PROCESSING,
+                        payloadPart: undefined
+                    }))
+                }
+                else{
+                    console.log(`Found transcript ${transcript}.`)
 
-            const transcript = transcriptList.find(r => r.id() === transcriptId)
-            if( !transcript ){
-                console.error(`No transcript found for transcript ID ${transcriptId}`)
+                    console.log(`Fetching exon info for transcript ${transcript}...`)
+                    // const f = new NCListFeature(transcript);
+                    const feature: any = new NCListFeature(transcript).toJSON();
+
+                    const { subfeatures = [] } = feature
+
+                    const children = subfeatures
+                                        .sort((a: any, b: any) => a.start - b.start)
+                                        .map((sub: any) => ({
+                                            ...sub,
+                                            start: sub.start - feature.start,
+                                            end: sub.end - feature.start
+                                        }))
+
+                    let exons: any[] = dedupe(children.filter((sub: any) => sub.type === 'exon'))
+
+                    let transcript_length = transcript.get("end") - transcript.get("start")
+                    if (feature.strand === -1) {
+                        exons = revlist(exons, transcript_length)
+                    }
+
+                    // Convert relative positions (to transcript)
+                    // to absolute positions (to chromosome/contig)
+                    exons = exons.map((exon: any) => {
+                        let new_exon = {
+                            ...exon,
+                        }
+
+                        if (feature.strand === -1) {
+                            new_exon['refStart'] = transcript.get('end') - new_exon['start']
+                            new_exon['refEnd'] = transcript.get('end') - new_exon['end'] + 1
+                        }
+                        else {
+                            new_exon['refStart'] = transcript.get('start') + new_exon['start'] + 1
+                            new_exon['refEnd'] = transcript.get('start') + new_exon['end']
+                        }
+
+                        return new_exon
+                    })
+
+                    console.log(`transcript ${transcript.get("name")} resulted in exons:`, exons)
+
+                    const transcriptInfo: TranscriptInfoType = {
+                        id: transcript.id(),
+                        name: transcript.get('name'),
+                        exons: exons
+                    }
+
+                    transcriptsInfo.push(transcriptInfo)
+                }
+            })
+
+            const portion = payloadPortion(gene!,transcriptsInfo)
+            console.log('AlignmentEntry portion is', portion)
+
+            if( (portion === undefined || portion.length < 1) ){
                 setInputPayloadPart(prevState => ({
                     ...prevState,
                     status: AlignmentEntryStatus.FAILED_PROCESSING,
                     payloadPart: undefined
                 }))
             }
-            else{
-                console.log(`Found transcript ${transcript}.`)
-
-                console.log(`Fetching exon info for transcript ${transcript}...`)
-                // const f = new NCListFeature(transcript);
-                const feature: any = new NCListFeature(transcript).toJSON();
-
-                const { subfeatures = [] } = feature
-
-                const children = subfeatures
-                                    .sort((a: any, b: any) => a.start - b.start)
-                                    .map((sub: any) => ({
-                                        ...sub,
-                                        start: sub.start - feature.start,
-                                        end: sub.end - feature.start
-                                    }))
-
-                let exons: any[] = dedupe(children.filter((sub: any) => sub.type === 'exon'))
-
-                let transcript_length = transcript.get("end") - transcript.get("start")
-                if (feature.strand === -1) {
-                    exons = revlist(exons, transcript_length)
-                }
-
-                // Convert relative positions (to transcript)
-                // to absolute positions (to chromosome/contig)
-                exons = exons.map((exon: any) => {
-                    let new_exon = {
-                        ...exon,
-                    }
-
-                    if (feature.strand === -1) {
-                        new_exon['refStart'] = transcript.get('end') - new_exon['start']
-                        new_exon['refEnd'] = transcript.get('end') - new_exon['end'] + 1
-                    }
-                    else {
-                        new_exon['refStart'] = transcript.get('start') + new_exon['start'] + 1
-                        new_exon['refEnd'] = transcript.get('start') + new_exon['end']
-                    }
-
-                    return new_exon
-                })
-
-                console.log(`transcript ${transcript.get("name")} resulted in exons:`, exons)
-
-                const transcriptInfo: TranscriptInfoType = {
-                    id: transcript.id(),
-                    name: transcript.get('name'),
-                    exons: exons
-                }
-
-                transcriptsInfo.push(transcriptInfo)
+            else {
+                setInputPayloadPart(prevState => ({
+                    ...prevState,
+                    status: AlignmentEntryStatus.READY,
+                    payloadPart: portion
+                }))
             }
-        })
-
-        const portion = payloadPortion(gene!,transcriptsInfo)
-        console.log('AlignmentEntry portion is', portion)
-
-        setPayloadPart(portion)
+        }
     }
 
     const payloadPortion = (gene_info: GeneInfo, transcripts_info: TranscriptInfoType[]) => {
@@ -266,35 +278,14 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     useEffect(
         () => {
-            if( (payloadPart === undefined || payloadPart.length < 1) ){
-                if ( inputPayloadPart.status !== AlignmentEntryStatus.PENDING_INPUT){
-                    setInputPayloadPart(prevState => ({
-                        ...prevState,
-                        status: AlignmentEntryStatus.FAILED_PROCESSING,
-                        payloadPart: undefined
-                    }))
-                }
-            }
-            else if(payloadPart.length >= 1){
-                setInputPayloadPart(prevState => ({
-                    ...prevState,
-                    status: AlignmentEntryStatus.READY,
-                    payloadPart: payloadPart
-                }))
-            }
-        },[payloadPart]
-    );
-
-    useEffect(
-        () => {
-            const inputPayloadPart: InputPayloadPart = {
+            const initInputPayloadPart: InputPayloadPart = {
                 index: props.index,
                 status: AlignmentEntryStatus.PENDING_INPUT,
-                payloadPart: null
+                payloadPart: undefined
             }
-            props.dispatchInputPayloadPart({type: 'ADD', value: inputPayloadPart})
+            props.dispatchInputPayloadPart({type: 'ADD', value: initInputPayloadPart})
 
-            return props.dispatchInputPayloadPart.bind(undefined, {type: 'DELETE', value: inputPayloadPart})
+            return props.dispatchInputPayloadPart.bind(undefined, {type: 'DELETE', value: initInputPayloadPart})
         }, []
     )
 
