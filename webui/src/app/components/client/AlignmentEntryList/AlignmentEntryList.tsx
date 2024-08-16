@@ -60,6 +60,21 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
             return(newState)
         })
     }
+    function removeAlignmentEntry(deleteIndex: number){
+        setAlignmentEntries((prevState) => {
+            const newState = new Map(prevState)
+
+            if( prevState.get(deleteIndex) ){
+                console.log(`Deleting alignmentEntry at index ${deleteIndex} from list.`)
+                newState.delete(deleteIndex)
+            }
+            else{
+                console.warn(`Request received to delete AlignmentEntry with index ${deleteIndex}, but no such entry found.`)
+            }
+
+            return(newState)
+        })
+    }
 
     useEffect(() => {
         console.log('Initiating first entry.')
@@ -68,12 +83,15 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
         return cleanupAlignmentEntries
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    //TODO: enable removal of entries
-
     return (
         <table>
             <tbody>
-                {Array.from(alignmentEntries.values()).map((listEntry) => (<tr key={listEntry.props.index}><td>< AlignmentEntry {...listEntry.props} /></td></tr>))}
+                {Array.from(alignmentEntries.values()).map((listEntry) => (
+                    <tr key={listEntry.props.index}>
+                        <td><Button text icon="pi pi-trash" onClick={() => removeAlignmentEntry(listEntry.props.index)} /></td>
+                        <td>< AlignmentEntry {...listEntry.props} /></td>
+                    </tr>))
+                }
                 <tr><td>
                     <Button text icon="pi pi-plus" onClick={() => addAlignmentEntry()} />
                 </td></tr>
