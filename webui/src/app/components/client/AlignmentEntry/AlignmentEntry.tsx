@@ -8,7 +8,7 @@ import { FloatLabel } from 'primereact/floatlabel';
 import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
-import React, { createRef, FunctionComponent, useEffect, useState } from 'react';
+import React, { createRef, FunctionComponent, useCallback, useEffect, useState } from 'react';
 
 import { fetchGeneInfo } from './serverActions';
 
@@ -28,24 +28,26 @@ export interface AlignmentEntryProps {
     readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>
 }
 export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: AlignmentEntryProps) => {
+    const [setupCompleted, setSetupCompleted] = useState<Boolean>(false)
     const geneMessageRef: React.RefObject<Message> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [gene, setGene] = useState<GeneInfo>()
     const transcriptMultiselectRef: React.RefObject<MultiSelect> = createRef();
     const [transcriptList, setTranscriptList] = useState<Feature[]>([])
     const [transcriptListFocused, setTranscriptListFocused] = useState<Boolean>(false)
+    const [transcriptListOpened, setTranscriptListOpened] = useState<Boolean>(false)
     const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<Array<any>>([])
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
     const [fastaFileUrl, setFastaFileUrl] = useState<string>()
 
-    const updateInputPayloadPart = (newProperties: Partial<InputPayloadPart>) => {
+    const updateInputPayloadPart = useCallback((newProperties: Partial<InputPayloadPart>) => {
         const dispatchAction: InputPayloadDispatchAction = {
             type: 'UPDATE',
             index: props.index,
             value: newProperties
         }
         props.dispatchInputPayloadPart(dispatchAction)
-    }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     interface TranscriptInfoType {
         readonly id: string,
@@ -93,7 +95,26 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         }
     }
 
-    const processTranscriptEntry = async(transcriptIds: String[]) => {
+    const payloadPortion = useCallback((gene_info: GeneInfo, transcripts_info: TranscriptInfoType[]) => {
+        let portion: JobSumbissionPayloadRecord[] = []
+
+        transcripts_info.forEach(transcript => {
+            portion.push({
+                name: `${gene_info.symbol}_${transcript.name}`,
+                fasta_file_url: fastaFileUrl!,
+                seq_id: getSingleGenomeLocation(gene_info.genomeLocations)['chromosome'],
+                seq_strand: getSingleGenomeLocation(gene_info.genomeLocations)['strand'],
+                seq_regions: transcript.exons.map((e) => ({
+                    'start': e.refStart,
+                    'end': e.refEnd
+                }))
+            })
+        });
+
+        return portion
+    },[fastaFileUrl])
+
+    const processTranscriptEntry = useCallback(async(transcriptIds: String[]) => {
         updateInputPayloadPart({
             status: AlignmentEntryStatus.PROCESSING,
             payloadPart: undefined
@@ -191,26 +212,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 })
             }
         }
-    }
-
-    const payloadPortion = (gene_info: GeneInfo, transcripts_info: TranscriptInfoType[]) => {
-        let portion: JobSumbissionPayloadRecord[] = []
-
-        transcripts_info.forEach(transcript => {
-            portion.push({
-                name: `${gene_info.symbol}_${transcript.name}`,
-                fasta_file_url: fastaFileUrl!,
-                seq_id: getSingleGenomeLocation(gene_info.genomeLocations)['chromosome'],
-                seq_strand: getSingleGenomeLocation(gene_info.genomeLocations)['strand'],
-                seq_regions: transcript.exons.map((e) => ({
-                    'start': e.refStart,
-                    'end': e.refEnd
-                }))
-            })
-        });
-
-        return portion
-    }
+    },[gene, transcriptList, payloadPortion, updateInputPayloadPart])
 
     // Handle transcriptList updates once gene object has been saved
     useEffect(() => {
@@ -262,6 +264,14 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     useEffect(
         () => {
+            if( setupCompleted === true && transcriptListFocused === false && transcriptListOpened === false ){
+                processTranscriptEntry(selectedTranscriptIds)
+            }
+        }
+    ,[setupCompleted, selectedTranscriptIds, transcriptListFocused, transcriptListOpened, processTranscriptEntry])
+
+    useEffect(
+        () => {
             console.log(`AlignmentEntry with index ${props.index} mounted.`)
             const initInputPayloadPart: InputPayloadPart = {
                 index: props.index,
@@ -269,6 +279,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 payloadPart: undefined
             }
             props.dispatchInputPayloadPart({type: 'ADD', index: props.index, value: initInputPayloadPart})
+            setSetupCompleted(true)
 
             return props.dispatchInputPayloadPart.bind(undefined, {type: 'DELETE', index: props.index, value: initInputPayloadPart})
         }, [] // eslint-disable-line react-hooks/exhaustive-deps
@@ -284,13 +295,13 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
                             text="Failed to find gene, correct input and try again." />
             <FloatLabel>
-                {/* TODO: update to react on selected Transcript removal (without opening the overlay) */}
                 <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
                     display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
                     onFocus={ () => setTranscriptListFocused(true) }
                     onBlur={ () => setTranscriptListFocused(false) }
-                    onHide={ () => processTranscriptEntry(selectedTranscriptIds) }
+                    onHide={ () => setTranscriptListOpened(false) }
+                    onShow={ () => setTranscriptListOpened(true) }
                     options={
                     transcriptList.map(r => (
                         {
