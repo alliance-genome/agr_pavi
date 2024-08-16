@@ -29,5 +29,6 @@ export type InputPayloadPartMap = Map<number, InputPayloadPart>
 
 export interface InputPayloadDispatchAction {
     type: string,
-    value: InputPayloadPart
+    index: number,
+    value: Partial<InputPayloadPart>
 }

@@ -37,11 +37,15 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<Array<any>>([])
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
     const [fastaFileUrl, setFastaFileUrl] = useState<string>()
-    const [inputPayloadPart, setInputPayloadPart] = useState<InputPayloadPart>({
-        index: props.index,
-        status: AlignmentEntryStatus.PENDING_INPUT,
-        payloadPart: undefined
-    })
+
+    const updateInputPayloadPart = (newProperties: Partial<InputPayloadPart>) => {
+        const dispatchAction: InputPayloadDispatchAction = {
+            type: 'UPDATE',
+            index: props.index,
+            value: newProperties
+        }
+        props.dispatchInputPayloadPart(dispatchAction)
+    }
 
     interface TranscriptInfoType {
         readonly id: string,
@@ -53,11 +57,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     }
 
     const processGeneEntry = async(geneId: string) => {
-        setInputPayloadPart(prevState => ({
-                ...prevState,
+        updateInputPayloadPart({
                 status: AlignmentEntryStatus.PROCESSING,
                 payloadPart: undefined
-        }))
+        })
         if( geneId ){
             console.log('Fetching gene info for geneID', geneId, '...')
             setTranscriptListLoading(true)
@@ -65,50 +68,45 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
             const geneInfo: GeneInfo | undefined = await fetchGeneInfo(geneId)
             if(geneInfo){
-                setInputPayloadPart(prevState => ({
-                    ...prevState,
+                updateInputPayloadPart({
                     status: AlignmentEntryStatus.PENDING_INPUT
-                }))
+                })
                 console.log('Gene info received:', JSON.stringify(geneInfo))
                 setgeneMessageDisplay('none')
                 setGene(geneInfo)
             }
             else{
                 console.log('Error while receiving gene info: undefined geneInfo returned.')
-                setInputPayloadPart(prevState => ({
-                    ...prevState,
+                updateInputPayloadPart({
                     status: AlignmentEntryStatus.FAILED_PROCESSING,
                     payloadPart: undefined
-                }))
+                })
                 setgeneMessageDisplay('initial')
                 setGene(undefined)
             }
         }
         else {
-            setInputPayloadPart(prevState => ({
-                ...prevState,
+            updateInputPayloadPart({
                 status: AlignmentEntryStatus.PENDING_INPUT
-            }))
+            })
             setGene(undefined)
         }
     }
 
     const processTranscriptEntry = async(transcriptIds: String[]) => {
-        setInputPayloadPart(prevState => ({
-            ...prevState,
+        updateInputPayloadPart({
             status: AlignmentEntryStatus.PROCESSING,
             payloadPart: undefined
-        }))
+        })
         console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
         console.log('Fetching exon info for selected transcripts...')
 
         let transcriptsInfo: Array<TranscriptInfoType> = []
 
         if(transcriptIds.length < 1){
-            setInputPayloadPart(prevState => ({
-                ...prevState,
+            updateInputPayloadPart({
                 status: AlignmentEntryStatus.PENDING_INPUT
-            }))
+            })
         }
         else{
             transcriptIds.forEach((transcriptId) => {
@@ -117,11 +115,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 const transcript = transcriptList.find(r => r.id() === transcriptId)
                 if( !transcript ){
                     console.error(`No transcript found for transcript ID ${transcriptId}`)
-                    setInputPayloadPart(prevState => ({
-                        ...prevState,
+                    updateInputPayloadPart({
                         status: AlignmentEntryStatus.FAILED_PROCESSING,
                         payloadPart: undefined
-                    }))
+                    })
                 }
                 else{
                     console.log(`Found transcript ${transcript}.`)
@@ -182,18 +179,16 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             console.log('AlignmentEntry portion is', portion)
 
             if( (portion === undefined || portion.length < 1) ){
-                setInputPayloadPart(prevState => ({
-                    ...prevState,
+                updateInputPayloadPart({
                     status: AlignmentEntryStatus.FAILED_PROCESSING,
                     payloadPart: undefined
-                }))
+                })
             }
             else {
-                setInputPayloadPart(prevState => ({
-                    ...prevState,
+                updateInputPayloadPart({
                     status: AlignmentEntryStatus.READY,
                     payloadPart: portion
-                }))
+                })
             }
         }
     }
@@ -267,25 +262,14 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     useEffect(
         () => {
-            console.log(`InputPayloadPart for AlignmenEntry with index ${props.index} is:`, inputPayloadPart)
-            const dispatchAction: InputPayloadDispatchAction = {
-                type: 'UPDATE',
-                value: inputPayloadPart
-            }
-            props.dispatchInputPayloadPart(dispatchAction)
-        },[inputPayloadPart]
-    );
-
-    useEffect(
-        () => {
             const initInputPayloadPart: InputPayloadPart = {
                 index: props.index,
                 status: AlignmentEntryStatus.PENDING_INPUT,
                 payloadPart: undefined
             }
-            props.dispatchInputPayloadPart({type: 'ADD', value: initInputPayloadPart})
+            props.dispatchInputPayloadPart({type: 'ADD', index: props.index, value: initInputPayloadPart})
 
-            return props.dispatchInputPayloadPart.bind(undefined, {type: 'DELETE', value: initInputPayloadPart})
+            return props.dispatchInputPayloadPart.bind(undefined, {type: 'DELETE', index: props.index, value: initInputPayloadPart})
         }, []
     )
 

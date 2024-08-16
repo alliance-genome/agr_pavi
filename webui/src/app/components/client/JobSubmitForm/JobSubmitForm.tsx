@@ -7,7 +7,7 @@ import { submitNewPipelineJob } from './serverActions';
 import { AlignmentEntryList } from '../AlignmentEntryList/AlignmentEntryList';
 import { AlignmentEntryStatus } from '../AlignmentEntry/types';
 
-import { JobType, JobSumbissionPayloadRecord, InputPayloadDispatchAction, InputPayloadPartMap } from './types';
+import { JobType, JobSumbissionPayloadRecord, InputPayloadDispatchAction, InputPayloadPart, InputPayloadPartMap } from './types';
 
 interface JobSumbitProps {
     readonly agrjBrowseDataRelease: string
@@ -17,14 +17,19 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
 
     const inputPayloadReducer = (prevState: InputPayloadPartMap, action: InputPayloadDispatchAction) => {
         let newState = new Map(prevState)
-        const entityIndex = action.value.index
+        const entityIndex = action.index
 
         switch (action.type) {
             case 'ADD': {
                 console.log('inputPayloadReducer ADD action called.')
                 if ( prevState.get(entityIndex) === undefined ){
-                    console.log(`inputPayloadReducer: adding new value at index ${entityIndex} `)
-                    newState.set(entityIndex, action.value)
+                    if( Object.hasOwn(action.value, 'index') && Object.hasOwn(action.value, 'payloadPart') && Object.hasOwn(action.value, 'status') ){
+                        console.log(`inputPayloadReducer: adding new value at index ${entityIndex} `)
+                        newState.set(entityIndex, action.value as InputPayloadPart)
+                    }
+                    else{
+                        console.error('inputPayloadReducer: cannot add partial InputPayloadPart', action.value)
+                    }
                 }
                 else {
                     console.warn(`inputPayloadReducer: addition requested but index ${entityIndex} already has existing value.`)
@@ -45,8 +50,13 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
                 return newState
             }
             case 'UPDATE': {
-                if ( prevState.get(entityIndex) !== undefined ){
-                    newState.set(entityIndex, action.value)
+                const prevInputPayloadPart = prevState.get(entityIndex)
+                if ( prevInputPayloadPart !== undefined ){
+                    const newInputPayloadPart: InputPayloadPart = {
+                        ...prevInputPayloadPart,
+                        ...action.value
+                    }
+                    newState.set(entityIndex, newInputPayloadPart)
                 }
                 else{
                     console.warn(`inputPayloadReducer: Update requested to non-existing inputPayload at index ${entityIndex}.`)
