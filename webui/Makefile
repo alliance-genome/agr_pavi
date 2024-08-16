@@ -43,7 +43,7 @@ endif
 
 run-container-dev:
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
-	 docker-compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.webui
+	 docker compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.webui
 
 run-server-dev: check-node install-deps
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \

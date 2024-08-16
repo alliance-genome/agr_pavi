@@ -1,10 +1,8 @@
-version: "3.2"
-
 services:
 
   agr.pavi.dev-local.api:
     container_name: agr.pavi.dev-local.api.server
-    image: ${REGISTRY}agr_pavi/api:${AGR_PAVI_RELEASE}
+    image: ${REGISTRY}agr_pavi/api:${AGR_PAVI_RELEASE:?error}
     ports:
       - "8080:8080"
     networks:
