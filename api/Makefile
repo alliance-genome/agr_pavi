@@ -102,7 +102,7 @@ run-integration-test-container: install-test-deps
 	export EXTERNAL_API_BASE_URL="http://localhost:8080" && \
 	  python -m pytest tests/b_integration \
 	  || (echo "Container logs:" && docker logs agr.pavi.dev-local.api.server && exit 1)
-	docker compose -f docker-compose-dev.yml down
+	docker compose -f docker-compose-dev.yml --env-file dev.env down
 
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
