@@ -62,13 +62,11 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
     }
 
     useEffect(() => {
-        if(alignmentEntries.size === 0){
-            console.log('Initiating first entry.')
-            initiateFirstAlignmentEntry()
-        }
+        console.log('Initiating first entry.')
+        initiateFirstAlignmentEntry()
 
         return cleanupAlignmentEntries
-    }, [])
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     //TODO: enable removal of entries
 

@@ -262,6 +262,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     useEffect(
         () => {
+            console.log(`AlignmentEntry with index ${props.index} mounted.`)
             const initInputPayloadPart: InputPayloadPart = {
                 index: props.index,
                 status: AlignmentEntryStatus.PENDING_INPUT,
@@ -270,7 +271,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             props.dispatchInputPayloadPart({type: 'ADD', index: props.index, value: initInputPayloadPart})
 
             return props.dispatchInputPayloadPart.bind(undefined, {type: 'DELETE', index: props.index, value: initInputPayloadPart})
-        }, []
+        }, [] // eslint-disable-line react-hooks/exhaustive-deps
     )
 
     return (
