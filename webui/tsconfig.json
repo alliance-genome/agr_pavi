@@ -1,10 +1,20 @@
 {
-    "extends": "@tsconfig/next/tsconfig.json",
-    "compilerOptions": {
-        "paths": {
-            "@/*": ["./src/*"]
-        }
+  "extends": "@tsconfig/next/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-    "exclude": ["node_modules"]
+    "downlevelIteration": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

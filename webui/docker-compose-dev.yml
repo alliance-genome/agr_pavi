@@ -1,10 +1,8 @@
-version: "3.2"
-
 services:
 
   agr.pavi.dev-local.webui:
     container_name: agr.pavi.${NET}.webui.server
-    image: ${REGISTRY}agr_pavi/webui:${AGR_PAVI_RELEASE}
+    image: ${REGISTRY}agr_pavi/webui:${AGR_PAVI_RELEASE:?error}
     environment:
       - PAVI_API_BASE_URL
     ports:
