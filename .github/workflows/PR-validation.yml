@@ -815,6 +815,7 @@ jobs:
         name: api_aws_infra_deps_locks_bundle
         path: api/aws_infra
     - name: Unpack the bundle
+      working-directory: api/aws_infra/
       run: |
         tar -xzv -f api-aws-infra-deps-locks.tar.gz
     - name: Download shared AWS infra package
@@ -1028,6 +1029,7 @@ jobs:
           name: api_aws_infra_deps_locks_bundle
           path: api/aws_infra
       - name: Unpack the bundle
+        working-directory: api/aws_infra/
         run: |
           tar -xzv -f api-aws-infra-deps-locks.tar.gz
       - name: Download updated webui/aws_infra (main) dependencies lock file
