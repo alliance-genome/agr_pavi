@@ -1074,6 +1074,9 @@ jobs:
               cat diff-files.txt
               echo EOF
             } >> "$GITHUB_OUTPUT"
+      - name: Debug printing
+        run: |
+            echo "steps.diff-files-list.outputs.content ${{ steps.diff-files-list.outputs.content }}"
       - name: Calculate diff for each individual file
         id: diff-files-content
         if: ${{ steps.diff-files-list.outputs.content }}
@@ -1085,6 +1088,9 @@ jobs:
             find ./diff-files/ -type f -exec cat {} \; | wc -m
             echo EOF
           } >> "$GITHUB_OUTPUT"
+      - name: Debug printing
+        run: |
+            echo "steps.diff-files-content.outputs.total_char_count: ${{ steps.diff-files-content.outputs.total_char_count }}"
       - name: Generate and store change message summary
         if: ${{ steps.diff-files-list.outputs.content }}
         run: |
