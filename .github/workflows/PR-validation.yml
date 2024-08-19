@@ -1066,7 +1066,7 @@ jobs:
           path: deps-lock-files.tar.gz
       # Share diff of changes in PR
       - name: Generate list of files that were updated
-        id: diff-files
+        id: diff-files-list
         run: |
             git diff --name-only -- > diff-files.txt
             {
@@ -1075,21 +1075,33 @@ jobs:
               echo EOF
             } >> "$GITHUB_OUTPUT"
       - name: Calculate diff for each individual file
-        if: ${{ steps.diff-files.outputs.content }}
+        id: diff-files-content
+        if: ${{ steps.diff-files-list.outputs.content }}
         run: |
           mkdir diff-files/
           cat diff-files.txt | xargs -I {} bash ci-scripts/create-git-diff-markdown.sh {} diff-files
-      - name: Generate and store change message
-        if: ${{ steps.diff-files.outputs.content }}
+          {
+            echo 'total_char_count<<EOF'
+            find ./diff-files/ -type f -exec cat {} \; | wc -m
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+      - name: Generate and store change message summary
+        if: ${{ steps.diff-files-list.outputs.content }}
         run: |
           {
             echo 'The validation workflow automatically applied the below dependency lock file updates.'
-            cat diff-files.txt | xargs -I {} cat diff-files/{}.md
-            echo ''
             echo 'A bundle with all dependency lock files is available [here](${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}) as artifact called `deps_lock_files_bundle`.'
           } > git-diff-message.md
+      # gh pr addComment API has a max 65536 character limit
+      - name: Report all diffs in a single comment
+        if: ${{ steps.diff-files-content.outputs.total_char_count < 60000 }}
+        run: |
+          {
+            echo ''
+            cat diff-files.txt | xargs -I {} cat diff-files/{}.md
+          } >> git-diff-message.md
       - name: Generate and store no-change message
-        if: ${{ !steps.diff-files.outputs.content }}
+        if: ${{ !steps.diff-files-list.outputs.content }}
         run: |
           echo 'Automatic dependency lock file updates enabled, but no updates found. No (additional) dependency updates will be made when merging this PR.' \
            > git-diff-message.md
@@ -1098,6 +1110,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh pr comment ${{ github.event.pull_request._links.html.href }} --body-file git-diff-message.md
+      - name: Report each file diff in a separate comment
+        if: ${{ steps.diff-files-content.outputs.total_char_count >= 60000 }}
+        run: |
+          cat diff-files.txt | xargs -I {} gh pr comment ${{ github.event.pull_request._links.html.href }} --body-file {}
   report-no-deps-lock-updates-label:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
     runs-on: ubuntu-22.04
