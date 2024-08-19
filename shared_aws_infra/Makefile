@@ -35,16 +35,6 @@ else
 	@:
 endif
 
-check-node:
-	@$(eval NODE_VERSION=$(shell node --version))
-ifeq ($(shell node --version | grep -P "${SUPPORTED_NODE}"),)
-	@echo 'Node version "${NODE_VERSION}" not supported!'\
-		  'Change the active node version (use nvm) to match "${SUPPORTED_NODE}".'
-	@exit 1
-else
-	@:
-endif
-
 pip-tools:
 	pip install pip-tools==7.4.1
 
@@ -84,10 +74,10 @@ install-deps-update-dev: requirements.txt
 install-test-deps-update-dev: tests/requirements.txt
 	pip install -U -r tests/requirements.txt
 
-run-unit-tests: check-node install-test-deps
+run-unit-tests: install-test-deps
 	python -m pytest
 
-run-unit-tests-dev: check-venv-active check-node install-test-deps
+run-unit-tests-dev: check-venv-active install-test-deps
 	python -m pytest -v
 
 run-type-checks: install-test-deps

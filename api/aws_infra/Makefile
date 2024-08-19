@@ -28,15 +28,8 @@ else
 	@:
 endif
 
-check-node:
-	@$(eval NODE_VERSION=$(shell node --version))
-ifeq ($(shell node --version | grep -P "${SUPPORTED_NODE}"),)
-	@echo 'Node version "${NODE_VERSION}" not supported!'\
-		  'Change the active node version (use nvm) to match "${SUPPORTED_NODE}".'
-	@exit 1
-else
-	@:
-endif
+clean:
+	rm -rf node_modules/ || true
 
 pip-tools:
 	pip install pip-tools==7.4.1
@@ -58,6 +51,7 @@ update-deps-lock:
 	$(eval $(shell $(MAKE) _vars-upgrade-all))
 	$(eval $(shell $(MAKE) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	npm update --package-lock-only
 
 update-test-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
@@ -77,6 +71,9 @@ update-test-deps-lock-shared-aws-infra-only:
 	$(eval $(shell $(MAKE) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
+install-cdk-cli:
+	npm install
+
 install-deps: requirements.txt
 	pip install -r requirements.txt
 
@@ -91,10 +88,10 @@ install-test-deps-update-dev: check-venv-active update-deps-lock-shared-aws-infr
 	pip uninstall -y pavi_shared_aws_infra
 	pip install -U -r tests/requirements.txt
 
-run-unit-tests: check-node install-test-deps
+run-unit-tests: install-test-deps
 	python -m pytest
 
-run-unit-tests-dev: check-venv-active check-node install-test-deps
+run-unit-tests-dev: check-venv-active install-test-deps
 	python -m pytest -v
 
 run-type-checks: install-test-deps
@@ -103,41 +100,41 @@ run-type-checks: install-test-deps
 run-style-checks: install-test-deps
 	flake8 ./
 
-validate-image-stack: check-node run-unit-tests
-	cdk diff ${IMAGE_REPO_CDK_STACK_NAME}
+validate-image-stack: run-unit-tests install-cdk-cli
+	npx cdk diff ${IMAGE_REPO_CDK_STACK_NAME}
 
-validate-application-stack: check-node run-unit-tests
-	cdk diff ${EB_APP_CDK_STACK_NAME}
+validate-application-stack: run-unit-tests install-cdk-cli
+	npx cdk diff ${EB_APP_CDK_STACK_NAME}
 
-validate-environment-stack: check-node run-unit-tests
+validate-environment-stack: run-unit-tests install-cdk-cli
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
-	  cdk diff ${VALIDATE_ENV_STACK_NAME}
+	  npx cdk diff ${VALIDATE_ENV_STACK_NAME}
 
 validate-environment-stack-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
 validate-environment-stack-dev: validate-environment-stack
 	@:
 
-validate-all: check-node run-unit-tests validate-image-stack validate-application-stack validate-environment-stack
+validate-all: run-unit-tests install-cdk-cli validate-image-stack validate-application-stack validate-environment-stack
 	@:
 
 validate-all-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
 validate-all-dev: check-venv-active validate-all
 	@:
 
-deploy-image-stack:
-	cdk deploy ${IMAGE_REPO_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+deploy-image-stack: install-cdk-cli
+	npx cdk deploy ${IMAGE_REPO_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
-deploy-application:
-	cdk deploy ${EB_APP_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+deploy-application: install-cdk-cli
+	npx cdk deploy ${EB_APP_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 	python -m pavi_shared_aws_infra.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-api --version_label ${PAVI_DEPLOY_VERSION_LABEL}
 
-deploy-environment:
+deploy-environment: install-cdk-cli
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
-	  cdk deploy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+	  npx cdk deploy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
