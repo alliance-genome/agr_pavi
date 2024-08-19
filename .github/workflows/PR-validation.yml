@@ -295,13 +295,12 @@ jobs:
           make pip-tools update-deps-lock update-test-deps-lock
       - name: Bundle all deps lock files
         run: |
-          find . -regex '.*/\(requirements\.txt\|package-lock\.json\)' -print | \
           tar -czv -f api-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
       - name: Upload deps-lock-files bundle as artifact
         uses: actions/upload-artifact@v4
         with:
           name: api_aws_infra_deps_locks_bundle
-          path: api-aws-infra-deps-locks.tar.gz
+          path: api/aws_infra/api-aws-infra-deps-locks.tar.gz
           if-no-files-found: error
   webui-aws-infra-update-dependency-lock-files:
     name: webui/aws_infra update and upload dependency lock file
