@@ -1115,7 +1115,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cat diff-files.txt | xargs -I {} gh pr comment ${{ github.event.pull_request._links.html.href }} --body-file {}
+          cat diff-files.txt | xargs -I {} gh pr comment ${{ github.event.pull_request._links.html.href }} --body-file diff-files/{}.md
   report-no-deps-lock-updates-label:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
     runs-on: ubuntu-22.04
