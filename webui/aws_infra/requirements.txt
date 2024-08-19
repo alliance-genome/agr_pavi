@@ -28,13 +28,13 @@ aws-cdk-lib==2.152.0 \
     # via
     #   pavi-shared-aws-infra
     #   webui-aws_infra (pyproject.toml)
-boto3==1.34.162 \
-    --hash=sha256:873f8f5d2f6f85f1018cbb0535b03cceddc7b655b61f66a0a56995238804f41f \
-    --hash=sha256:d6f6096bdab35a0c0deff469563b87d184a28df7689790f7fe7be98502b7c590
+boto3==1.35.0 \
+    --hash=sha256:ada32dab854c46a877cf967b8a55ab1a7d356c3c87f1c8bd556d446ff03dfd95 \
+    --hash=sha256:bdc242e3ea81decc6ea551b04b2c122f088c29269d8e093b55862946aa0fcfc6
     # via pavi-shared-aws-infra
-botocore==1.34.162 \
-    --hash=sha256:2d918b02db88d27a75b48275e6fb2506e9adaaddbec1ffa6a8a0898b34e769be \
-    --hash=sha256:adc23be4fb99ad31961236342b7cbf3c0bfc62532cd02852196032e8c0d682f3
+botocore==1.35.0 \
+    --hash=sha256:6ab2f5a5cbdaa639599e3478c65462c6d6a10173dc8b941bfc69b0c9eb548f45 \
+    --hash=sha256:a3c96fe0b6afe7d00bad6ffbe73f2610953065fcdf0ed697eba4e1e5287cc84f
     # via
     #   boto3
     #   s3transfer
@@ -73,7 +73,7 @@ jsii==1.102.0 \
     #   aws-cdk-lib
     #   constructs
 pavi-shared-aws-infra @ file:///tmp/pavi_shared_aws_infra-0.0.0-py3-none-any.whl \
-    --hash=sha256:e8553cf8e4df1c0cf6db0a4d7807ec4cf43139f6696b17e20dfa9e2b1d84f7f2
+    --hash=sha256:687d319f193458eb9ff608827139f6e3ed181c59ab2cccdcd723cfa4fdc1039a
     # via webui-aws_infra (pyproject.toml)
 publication==0.0.3 \
     --hash=sha256:0248885351febc11d8a1098d5c8e3ab2dabcf3e8c0c96db1e17ecd12b53afbe6 \
