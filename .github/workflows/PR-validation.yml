@@ -1112,6 +1112,8 @@ jobs:
           gh pr comment ${{ github.event.pull_request._links.html.href }} --body-file git-diff-message.md
       - name: Report each file diff in a separate comment
         if: ${{ steps.diff-files-content.outputs.total_char_count >= 60000 }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cat diff-files.txt | xargs -I {} gh pr comment ${{ github.event.pull_request._links.html.href }} --body-file {}
   report-no-deps-lock-updates-label:
