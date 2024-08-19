@@ -12,23 +12,13 @@ clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
 	@rm -rf node_modules/
 
-check-node:
-	@$(eval NODE_VERSION=$(shell node --version))
-ifeq ($(shell node --version | grep -P "${SUPPORTED_NODE}"),)
-	@echo 'Node version "${NODE_VERSION}" not supported!'\
-		  'Change the active node version (use nvm) to match "${SUPPORTED_NODE}".'
-	@exit 1
-else
-	@:
-endif
-
 container-image:
 	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
 
-install-deps: check-node
+install-deps:
 	npm install
 
-update-deps-lock: check-node
+update-deps-lock:
 	npm update --package-lock-only
 
 registry-docker-login:
@@ -45,12 +35,12 @@ run-container-dev:
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
 	 docker compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.webui
 
-run-server-dev: check-node install-deps
+run-server-dev: install-deps
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
 	 npm run dev
 
-run-style-checks: check-node install-deps
+run-style-checks: install-deps
 	npm run lint
 
-run-type-checks: check-node install-deps
+run-type-checks: install-deps
 	npm run typecheck

@@ -9,6 +9,9 @@
         "lint": "next lint --max-warnings 0",
         "typecheck": "tsc --noEmit --strict"
     },
+    "engines" : {
+        "node" : "^20.16"
+    },
     "dependencies": {
         "generic-sequence-panel": "^1.5.1",
         "next": "14.2.5",
