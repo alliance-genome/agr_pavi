@@ -11,22 +11,13 @@ EB_APP_CDK_STACK_NAME ?= PaviApiEbApplicationCdkStack
 ADD_CDK_ARGS ?=
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-% deploy-% install-% pip-tools run-% update-% validate-% _vars-% _write-lock-file
+.PHONY: deploy-% install-% pip-tools run-% update-% validate-% _vars-% _write-lock-file
 
 .venv/:
 	python3.12 -m venv .venv/
 
-check-venv-active:
-ifeq ($(VIRTUAL_ENV),)
-	@echo 'No active python virtual environment found.'\
-		  'Please active the virtual environment first by running `source .venv/bin/activate`,'\
-		  'or read README.md for instructions on how to set up a new one.'
-	@exit 1
-else
-	@:
-endif
-
 clean:
+	rm -rf .venv/ || true
 	rm -rf node_modules/ || true
 
 pip-tools:
@@ -72,42 +63,45 @@ update-test-deps-lock-shared-aws-infra-only:
 install-cdk-cli:
 	npm install
 
-install-deps: requirements.txt
-	pip install -r requirements.txt
+install-deps: requirements.txt .venv/
+	.venv/bin/pip install -r requirements.txt
 
-install-deps-update-dev: check-venv-active update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-	pip uninstall -y pavi_shared_aws_infra
-	pip install -U -r requirements.txt
+install-deps-update-dev: .venv/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+	.venv/bin/pip uninstall -y pavi_shared_aws_infra
+	.venv/bin/pip install -U -r requirements.txt
 
-install-test-deps: tests/requirements.txt
-	pip install -r tests/requirements.txt
+install-test-deps: .venv/ tests/requirements.txt
+	.venv/bin/pip install -r tests/requirements.txt
 
-install-test-deps-update-dev: check-venv-active update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-	pip uninstall -y pavi_shared_aws_infra
-	pip install -U -r tests/requirements.txt
+install-test-deps-update-dev: .venv/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+	.venv/bin/pip uninstall -y pavi_shared_aws_infra
+	.venv/bin/pip install -U -r tests/requirements.txt
 
 run-unit-tests: install-test-deps
-	python -m pytest
+	.venv/bin/python -m pytest
 
-run-unit-tests-dev: check-venv-active install-test-deps
-	python -m pytest -v
+run-unit-tests-dev: install-test-deps
+	.venv/bin/python -m pytest -v
 
 run-type-checks: install-test-deps
-	mypy --install-types --non-interactive --warn-unused-config ./
+	.venv/bin/mypy --install-types --non-interactive --warn-unused-config ./
 
 run-style-checks: install-test-deps
-	flake8 ./
+	.venv/bin/flake8 ./
 
-validate-image-stack: run-unit-tests install-cdk-cli
+validate-image-stack: install-deps run-unit-tests install-cdk-cli
+	. .venv/bin/activate && \
 	npx cdk diff ${IMAGE_REPO_CDK_STACK_NAME}
 
-validate-application-stack: run-unit-tests install-cdk-cli
+validate-application-stack: install-deps run-unit-tests install-cdk-cli
+	. .venv/bin/activate && \
 	npx cdk diff ${EB_APP_CDK_STACK_NAME}
 
-validate-environment-stack: run-unit-tests install-cdk-cli
+validate-environment-stack: install-deps run-unit-tests install-cdk-cli
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
+	  . .venv/bin/activate && \
 	  npx cdk diff ${VALIDATE_ENV_STACK_NAME}
 
 validate-environment-stack-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
@@ -118,20 +112,23 @@ validate-all: run-unit-tests validate-image-stack validate-application-stack val
 	@:
 
 validate-all-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
-validate-all-dev: check-venv-active validate-all
+validate-all-dev: validate-all
 	@:
 
-deploy-image-stack: install-cdk-cli
+deploy-image-stack: install-deps install-cdk-cli
+	. .venv/bin/activate && \
 	npx cdk deploy ${IMAGE_REPO_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
-deploy-application: install-cdk-cli
+deploy-application: install-deps install-cdk-cli
+	. .venv/bin/activate && \
 	npx cdk deploy ${EB_APP_CDK_STACK_NAME} ${ADD_CDK_ARGS}
-	python -m pavi_shared_aws_infra.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-api --version_label ${PAVI_DEPLOY_VERSION_LABEL}
+	.venv/bin/python -m pavi_shared_aws_infra.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-api --version_label ${PAVI_DEPLOY_VERSION_LABEL}
 
-deploy-environment: install-cdk-cli
+deploy-environment: install-deps install-cdk-cli
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
+	  . .venv/bin/activate && \
 	  npx cdk deploy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
 print-deploy-version-label:
