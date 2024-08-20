@@ -417,7 +417,7 @@ jobs:
     - name: Create and activate api/aws_infra venv
       working-directory: api/aws_infra
       run: |
-        make .venv
+        make .venv/
         . .venv/bin/activate
         echo PATH=$PATH >> $GITHUB_ENV
     - name: Install API CDK stack dependencies
@@ -442,7 +442,7 @@ jobs:
     - name: Create and activate webui/aws_infra venv
       working-directory: webui/aws_infra
       run: |
-        make .venv
+        make .venv/
         . .venv/bin/activate
         echo PATH=$PATH >> $GITHUB_ENV
     - name: Install API CDK stack dependencies
