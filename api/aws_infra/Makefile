@@ -1,5 +1,3 @@
-SUPPORTED_NODE := ^v18\.
-
 AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR := 100225593120
 
@@ -116,7 +114,7 @@ validate-environment-stack-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NA
 validate-environment-stack-dev: validate-environment-stack
 	@:
 
-validate-all: run-unit-tests install-cdk-cli validate-image-stack validate-application-stack validate-environment-stack
+validate-all: run-unit-tests validate-image-stack validate-application-stack validate-environment-stack
 	@:
 
 validate-all-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
