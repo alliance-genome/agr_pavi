@@ -1,5 +1,3 @@
-SUPPORTED_NODE := ^v18\.
-
 PAVI_COMPUTE_MIN_VCPU ?= 2
 CDK_STACK_NAME ?= PaviPipelineCdkStack
 ADD_CDK_ARGS ?=
