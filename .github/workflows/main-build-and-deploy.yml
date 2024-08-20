@@ -4,9 +4,6 @@ on:
     types: [closed]
     branches:
       - main
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
 jobs:
   on-merge:
     name: Skip on unmerged
@@ -29,6 +26,9 @@ jobs:
         echo "PR merge detected and deployment wanted."
   commit-deps-lock-updates:
     name: Commit dependency lock updates as proposed during PR validation
+    concurrency:
+      group: ${{ github.workflow }}-commit-deps-lock-updates
+      cancel-in-progress: true
     runs-on: ubuntu-22.04
     needs:
       - on-merge
@@ -100,6 +100,9 @@ jobs:
   build-pavi-shared-aws-infra:
     name: Build pavi_shared_aws_infra package
     runs-on: ubuntu-22.04
+    concurrency:
+      group: ${{ github.workflow }}-build-pavi-shared-aws-infra
+      cancel-in-progress: true
     needs: [commit-deps-lock-updates, on-deploy]
     steps:
       - name: Check out repository code
@@ -125,6 +128,9 @@ jobs:
           path: shared_aws_infra/dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
   pipeline-deploy-aws-infra:
     name: Deploy/update AWS infrastructure for pipeline
+    concurrency:
+      group: ${{ github.workflow }}-pipeline-deploy-aws-infra
+      cancel-in-progress: false
     needs: [commit-deps-lock-updates, on-deploy, build-pavi-shared-aws-infra]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
@@ -162,6 +168,9 @@ jobs:
       run: make deploy ADD_CDK_ARGS="--require-approval never"
   api-deploy-image-repo:
     name: Deploy/update container image repository stack for API
+    concurrency:
+      group: ${{ github.workflow }}-api-deploy-image-repo
+      cancel-in-progress: false
     needs: [commit-deps-lock-updates, on-deploy, build-pavi-shared-aws-infra]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
@@ -199,6 +208,9 @@ jobs:
       run: make deploy-image-stack ADD_CDK_ARGS="--require-approval never"
   webui-deploy-image-repo:
     name: Deploy/update container image repository stack for web UI
+    concurrency:
+      group: ${{ github.workflow }}-webui-deploy-image-repo
+      cancel-in-progress: false
     needs: [commit-deps-lock-updates, on-deploy, build-pavi-shared-aws-infra]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
@@ -235,6 +247,9 @@ jobs:
     - name: Deploy CDK stack
       run: make deploy-image-stack ADD_CDK_ARGS="--require-approval never"
   pipeline-seq-retrieval-build-and-push-docker-image:
+    concurrency:
+      group: ${{ github.workflow }}-pipeline-seq-retrieval-build-and-push-docker-image
+      cancel-in-progress: false
     needs: [on-deploy, pipeline-deploy-aws-infra, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
@@ -271,6 +286,9 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
   pipeline-alignment-build-and-push-docker-image:
+    concurrency:
+      group: ${{ github.workflow }}-pipeline-alignment-build-and-push-docker-image
+      cancel-in-progress: false
     needs: [on-deploy, pipeline-deploy-aws-infra, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
@@ -307,6 +325,9 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
   api-build-and-push-docker-image:
+    concurrency:
+      group: ${{ github.workflow }}-api-build-and-push-docker-image
+      cancel-in-progress: false
     needs: [on-deploy, api-deploy-image-repo, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
@@ -342,6 +363,9 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
   webui-build-and-push-docker-image:
+    concurrency:
+      group: ${{ github.workflow }}-webui-build-and-push-docker-image
+      cancel-in-progress: false
     needs: [on-deploy, webui-deploy-image-repo, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
@@ -377,6 +401,9 @@ jobs:
         platforms: linux/amd64
   deploy-application:
     name: Deploy application (version) (API and WebUI)
+    concurrency:
+      group: ${{ github.workflow }}-deploy-application
+      cancel-in-progress: false
     needs:
       - on-deploy
       - commit-deps-lock-updates
