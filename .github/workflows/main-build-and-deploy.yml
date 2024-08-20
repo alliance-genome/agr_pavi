@@ -150,8 +150,6 @@ jobs:
       with:
         name: shared_aws_infra_package
         path: /tmp/
-    - name: Install CDK stack dependencies
-      run: pip install -r requirements.txt
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -189,8 +187,6 @@ jobs:
       with:
         name: shared_aws_infra_package
         path: /tmp/
-    - name: Install CDK stack dependencies
-      run: pip install -r requirements.txt
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -228,8 +224,6 @@ jobs:
       with:
         name: shared_aws_infra_package
         path: /tmp/
-    - name: Install CDK stack dependencies
-      run: pip install -r requirements.txt
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -414,21 +408,13 @@ jobs:
       with:
         name: shared_aws_infra_package
         path: /tmp/
-    - name: Create and activate api/aws_infra venv
-      working-directory: api/aws_infra
-      run: |
-        make .venv/
-        . .venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
-    - name: Install API CDK stack dependencies
-      working-directory: api/aws_infra
-      run: make install-deps
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-app-cdk-deploy
         aws-region: us-east-1
+    # API validation and deployment
     - name: API CDK validations (resource assertions and cdk diff)
       working-directory: api/aws_infra
       run: make validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}"
@@ -439,15 +425,7 @@ jobs:
       working-directory: api/aws_infra
       run: make deploy-environment PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
             EB_ENV_CDK_STACK_NAME=PaviApiEbMainStack ADD_CDK_ARGS="--require-approval never"
-    - name: Create and activate webui/aws_infra venv
-      working-directory: webui/aws_infra
-      run: |
-        make .venv/
-        . .venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
-    - name: Install API CDK stack dependencies
-      working-directory: webui/aws_infra
-      run: make install-deps
+    # webUI validation and deployment
     - name: webUI CDK validations (resource assertions and cdk diff)
       working-directory: webui/aws_infra
       run: make validate-application-stack validate-environment-stack PAVI_API_ENV_NAME="PAVI-api-main" \

@@ -597,8 +597,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: "20"
-    - name: Install CDK stack dependencies
-      run: pip install -r requirements.txt
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -828,8 +826,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: "20"
-    - name: Install CDK stack dependencies
-      run: pip install -r requirements.txt
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -884,8 +880,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: "20"
-    - name: Install CDK stack dependencies
-      run: pip install -r requirements.txt
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
