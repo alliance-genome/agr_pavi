@@ -381,8 +381,8 @@ jobs:
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/webui:${{ env.tagname }}
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/webui:${{ github.event.pull_request.base.ref }}
         platforms: linux/amd64
-  api-deploy-application:
-    name: Deploy application (version) for API
+  deploy-application:
+    name: Deploy application (version) (API and WebUI)
     needs:
       - on-deploy
       - commit-deps-lock-updates
@@ -390,14 +390,12 @@ jobs:
       - api-build-and-push-docker-image
       - pipeline-alignment-build-and-push-docker-image
       - pipeline-seq-retrieval-build-and-push-docker-image
+      - webui-build-and-push-docker-image
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     env:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
-    defaults:
-      run:
-        working-directory: api/aws_infra
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -416,68 +414,49 @@ jobs:
       with:
         name: shared_aws_infra_package
         path: /tmp/
-    - name: Install CDK stack dependencies
-      run: pip install -r requirements.txt
+    - name: Create and activate api/aws_infra venv
+      working-directory: api/aws_infra
+      run: |
+        make .venv
+        . .venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
+    - name: Install API CDK stack dependencies
+      working-directory: api/aws_infra
+      run: make install-deps
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
-        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-api-cdk-deploy
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-app-cdk-deploy
         aws-region: us-east-1
-    - name: CDK validations (resource assertions and cdk diff)
+    - name: API CDK validations (resource assertions and cdk diff)
+      working-directory: api/aws_infra
       run: make validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}"
-    - name: Deploy application (and version)
+    - name: Deploy API application (and version)
+      working-directory: api/aws_infra
       run: make deploy-application PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" ADD_CDK_ARGS="--require-approval never"
-    - name: Deploy to main environment
+    - name: Deploy API to main environment
+      working-directory: api/aws_infra
       run: make deploy-environment PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
             EB_ENV_CDK_STACK_NAME=PaviApiEbMainStack ADD_CDK_ARGS="--require-approval never"
-  webui-deploy-application:
-    name: Deploy application (version) for web UI
-    needs:
-      - on-deploy
-      - commit-deps-lock-updates
-      - webui-build-and-push-docker-image
-      - api-deploy-application
-    permissions:
-      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
-    env:
-      tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
-    defaults:
-      run:
-        working-directory: webui/aws_infra
-    steps:
-    - name: Check out repository code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
-    - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v4
-      with:
-        node-version: "20"
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-    - name: Download shared AWS infra package
-      uses: actions/download-artifact@v4
-      with:
-        name: shared_aws_infra_package
-        path: /tmp/
-    - name: Install CDK stack dependencies
-      run: pip install -r requirements.txt
-    - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
-        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-webui-cdk-deploy
-        aws-region: us-east-1
-    - name: CDK validations (resource assertions and cdk diff)
+    - name: Create and activate webui/aws_infra venv
+      working-directory: webui/aws_infra
+      run: |
+        make .venv
+        . .venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
+    - name: Install API CDK stack dependencies
+      working-directory: webui/aws_infra
+      run: make install-deps
+    - name: webUI CDK validations (resource assertions and cdk diff)
+      working-directory: webui/aws_infra
       run: make validate-application-stack validate-environment-stack PAVI_API_ENV_NAME="PAVI-api-main" \
             PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}"
-    - name: Deploy application (and version)
+    - name: Deploy webUI application (and version)
+      working-directory: webui/aws_infra
       run: make deploy-application PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" ADD_CDK_ARGS="--require-approval never"
-    - name: Deploy to main environment
+    - name: Deploy webUI to main environment
+      working-directory: webui/aws_infra
       run: make deploy-environment PAVI_API_ENV_NAME="PAVI-api-main" \
             PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
             EB_ENV_CDK_STACK_NAME=PaviWebUiEbMainStack ADD_CDK_ARGS="--require-approval never"
