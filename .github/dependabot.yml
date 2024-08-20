@@ -9,7 +9,12 @@ updates:
       interval: "monthly"
     open-pull-requests-limit: 10
   - package-ecosystem: "pip"
-    directory: "/pipeline/seq_retrieval/"
+    directory: "/api/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 10
+  - package-ecosystem: "pip"
+    directory: "/api/aws_infra/"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 10
@@ -19,12 +24,7 @@ updates:
       interval: "monthly"
     open-pull-requests-limit: 10
   - package-ecosystem: "pip"
-    directory: "/api/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 10
-  - package-ecosystem: "pip"
-    directory: "/api/aws_infra/"
+    directory: "/pipeline/seq_retrieval/"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 10
