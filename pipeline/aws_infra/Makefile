@@ -20,15 +20,8 @@ else
 	@:
 endif
 
-check-node:
-	@$(eval NODE_VERSION=$(shell node --version))
-ifeq ($(shell node --version | grep -P "${SUPPORTED_NODE}"),)
-	@echo 'Node version "${NODE_VERSION}" not supported!'\
-		  'Change the active node version (use nvm) to match "${SUPPORTED_NODE}".'
-	@exit 1
-else
-	@:
-endif
+clean:
+	rm -rf node_modules/ || true
 
 pip-tools:
 	pip install pip-tools==7.4.1
@@ -50,6 +43,7 @@ update-deps-lock:
 	$(eval $(shell $(MAKE) _vars-upgrade-all))
 	$(eval $(shell $(MAKE) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	npm update --package-lock-only
 
 update-test-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
@@ -69,6 +63,9 @@ update-test-deps-lock-shared-aws-infra-only:
 	$(eval $(shell $(MAKE) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
+install-cdk-cli:
+	npm install
+
 install-deps: requirements.txt
 	pip install -r requirements.txt
 
@@ -83,7 +80,7 @@ install-test-deps-update-dev: check-venv-active update-deps-lock-shared-aws-infr
 	pip uninstall -y pavi_shared_aws_infra
 	pip install -U -r tests/requirements.txt
 
-run-unit-tests: check-node install-test-deps
+run-unit-tests: install-test-deps
 	python -m pytest
 
 run-unit-tests-dev: check-venv-active run-unit-tests
@@ -95,17 +92,17 @@ run-type-checks: install-test-deps
 run-style-checks: install-test-deps
 	flake8 ./
 
-validate: check-node run-unit-tests
+validate: run-unit-tests install-cdk-cli
 # Validate production stack code
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
-	  cdk diff ${CDK_STACK_NAME}
+	  npx cdk diff ${CDK_STACK_NAME}
 
 validate-dev: check-venv-active validate
 	@:
 
-deploy:
+deploy: install-cdk-cli
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
-	  cdk deploy ${CDK_STACK_NAME} ${ADD_CDK_ARGS}
+	  npx cdk deploy ${CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
