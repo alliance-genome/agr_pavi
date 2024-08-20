@@ -3,10 +3,8 @@
 .cdk.staging
 cdk.out
 
-## CLI installation artifacts
+## CDK CLI installation artifacts
 node_modules/
-package.json
-package-lock.json
 
 ## Deploy artefacts
 eb_app.zip

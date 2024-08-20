@@ -1,0 +1,11 @@
+{
+    "name": "pavi-pipeline-aws-infra-cdk-cli",
+    "private": true,
+    "engines": {
+        "node": ">=14.15.0"
+    },
+    "dependencies": {
+        "aws-cdk": "^2",
+        "cdk": "^2"
+    }
+}

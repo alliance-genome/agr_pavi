@@ -252,17 +252,14 @@ jobs:
         shell: bash
         run: |
           make pip-tools update-deps-lock update-test-deps-lock
-      - name: Upload updated (main) lock file as artifact
+      - name: Bundle all deps lock files
+        run: |
+          tar -czv -f pipeline-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
+      - name: Upload deps-lock-files bundle as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pipeline_aws_infra_deps_lock
-          path: pipeline/aws_infra/requirements.txt
-          if-no-files-found: error
-      - name: Upload updated (test) lock file as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pipeline_aws_infra_tests_deps_lock
-          path: pipeline/aws_infra/tests/requirements.txt
+          name: pipeline_aws_infra_deps_locks_bundle
+          path: pipeline/aws_infra/pipeline-aws-infra-deps-locks.tar.gz
           if-no-files-found: error
   api-aws-infra-update-dependency-lock-files:
     name: api/aws_infra update and upload dependency lock file
@@ -293,17 +290,14 @@ jobs:
         shell: bash
         run: |
           make pip-tools update-deps-lock update-test-deps-lock
-      - name: Upload updated (main) lock file as artifact
+      - name: Bundle all deps lock files
+        run: |
+          tar -czv -f api-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
+      - name: Upload deps-lock-files bundle as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: api_aws_infra_deps_lock
-          path: api/aws_infra/requirements.txt
-          if-no-files-found: error
-      - name: Upload updated (test) lock file as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: api_aws_infra_tests_deps_lock
-          path: api/aws_infra/tests/requirements.txt
+          name: api_aws_infra_deps_locks_bundle
+          path: api/aws_infra/api-aws-infra-deps-locks.tar.gz
           if-no-files-found: error
   webui-aws-infra-update-dependency-lock-files:
     name: webui/aws_infra update and upload dependency lock file
@@ -334,17 +328,14 @@ jobs:
         shell: bash
         run: |
           make pip-tools update-deps-lock update-test-deps-lock
-      - name: Upload updated (main) lock file as artifact
+      - name: Bundle all deps lock files
+        run: |
+          tar -czv -f webui-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
+      - name: Upload deps-lock-files bundle as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: webui_aws_infra_deps_lock
-          path: webui/aws_infra/requirements.txt
-          if-no-files-found: error
-      - name: Upload updated (test) lock file as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: webui_aws_infra_tests_deps_lock
-          path: webui/aws_infra/tests/requirements.txt
+          name: webui_aws_infra_deps_locks_bundle
+          path: webui/aws_infra/webui-aws-infra-deps-locks.tar.gz
           if-no-files-found: error
   pipeline-seq-retrieval-container-image-build:
     name: pipeline/seq_retrieval container-image build
@@ -578,16 +569,15 @@ jobs:
         fetch-depth: 0
         sparse-checkout: |
           pipeline/aws_infra/
-    - name: Download updated pipeline/aws_infra (main) dependencies lock file
+    - name: Download updated pipeline/aws_infra dependencies lock files bundle
       uses: actions/download-artifact@v4
       with:
-        name: pipeline_aws_infra_deps_lock
+        name: pipeline_aws_infra_deps_locks_bundle
         path: pipeline/aws_infra
-    - name: Download updated aws_infra (test) dependencies lock file
-      uses: actions/download-artifact@v4
-      with:
-        name: pipeline_aws_infra_tests_deps_lock
-        path: pipeline/aws_infra/tests
+    - name: Unpack the bundle
+      working-directory: pipeline/aws_infra/
+      run: |
+        tar -xzv -f pipeline-aws-infra-deps-locks.tar.gz
     - name: Download shared AWS infra package
       uses: actions/download-artifact@v4
       with:
@@ -603,12 +593,10 @@ jobs:
     - name: Code style test
       run: |
         make run-style-checks
-    - name: Setup node.js (CDK requirement)
+    - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "18"
-    - name: Install CDK CLI
-      run: npm install -g aws-cdk
+        node-version: "20"
     - name: Install CDK stack dependencies
       run: pip install -r requirements.txt
     - name: AWS credentials configuration
@@ -812,16 +800,15 @@ jobs:
         fetch-depth: 0
         sparse-checkout: |
           api/aws_infra/
-    - name: Download updated api/aws_infra (main) dependencies lock file
+    - name: Download updated api/aws_infra dependencies lock files bundle
       uses: actions/download-artifact@v4
       with:
-        name: api_aws_infra_deps_lock
+        name: api_aws_infra_deps_locks_bundle
         path: api/aws_infra
-    - name: Download updated api/aws_infra (test) dependencies lock file
-      uses: actions/download-artifact@v4
-      with:
-        name: api_aws_infra_tests_deps_lock
-        path: api/aws_infra/tests
+    - name: Unpack the bundle
+      working-directory: api/aws_infra/
+      run: |
+        tar -xzv -f api-aws-infra-deps-locks.tar.gz
     - name: Download shared AWS infra package
       uses: actions/download-artifact@v4
       with:
@@ -837,12 +824,10 @@ jobs:
     - name: Code style test
       run: |
         make run-style-checks
-    - name: Setup node.js (CDK requirement)
+    - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "18"
-    - name: Install CDK CLI
-      run: npm install -g aws-cdk
+        node-version: "20"
     - name: Install CDK stack dependencies
       run: pip install -r requirements.txt
     - name: AWS credentials configuration
@@ -871,16 +856,15 @@ jobs:
         fetch-depth: 0
         sparse-checkout: |
           webui/aws_infra/
-    - name: Download updated webui/aws_infra (main) dependencies lock file
+    - name: Download updated webui/aws_infra dependencies lock files bundle
       uses: actions/download-artifact@v4
       with:
-        name: webui_aws_infra_deps_lock
+        name: webui_aws_infra_deps_locks_bundle
         path: webui/aws_infra
-    - name: Download updated webui/aws_infra (test) dependencies lock file
-      uses: actions/download-artifact@v4
-      with:
-        name: webui_aws_infra_tests_deps_lock
-        path: webui/aws_infra/tests
+    - name: Unpack the bundle
+      working-directory: webui/aws_infra/
+      run: |
+        tar -xzv -f webui-aws-infra-deps-locks.tar.gz
     - name: Download shared AWS infra package
       uses: actions/download-artifact@v4
       with:
@@ -896,12 +880,10 @@ jobs:
     - name: Code style test
       run: |
         make run-style-checks
-    - name: Setup node.js (CDK requirement)
+    - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "18"
-    - name: Install CDK CLI
-      run: npm install -g aws-cdk
+        node-version: "20"
     - name: Install CDK stack dependencies
       run: pip install -r requirements.txt
     - name: AWS credentials configuration
@@ -1009,16 +991,15 @@ jobs:
         with:
           name: api_tests_deps_lock
           path: api/tests
-      - name: Download updated pipeline/aws_infra (main) dependencies lock file
+      - name: Download updated pipeline/aws_infra dependencies lock files bundle
         uses: actions/download-artifact@v4
         with:
-          name: pipeline_aws_infra_deps_lock
+          name: pipeline_aws_infra_deps_locks_bundle
           path: pipeline/aws_infra
-      - name: Download updated pipeline/aws_infra (test) dependencies lock file
-        uses: actions/download-artifact@v4
-        with:
-          name: pipeline_aws_infra_tests_deps_lock
-          path: pipeline/aws_infra/tests
+      - name: Unpack the bundle
+        working-directory: pipeline/aws_infra/
+        run: |
+          tar -xzv -f pipeline-aws-infra-deps-locks.tar.gz
       - name: Download updated shared_aws_infra (main) dependencies lock file
         uses: actions/download-artifact@v4
         with:
@@ -1029,26 +1010,24 @@ jobs:
         with:
           name: shared_aws_infra_test_deps_lock
           path: shared_aws_infra/tests
-      - name: Download updated api/aws_infra (main) dependencies lock file
+      - name: Download updated api/aws_infra dependencies lock files bundle
         uses: actions/download-artifact@v4
         with:
-          name: api_aws_infra_deps_lock
+          name: api_aws_infra_deps_locks_bundle
           path: api/aws_infra
-      - name: Download updated api/aws_infra (test) dependencies lock file
+      - name: Unpack the bundle
+        working-directory: api/aws_infra/
+        run: |
+          tar -xzv -f api-aws-infra-deps-locks.tar.gz
+      - name: Download updated webui/aws_infra dependencies lock files bundle
         uses: actions/download-artifact@v4
         with:
-          name: api_aws_infra_tests_deps_lock
-          path: api/aws_infra/tests
-      - name: Download updated webui/aws_infra (main) dependencies lock file
-        uses: actions/download-artifact@v4
-        with:
-          name: webui_aws_infra_deps_lock
+          name: webui_aws_infra_deps_locks_bundle
           path: webui/aws_infra
-      - name: Download updated webui/aws_infra (test) dependencies lock file
-        uses: actions/download-artifact@v4
-        with:
-          name: webui_aws_infra_tests_deps_lock
-          path: webui/aws_infra/tests
+      - name: Unpack the bundle
+        working-directory: webui/aws_infra/
+        run: |
+          tar -xzv -f webui-aws-infra-deps-locks.tar.gz
       - name: Download updated webui dependencies lock file
         uses: actions/download-artifact@v4
         with:
