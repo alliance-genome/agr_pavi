@@ -2,5 +2,11 @@
     "extends": [
         "next/core-web-vitals",
         "eslint:recommended"
-    ]
+    ],
+    "overrides": [{
+        "files": ["__tests__/**/*"],
+        "env": {
+            "jest": true
+        }
+    }]
 }
