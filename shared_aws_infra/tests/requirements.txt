@@ -30,9 +30,9 @@ boto3==1.35.1 \
     --hash=sha256:9028dd814c7f06bc92822d1fabdd8b68fe39b5993da5ca7acd7f7c6f7c7c332f \
     --hash=sha256:9fe1a97de136a89d2957e41e3591a7648a6e08d63165255b4cc69c5ba1e2a177
     # via pavi_shared_aws_infra (pyproject.toml)
-boto3-stubs==1.35.1 \
-    --hash=sha256:0303d6587425a97fc15147cc452d7bf4d561d545483bbefbe2e02740e4a308f2 \
-    --hash=sha256:2bf3767144dd70c1dc67ce67fb314fd5a1b83e2341cd0a081abd3dc79134db5f
+boto3-stubs==1.35.10 \
+    --hash=sha256:29e7ab85fa7ecff571f696f8ca36034d56c7694b394f97b5f0ed1f2424935959 \
+    --hash=sha256:2c18c95acc7f13fd17ab48d309bcaeaffa7ac4ee3cccb600a027af62c0718da6
     # via pavi_shared_aws_infra (pyproject.toml)
 botocore==1.35.1 \
     --hash=sha256:bce42967d0f03b79cf25b2b6a36221fb2fb15f98e6fa4155b66b672ab192013b \
