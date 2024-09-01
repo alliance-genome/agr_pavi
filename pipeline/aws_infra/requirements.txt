@@ -53,9 +53,9 @@ constructs==10.3.0 \
     #   aws-cdk-lib
     #   pavi-shared-aws-infra
     #   pipeline-aws_infra (pyproject.toml)
-importlib-resources==6.4.3 \
-    --hash=sha256:2d6dfe3b9e055f72495c2085890837fc8c758984e209115c8792bddcb762cd93 \
-    --hash=sha256:4a202b9b9d38563b46da59221d77bb73862ab5d79d461307bcb826d725448b98
+importlib-resources==6.4.4 \
+    --hash=sha256:20600c8b7361938dc0bb2d5ec0297802e575df486f5a544fa414da65e13721f7 \
+    --hash=sha256:dda242603d1c9cd836c3368b1174ed74cb4049ecd209e7a1a0104620c18c5c11
     # via jsii
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
