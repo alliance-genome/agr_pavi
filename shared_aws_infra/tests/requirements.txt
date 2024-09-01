@@ -40,9 +40,9 @@ botocore==1.35.1 \
     # via
     #   boto3
     #   s3transfer
-botocore-stubs==1.35.1 \
-    --hash=sha256:528c5449f8f4b749c55761e96641a1d03ef02c4bacf743ee8f32c8e28310851f \
-    --hash=sha256:b86d514b36e18e163b957fc3c83b3edfcaa66f92d818cb5a441dad8bd6ce6e1b
+botocore-stubs==1.35.10 \
+    --hash=sha256:58a124318197a27f85988e5a4128ce2eeb1f0c4818646a3e29b4be36ecf381f1 \
+    --hash=sha256:5a27ede8c076c490d31a42b0bd7c25bb85711eb101f9d1463e4fcbfad1d8e232
     # via boto3-stubs
 cattrs==23.2.3 \
     --hash=sha256:0341994d94971052e9ee70662542699a3162ea1e0c62f7ce1b4a57f563685108 \
