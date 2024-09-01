@@ -26,9 +26,9 @@ aws-cdk-lib==2.153.0 \
     --hash=sha256:1357ccb460a5340c4135307e9d03be3dc09294c14f89881968e9104583be110f \
     --hash=sha256:7cda51150c3615e9429329dc08fa0403822e64a749940ab032d65506fb88ff62
     # via pavi_shared_aws_infra (pyproject.toml)
-boto3==1.35.1 \
-    --hash=sha256:9028dd814c7f06bc92822d1fabdd8b68fe39b5993da5ca7acd7f7c6f7c7c332f \
-    --hash=sha256:9fe1a97de136a89d2957e41e3591a7648a6e08d63165255b4cc69c5ba1e2a177
+boto3==1.35.10 \
+    --hash=sha256:189ab1e2b4cd86df56f82438d89b4040eb140c92683f1bda7cb2e62624f20ea5 \
+    --hash=sha256:add26dd58e076dfd387013da4704716d5cff215cf14f6d4347c4b9b7fc1f0b8e
     # via pavi_shared_aws_infra (pyproject.toml)
 botocore==1.35.1 \
     --hash=sha256:bce42967d0f03b79cf25b2b6a36221fb2fb15f98e6fa4155b66b672ab192013b \
