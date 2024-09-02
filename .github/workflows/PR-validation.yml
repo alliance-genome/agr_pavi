@@ -918,6 +918,8 @@ jobs:
       - name: Code style test
         run: |
           make run-style-checks
+      - name: Unit tests
+        run: make run-unit-tests
   webui-container-image-build:
     name: webUI container-image build
     needs:

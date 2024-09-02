@@ -43,3 +43,6 @@ run-style-checks: install-deps
 
 run-type-checks: install-deps
 	npm run typecheck
+
+run-unit-tests: install-deps
+	npm run test
