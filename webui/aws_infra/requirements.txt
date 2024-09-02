@@ -42,9 +42,9 @@ botocore==1.35.10 \
     # via
     #   boto3
     #   s3transfer
-cattrs==23.2.3 \
-    --hash=sha256:0341994d94971052e9ee70662542699a3162ea1e0c62f7ce1b4a57f563685108 \
-    --hash=sha256:a934090d95abaa9e911dac357e3a8699e0b4b14f8529bcc7d2b1ad9d51672b9f
+cattrs==24.1.0 \
+    --hash=sha256:043bb8af72596432a7df63abcff0055ac0f198a4d2e95af8db5a936a7074a761 \
+    --hash=sha256:8274f18b253bf7674a43da851e3096370d67088165d23138b04a1c04c8eaf48e
     # via jsii
 click==8.1.7 \
     --hash=sha256:ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28 \
