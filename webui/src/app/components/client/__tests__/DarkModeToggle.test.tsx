@@ -5,7 +5,6 @@ import { DarkModeToggle } from '../DarkModeToggle'
 
 describe('DarkModeToggle', () => {
   it('renders a switch', () => {
-    // TODO: figure out why this generates big amount of "Error: Could not parse CSS stylesheet" console errors
     render(
       <PrimeReactProvider>
         <DarkModeToggle />

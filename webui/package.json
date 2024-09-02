@@ -8,7 +8,7 @@
         "start": "next start",
         "lint": "next lint --max-warnings 0",
         "typecheck": "tsc --noEmit --strict",
-        "test": "jest",
+        "test": "jest --silent",
         "test:watch": "jest --watch"
     },
     "engines": {
