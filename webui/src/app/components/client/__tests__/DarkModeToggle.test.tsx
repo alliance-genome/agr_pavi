@@ -1,4 +1,3 @@
-import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
 import { PrimeReactProvider } from 'primereact/api';
 import { DarkModeToggle } from '../DarkModeToggle'
@@ -13,6 +12,6 @@ describe('DarkModeToggle', () => {
 
     const element = screen.getByRole('switch')
  
-    expect(element).toBeInTheDocument
+    expect(element).toBeInTheDocument()
   })
 })
