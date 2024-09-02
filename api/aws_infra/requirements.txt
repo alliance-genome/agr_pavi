@@ -4,9 +4,9 @@
 #
 #    pip-compile --generate-hashes --output-file=requirements.txt
 #
-attrs==23.2.0 \
-    --hash=sha256:935dc3b529c262f6cf76e50877d35a4bd3c1de194fd41f47a2b7ae8f19971f30 \
-    --hash=sha256:99b87a485a5820b23b879f04c2305b44b951b502fd64be915879d77a7e8fc6f1
+attrs==24.2.0 \
+    --hash=sha256:5cfb1b9148b5b086569baec03f20d7b6bf3bcacc9a42bebf87ffaaca362f6346 \
+    --hash=sha256:81921eb96de3191c8258c199618104dd27ac608d9366f5e35d011eae1867ede2
     # via
     #   cattrs
     #   jsii
@@ -22,19 +22,23 @@ aws-cdk-asset-node-proxy-agent-v6==2.0.3 \
     --hash=sha256:b62cb10c69a42cab135e6bc670e3d2d3121fd4f53a0f61e53449da4b12738a6f \
     --hash=sha256:ef2ff0634ab037e2ebddbe69d7c92515a847c6c8bb2abdfc85b089f5e87761cb
     # via aws-cdk-lib
-aws-cdk-lib==2.153.0 \
-    --hash=sha256:1357ccb460a5340c4135307e9d03be3dc09294c14f89881968e9104583be110f \
-    --hash=sha256:7cda51150c3615e9429329dc08fa0403822e64a749940ab032d65506fb88ff62
+aws-cdk-cloud-assembly-schema==36.0.24 \
+    --hash=sha256:81290bd790c9aa7f051353aa1d6553325d6979851b0b7da147ba06b7653bf23c \
+    --hash=sha256:bf509eb4fc97d1e60a7d18b533855eb50926dc1a7422336e2bfa78ad73979705
+    # via aws-cdk-lib
+aws-cdk-lib==2.155.0 \
+    --hash=sha256:260e6b237f7e916700d18402d811c0dbabb36b0d90275ee73810ce9746650961 \
+    --hash=sha256:4156ec3f6bd6fce09285a7309ca1f62b3ed95ef0a9e902eab4f649e118911771
     # via
     #   api-aws_infra (pyproject.toml)
     #   pavi-shared-aws-infra
-boto3==1.35.1 \
-    --hash=sha256:9028dd814c7f06bc92822d1fabdd8b68fe39b5993da5ca7acd7f7c6f7c7c332f \
-    --hash=sha256:9fe1a97de136a89d2957e41e3591a7648a6e08d63165255b4cc69c5ba1e2a177
+boto3==1.35.10 \
+    --hash=sha256:189ab1e2b4cd86df56f82438d89b4040eb140c92683f1bda7cb2e62624f20ea5 \
+    --hash=sha256:add26dd58e076dfd387013da4704716d5cff215cf14f6d4347c4b9b7fc1f0b8e
     # via pavi-shared-aws-infra
-botocore==1.35.1 \
-    --hash=sha256:bce42967d0f03b79cf25b2b6a36221fb2fb15f98e6fa4155b66b672ab192013b \
-    --hash=sha256:e599cef6305e950a212f85adb86c1f4713d4b2678b3c2ec54df6b8e2dbe9ef2f
+botocore==1.35.10 \
+    --hash=sha256:0d96d023b9b0cea99a0a428a431d011329d3a958730aee6ed6a6fec5d9bfbc03 \
+    --hash=sha256:6c8a1377b6636a0d80218115e1cd41bcceba0a2f050b79c206f4cf8d002c54d7
     # via
     #   boto3
     #   s3transfer
@@ -53,9 +57,9 @@ constructs==10.3.0 \
     #   api-aws_infra (pyproject.toml)
     #   aws-cdk-lib
     #   pavi-shared-aws-infra
-importlib-resources==6.4.3 \
-    --hash=sha256:2d6dfe3b9e055f72495c2085890837fc8c758984e209115c8792bddcb762cd93 \
-    --hash=sha256:4a202b9b9d38563b46da59221d77bb73862ab5d79d461307bcb826d725448b98
+importlib-resources==6.4.4 \
+    --hash=sha256:20600c8b7361938dc0bb2d5ec0297802e575df486f5a544fa414da65e13721f7 \
+    --hash=sha256:dda242603d1c9cd836c3368b1174ed74cb4049ecd209e7a1a0104620c18c5c11
     # via jsii
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
@@ -63,13 +67,14 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jsii==1.102.0 \
-    --hash=sha256:9e0f54acd55d8ea7a0bfd7e4a3dccacf6ca3466a8d67d47703594cffedad382a \
-    --hash=sha256:ee044964a0db600d9dcde85b4763beb996b3f56a4c951911eb3ff073deeb8603
+jsii==1.103.1 \
+    --hash=sha256:24b96349230ca22f50fcd69c501e69b6c486acf37bbe0b5869f4c185572b079e \
+    --hash=sha256:7eaa46e8cd9546edc6bba81d0b32df9f8ed8f5848305277d261cccfe00b9c1eb
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
+    #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
     #   constructs
 pavi-shared-aws-infra @ file:///tmp/pavi_shared_aws_infra-0.0.0-py3-none-any.whl \
@@ -82,6 +87,7 @@ publication==0.0.3 \
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
+    #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
     #   constructs
     #   jsii
@@ -106,6 +112,7 @@ typeguard==2.13.3 \
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
+    #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
     #   constructs
     #   jsii
