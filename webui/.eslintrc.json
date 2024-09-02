@@ -4,7 +4,7 @@
         "eslint:recommended"
     ],
     "overrides": [{
-        "files": ["__tests__/**/*"],
+        "files": ["**/__tests__/**/*.[jt]s?(x)"],
         "env": {
             "jest": true
         }
