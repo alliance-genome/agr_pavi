@@ -949,10 +949,16 @@ jobs:
           outputs: type=docker,dest=/tmp/pavi_webui_docker_image.tar
   e2e-testing:
     name: end-to-end testing
+    needs: webui-update-dependency-lock-files
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+      - name: Download updated webui dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: webui_deps_lock
+          path: webui
       - name: Run cypress E2E tests
         uses: cypress-io/github-action@v6
         with:
