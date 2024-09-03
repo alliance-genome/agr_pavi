@@ -947,6 +947,16 @@ jobs:
           push: false
           tags: agr_pavi/webui:latest
           outputs: type=docker,dest=/tmp/pavi_webui_docker_image.tar
+  e2e-testing:
+    name: end-to-end testing
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Run cypress E2E tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: webui/
   stage-deps-lock-updates:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
     runs-on: ubuntu-22.04

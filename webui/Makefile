@@ -17,6 +17,9 @@ container-image:
 install-deps:
 	npm install
 
+install-cypress-deps:
+	sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+
 update-deps-lock:
 	npm update --package-lock-only
 
@@ -46,3 +49,9 @@ run-type-checks: install-deps
 
 run-unit-tests: install-deps
 	npm run test
+
+run-e2e-tests: install-deps
+	npx cypress run --e2e
+
+run-e2e-tests-dev: install-deps
+	npx cypress open --e2e

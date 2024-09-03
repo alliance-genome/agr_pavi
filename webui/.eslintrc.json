@@ -3,10 +3,14 @@
         "next/core-web-vitals",
         "eslint:recommended"
     ],
-    "overrides": [{
-        "files": ["**/__tests__/**/*.[jt]s?(x)"],
-        "env": {
-            "jest": true
+    "overrides": [
+        {
+            "files": ["**/__tests__/**/*.[jt]s?(x)"],
+            "env": { "jest": true }
+        }, {
+            "files": ["cypress/**/*.cy.[jt]s?(x)"],
+            "plugins": [ "cypress" ],
+            "env": { "cypress/globals": true }
         }
-    }]
+    ]
 }
