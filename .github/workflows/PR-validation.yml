@@ -959,6 +959,10 @@ jobs:
         with:
           name: webui_deps_lock
           path: webui
+      - name: setup webui-compatible node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - name: Run cypress E2E tests
         uses: cypress-io/github-action@v6
         with:
