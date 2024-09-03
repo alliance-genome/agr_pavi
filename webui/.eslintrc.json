@@ -6,7 +6,7 @@
     "overrides": [
         {
             "files": ["**/__tests__/**/*.[jt]s?(x)"],
-            "env": { "jest": true }
+            "env": { "jest/globals": true }
         }, {
             "files": ["cypress/**/*.cy.[jt]s?(x)"],
             "plugins": [ "cypress" ],
