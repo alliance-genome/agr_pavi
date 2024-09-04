@@ -967,6 +967,8 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           working-directory: webui/
+          start: make run-server-dev
+          wait-on: 'http://localhost:3000'
   stage-deps-lock-updates:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
     runs-on: ubuntu-22.04
