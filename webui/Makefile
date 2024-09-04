@@ -17,6 +17,9 @@ container-image:
 install-deps:
 	npm install
 
+install-cypress-deps:
+	sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+
 update-deps-lock:
 	npm update --package-lock-only
 
@@ -32,7 +35,7 @@ endif
 
 run-container-dev:
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
-	 docker compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.webui
+	 docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.webui
 
 run-server-dev: install-deps
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
@@ -43,3 +46,17 @@ run-style-checks: install-deps
 
 run-type-checks: install-deps
 	npm run typecheck
+
+run-unit-tests: install-deps
+	npm run test
+
+run-e2e-tests: install-deps
+	$(MAKE) --no-print-directory run-container-dev
+	npx cypress run --e2e || true
+	$(MAKE) --no-print-directory stop-container-dev
+
+run-e2e-tests-dev: install-deps
+	npx cypress open --e2e
+
+stop-container-dev:
+	@docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.webui

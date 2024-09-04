@@ -1,4 +1,3 @@
-SUPPORTED_NODE := ^v18\.
 EXTRA_PIP_COMPILE_ARGS ?=
 
 .PHONY: check-% clean install install-% pip-tools run-% update-% _vars-% _write-lock-file

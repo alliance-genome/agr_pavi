@@ -1,0 +1,22 @@
+[
+    {
+        "gene": "HGNC:620",
+        "transcripts": [
+            "ENST00000346798.8",
+            "ENST00000357903.7"
+        ]
+    },
+    {
+        "gene": "RGD:2139",
+        "transcripts": [
+            "NM_019288.2"
+        ]
+    },
+    {
+        "gene": "WB:WBGene00000149",
+        "transcripts": [
+            "C42D8.8a.1",
+            "C42D8.8b.1"
+        ]
+    }
+]

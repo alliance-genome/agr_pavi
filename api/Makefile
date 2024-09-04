@@ -21,7 +21,11 @@ container-image:
 
 run-container-dev:
 	export API_PIPELINE_IMAGE_TAG=main && \
-	  docker compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.api
+	  docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
+
+stop-container-dev:
+	export API_PIPELINE_IMAGE_TAG=main && \
+	  docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.api
 
 nextflow.sh:
 	make -f ../pipeline/workflow/Makefile nextflow.sh

@@ -93,7 +93,7 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
                     </tr>))
                 }
                 <tr><td>
-                    <Button text icon="pi pi-plus" onClick={() => addAlignmentEntry()} />
+                    <Button text id="add-record" icon="pi pi-plus" onClick={() => addAlignmentEntry()} />
                 </td></tr>
             </tbody>
         </table>
