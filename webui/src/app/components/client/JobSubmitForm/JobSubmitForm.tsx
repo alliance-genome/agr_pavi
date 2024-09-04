@@ -173,7 +173,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
                     loading={job['status'] === 'submitting'}
                     disabled={submitDisabled()}
                     /><br />
-            <div>{displayMsg}</div>
+            <div id="display-message">{displayMsg}</div>
         </div>
     );
 }
