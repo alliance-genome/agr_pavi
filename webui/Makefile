@@ -35,7 +35,7 @@ endif
 
 run-container-dev:
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
-	 docker compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.dev-local.webui
+	 docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.webui
 
 run-server-dev: install-deps
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
@@ -51,7 +51,14 @@ run-unit-tests: install-deps
 	npm run test
 
 run-e2e-tests: install-deps
+	$(MAKE) --no-print-directory run-container-dev
 	npx cypress run --e2e
+	$(MAKE) --no-print-directory stop-container-dev
 
 run-e2e-tests-dev: install-deps
+	$(MAKE) --no-print-directory run-container-dev
 	npx cypress open --e2e
+	$(MAKE) --no-print-directory stop-container-dev
+
+stop-container-dev:
+	@docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.webui
