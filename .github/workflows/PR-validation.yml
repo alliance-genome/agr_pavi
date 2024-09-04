@@ -985,7 +985,7 @@ jobs:
       - name: Run local webUI container to run E2E tests on
         working-directory: webui/
         run: |
-          make run-container-dev
+          PAVI_API_PORT=8080 make run-container-dev
       - name: Download updated webui dependencies lock file
         uses: actions/download-artifact@v4
         with:
