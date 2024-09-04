@@ -960,6 +960,8 @@ jobs:
       - api-container-image-build
     runs-on: ubuntu-22.04
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
       - name: Download API image artifact
         uses: actions/download-artifact@v4
         with:
@@ -984,8 +986,6 @@ jobs:
         working-directory: webui/
         run: |
           make run-container-dev
-      - name: Check out repository code
-        uses: actions/checkout@v4
       - name: Download updated webui dependencies lock file
         uses: actions/download-artifact@v4
         with:
