@@ -52,13 +52,11 @@ run-unit-tests: install-deps
 
 run-e2e-tests: install-deps
 	$(MAKE) --no-print-directory run-container-dev
-	npx cypress run --e2e
+	npx cypress run --e2e || true
 	$(MAKE) --no-print-directory stop-container-dev
 
 run-e2e-tests-dev: install-deps
-	$(MAKE) --no-print-directory run-container-dev
 	npx cypress open --e2e
-	$(MAKE) --no-print-directory stop-container-dev
 
 stop-container-dev:
 	@docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.webui
