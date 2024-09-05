@@ -48,7 +48,7 @@ describe('AlignmentEntryList', () => {
     )
 
     const addRecordBtn = result.container.querySelector('button#add-record')
-    expect(addRecordBtn).not.toBe(null)  // Expect add-record button to be found
+    expect(addRecordBtn).not.toBeNull()  // Expect add-record button to be found
     expect(addRecordBtn).toBeEnabled()
 
     //Click the button
