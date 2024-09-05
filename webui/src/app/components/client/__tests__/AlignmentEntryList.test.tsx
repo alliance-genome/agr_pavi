@@ -23,6 +23,25 @@ describe('AlignmentEntryList', () => {
     expect(inputGroups).toHaveLength(1)  // Expect exactly one input group to be found
   })
 
+  it('renders a functional button to remove individual records', () => {
+    const result = render(
+      <AlignmentEntryList agrjBrowseDataRelease='7.3.0' dispatchInputPayloadPart={jest.fn()} />
+    )
+
+    const inputGroupsBefore = result.container.querySelectorAll('div.p-inputgroup')
+    expect(inputGroupsBefore).toHaveLength(1)  // Expect exactly one input group to be found
+
+    const removeRecordBtn = result.container.querySelector('button#remove-record')
+    expect(removeRecordBtn).not.toBeNull()  // Expect remove-record button to be found
+    expect(removeRecordBtn).toBeEnabled()
+
+    fireEvent.click(removeRecordBtn!)
+
+    //Check one entry-record was removed (zero left)
+    const inputGroupsAfter = result.container.querySelectorAll('div.p-inputgroup')
+    expect(inputGroupsAfter).toHaveLength(0)  // Expect exactly one input group to be found
+  })
+
   it('renders a functional add-record button', () => {
     const result = render(
       <AlignmentEntryList agrjBrowseDataRelease='7.3.0' dispatchInputPayloadPart={jest.fn()} />

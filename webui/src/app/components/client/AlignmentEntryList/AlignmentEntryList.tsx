@@ -88,7 +88,7 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
             <tbody>
                 {Array.from(alignmentEntries.values()).map((listEntry) => (
                     <tr key={listEntry.props.index}>
-                        <td><Button text icon="pi pi-trash" onClick={() => removeAlignmentEntry(listEntry.props.index)} /></td>
+                        <td><Button text id="remove-record" icon="pi pi-trash" onClick={() => removeAlignmentEntry(listEntry.props.index)} /></td>
                         <td>< AlignmentEntry {...listEntry.props} /></td>
                     </tr>))
                 }
