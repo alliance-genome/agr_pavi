@@ -30,23 +30,23 @@ aws-cdk-lib==2.155.0 \
     --hash=sha256:260e6b237f7e916700d18402d811c0dbabb36b0d90275ee73810ce9746650961 \
     --hash=sha256:4156ec3f6bd6fce09285a7309ca1f62b3ed95ef0a9e902eab4f649e118911771
     # via pavi_shared_aws_infra (pyproject.toml)
-boto3==1.35.11 \
-    --hash=sha256:bdfb8dd2564e5cf2f5095fb8e3a0a4612202654c1196692dddd9bc48aadc7657 \
-    --hash=sha256:f5834dd908edda56c3da86b908693c7cd1c17c2f8150de736e9e90c56ecc78f6
+boto3==1.35.12 \
+    --hash=sha256:acaa7c75cbf483605e3c46e9ac03043a4cf5e9866940122d68b06d1defe00774 \
+    --hash=sha256:b32faab174f6f9b75fada27bcf054ab3e8846bd410ed9817d0b511109326b6b1
     # via pavi_shared_aws_infra (pyproject.toml)
-boto3-stubs==1.35.11 \
-    --hash=sha256:43611ee8fe11402b78241d76a2866086dc836541ef1332bf558f852bf465ac85 \
-    --hash=sha256:c2d803a9a125648afdda5551e108a59f1ce0d70070b7ef39b27c09699b74735a
+boto3-stubs==1.35.12 \
+    --hash=sha256:4287130d0a64cd849f40a6a7a985e6ee46c99d1db3f7a07dc051e63ff91cbccb \
+    --hash=sha256:81699cf3ad36e14d75648a0d9130c28924f5096e23f2d897f8f14741b5909a1c
     # via pavi_shared_aws_infra (pyproject.toml)
-botocore==1.35.11 \
-    --hash=sha256:e9b647b6cf1f63fd701c27433802d1c4342838a37fd152b40fe53b967fd19af4 \
-    --hash=sha256:f5f671f8f9566f28bed496017ea94d275ca5c253e9e4f91cd56cb7a293e37d0c
+botocore==1.35.12 \
+    --hash=sha256:a8f8230032d090225a93763675a73c208d121bb63ed99f41ee6ad3d51b74b80d \
+    --hash=sha256:cb787030415438ea6ff8381f8acd8b1107593d5ebea457fd843a5e36ba19e9a4
     # via
     #   boto3
     #   s3transfer
-botocore-stubs==1.35.11 \
-    --hash=sha256:af7e1e669c6cf35524a19bb0bb1c18b2bf673cccc9707f129cce02374704047e \
-    --hash=sha256:e69d1352a230d1c34be91a7ab94679c9fec5148d818c19f31cc4e49da2731296
+botocore-stubs==1.35.12 \
+    --hash=sha256:320520f5b51f60be599b91e781a503f82b277ddc9b18e840254b6e82422e6172 \
+    --hash=sha256:fb1514f0385307f89d189f4247822e4b5c55344b3470364be064fa1ed3c40e9c
     # via boto3-stubs
 cattrs==23.2.3 \
     --hash=sha256:0341994d94971052e9ee70662542699a3162ea1e0c62f7ce1b4a57f563685108 \
