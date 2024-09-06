@@ -9,6 +9,7 @@ REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
+	@rm -rf .next/
 	@rm -rf node_modules/
 
 container-image:
