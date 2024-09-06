@@ -14,6 +14,10 @@ const nextConfig = {
     },
     rewrites: async () => { return [
         {
+            source: '/api',
+            destination: `${API_BASE}/docs`,
+        },
+        {
             source: '/api/docs',
             destination: `${API_BASE}/docs`,
         }, {
