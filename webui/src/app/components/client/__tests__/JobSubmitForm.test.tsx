@@ -4,32 +4,32 @@ import { render } from '@testing-library/react'
 import { JobSubmitForm } from '../JobSubmitForm/JobSubmitForm'
 
 jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
-  () => {
-      return {
-          getSpecies: jest.fn(() => {}),
-          getSingleGenomeLocation: jest.fn(() => {})
-      }
-  },
-  {virtual: true}
+    () => {
+        return {
+            getSpecies: jest.fn(() => {}),
+            getSingleGenomeLocation: jest.fn(() => {})
+        }
+    },
+    {virtual: true}
 )
 
 describe('AlignmentEntry', () => {
-  it('renders a data-entry form', () => {
-    const result = render(
-      <JobSubmitForm agrjBrowseDataRelease='7.3.0' />
-    )
+    it('renders a data-entry form', () => {
+        const result = render(
+            <JobSubmitForm agrjBrowseDataRelease='7.3.0' />
+        )
 
-    const inputGroup = result.container.querySelector('div.p-inputgroup')
-    expect(inputGroup).not.toBeNull()  // Expect (at least one) input group to be found
-  })
+        const inputGroup = result.container.querySelector('div.p-inputgroup')
+        expect(inputGroup).not.toBeNull()  // Expect (at least one) input group to be found
+    })
 
-  it('renders a submit button that is disabled by default', () => {
-    const result = render(
-      <JobSubmitForm agrjBrowseDataRelease='7.3.0' />
-    )
- 
-    const submitBtn = result.container.querySelector('button[aria-label="Submit"]')
-    expect(submitBtn).not.toBeNull()  // Expect submit button to be found
-    expect(submitBtn).toBeDisabled()
-  })
+    it('renders a submit button that is disabled by default', () => {
+        const result = render(
+            <JobSubmitForm agrjBrowseDataRelease='7.3.0' />
+        )
+
+        const submitBtn = result.container.querySelector('button[aria-label="Submit"]')
+        expect(submitBtn).not.toBeNull()  // Expect submit button to be found
+        expect(submitBtn).toBeDisabled()
+    })
 })

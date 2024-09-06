@@ -1000,6 +1000,7 @@ jobs:
         with:
           working-directory: webui/
           wait-on: 'http://localhost:3000, http://localhost:8080/api/health'
+          env: 'API_BASE_URL=http://localhost:8080'
       - name: Cleanup webUI server (running container)
         working-directory: webui/
         run: |

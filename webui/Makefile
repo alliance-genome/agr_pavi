@@ -9,6 +9,7 @@ REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
+	@rm -rf .next/
 	@rm -rf node_modules/
 
 container-image:
@@ -52,11 +53,11 @@ run-unit-tests: install-deps
 
 run-e2e-tests: install-deps
 	$(MAKE) --no-print-directory run-container-dev
-	npx cypress run --e2e || true
+	npx cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
 	$(MAKE) --no-print-directory stop-container-dev
 
 run-e2e-tests-dev: install-deps
-	npx cypress open --e2e
+	npx cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
 
 stop-container-dev:
 	@docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.webui
