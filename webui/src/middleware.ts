@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { env } from 'process'
 
-const API_BASE = env.PAVI_API_BASE_URL || 'http://localhost:8000'
+const API_BASE = process.env.PAVI_API_BASE_URL || 'http://localhost:8000'
 const local_api_path = '/api'
 
 // This function can be marked `async` if using `await` inside
