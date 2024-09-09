@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation'
+
 import { Button } from 'primereact/button';
 import React, { FunctionComponent, useCallback, useEffect, useReducer, useState } from 'react';
 import { submitNewPipelineJob } from './serverActions';
@@ -13,6 +15,8 @@ interface JobSumbitProps {
     readonly agrjBrowseDataRelease: string
 }
 export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbitProps) => {
+    const router = useRouter()
+
     console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
 
     const inputPayloadReducer = (prevState: InputPayloadPartMap, action: InputPayloadDispatchAction) => {
@@ -160,7 +164,19 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     // Update displayMsg on every job update
     useEffect(
         () => {
-            setDisplayMsg(jobDisplayMsg())
+            if( job['status'] === 'pending' ){
+                const params = new URLSearchParams();
+                if(job['uuid']){
+                    params.set("uuid", job['uuid']);
+                }
+                else{
+                    console.error('Status pending received without uuid.')
+                }
+                router.push(`/progress?${params.toString()}`)
+            }
+            else{
+                setDisplayMsg(jobDisplayMsg())
+            }
         },
         [job, jobDisplayMsg]
     );
