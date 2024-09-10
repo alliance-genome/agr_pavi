@@ -1,6 +1,6 @@
 'use client';
 
-import React, { FunctionComponent, useEffect, useState, useRef } from 'react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
 import { ProgressBar } from 'primereact/progressbar';
 import { redirect } from 'next/navigation'
 
@@ -17,7 +17,6 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
     const [activeProgress, setActiveProgress] = useState<boolean>(true)
     const [progressValue, setProgressValue] = useState<number>()
-    const updateInterval = useRef<ReturnType<typeof setTimeout>>()
     const [jobState, setJobState] = useState<number>()
     const [stateMessage, setStateMessage] = useState<string>('Retrieving job progress...')
     const [lastChecked, setLastChecked] = useState<number>()
@@ -37,12 +36,11 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         }
     }
 
-    const updateJobStatus = async (initCheckDate: number) => {
+    async function updateJobStatus(initCheckDate: number){
         const currentDate = Date.now()
 
         // Stop checking for updates if >1h passed since starting checks
         if( currentDate - initCheckDate > 1000 * 60 * 60 ){
-            clearInterval(updateInterval.current);
             const msg = `Job ${props.uuidStr} failed to report completion before timeout.`
             console.warn(msg)
             setStateMessage(`${msg} Please try again or contact the developers.`)
@@ -54,12 +52,18 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         const newState = await fetchJobStatus(props.uuidStr!)
         if(newState){
             setJobState(newState)
+
+            if( newState === JobProgressStatus.completed || jobState === JobProgressStatus.failed ){
+                setActiveProgress(false)
+                setProgressValue(100)
+                //TODO: on successful completion, forward to results page.
+                //TODO: on failure, report failure (and forward to submit page?).
+                return Promise.resolve()
+            }
         }
         else{
-            clearInterval(updateInterval.current);
             const msg = `Failed to fetch job status for uuid ${props.uuidStr}`
             console.error(msg)
-            console.debug(`current updateInterval: ${updateInterval.current}`)
             setStateMessage(`${msg} Please reload the page to try again, check the URL uuid or contact the developers.`)
             setActiveProgress(false)
             setProgressValue(0)
@@ -67,29 +71,19 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         }
 
         setLastChecked(currentDate)
+
+        //Repeat every 10s
+        setTimeout(updateJobStatus, 10000, initCheckDate)
     }
 
-    //Check for jobState updates every 10s
+    //Start updating job status on page load
     useEffect(() => {
         const initCheckDate = Date.now()
-
-        const interval = setInterval(updateJobStatus.bind(undefined, initCheckDate), 10000);
-        updateInterval.current = interval
-
-        return () => {
-          clearInterval(interval);
-        };
+        updateJobStatus(initCheckDate)
     }, []);
 
     useEffect(() => {
         updateStateMessage()
-        if( jobState === JobProgressStatus.completed || jobState === JobProgressStatus.failed ){
-            clearInterval(updateInterval.current);
-            setActiveProgress(false)
-            setProgressValue(100)
-            //TODO: on successful completion, forward to results page.
-            //TODO: on failure, report failure (and forward to submit page?).
-        }
     }, [jobState]);
 
     return (
@@ -98,10 +92,8 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                 <ProgressBar mode={progressBarMode()} value={progressValue} style={{ height: '6px' }}></ProgressBar>
             </div>
             <div>
-                {lastChecked?`Last checked at: ${new Date(lastChecked)}`:''}
-                <br />
-                <br />
-                {stateMessage}
+                <p style={{margin:'0px', padding:'0px', fontSize:'12px'}}>{lastChecked?`Last checked at: ${new Date(lastChecked)}, updates every 10s.`:''}</p>
+                <p>{stateMessage}</p>
             </div>
         </>
     )
