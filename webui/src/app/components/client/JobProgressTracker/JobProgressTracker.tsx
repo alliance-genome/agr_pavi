@@ -20,10 +20,25 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     const [jobState, setJobState] = useState<number>()
     const [stateMessage, setStateMessage] = useState<string>('Retrieving job progress...')
     const [lastChecked, setLastChecked] = useState<number>()
+    const [lastCheckedMessage, setLastCheckedMessage] = useState<string>('')
 
     const progressBarMode = () => (
         activeProgress ? "indeterminate" : "determinate"
     )
+
+    const updateLastCheckedMsg = () => {
+        let msg = ''
+
+        if( lastChecked ){
+            msg = `Last checked at: ${new Date(lastChecked)}`
+            if(activeProgress){
+                msg += ', updates every 10s'
+            }
+            msg += '.'
+        }
+
+        setLastCheckedMessage(msg)
+    }
 
     const updateStateMessage = (msg?: string) => {
         if(msg){
@@ -50,6 +65,8 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         }
 
         const newState = await fetchJobStatus(props.uuidStr!)
+        setLastChecked(currentDate)
+
         if(newState){
             setJobState(newState)
 
@@ -61,7 +78,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                 return Promise.resolve()
             }
         }
-        else{
+        else {
             const msg = `Failed to fetch job status for uuid ${props.uuidStr}`
             console.error(msg)
             setStateMessage(`${msg} Please reload the page to try again, check the URL uuid or contact the developers.`)
@@ -69,8 +86,6 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             setProgressValue(0)
             return Promise.resolve()
         }
-
-        setLastChecked(currentDate)
 
         //Repeat every 10s
         setTimeout(updateJobStatus, 10000, initCheckDate)
@@ -86,13 +101,17 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         updateStateMessage()
     }, [jobState]);
 
+    useEffect(() => {
+        updateLastCheckedMsg()
+    }, [activeProgress, lastChecked]);
+
     return (
         <>
             <div className="card">
                 <ProgressBar mode={progressBarMode()} value={progressValue} style={{ height: '6px' }}></ProgressBar>
             </div>
             <div>
-                <p style={{margin:'0px', padding:'0px', fontSize:'12px'}}>{lastChecked?`Last checked at: ${new Date(lastChecked)}, updates every 10s.`:''}</p>
+                <p style={{margin:'0px', padding:'0px', fontSize:'12px'}}>{lastCheckedMessage}</p>
                 <p>{stateMessage}</p>
             </div>
         </>
