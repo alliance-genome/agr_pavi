@@ -12,8 +12,7 @@ export async function fetchJobStatus (jobId: string ): Promise<JobProgressStatus
         return Promise.resolve(undefined)
     }
 
-    //TODO: figure out how to call app without specifying host (http://localhost:300)
-    const jobResponse = fetch(`http://localhost:3000/api/pipeline-job/${jobId}`, {
+    const jobResponse = fetch(`${process.env.PAVI_API_BASE_URL}/api/pipeline-job/${jobId}`, {
         method: 'GET',
         headers: {
             'accept': 'application/json'
