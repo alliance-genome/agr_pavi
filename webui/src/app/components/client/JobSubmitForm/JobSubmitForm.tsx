@@ -165,14 +165,14 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     useEffect(
         () => {
             if( job['status'] === 'pending' ){
-                const params = new URLSearchParams();
                 if(job['uuid']){
+                    const params = new URLSearchParams();
                     params.set("uuid", job['uuid']);
+                    router.push(`/progress?${params.toString()}`)
                 }
                 else{
                     console.error('Status pending received without uuid.')
                 }
-                router.push(`/progress?${params.toString()}`)
             }
             else{
                 setDisplayMsg(jobDisplayMsg())
