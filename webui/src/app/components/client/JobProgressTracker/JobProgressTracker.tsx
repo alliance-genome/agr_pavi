@@ -15,8 +15,17 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         redirect('/submit')
     }
 
+    const [showProgressBar, setShowProgressBar] = useState<boolean>(true)
+    const [updateInterval, setUpdateInterval] = useState<ReturnType<typeof setTimeout>>()
     const [jobState, setJobState] = useState<number>(JobProgressStatus.pending)
     const [lastChecked, setLastChecked] = useState<number>()
+
+    const progressBarMode = () => (
+        showProgressBar ? "indeterminate" : "determinate"
+    )
+    const progressBarValue = () => (
+        showProgressBar ? undefined : 100
+    )
 
     const updateJobStatus = async () => {
         const currentDate = Date.now()
@@ -38,17 +47,26 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
         //TODO: timeout after x amount of time or nr of checks (return to submit form?)
         const interval = setInterval(updateJobStatus, 10000);
+        setUpdateInterval(updateInterval)
+
         return () => {
           clearInterval(interval);
         };
     }, []);
 
-    //TODO: once jobState indicates successful completion, forward to results page.
+    useEffect(() => {
+        if( jobState === JobProgressStatus.completed || jobState === JobProgressStatus.failed ){
+            clearInterval(updateInterval);
+            setShowProgressBar(false)
+            //TODO: on successful completion, forward to results page.
+            //TODO: on failure, report failure and forward to submit page.
+        }
+    }, [jobState, updateInterval]);
 
     return (
         <>
             <div className="card">
-                <ProgressBar mode="indeterminate" style={{ height: '6px' }}></ProgressBar>
+                <ProgressBar mode={progressBarMode()} value={progressBarValue()} style={{ height: '6px' }}></ProgressBar>
             </div>
             <div>
                 {lastChecked?`Last checked at: ${new Date(lastChecked)}`:''}
