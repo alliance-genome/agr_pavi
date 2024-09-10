@@ -15,20 +15,41 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         redirect('/submit')
     }
 
-    const [showProgressBar, setShowProgressBar] = useState<boolean>(true)
+    const [activeProgress, setActiveProgress] = useState<boolean>(true)
+    const [progressValue, setProgressValue] = useState<number>()
     const [updateInterval, setUpdateInterval] = useState<ReturnType<typeof setTimeout>>()
-    const [jobState, setJobState] = useState<number>(JobProgressStatus.pending)
+    const [jobState, setJobState] = useState<number>()
+    const [stateMessage, setStateMessage] = useState<string>('Retrieving job progress...')
     const [lastChecked, setLastChecked] = useState<number>()
 
     const progressBarMode = () => (
-        showProgressBar ? "indeterminate" : "determinate"
-    )
-    const progressBarValue = () => (
-        showProgressBar ? undefined : 100
+        activeProgress ? "indeterminate" : "determinate"
     )
 
-    const updateJobStatus = async () => {
+    const updateStateMessage = (msg?: string) => {
+        if(msg){
+            updateStateMessage(msg)
+        }
+        else{
+            if(jobState !== undefined){
+                setStateMessage(`Job ${props.uuidStr} is ${JobProgressStatus[jobState]}.`)
+            }
+        }
+    }
+
+    const updateJobStatus = async (initCheckDate: number) => {
         const currentDate = Date.now()
+
+        // Stop checking for updates if >1h passed since starting checks
+        if( currentDate - initCheckDate > 1000 * 60 * 60 ){
+            clearInterval(updateInterval);
+            const msg = `Job ${props.uuidStr} failed to report completion before timeout.`
+            console.warn(msg)
+            setStateMessage(`${msg} Please try again or contact the developers.`)
+            setActiveProgress(false)
+            setProgressValue(0)
+            return Promise.resolve()
+        }
 
         const newState = await fetchJobStatus(props.uuidStr!)
         if(newState){
@@ -43,11 +64,10 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
     //Check for jobState updates every 10s
     useEffect(() => {
-        setLastChecked(Date.now())
+        const initCheckDate = Date.now()
 
-        //TODO: timeout after x amount of time or nr of checks (return to submit form?)
-        const interval = setInterval(updateJobStatus, 10000);
-        setUpdateInterval(updateInterval)
+        const interval = setInterval(updateJobStatus.bind(undefined, initCheckDate), 10000);
+        setUpdateInterval(interval)
 
         return () => {
           clearInterval(interval);
@@ -55,24 +75,26 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     }, []);
 
     useEffect(() => {
+        updateStateMessage()
         if( jobState === JobProgressStatus.completed || jobState === JobProgressStatus.failed ){
             clearInterval(updateInterval);
-            setShowProgressBar(false)
+            setActiveProgress(false)
+            setProgressValue(100)
             //TODO: on successful completion, forward to results page.
-            //TODO: on failure, report failure and forward to submit page.
+            //TODO: on failure, report failure (and forward to submit page?).
         }
-    }, [jobState, updateInterval]);
+    }, [jobState]);
 
     return (
         <>
             <div className="card">
-                <ProgressBar mode={progressBarMode()} value={progressBarValue()} style={{ height: '6px' }}></ProgressBar>
+                <ProgressBar mode={progressBarMode()} value={progressValue} style={{ height: '6px' }}></ProgressBar>
             </div>
             <div>
                 {lastChecked?`Last checked at: ${new Date(lastChecked)}`:''}
                 <br />
                 <br />
-                {`Job ${props.uuidStr} is ${JobProgressStatus[jobState]}.`}
+                {stateMessage}
             </div>
         </>
     )
