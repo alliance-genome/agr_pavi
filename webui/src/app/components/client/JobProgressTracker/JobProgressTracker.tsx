@@ -2,7 +2,7 @@
 
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { ProgressBar } from 'primereact/progressbar';
-import { redirect } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 
 import { fetchJobStatus } from './serverActions';
 import { JobProgressStatus } from './types';
@@ -11,6 +11,8 @@ export interface JobProgressTrackerProps {
     readonly uuidStr?: string
 }
 export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (props: JobProgressTrackerProps) => {
+    const router = useRouter()
+
     if( !props.uuidStr ){
         redirect('/submit')
     }
@@ -73,8 +75,19 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             if( newState === JobProgressStatus.completed || jobState === JobProgressStatus.failed ){
                 setActiveProgress(false)
                 setProgressValue(100)
-                //TODO: on successful completion, forward to results page.
+
+                //On successful completion, forward to results page.
+                if( newState === JobProgressStatus.completed ){
+                    const params = new URLSearchParams();
+                    params.set("uuid", props.uuidStr!);
+
+                    console.error('Status pending received without uuid.')
+
+                    router.push(`/result?${params.toString()}`)
+                }
+
                 //TODO: on failure, report failure (and forward to submit page?).
+
                 return Promise.resolve()
             }
         }
