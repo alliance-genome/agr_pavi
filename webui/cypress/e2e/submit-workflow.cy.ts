@@ -101,11 +101,8 @@ describe('submit form behaviour', () => {
         // Progress page should indicate job progress
         cy.contains('p#progress-msg', /^Job .+ is running\.$/)
 
-        // Progress page should indicate successful job completion (wait max 5 minutes)
-        cy.contains('p#progress-msg', /^Job .+ is completed\.$/, {timeout: 300000})
-
-        // Successful job completion should route to the results page
-        cy.location().should((loc: Location) => {
+        // Successful job completion should route to the results page (wait max 5 minutes)
+        cy.location({timeout: 300000}).should((loc: Location) => {
             expect(loc.pathname).to.eq('/result')
 
             //queryparams should contain the same UUID as progress page did

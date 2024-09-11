@@ -16,7 +16,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     const [activeProgress, setActiveProgress] = useState<boolean>(true)
     const [progressValue, setProgressValue] = useState<number>()
     const [jobState, setJobState] = useState<number>()
-    const [stateMessage, setStateMessage] = useState<string>('Retrieving job progress...')
+    const [progressMessage, setProgressMessage] = useState<string>('Retrieving job progress...')
     const [lastChecked, setLastChecked] = useState<number>()
     const [lastCheckedMessage, setLastCheckedMessage] = useState<string>('')
 
@@ -38,15 +38,20 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         setLastCheckedMessage(msg)
     }
 
-    const updateStateMessage = (msg?: string) => {
-        if(msg){
-            updateStateMessage(msg)
-        }
-        else{
-            if(jobState !== undefined){
-                setStateMessage(`Job ${props.uuidStr} is ${JobProgressStatus[jobState]}.`)
+    const updateProgressMessage = () => {
+        let msg = ''
+        if(jobState !== undefined){
+            if( jobState === JobProgressStatus.completed ){
+                msg = `Job ${props.uuidStr} has completed, redirecting to results page in a few seconds...`
+            }
+            else if( jobState === JobProgressStatus.failed ){
+                msg = `Job ${props.uuidStr} has failed, try to submit a new job or contact the developers if this error persists.`
+            }
+            else{
+                msg = `Job ${props.uuidStr} is ${JobProgressStatus[jobState]}.`
             }
         }
+        setProgressMessage(msg)
     }
 
     async function updateJobStatus(initCheckDate: number){
@@ -56,7 +61,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         if( currentDate - initCheckDate > 1000 * 60 * 60 ){
             const msg = `Job ${props.uuidStr} failed to report completion before timeout.`
             console.warn(msg)
-            setStateMessage(`${msg} Please try again or contact the developers.`)
+            setProgressMessage(`${msg} Please try again or contact the developers.`)
             setActiveProgress(false)
             setProgressValue(0)
             return Promise.resolve()
@@ -80,15 +85,13 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                     router.push(`/result?${params.toString()}`)
                 }
 
-                //TODO: on failure, report failure (and forward to submit page?).
-
                 return Promise.resolve()
             }
         }
         else {
             const msg = `Failed to fetch job status for uuid ${props.uuidStr}`
             console.error(msg)
-            setStateMessage(`${msg} Please reload the page to try again, check the URL uuid or contact the developers.`)
+            setProgressMessage(`${msg} Please reload the page to try again, check the URL uuid or contact the developers.`)
             setActiveProgress(false)
             setProgressValue(0)
             return Promise.resolve()
@@ -105,7 +108,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     }, []);
 
     useEffect(() => {
-        updateStateMessage()
+        updateProgressMessage()
     }, [jobState]);
 
     useEffect(() => {
@@ -119,7 +122,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             </div>
             <div>
                 <p style={{margin:'0px', padding:'0px', fontSize:'12px'}}>{lastCheckedMessage}</p>
-                <p id="progress-msg">{stateMessage}</p>
+                <p id="progress-msg">{progressMessage}</p>
             </div>
         </>
     )
