@@ -82,7 +82,10 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                     const params = new URLSearchParams();
                     params.set("uuid", props.uuidStr);
 
-                    router.push(`/result?${params.toString()}`)
+                    setTimeout(
+                        () => {router.push(`/result?${params.toString()}`)},
+                        3000
+                    )
                 }
 
                 return Promise.resolve()
