@@ -72,11 +72,52 @@ describe('submit form behaviour', () => {
             }
         }
 
+        // Delete any records that had the delete flag set.
+        // Those records are deemed useful for submission form testing
+        // but require datasets too large for automated testing (too slow).
+        for(let i = 0, len = formInput.length; i < len; ++i){
+            if(formInput[i].delete){
+                cy.get('.p-inputgroup').eq(i).parents('tr').find('button#remove-record').click()
+            }
+        }
+
         // Submit button should become active after completing all input
         cy.get('@submitBtn').should('be.enabled')
 
-        // Submitting the analysis should report a UUID
+        // Submitting the analysis should route to the progress page
+        let jobUuid: string
+
         cy.get('@submitBtn').click()
-        cy.contains('div#display-message', /^job .+ is now pending\.$/)
+        cy.location().should((loc: Location) => {
+            expect(loc.pathname).to.eq('/progress')
+
+            //queryparams should contain the job UUID
+            const uuidCaptureRegex = /^\?uuid=([A-Za-z0-9-]+)$/
+            expect(loc.search).to.match(uuidCaptureRegex)
+
+            jobUuid = uuidCaptureRegex.exec(loc.search)![1]
+        })
+
+        // Progress page should indicate job progress
+        cy.contains('p#progress-msg', /^Job .+ is running\.$/)
+
+        // Progress page should indicate successful job completion (wait max 5 minutes)
+        cy.contains('p#progress-msg', /^Job .+ is completed\.$/, {timeout: 300000})
+
+        // Successful job completion should route to the results page
+        cy.location().should((loc: Location) => {
+            expect(loc.pathname).to.eq('/result')
+
+            //queryparams should contain the same UUID as progress page did
+            expect(loc.search).to.eq(`?uuid=${jobUuid}`)
+        })
+
+        // Result page should display the expected alignment results
+        cy.readFile('cypress/fixtures/test-submit-success-output.txt').then(function(txt){
+            expect(txt).to.be.a('string')
+
+            cy.get('textarea#alignment-result-text').should('have.text', txt)
+        });
+
     })
 })

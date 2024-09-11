@@ -119,7 +119,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             </div>
             <div>
                 <p style={{margin:'0px', padding:'0px', fontSize:'12px'}}>{lastCheckedMessage}</p>
-                <p>{stateMessage}</p>
+                <p id="progress-msg">{stateMessage}</p>
             </div>
         </>
     )
