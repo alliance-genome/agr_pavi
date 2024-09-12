@@ -960,6 +960,14 @@ jobs:
       - api-container-image-build
     runs-on: ubuntu-22.04
     steps:
+      # Configure environment variables used for AWS interaction,
+      # required for API container interactions with pipeline resources
+      - name: AWS credentials configuration
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
+          role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-e2e-testing
+          aws-region: us-east-1
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Download API image artifact
