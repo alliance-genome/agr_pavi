@@ -15,7 +15,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
     const [activeProgress, setActiveProgress] = useState<boolean>(true)
     const [progressValue, setProgressValue] = useState<number>()
-    const [jobState, setJobState] = useState<number>()
+    const [jobState, setJobState] = useState<JobProgressStatus>()
     const [progressMessage, setProgressMessage] = useState<string>('Retrieving job progress...')
     const [lastChecked, setLastChecked] = useState<number>()
     const [lastCheckedMessage, setLastCheckedMessage] = useState<string>('')
