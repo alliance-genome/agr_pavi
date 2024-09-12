@@ -958,6 +958,8 @@ jobs:
       - webui-update-dependency-lock-files
       - webui-container-image-build
       - api-container-image-build
+    permissions:
+      id-token: write # Required for OIDC authentication to AWS (to perform AWS actions / access AGR AWS resources)
     runs-on: ubuntu-22.04
     steps:
       # Configure environment variables used for AWS interaction,
