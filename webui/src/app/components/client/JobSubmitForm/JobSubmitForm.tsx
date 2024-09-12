@@ -178,7 +178,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
                 setDisplayMsg(jobDisplayMsg())
             }
         },
-        [job, jobDisplayMsg]
+        [job, jobDisplayMsg, router]
     );
 
     return (
