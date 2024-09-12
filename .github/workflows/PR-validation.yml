@@ -1010,10 +1010,12 @@ jobs:
         run: |
           docker logs agr.pavi.dev-local.webui.server
       - name: Cleanup webUI server (running container)
+        if: success() || failure()
         working-directory: webui/
         run: |
           make stop-container-dev
       - name: Cleanup API server (running container)
+        if: success() || failure()
         working-directory: api/
         run: |
           make stop-container-dev
