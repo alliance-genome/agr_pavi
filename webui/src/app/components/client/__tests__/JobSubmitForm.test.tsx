@@ -13,6 +13,15 @@ jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib
     {virtual: true}
 )
 
+// Mock useRouter:
+jest.mock("next/navigation", () => ({
+    useRouter() {
+        return {
+        prefetch: () => null
+        };
+    }
+}));
+
 describe('AlignmentEntry', () => {
     it('renders a data-entry form', () => {
         const result = render(

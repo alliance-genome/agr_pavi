@@ -311,5 +311,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                         } ))} />
                 <label htmlFor="transcripts">Transcripts</label>
             </FloatLabel><br />
-        </div>)
+        </div>
+    )
 }

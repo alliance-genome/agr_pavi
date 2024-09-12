@@ -958,8 +958,18 @@ jobs:
       - webui-update-dependency-lock-files
       - webui-container-image-build
       - api-container-image-build
+    permissions:
+      id-token: write # Required for OIDC authentication to AWS (to perform AWS actions / access AGR AWS resources)
     runs-on: ubuntu-22.04
     steps:
+      # Configure environment variables used for AWS interaction,
+      # required for API container interactions with pipeline resources
+      - name: AWS credentials configuration
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
+          role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-e2e-testing
+          aws-region: us-east-1
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Download API image artifact
@@ -999,13 +1009,23 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           working-directory: webui/
-          wait-on: 'http://localhost:3000, http://localhost:8080/api/health'
+          wait-on: 'http://localhost:8080/api/health, http://localhost:3000/submit'
           env: 'API_BASE_URL=http://localhost:8080'
+      - name: Report API container logs on E2E test failure
+        if: failure()
+        run: |
+          docker logs agr.pavi.dev-local.api.server
+      - name: Report webUI container logs on E2E test failure
+        if: failure()
+        run: |
+          docker logs agr.pavi.dev-local.webui.server
       - name: Cleanup webUI server (running container)
+        if: success() || failure()
         working-directory: webui/
         run: |
           make stop-container-dev
       - name: Cleanup API server (running container)
+        if: success() || failure()
         working-directory: api/
         run: |
           make stop-container-dev
