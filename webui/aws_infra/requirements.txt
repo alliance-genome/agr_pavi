@@ -22,23 +22,23 @@ aws-cdk-asset-node-proxy-agent-v6==2.1.0 \
     --hash=sha256:1f292c0631f86708ba4ee328b3a2b229f7e46ea1c79fbde567ee9eb119c2b0e2 \
     --hash=sha256:24a388b69a44d03bae6dbf864c4e25ba650d4b61c008b4568b94ffbb9a69e40e
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==36.0.24 \
-    --hash=sha256:81290bd790c9aa7f051353aa1d6553325d6979851b0b7da147ba06b7653bf23c \
-    --hash=sha256:bf509eb4fc97d1e60a7d18b533855eb50926dc1a7422336e2bfa78ad73979705
+aws-cdk-cloud-assembly-schema==36.0.25 \
+    --hash=sha256:9d67a5135e99151c4e2e1e72e2e53e526ae80b4e4f3019e1899c4f58c4195b81 \
+    --hash=sha256:f595a488237aafa04959942d0afbf7024bb0648c2b09c9dbc1a79935d2f523db
     # via aws-cdk-lib
-aws-cdk-lib==2.156.0 \
-    --hash=sha256:b9d663c9846f62fd8a494d081ae58acccc414773fd545a3e194d273d9bafd9e5 \
-    --hash=sha256:f11ac6b4a9c022780c2d2b3faccdc35e1d244e7bb5ae446f014bf48e8a8048af
+aws-cdk-lib==2.158.0 \
+    --hash=sha256:24b93419211e99dd9109223b9a9ba6496af3c5dee8add6cbb35c8aef82082758 \
+    --hash=sha256:7917ef871914b027e3b4b5e29ddb219d21c53878cec0b2e629faefdbef095564
     # via
     #   pavi-shared-aws-infra
     #   webui-aws_infra (pyproject.toml)
-boto3==1.35.13 \
-    --hash=sha256:4af17bd7bada591ddaa835d774b242705210e5d45133e25bd73417daa42e53e7 \
-    --hash=sha256:6e220eae161a4c0ed21e2561edcb0fd9603fa621692c50bc099db318ed3e3ad4
+boto3==1.35.17 \
+    --hash=sha256:4a32db8793569ee5f13c5bf3efb260193353cb8946bf6426e3c330b61c68e59d \
+    --hash=sha256:67268aa6c4043e9fdeb4ab3c1e9032f44a6fa168c789af5e351f63f1f8880a2f
     # via pavi-shared-aws-infra
-botocore==1.35.13 \
-    --hash=sha256:dd8a8bb1946187c8eb902a3b856d3b24df63917e4f2c61a6bce7f3ea9f112761 \
-    --hash=sha256:f7ae62eab44d731a5ad8917788378316c79c7bceb530a8307ed0f3bca7037341
+botocore==1.35.17 \
+    --hash=sha256:0d35d03ea647b5d464c7f77bdab6fb23ae5d49752b13cf97ab84444518c7b1bd \
+    --hash=sha256:a93f773ca93139529b5d36730b382dbee63ab4c7f26129aa5c84835255ca999d
     # via
     #   boto3
     #   s3transfer
@@ -57,9 +57,9 @@ constructs==10.3.0 \
     #   aws-cdk-lib
     #   pavi-shared-aws-infra
     #   webui-aws_infra (pyproject.toml)
-importlib-resources==6.4.4 \
-    --hash=sha256:20600c8b7361938dc0bb2d5ec0297802e575df486f5a544fa414da65e13721f7 \
-    --hash=sha256:dda242603d1c9cd836c3368b1174ed74cb4049ecd209e7a1a0104620c18c5c11
+importlib-resources==6.4.5 \
+    --hash=sha256:980862a1d16c9e147a59603677fa2aa5fd82b87f223b6cb870695bcfce830065 \
+    --hash=sha256:ac29d5f956f01d5e4bb63102a5a19957f1b9175e45649977264a1416783bb717
     # via jsii
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
@@ -120,7 +120,7 @@ typing-extensions==4.12.2 \
     --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
     --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
     # via jsii
-urllib3==2.2.2 \
-    --hash=sha256:a448b2f64d686155468037e1ace9f2d2199776e17f0a46610480d311f73e3472 \
-    --hash=sha256:dd505485549a7a552833da5e6063639d0d177c04f23bc3864e41e5dc5f612168
+urllib3==2.2.3 \
+    --hash=sha256:ca899ca043dcb1bafa3e262d73aa25c465bfb49e0bd9dd5d59f1d0acba2f8fac \
+    --hash=sha256:e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9
     # via botocore
