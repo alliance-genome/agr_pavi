@@ -1,13 +1,12 @@
-'use client'
+'use server'
 
-import { useSearchParams } from 'next/navigation'
 import { JobProgressTracker } from '../components/client/JobProgressTracker/JobProgressTracker'
 import { redirect } from 'next/navigation'
 
-export default function Page() {
+export default async function Page( props: any ) {
 
-    const searchParams = useSearchParams()
-    const jobUuidStr = searchParams.get('uuid')
+    const searchParams: Record<string, any> = props.searchParams
+    const jobUuidStr = searchParams['uuid'] as string
 
     if( !jobUuidStr ){
         redirect('/submit')
