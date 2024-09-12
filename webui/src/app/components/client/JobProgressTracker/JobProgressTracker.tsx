@@ -132,4 +132,4 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     )
 }
 
-//TODO: add unit (component) & E2E testing for progress tracking
+//TODO: add unit (component) testing for progress tracking

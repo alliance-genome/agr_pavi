@@ -17,7 +17,6 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
             return Promise.resolve(undefined)
         }
 
-        console.log(`AlignmentResultView process.env.PAVI_API_BASE_URL: ${process.env.PAVI_API_BASE_URL}`)
         const jobResponse = fetch(`${process.env.PAVI_API_BASE_URL}/api/pipeline-job/${jobId}/alignment-result`, {
             method: 'GET',
             headers: {
