@@ -1009,7 +1009,7 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           working-directory: webui/
-          wait-on: 'http://localhost:8080/api/health, http://localhost:3000/submit'
+          wait-on: 'http://localhost:8080/api/health, http://localhost:3000/health'
           env: 'API_BASE_URL=http://localhost:8080'
       - name: Report API container logs on E2E test failure
         if: failure()
