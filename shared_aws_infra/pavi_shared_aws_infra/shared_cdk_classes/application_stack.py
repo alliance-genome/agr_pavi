@@ -1,5 +1,6 @@
 from aws_cdk import (
     aws_elasticbeanstalk as eb,
+    aws_cloudwatch as cw,
     aws_iam as iam,
     CfnOutput,
     Stack,
@@ -126,15 +127,32 @@ def defineEbEnvironmentCdkConstructs(
     optionSettingProperties.extend(extra_option_setting_properties)
 
     # Define EB environment and assign to stack
+    env_name: str = f'{eb_app_name}-{env_suffix}'
     eb_env: eb.CfnEnvironment = eb.CfnEnvironment(
         stack, 'eb-environment',
-        environment_name=f'{eb_app_name}-{env_suffix}',
+        environment_name=env_name,
         application_name=eb_app_name,
         solution_stack_name='64bit Amazon Linux 2023 v4.3.4 running Docker',
         version_label=app_version_label,
         option_settings=optionSettingProperties)
     cdk_tags.of(eb_env).add("Product", "PAVI")  # type: ignore
     cdk_tags.of(eb_env).add("Managed_by", "PAVI")  # type: ignore
+
+    env_health_metric: cw.IMetric = cw.Metric(
+        namespace='AWS/ElasticBeanstalk',
+        metric_name='EnvironmentHealth',
+        dimensions_map={
+            "EnvironmentName": env_name
+        }
+    )
+
+    cw.Alarm(
+        stack, 'env-health-alarm',
+        evaluation_periods=1,
+        threshold=20,
+        metric=env_health_metric,
+        treat_missing_data=cw.TreatMissingData.BREACHING
+    )
 
     CfnOutput(
         stack, 'cfn-output-endpoint-url',
