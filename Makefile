@@ -6,9 +6,14 @@ PAVI_CONTAINER_IMAGE_TAG ?= ${PAVI_DEPLOY_VERSION_LABEL}
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
 
-# Reminder: this target requires AWS env variables (such as AWS_PROFILE) to be exported for successful execution
-deploy-dev:
+update-install-shared-aws-infra:
 	make -C shared_aws_infra/ clean build install
+	make -C pipeline/aws_infra/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+	make -C api/aws_infra/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
+	make -C webui/aws_infra/ update-deps-lock-shared-aws-infra-only
+
+# Reminder: this target requires AWS env variables (such as AWS_PROFILE) to be exported for successful execution
+deploy-dev: update-shared-aws-infra
 	make -C pipeline/aws_infra/ validate deploy
 #	make -C pipeline/seq_retrieval/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
 #	make -C pipeline/alignment/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}

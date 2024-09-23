@@ -1,3 +1,5 @@
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 PAVI_COMPUTE_MIN_VCPU ?= 2
 CDK_STACK_NAME ?= PaviPipelineCdkStack
 ADD_CDK_ARGS ?=
@@ -17,39 +19,39 @@ pip-tools:
 
 requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) _vars-main-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 tests/requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) _vars-test-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 update-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) _vars-main-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 	npm update --package-lock-only
 
 update-test-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) _vars-test-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 update-deps-lock-shared-aws-infra-only:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-shared-aws-infra-only))
-	$(eval $(shell $(MAKE) _vars-main-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-infra-only))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 update-test-deps-lock-shared-aws-infra-only:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-shared-aws-infra-only))
-	$(eval $(shell $(MAKE) _vars-test-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-infra-only))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 install-cdk-cli:
