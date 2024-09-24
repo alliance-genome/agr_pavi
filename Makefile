@@ -7,7 +7,7 @@ print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
 
 update-install-shared-aws:
-	make -C shared_aws/ clean build install
+	make -C shared_aws/py_package/ clean build install
 	make -C pipeline/aws_infra/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only install-deps-update-dev
 	make -C api/aws_infra/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only install-deps-update-dev
 	make -C webui/aws_infra/ update-deps-lock-shared-aws-only install-deps-update-dev
