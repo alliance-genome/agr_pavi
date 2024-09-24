@@ -13,7 +13,7 @@ dependencies = [
     "aws-cdk-lib==2.*",
     "constructs==10.*",
     # PAVI shared AWS infra
-    "pavi_shared_aws_infra @ file:///tmp/pavi_shared_aws_infra-0.0.0-py3-none-any.whl"
+    "pavi_shared_aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl"
 ]
 
 [project.optional-dependencies]

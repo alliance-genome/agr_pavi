@@ -11,7 +11,7 @@ import aws_cdk.assertions as assertions
 from cdk_classes.webui_eb_app import WebUiEbApplicationCdkStack
 from cdk_classes.webui_eb_env import WebUiEbEnvironmentCdkStack
 
-from pavi_shared_aws_infra.agr_aws_env import agr_aws_environment
+from pavi_shared_aws.agr_aws_env import agr_aws_environment
 
 app = App()
 eb_app_stack = WebUiEbApplicationCdkStack(

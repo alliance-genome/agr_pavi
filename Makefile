@@ -6,15 +6,15 @@ PAVI_CONTAINER_IMAGE_TAG ?= ${PAVI_DEPLOY_VERSION_LABEL}
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
 
-update-install-shared-aws-infra:
-	make -C shared_aws_infra/ clean build install
-	make -C pipeline/aws_infra/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only install-deps-update-dev
-	make -C api/aws_infra/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only install-deps-update-dev
-	make -C webui/aws_infra/ update-deps-lock-shared-aws-infra-only install-deps-update-dev
+update-install-shared-aws:
+	make -C shared_aws/ clean build install
+	make -C pipeline/aws_infra/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only install-deps-update-dev
+	make -C api/aws_infra/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only install-deps-update-dev
+	make -C webui/aws_infra/ update-deps-lock-shared-aws-only install-deps-update-dev
 
 # Reminder: below targets requires AWS env variables (such as AWS_PROFILE) to be exported for successful execution
 
-validate-dev: update-install-shared-aws-infra
+validate-dev: update-install-shared-aws
 	make -C pipeline/aws_infra/ validate deploy
 	make -C api/aws_infra validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" \
 	                                                                            PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
@@ -24,7 +24,7 @@ validate-dev: update-install-shared-aws-infra
 																				  PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
 																				  VALIDATE_ENV_STACK_NAME=PaviWebUiEbDevStack
 
-deploy-dev: update-install-shared-aws-infra
+deploy-dev: update-install-shared-aws
 	make -C pipeline/aws_infra/ validate deploy
 #	make -C pipeline/seq_retrieval/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
 #	make -C pipeline/alignment/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}

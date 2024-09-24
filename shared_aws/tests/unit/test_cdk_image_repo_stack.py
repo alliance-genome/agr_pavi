@@ -8,8 +8,8 @@ from aws_cdk import App
 from aws_cdk.aws_config import ResourceType
 import aws_cdk.assertions as assertions
 
-from pavi_shared_aws_infra.shared_cdk_classes.image_repo_stack import ImageRepoCdkStack
-from pavi_shared_aws_infra.agr_aws_env import agr_aws_environment
+from pavi_shared_aws.shared_cdk_classes.image_repo_stack import ImageRepoCdkStack
+from pavi_shared_aws.agr_aws_env import agr_aws_environment
 
 app = App()
 # If below function signature changes (function name, parameters keys or values), ensure this change is intentional.
@@ -17,7 +17,7 @@ app = App()
 # Then update all PAVI components implementing this Class method to:
 #  1. Implement the new package
 #      1.1 run `make update-deps-lock update-test-deps-lock` to update the lock files
-#      1.2 run `pip uninstall pavi_shared_aws_infra` to uninstall the old package version
+#      1.2 run `pip uninstall pavi_shared_aws` to uninstall the old package version
 #      1.3 run `make install-test-deps` to install the new version
 #  2. Open the IDE to update all code implementing the ImageRepoCdkStack class to use the new signature.
 stack = ImageRepoCdkStack(app, "pytest-stack", component_name='new_component', env=agr_aws_environment)

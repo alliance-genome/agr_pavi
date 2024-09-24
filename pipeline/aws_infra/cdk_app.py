@@ -3,7 +3,7 @@ from aws_cdk import App
 
 from cdk_classes.cdk_infra_stack import CdkInfraStack
 
-from pavi_shared_aws_infra.agr_aws_env import agr_aws_environment
+from pavi_shared_aws.agr_aws_env import agr_aws_environment
 
 
 app = App()

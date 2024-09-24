@@ -1,5 +1,5 @@
 [project]
-name = "pavi_shared_aws_infra"
+name = "pavi_shared_aws"
 version = "0.0.0"
 description = "PAVI shared AWS resource definitions"
 authors = [

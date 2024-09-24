@@ -51,15 +51,15 @@ update-test-deps-lock:
 	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-deps-lock-shared-aws-infra-only:
+update-deps-lock-shared-aws-only:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-infra-only))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-only))
 	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-test-deps-lock-shared-aws-infra-only:
+update-test-deps-lock-shared-aws-only:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-infra-only))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-only))
 	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
@@ -69,15 +69,15 @@ install-cdk-cli:
 install-deps: .venv/ requirements.txt
 	.venv/bin/pip install -r requirements.txt
 
-install-deps-update-dev: .venv/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-	.venv/bin/pip uninstall -y pavi_shared_aws_infra
+install-deps-update-dev: .venv/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only
+	.venv/bin/pip uninstall -y pavi_shared_aws
 	.venv/bin/pip install -U -r requirements.txt
 
 install-test-deps: .venv/ tests/requirements.txt
 	.venv/bin/pip install -r tests/requirements.txt
 
-install-test-deps-update-dev: .venv/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-	.venv/bin/pip uninstall -y pavi_shared_aws_infra
+install-test-deps-update-dev: .venv/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only
+	.venv/bin/pip uninstall -y pavi_shared_aws
 	.venv/bin/pip install -U -r tests/requirements.txt
 
 run-unit-tests: install-test-deps
@@ -126,7 +126,7 @@ deploy-image-stack: install-deps install-cdk-cli
 deploy-application: install-deps install-cdk-cli
 	. .venv/bin/activate && \
 	npx cdk deploy ${EB_APP_CDK_STACK_NAME} ${ADD_CDK_ARGS}
-	.venv/bin/python -m pavi_shared_aws_infra.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-webui --version_label ${PAVI_DEPLOY_VERSION_LABEL}
+	.venv/bin/python -m pavi_shared_aws.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-webui --version_label ${PAVI_DEPLOY_VERSION_LABEL}
 
 deploy-environment: install-deps install-cdk-cli
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
@@ -151,8 +151,8 @@ _vars-no-upgrade:
 _vars-upgrade-all:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
 
-_vars-upgrade-shared-aws-infra-only:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=-P pavi_shared_aws_infra"
+_vars-upgrade-shared-aws-only:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=-P pavi_shared_aws"
 
 _write-lock-file:
 	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

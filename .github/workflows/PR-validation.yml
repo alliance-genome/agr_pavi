@@ -115,13 +115,13 @@ jobs:
           name: webui_deps_lock
           path: webui/package-lock.json
           if-no-files-found: error
-  shared-aws-infra-update-dependency-lock-files:
-    name: shared_aws_infra update and upload dependency lock file
+  shared-aws-update-dependency-lock-files:
+    name: shared_aws update and upload dependency lock file
     runs-on: ubuntu-22.04
     defaults:
       run:
         shell: bash
-        working-directory: ./shared_aws_infra/
+        working-directory: ./shared_aws/
     steps:
       - uses: actions/setup-python@v5
         with:
@@ -131,7 +131,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            shared_aws_infra/
+            shared_aws/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
@@ -140,40 +140,40 @@ jobs:
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: shared_aws_infra_deps_lock
-          path: shared_aws_infra/requirements.txt
+          name: shared_aws_deps_lock
+          path: shared_aws/requirements.txt
           if-no-files-found: error
       - name: Upload updated (test) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: shared_aws_infra_test_deps_lock
-          path: shared_aws_infra/tests/requirements.txt
+          name: shared_aws_test_deps_lock
+          path: shared_aws/tests/requirements.txt
           if-no-files-found: error
-  shared-aws-infra-code-checks:
-    name: shared_aws_infra code checks
+  shared-aws-code-checks:
+    name: shared_aws code checks
     needs:
-      - shared-aws-infra-update-dependency-lock-files
+      - shared-aws-update-dependency-lock-files
     runs-on: ubuntu-22.04
     defaults:
       run:
-        working-directory: ./shared_aws_infra
+        working-directory: ./shared_aws
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
         sparse-checkout: |
-          shared_aws_infra/
-    - name: Download updated shared_aws_infra (main) dependencies lock file
+          shared_aws/
+    - name: Download updated shared_aws (main) dependencies lock file
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_deps_lock
-        path: shared_aws_infra
-    - name: Download updated shared_aws_infra (test) dependencies lock file
+        name: shared_aws_deps_lock
+        path: shared_aws
+    - name: Download updated shared_aws (test) dependencies lock file
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_test_deps_lock
-        path: shared_aws_infra/tests
+        name: shared_aws_test_deps_lock
+        path: shared_aws/tests
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -186,31 +186,31 @@ jobs:
         make run-style-checks
     - name: Unit tests
       run: make run-unit-tests
-  shared-aws-infra-package-build:
-    name: shared_aws_infra python package build
+  shared-aws-package-build:
+    name: shared_aws python package build
     needs:
-      - shared-aws-infra-code-checks
+      - shared-aws-code-checks
     runs-on: ubuntu-22.04
     defaults:
       run:
-        working-directory: ./shared_aws_infra
+        working-directory: ./shared_aws
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
         sparse-checkout: |
-          shared_aws_infra/
-    - name: Download updated shared_aws_infra (main) dependencies lock file
+          shared_aws/
+    - name: Download updated shared_aws (main) dependencies lock file
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_deps_lock
-        path: shared_aws_infra
-    - name: Download updated shared_aws_infra (test) dependencies lock file
+        name: shared_aws_deps_lock
+        path: shared_aws
+    - name: Download updated shared_aws (test) dependencies lock file
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_test_deps_lock
-        path: shared_aws_infra/tests
+        name: shared_aws_test_deps_lock
+        path: shared_aws/tests
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -221,12 +221,12 @@ jobs:
     - name: Upload package as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: shared_aws_infra_package
-        path: shared_aws_infra/dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
+        name: shared_aws_package
+        path: shared_aws/dist/pavi_shared_aws-0.0.0-py3-none-any.whl
   pipeline-aws-infra-update-dependency-lock-files:
     name: pipeline/aws_infra update and upload dependency lock file
     needs:
-      - shared-aws-infra-package-build
+      - shared-aws-package-build
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -245,7 +245,7 @@ jobs:
       - name: Download shared AWS infra package
         uses: actions/download-artifact@v4
         with:
-          name: shared_aws_infra_package
+          name: shared_aws_package
           path: /tmp/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
@@ -264,7 +264,7 @@ jobs:
   api-aws-infra-update-dependency-lock-files:
     name: api/aws_infra update and upload dependency lock file
     needs:
-      - shared-aws-infra-package-build
+      - shared-aws-package-build
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -283,7 +283,7 @@ jobs:
       - name: Download shared AWS infra package
         uses: actions/download-artifact@v4
         with:
-          name: shared_aws_infra_package
+          name: shared_aws_package
           path: /tmp/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
@@ -302,7 +302,7 @@ jobs:
   webui-aws-infra-update-dependency-lock-files:
     name: webui/aws_infra update and upload dependency lock file
     needs:
-      - shared-aws-infra-package-build
+      - shared-aws-package-build
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -321,7 +321,7 @@ jobs:
       - name: Download shared AWS infra package
         uses: actions/download-artifact@v4
         with:
-          name: shared_aws_infra_package
+          name: shared_aws_package
           path: /tmp/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
@@ -555,7 +555,7 @@ jobs:
     name: pipeline/aws_infra code checks
     needs:
       - pipeline-aws-infra-update-dependency-lock-files
-      - shared-aws-infra-package-build
+      - shared-aws-package-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -581,7 +581,7 @@ jobs:
     - name: Download shared AWS infra package
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_package
+        name: shared_aws_package
         path: /tmp/
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -784,7 +784,7 @@ jobs:
     name: api/aws_infra code checks
     needs:
       - api-aws-infra-update-dependency-lock-files
-      - shared-aws-infra-package-build
+      - shared-aws-package-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -810,7 +810,7 @@ jobs:
     - name: Download shared AWS infra package
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_package
+        name: shared_aws_package
         path: /tmp/
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -838,7 +838,7 @@ jobs:
     name: webui/aws_infra code checks
     needs:
       - webui-aws-infra-update-dependency-lock-files
-      - shared-aws-infra-package-build
+      - shared-aws-package-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -864,7 +864,7 @@ jobs:
     - name: Download shared AWS infra package
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_package
+        name: shared_aws_package
         path: /tmp/
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -1037,7 +1037,7 @@ jobs:
     # Always stage updated lock files, even on failure,
     #  to highlight dependency changes which could be the cause of the failure.
     needs:
-      - shared-aws-infra-update-dependency-lock-files
+      - shared-aws-update-dependency-lock-files
       - api-aws-infra-update-dependency-lock-files
       - pipeline-aws-infra-update-dependency-lock-files
       - webui-aws-infra-update-dependency-lock-files
@@ -1078,16 +1078,16 @@ jobs:
         working-directory: pipeline/aws_infra/
         run: |
           tar -xzv -f pipeline-aws-infra-deps-locks.tar.gz
-      - name: Download updated shared_aws_infra (main) dependencies lock file
+      - name: Download updated shared_aws (main) dependencies lock file
         uses: actions/download-artifact@v4
         with:
-          name: shared_aws_infra_deps_lock
-          path: shared_aws_infra
-      - name: Download updated shared_aws_infra (test) dependencies lock file
+          name: shared_aws_deps_lock
+          path: shared_aws
+      - name: Download updated shared_aws (test) dependencies lock file
         uses: actions/download-artifact@v4
         with:
-          name: shared_aws_infra_test_deps_lock
-          path: shared_aws_infra/tests
+          name: shared_aws_test_deps_lock
+          path: shared_aws/tests
       - name: Download updated api/aws_infra dependencies lock files bundle
         uses: actions/download-artifact@v4
         with:

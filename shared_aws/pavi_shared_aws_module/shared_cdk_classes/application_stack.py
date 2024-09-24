@@ -149,7 +149,7 @@ def defineEbEnvironmentCdkConstructs(
     cw.Alarm(
         stack, 'env-health-alarm',
         evaluation_periods=1,
-        threshold=20,
+        threshold=20,  # 20 = degraded
         metric=env_health_metric,
         treat_missing_data=cw.TreatMissingData.BREACHING
     )

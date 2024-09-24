@@ -8,7 +8,7 @@ from constructs import Construct
 
 from typing import Any, Optional
 
-from pavi_shared_aws_infra.shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository
+from pavi_shared_aws.shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository
 
 
 class ImageRepoCdkStack(Stack):

@@ -30,12 +30,12 @@ aws-cdk-lib==2.158.0 \
     --hash=sha256:24b93419211e99dd9109223b9a9ba6496af3c5dee8add6cbb35c8aef82082758 \
     --hash=sha256:7917ef871914b027e3b4b5e29ddb219d21c53878cec0b2e629faefdbef095564
     # via
-    #   pavi-shared-aws-infra
+    #   pavi-shared-aws
     #   webui-aws_infra (pyproject.toml)
 boto3==1.35.17 \
     --hash=sha256:4a32db8793569ee5f13c5bf3efb260193353cb8946bf6426e3c330b61c68e59d \
     --hash=sha256:67268aa6c4043e9fdeb4ab3c1e9032f44a6fa168c789af5e351f63f1f8880a2f
-    # via pavi-shared-aws-infra
+    # via pavi-shared-aws
 botocore==1.35.17 \
     --hash=sha256:0d35d03ea647b5d464c7f77bdab6fb23ae5d49752b13cf97ab84444518c7b1bd \
     --hash=sha256:a93f773ca93139529b5d36730b382dbee63ab4c7f26129aa5c84835255ca999d
@@ -49,13 +49,13 @@ cattrs==23.2.3 \
 click==8.1.7 \
     --hash=sha256:ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28 \
     --hash=sha256:ca9853ad459e787e2192211578cc907e7594e294c7ccc834310722b41b9ca6de
-    # via pavi-shared-aws-infra
+    # via pavi-shared-aws
 constructs==10.3.0 \
     --hash=sha256:2972f514837565ff5b09171cfba50c0159dfa75ee86a42921ea8c86f2941b3d2 \
     --hash=sha256:518551135ec236f9cc6b86500f4fbbe83b803ccdc6c2cb7684e0b7c4d234e7b1
     # via
     #   aws-cdk-lib
-    #   pavi-shared-aws-infra
+    #   pavi-shared-aws
     #   webui-aws_infra (pyproject.toml)
 flake8==7.1.1 \
     --hash=sha256:049d058491e228e03e67b390f311bbf88fce2dbaa8fa673e7aea87b7198b8d38 \
@@ -126,7 +126,7 @@ packaging==24.1 \
     --hash=sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002 \
     --hash=sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124
     # via pytest
-pavi-shared-aws-infra @ file:///tmp/pavi_shared_aws_infra-0.0.0-py3-none-any.whl \
+pavi-shared-aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl \
     --hash=sha256:0a151af1dc91c174681b68977c9d6f0bf353329646941a58ccf7186590a65512
     # via webui-aws_infra (pyproject.toml)
 pluggy==1.5.0 \
