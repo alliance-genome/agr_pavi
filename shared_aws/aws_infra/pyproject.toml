@@ -1,0 +1,27 @@
+[project]
+name = "pavi-shared-aws-infra"
+version = "0.1.0"
+description = "PAVI shared AWS resource definitions"
+readme = "README.md"
+authors = [
+    {name = "Manuel Luypaert", email = "luypaert@ebi.ac.uk"}
+]
+
+requires-python = "==3.12.*"
+dependencies = [
+    # CDK requirements
+    "aws-cdk-lib==2.*",
+    "constructs==10.*",
+    # PAVI shared AWS module
+    "pavi_shared_aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl"
+]
+
+[project.optional-dependencies]
+test = [
+    "flake8==7.1.*",
+    "mypy==1.11.*",
+    "pytest==8.3.*"
+]
+
+[tool.setuptools.packages.find]
+exclude = ["node_modules/*"]
