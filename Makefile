@@ -14,7 +14,7 @@ update-install-shared-aws:
 
 # Reminder: below targets requires AWS env variables (such as AWS_PROFILE) to be exported for successful execution
 
-validate-dev: update-install-shared-aws
+validate-dev:
 	make -C pipeline/aws_infra/ validate deploy
 	make -C api/aws_infra validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" \
 	                                                                            PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
@@ -24,24 +24,17 @@ validate-dev: update-install-shared-aws
 																				  PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
 																				  VALIDATE_ENV_STACK_NAME=PaviWebUiEbDevStack
 
-deploy-dev: update-install-shared-aws
+deploy-dev:
 	make -C pipeline/aws_infra/ validate deploy
 #	make -C pipeline/seq_retrieval/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
 #	make -C pipeline/alignment/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
 #	make -C api/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
 #	make -C webui/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
-	make -C api/aws_infra validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" \
-	                                                                            PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
-																				VALIDATE_ENV_STACK_NAME=PaviApiEbDevStack
 	make -C api/aws_infra deploy-application PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" ADD_CDK_ARGS="--require-approval any-change"
 	make -C api/aws_infra deploy-environment PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" \
 	                                         PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
                                              EB_ENV_CDK_STACK_NAME=PaviApiEbDevStack \
 											 ADD_CDK_ARGS="--require-approval any-change"
-	make -C webui/aws_infra validate-application-stack validate-environment-stack PAVI_API_ENV_NAME="PAVI-api-dev" \
-                                                                                  PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" \
-																				  PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
-																				  VALIDATE_ENV_STACK_NAME=PaviWebUiEbDevStack
 	make -C webui/aws_infra deploy-application PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" ADD_CDK_ARGS="--require-approval any-change"
 	make -C webui/aws_infra deploy-environment PAVI_API_ENV_NAME="PAVI-api-dev" \
                                                PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
