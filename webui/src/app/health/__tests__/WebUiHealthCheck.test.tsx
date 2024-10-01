@@ -58,7 +58,7 @@ describe('WebUI Health Page testing', () => {
         expect(fetchCalls2[1].response?.status).toBe(500)
 
         // Test third API Health query response (not accessible)
-        const mockApiNotAccessibleResponse = { timeout: 5000 }
+        const mockApiNotAccessibleResponse = { throws: new Error('Fetch-mock API not accessible.') }
         fetchMock.mock('http://localhost:8000/api/health', mockApiNotAccessibleResponse, {overwriteRoutes: true});
 
         const apiHealthInaccessibleResponse = await apiHealthHTTPStatus()
@@ -68,7 +68,7 @@ describe('WebUI Health Page testing', () => {
         expect(fetchMock.calls('path:/api/health')).toHaveLength(3)
         expect(fetchCalls3[0].response?.status).toBe(200)
         expect(fetchCalls3[1].response?.status).toBe(500)
-        expect(fetchCalls3[2].response?.status).toBeUndefined
+        expect(fetchCalls3[2].response?.status).toBeUndefined()
         expect(fetchCalls3[2][1]).toHaveProperty('cache', 'no-store')
     })
 })
