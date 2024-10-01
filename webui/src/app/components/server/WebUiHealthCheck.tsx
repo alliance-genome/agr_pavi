@@ -34,6 +34,7 @@ export const WebUiHealthCheck: FunctionComponent = async() => {
     const apiStatus = apiHealthResponse[0]
 
     if( !apiStatus || apiStatus === 408 || apiStatus === 404 ){
+        console.log(`Received API response indicating API not available (status ${apiStatus}) `)
         redirect('/error')
     }
     else {
