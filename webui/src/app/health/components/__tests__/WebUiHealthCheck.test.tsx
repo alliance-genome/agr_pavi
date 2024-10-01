@@ -6,7 +6,7 @@ import { describe, it, expect } from '@jest/globals';
 
 import fetchMock from 'fetch-mock';
 
-import { apiHealthHTTPStatus, WebUiHealthCheck } from '@/app/components/server/WebUiHealthCheck';
+import { apiHealthHTTPStatus, WebUiHealthCheck } from '../WebUiHealthCheck';
 import { renderToString } from 'react-dom/server';
 import { env } from 'process';
 

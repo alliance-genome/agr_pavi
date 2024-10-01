@@ -1,6 +1,6 @@
 'use server'
 
-import { WebUiHealthCheck } from "../components/server/WebUiHealthCheck";
+import { WebUiHealthCheck } from "./components/WebUiHealthCheck";
 
 export default async function Page() {
     return (
