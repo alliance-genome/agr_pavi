@@ -4,10 +4,10 @@ import React, { FunctionComponent } from 'react';
 
 import { redirect } from "next/navigation";
 
-async function apiHealthHTTPStatus(): Promise<[number, string]|undefined> {
+export async function apiHealthHTTPStatus(): Promise<[number, string]|undefined> {
     const apiHealthResponse = fetch(`${process.env.PAVI_API_BASE_URL}/api/health`, {
         method: 'GET',
-        cache: 'no-cache',
+        cache: 'no-store',
         headers: {
             'accept': 'application/json'
         }
@@ -46,7 +46,7 @@ export const WebUiHealthCheck: FunctionComponent = async() => {
             message += 'While the web application itself is healthy, the API seems unhealth so some errors might occur.'
         }
         return (
-            <div>{message}</div>
+            <div id="response-msg">{message}</div>
         )
     }
 }
