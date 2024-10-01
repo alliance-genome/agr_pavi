@@ -26,9 +26,9 @@ aws-cdk-cloud-assembly-schema==36.0.25 \
     --hash=sha256:9d67a5135e99151c4e2e1e72e2e53e526ae80b4e4f3019e1899c4f58c4195b81 \
     --hash=sha256:f595a488237aafa04959942d0afbf7024bb0648c2b09c9dbc1a79935d2f523db
     # via aws-cdk-lib
-aws-cdk-lib==2.158.0 \
-    --hash=sha256:24b93419211e99dd9109223b9a9ba6496af3c5dee8add6cbb35c8aef82082758 \
-    --hash=sha256:7917ef871914b027e3b4b5e29ddb219d21c53878cec0b2e629faefdbef095564
+aws-cdk-lib==2.160.0 \
+    --hash=sha256:c6775a7c5d02e4272147692a0560071f1bd232c1dc1bf74e84a69f7bdb418362 \
+    --hash=sha256:df6142440f9e2754344d9a8f240e0a467d9102261c46b9e133cd16fbdbcd8796
     # via pavi_shared_aws_infra (pyproject.toml)
 boto3==1.35.17 \
     --hash=sha256:4a32db8793569ee5f13c5bf3efb260193353cb8946bf6426e3c330b61c68e59d \
