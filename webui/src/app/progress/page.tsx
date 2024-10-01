@@ -1,6 +1,6 @@
 'use server'
 
-import { JobProgressTracker } from '../components/client/JobProgressTracker/JobProgressTracker'
+import { JobProgressTracker } from './components/JobProgressTracker/JobProgressTracker'
 import { redirect } from 'next/navigation'
 
 export default async function Page( props: any ) {

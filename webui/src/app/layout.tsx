@@ -5,7 +5,7 @@ import "./globals.css";
 
 import { PrimeReactProvider } from 'primereact/api';
 
-import { DarkModeToggle } from './components/client/DarkModeToggle';
+import { DarkModeToggle } from './components/DarkModeToggle';
 
 const inter = Inter({ subsets: ["latin"] });
 
