@@ -241,7 +241,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            shared_aws/aw_infra/
+            shared_aws/aws_infra/
       - name: Download shared AWS package
         uses: actions/download-artifact@v4
         with:
