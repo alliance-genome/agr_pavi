@@ -94,6 +94,10 @@ deploy-stack: install-deps install-cdk-cli
 	. .venv/bin/activate && \
 	npx cdk deploy ${CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
+destroy-stack: install-deps install-cdk-cli
+	. .venv/bin/activate && \
+	npx cdk destroy ${CDK_STACK_NAME} ${ADD_CDK_ARGS}
+
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
 
