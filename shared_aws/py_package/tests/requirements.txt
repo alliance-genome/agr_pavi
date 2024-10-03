@@ -29,15 +29,15 @@ aws-cdk-cloud-assembly-schema==36.0.25 \
 aws-cdk-lib==2.158.0 \
     --hash=sha256:24b93419211e99dd9109223b9a9ba6496af3c5dee8add6cbb35c8aef82082758 \
     --hash=sha256:7917ef871914b027e3b4b5e29ddb219d21c53878cec0b2e629faefdbef095564
-    # via pavi_shared_aws_infra (pyproject.toml)
+    # via pavi_shared_aws (pyproject.toml)
 boto3==1.35.17 \
     --hash=sha256:4a32db8793569ee5f13c5bf3efb260193353cb8946bf6426e3c330b61c68e59d \
     --hash=sha256:67268aa6c4043e9fdeb4ab3c1e9032f44a6fa168c789af5e351f63f1f8880a2f
-    # via pavi_shared_aws_infra (pyproject.toml)
+    # via pavi_shared_aws (pyproject.toml)
 boto3-stubs==1.35.17 \
     --hash=sha256:aedfea356d401797ced0305624f94d695c6b2c70f90dea9ea490830b5c95bc69 \
     --hash=sha256:ed6f60ad14ac04504d7199cb59c0df647c1384b28a7b5195dd12defd7f78b7bd
-    # via pavi_shared_aws_infra (pyproject.toml)
+    # via pavi_shared_aws (pyproject.toml)
 botocore==1.35.17 \
     --hash=sha256:0d35d03ea647b5d464c7f77bdab6fb23ae5d49752b13cf97ab84444518c7b1bd \
     --hash=sha256:a93f773ca93139529b5d36730b382dbee63ab4c7f26129aa5c84835255ca999d
@@ -55,17 +55,17 @@ cattrs==23.2.3 \
 click==8.1.7 \
     --hash=sha256:ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28 \
     --hash=sha256:ca9853ad459e787e2192211578cc907e7594e294c7ccc834310722b41b9ca6de
-    # via pavi_shared_aws_infra (pyproject.toml)
+    # via pavi_shared_aws (pyproject.toml)
 constructs==10.3.0 \
     --hash=sha256:2972f514837565ff5b09171cfba50c0159dfa75ee86a42921ea8c86f2941b3d2 \
     --hash=sha256:518551135ec236f9cc6b86500f4fbbe83b803ccdc6c2cb7684e0b7c4d234e7b1
     # via
     #   aws-cdk-lib
-    #   pavi_shared_aws_infra (pyproject.toml)
+    #   pavi_shared_aws (pyproject.toml)
 flake8==7.1.1 \
     --hash=sha256:049d058491e228e03e67b390f311bbf88fce2dbaa8fa673e7aea87b7198b8d38 \
     --hash=sha256:597477df7860daa5aa0fdd84bf5208a043ab96b8e96ab708770ae0364dd03213
-    # via pavi_shared_aws_infra (pyproject.toml)
+    # via pavi_shared_aws (pyproject.toml)
 importlib-resources==6.4.5 \
     --hash=sha256:980862a1d16c9e147a59603677fa2aa5fd82b87f223b6cb870695bcfce830065 \
     --hash=sha256:ac29d5f956f01d5e4bb63102a5a19957f1b9175e45649977264a1416783bb717
@@ -122,7 +122,7 @@ mypy==1.11.2 \
     --hash=sha256:edb91dded4df17eae4537668b23f0ff6baf3707683734b6a818d5b9d0c0c31a1 \
     --hash=sha256:ee23de8530d99b6db0573c4ef4bd8f39a2a6f9b60655bf7a1357e585a3486f2b \
     --hash=sha256:f7821776e5c4286b6a13138cc935e2e9b6fde05e081bdebf5cdb2bb97c9df81d
-    # via pavi_shared_aws_infra (pyproject.toml)
+    # via pavi_shared_aws (pyproject.toml)
 mypy-extensions==1.0.0 \
     --hash=sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d \
     --hash=sha256:75dbf8955dc00442a438fc4d0666508a9a97b6bd41aa2f0ffe9d2f2725af0782
@@ -157,7 +157,7 @@ pyflakes==3.2.0 \
 pytest==8.3.3 \
     --hash=sha256:70b98107bd648308a7952b06e6ca9a50bc660be218d53c257cc1fc94fda10181 \
     --hash=sha256:a6853c7375b2663155079443d2e45de913a911a11d669df02a50814944db57b2
-    # via pavi_shared_aws_infra (pyproject.toml)
+    # via pavi_shared_aws (pyproject.toml)
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427

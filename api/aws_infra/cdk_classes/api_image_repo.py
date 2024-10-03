@@ -2,7 +2,7 @@ from constructs import Construct
 
 from typing import Any
 
-from pavi_shared_aws_infra.shared_cdk_classes.image_repo_stack import ImageRepoCdkStack
+from pavi_shared_aws.shared_cdk_classes.image_repo_stack import ImageRepoCdkStack
 
 
 class ApiImageRepoCdkStack(ImageRepoCdkStack):

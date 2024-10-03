@@ -1,6 +1,9 @@
 from aws_cdk import (
     aws_elasticbeanstalk as eb,
+    aws_cloudwatch as cw,
+    aws_cloudwatch_actions as cw_actions,
     aws_iam as iam,
+    aws_sns as sns,
     CfnOutput,
     Stack,
     Tags as cdk_tags
@@ -126,9 +129,10 @@ def defineEbEnvironmentCdkConstructs(
     optionSettingProperties.extend(extra_option_setting_properties)
 
     # Define EB environment and assign to stack
+    env_name: str = f'{eb_app_name}-{env_suffix}'
     eb_env: eb.CfnEnvironment = eb.CfnEnvironment(
         stack, 'eb-environment',
-        environment_name=f'{eb_app_name}-{env_suffix}',
+        environment_name=env_name,
         application_name=eb_app_name,
         solution_stack_name='64bit Amazon Linux 2023 v4.3.4 running Docker',
         version_label=app_version_label,
@@ -136,6 +140,39 @@ def defineEbEnvironmentCdkConstructs(
     cdk_tags.of(eb_env).add("Product", "PAVI")  # type: ignore
     cdk_tags.of(eb_env).add("Managed_by", "PAVI")  # type: ignore
 
+    # Add Alarm on environment health
+    env_health_metric: cw.IMetric = cw.Metric(
+        namespace='AWS/ElasticBeanstalk',
+        metric_name='EnvironmentHealth',
+        dimensions_map={
+            "EnvironmentName": env_name
+        }
+    )
+
+    env_health_alarm = cw.Alarm(
+        stack, 'env-health-alarm',
+        alarm_name=f'{env_name}-eb-env-health',
+        evaluation_periods=1,
+        threshold=20,  # 20 = degraded
+        metric=env_health_metric,
+        treat_missing_data=cw.TreatMissingData.BREACHING,
+        actions_enabled=True
+    )
+
+    # Alarm action: send notification to Slack when environment changes from healthy to unhealth or vice versa
+    health_notifications_topic = sns.Topic.from_topic_arn(
+        stack, 'pavi-health-notifications-topic',
+        topic_arn='arn:aws:sns:us-east-1:100225593120:pavi-health-notifications'
+    )
+
+    env_health_alarm.add_alarm_action(cw_actions.SnsAction(
+        topic=health_notifications_topic
+    ))  # type: ignore
+    env_health_alarm.add_ok_action(cw_actions.SnsAction(
+        topic=health_notifications_topic
+    ))  # type: ignore
+
+    # Outuput the endpoint URL (for reference in other components)
     CfnOutput(
         stack, 'cfn-output-endpoint-url',
         key='endpointUrl',

@@ -10,7 +10,7 @@ from constructs import Construct
 from os import getenv
 from typing import Any
 
-from pavi_shared_aws_infra.shared_cdk_classes.application_stack import EBApplicationCdkStack, defineEbEnvironmentCdkConstructs
+from pavi_shared_aws.shared_cdk_classes.application_stack import EBApplicationCdkStack, defineEbEnvironmentCdkConstructs
 
 
 class ApiEbEnvironmentCdkStack(Stack):

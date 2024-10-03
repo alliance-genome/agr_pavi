@@ -48,10 +48,10 @@ $ deactivate
 
 ## Dependencies
 The code in this subdirectory depends on a set of shared AWS infra modules and variables,
-found in the the `/shared_aws_infra` directory in this repository.
+built as a python package from the `/shared_aws/py_package/` directory in this repository.
 
 Before proceeding to run or make any changes in this repository, build and install
-this shared AWS infra module by following the [build-and-install](../../shared_aws_infra/README.md#build-and-install) instructions in the README.
+this shared AWS module by following the [build-and-install](../../shared_aws/py_package/README.md#build-and-install) instructions in the README.
 
 ## Important files
 Two standard CDK configuration files can be found at the root level of this directory:

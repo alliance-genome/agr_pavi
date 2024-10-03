@@ -97,11 +97,11 @@ jobs:
         run: |
           echo "latest-commit-sha=${{ env.latest_commit_sha }}" >> "$GITHUB_OUTPUT"
           echo "git-describe=$(git describe --tags)" >> $GITHUB_OUTPUT
-  build-pavi-shared-aws-infra:
-    name: Build pavi_shared_aws_infra package
+  build-pavi-shared-aws-module:
+    name: Build pavi_shared_aws package
     runs-on: ubuntu-22.04
     concurrency:
-      group: ${{ github.workflow }}-build-pavi-shared-aws-infra
+      group: ${{ github.workflow }}-build-pavi-shared-aws-module
       cancel-in-progress: true
     needs: [commit-deps-lock-updates, on-deploy]
     steps:
@@ -111,27 +111,73 @@ jobs:
           ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
           fetch-depth: 0
           sparse-checkout: |
-            shared_aws_infra/
+            shared_aws/py_package/
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Build the pavi_shared_aws_infra package
-        working-directory: ./shared_aws_infra
+      - name: Build the pavi_shared_aws package
+        working-directory: ./shared_aws/py_package
         run: |
           make clean build
       - name: Upload package as artifact
-        id: shared-aws-infra-package
         uses: actions/upload-artifact@v4
         with:
-          name: shared_aws_infra_package
-          path: shared_aws_infra/dist/pavi_shared_aws_infra-0.0.0-py3-none-any.whl
+          name: shared_aws_py_package
+          path: shared_aws/py_package/dist/pavi_shared_aws-0.0.0-py3-none-any.whl
+  deploy-shared-aws-infra:
+    name: Deploy/update shared PAVI AWS infrastructure
+    concurrency:
+      group: ${{ github.workflow }}-deploy-shared-aws-infra
+      cancel-in-progress: false
+    needs:
+      - commit-deps-lock-updates
+      - on-deploy
+      - build-pavi-shared-aws-module
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: shared_aws/aws_infra
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
+    - name: Setup node.js (CDK CLI requirement)
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Download shared AWS package
+      uses: actions/download-artifact@v4
+      with:
+        name: shared_aws_py_package
+        path: /tmp/
+    - name: AWS credentials configuration
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
+        role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
+        aws-region: us-east-1
+    - name: CDK validations (resource assertions and cdk diff)
+      run: make validate-stack
+    - name: Deploy CDK Stack
+      run: make deploy-stack ADD_CDK_ARGS="--require-approval never"
   pipeline-deploy-aws-infra:
     name: Deploy/update AWS infrastructure for pipeline
     concurrency:
       group: ${{ github.workflow }}-pipeline-deploy-aws-infra
       cancel-in-progress: false
-    needs: [commit-deps-lock-updates, on-deploy, build-pavi-shared-aws-infra]
+    needs:
+      - commit-deps-lock-updates
+      - on-deploy
+      - build-pavi-shared-aws-module
+      - deploy-shared-aws-infra
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -151,10 +197,10 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    - name: Download shared AWS infra package
+    - name: Download shared AWS package
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_package
+        name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
@@ -171,7 +217,10 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-api-deploy-image-repo
       cancel-in-progress: false
-    needs: [commit-deps-lock-updates, on-deploy, build-pavi-shared-aws-infra]
+    needs:
+      - commit-deps-lock-updates
+      - on-deploy
+      - build-pavi-shared-aws-module
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -191,10 +240,10 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    - name: Download shared AWS infra package
+    - name: Download shared AWS package
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_package
+        name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
@@ -211,7 +260,10 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-webui-deploy-image-repo
       cancel-in-progress: false
-    needs: [commit-deps-lock-updates, on-deploy, build-pavi-shared-aws-infra]
+    needs:
+      - commit-deps-lock-updates
+      - on-deploy
+      - build-pavi-shared-aws-module
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -231,10 +283,10 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    - name: Download shared AWS infra package
+    - name: Download shared AWS package
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_package
+        name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
@@ -407,11 +459,12 @@ jobs:
     needs:
       - on-deploy
       - commit-deps-lock-updates
-      - build-pavi-shared-aws-infra
+      - build-pavi-shared-aws-module
       - api-build-and-push-docker-image
       - pipeline-alignment-build-and-push-docker-image
       - pipeline-seq-retrieval-build-and-push-docker-image
       - webui-build-and-push-docker-image
+      - deploy-shared-aws-infra
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
@@ -430,10 +483,10 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    - name: Download shared AWS infra package
+    - name: Download shared AWS package
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_package
+        name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4

@@ -13,8 +13,8 @@ from constructs import Construct
 from aws_cdk.aws_config import ResourceType
 import aws_cdk.assertions as assertions
 
-from pavi_shared_aws_infra.shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository
-from pavi_shared_aws_infra.agr_aws_env import agr_aws_environment
+from pavi_shared_aws.shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository
+from pavi_shared_aws.agr_aws_env import agr_aws_environment
 
 from typing import Any
 

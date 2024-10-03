@@ -1,4 +1,4 @@
-import { JobSubmitForm } from '../components/client/JobSubmitForm/JobSubmitForm';
+import { JobSubmitForm } from './components/JobSubmitForm/JobSubmitForm';
 
 const PUBLIC_DATA_PORTAL_URL = 'https://www.alliancegenome.org'
 

@@ -1,3 +1,5 @@
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 PAVI_COMPUTE_MIN_VCPU ?= 2
 CDK_STACK_NAME ?= PaviPipelineCdkStack
 ADD_CDK_ARGS ?=
@@ -17,39 +19,39 @@ pip-tools:
 
 requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) _vars-main-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 tests/requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) _vars-test-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 update-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) _vars-main-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 	npm update --package-lock-only
 
 update-test-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) _vars-test-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-deps-lock-shared-aws-infra-only:
+update-deps-lock-shared-aws-only:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-shared-aws-infra-only))
-	$(eval $(shell $(MAKE) _vars-main-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-only))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-test-deps-lock-shared-aws-infra-only:
+update-test-deps-lock-shared-aws-only:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-shared-aws-infra-only))
-	$(eval $(shell $(MAKE) _vars-test-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-only))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 install-cdk-cli:
@@ -58,15 +60,15 @@ install-cdk-cli:
 install-deps: .venv/ requirements.txt
 	.venv/bin/pip install -r requirements.txt
 
-install-deps-update-dev: .venv/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-	.venv/bin/pip uninstall -y pavi_shared_aws_infra
+install-deps-update-dev: .venv/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only
+	.venv/bin/pip uninstall -y pavi_shared_aws
 	.venv/bin/pip install -U -r requirements.txt
 
 install-test-deps: .venv/ tests/requirements.txt
 	.venv/bin/pip install -r tests/requirements.txt
 
-install-test-deps-update-dev: .venv/ update-deps-lock-shared-aws-infra-only update-test-deps-lock-shared-aws-infra-only
-	.venv/bin/pip uninstall -y pavi_shared_aws_infra
+install-test-deps-update-dev: .venv/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only
+	.venv/bin/pip uninstall -y pavi_shared_aws
 	.venv/bin/pip install -U -r tests/requirements.txt
 
 run-unit-tests: install-test-deps
@@ -107,8 +109,8 @@ _vars-no-upgrade:
 _vars-upgrade-all:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
 
-_vars-upgrade-shared-aws-infra-only:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=-P pavi_shared_aws_infra"
+_vars-upgrade-shared-aws-only:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=-P pavi_shared_aws"
 
 _write-lock-file:
 	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

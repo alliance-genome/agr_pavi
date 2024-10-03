@@ -18,9 +18,9 @@ from constructs import Construct
 
 from typing import Any
 
-from pavi_shared_aws_infra.shared_cdk_classes.application_stack import EBApplicationCdkStack, defineEbEnvironmentCdkConstructs
+from pavi_shared_aws.shared_cdk_classes.application_stack import EBApplicationCdkStack, defineEbEnvironmentCdkConstructs
 
-from pavi_shared_aws_infra.agr_aws_env import agr_aws_environment
+from pavi_shared_aws.agr_aws_env import agr_aws_environment
 
 
 class PyTestEbEnvironment(Stack):

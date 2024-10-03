@@ -39,7 +39,7 @@ updates:
       interval: "monthly"
     open-pull-requests-limit: 5
   - package-ecosystem: "pip"
-    directory: "/shared_aws_infra/"
+    directory: "/shared_aws/py_package/"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
@@ -55,6 +55,16 @@ updates:
     open-pull-requests-limit: 5
   - package-ecosystem: "npm"
     directory: "/webui/aws_infra/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "pip"
+    directory: "/shared_aws/aws_infra/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "npm"
+    directory: "/shared_aws/aws_infra/"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5

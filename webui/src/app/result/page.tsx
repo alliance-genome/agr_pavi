@@ -1,6 +1,6 @@
 'use server'
 
-import { AlignmentResultView } from '../components/server/AlignmentResultView/AlignmentResultView'
+import { AlignmentResultView } from './components/AlignmentResultView'
 import { redirect } from 'next/navigation'
 
 export default async function Page( props: any ) {

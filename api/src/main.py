@@ -78,7 +78,7 @@ async def help_msg() -> dict[str, str]:
     return {"help": "Welcome to the PAVI API! For more information on how to use it, see the docs at {host}/docs"}
 
 
-@router.get("/health", description='Health endpoint to check API health', tags=['metadata'])
+@router.get("/health", status_code=200, description='Health endpoint to check API health', tags=['metadata'])
 async def health() -> dict[str, str]:
     return {"status": "up"}
 

@@ -1,7 +1,8 @@
 [project]
-name = "pavi_shared_aws_infra"
-version = "0.0.0"
+name = "pavi-shared-aws-infra"
+version = "0.1.0"
 description = "PAVI shared AWS resource definitions"
+readme = "README.md"
 authors = [
     {name = "Manuel Luypaert", email = "luypaert@ebi.ac.uk"}
 ]
@@ -11,19 +12,16 @@ dependencies = [
     # CDK requirements
     "aws-cdk-lib==2.*",
     "constructs==10.*",
-    # Helper requirements
-    "boto3==1.35.*",
-    "click==8.1.*",
+    # PAVI shared AWS module
+    "pavi_shared_aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl"
 ]
 
 [project.optional-dependencies]
 test = [
     "flake8==7.1.*",
     "mypy==1.11.*",
-    "pytest==8.3.*",
-    "boto3-stubs==1.35.*"
+    "pytest==8.3.*"
 ]
 
-[build-system]
-requires = ["setuptools == 71.0.0"]
-build-backend = "setuptools.build_meta"
+[tool.setuptools.packages.find]
+exclude = ["node_modules/*"]
