@@ -36,9 +36,9 @@ boto3==1.35.25 \
     --hash=sha256:5df4e2cbe3409db07d3a0d8d63d5220ce3202a78206ad87afdbb41519b26ce45 \
     --hash=sha256:b1cfad301184cdd44dfd4805187ccab12de8dd28dd12a11a5cfdace17918c6de
     # via pavi-shared-aws
-botocore==1.35.25 \
-    --hash=sha256:76c5706b2c6533000603ae8683a297c887abbbaf6ee31e1b2e2863b74b2989bc \
-    --hash=sha256:e58d60260abf10ccc4417967923117c9902a6a0cff9fddb6ea7ff42dc1bd4630
+botocore==1.35.32 \
+    --hash=sha256:2c0c2b62dd156daf904525f3f523ae22bf34ac109d727acf0bbfbca291440fc3 \
+    --hash=sha256:5ecbcd2f112e991b1f95c88ebb0f8df1a7c4ad9681aff80ec77e67cc4836eaa9
     # via
     #   boto3
     #   s3transfer
