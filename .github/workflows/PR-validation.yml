@@ -269,6 +269,8 @@ jobs:
     needs:
       - shared-aws-infra-update-dependency-lock-files
       - shared-aws-py-package-build
+    permissions:
+      id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-22.04
     defaults:
       run:
