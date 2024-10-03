@@ -225,6 +225,8 @@ jobs:
         path: shared_aws/py_package/dist/pavi_shared_aws-0.0.0-py3-none-any.whl
   shared-aws-infra-update-dependency-lock-files:
     name: shared_aws aws_infra update and upload dependency lock file
+    needs:
+      - shared-aws-py-package-build
     runs-on: ubuntu-22.04
     defaults:
       run:
