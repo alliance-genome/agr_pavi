@@ -38,9 +38,9 @@ boto3-stubs==1.35.17 \
     --hash=sha256:aedfea356d401797ced0305624f94d695c6b2c70f90dea9ea490830b5c95bc69 \
     --hash=sha256:ed6f60ad14ac04504d7199cb59c0df647c1384b28a7b5195dd12defd7f78b7bd
     # via pavi_shared_aws (pyproject.toml)
-botocore==1.35.17 \
-    --hash=sha256:0d35d03ea647b5d464c7f77bdab6fb23ae5d49752b13cf97ab84444518c7b1bd \
-    --hash=sha256:a93f773ca93139529b5d36730b382dbee63ab4c7f26129aa5c84835255ca999d
+botocore==1.35.32 \
+    --hash=sha256:2c0c2b62dd156daf904525f3f523ae22bf34ac109d727acf0bbfbca291440fc3 \
+    --hash=sha256:5ecbcd2f112e991b1f95c88ebb0f8df1a7c4ad9681aff80ec77e67cc4836eaa9
     # via
     #   boto3
     #   s3transfer
