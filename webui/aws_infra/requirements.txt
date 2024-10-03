@@ -10,9 +10,9 @@ attrs==24.2.0 \
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.202 \
-    --hash=sha256:3ef87d6530736b3a7b0f777fe3b4297994dd40c3ce9306d95f80f48fb18036e8 \
-    --hash=sha256:96205ea2e5e132ec52fabfff37ea25b9b859498f167d05b32564c949822cd331
+aws-cdk-asset-awscli-v1==2.2.205 \
+    --hash=sha256:037d0684472a34050c2e4438c76048b9049c2753523463e12dec9fd725a26363 \
+    --hash=sha256:086d74baa99596446f279a1263e1451a79f52fc0eea122b1f38f57f5a08699f0
     # via aws-cdk-lib
 aws-cdk-asset-kubectl-v20==2.1.2 \
     --hash=sha256:346283e43018a43e3b3ca571de3f44e85d49c038dc20851894cb8f9b2052b164 \
