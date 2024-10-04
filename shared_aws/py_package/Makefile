@@ -24,16 +24,6 @@ clean:
 	rm -rf build/ || true
 	rm dist/* || true
 
-check-venv-active:
-ifeq ($(VIRTUAL_ENV),)
-	@echo 'No active python virtual environment found.'\
-		  'Please active the virtual environment first by running `source .venv/bin/activate`,'\
-		  'or read README.md for instructions on how to set up a new one.'
-	@exit 1
-else
-	@:
-endif
-
 pip-tools:
 	pip install pip-tools==7.4.1
 
@@ -61,29 +51,29 @@ update-test-deps-lock:
 	$(eval $(shell $(MAKE) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-install-deps: requirements.txt
-	pip install -r requirements.txt
+install-deps: .venv/ requirements.txt
+	.venv/bin/pip install -r requirements.txt
 
-install-test-deps: tests/requirements.txt
-	pip install -r tests/requirements.txt
+install-test-deps: .venv/ tests/requirements.txt
+	.venv/bin/pip install -r tests/requirements.txt
 
-install-deps-update-dev: requirements.txt
-	pip install -U -r requirements.txt
+install-deps-update-dev: .venv/ requirements.txt
+	.venv/bin/pip install -U -r requirements.txt
 
-install-test-deps-update-dev: tests/requirements.txt
-	pip install -U -r tests/requirements.txt
+install-test-deps-update-dev: .venv/ tests/requirements.txt
+	.venv/bin/pip install -U -r tests/requirements.txt
 
-run-unit-tests: install-test-deps
-	python -m pytest
+run-unit-tests: .venv/ install-test-deps
+	.venv/bin/python -m pytest
 
-run-unit-tests-dev: check-venv-active install-test-deps
-	python -m pytest -v
+run-unit-tests-dev: .venv/ install-test-deps
+	.venv/bin/python -m pytest -v
 
-run-type-checks: install-test-deps
-	mypy --install-types --non-interactive --warn-unused-config ./
+run-type-checks: .venv/ install-test-deps
+	.venv/bin/mypy --install-types --non-interactive --warn-unused-config ./
 
-run-style-checks: install-test-deps
-	flake8 ./
+run-style-checks: .venv/ install-test-deps
+	.venv/bin/flake8 ./
 
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
