@@ -15,7 +15,7 @@ jobs:
       cancel-in-progress: true
     steps:
     # Execution of this job (step) will cancel all incomplete PR-validation runs on the closed PR through GHA concurrency.
-    - name: Cancelling all PR validation runs for PR #${{ github.event.pull_request.number }}
+    - name: Cancelling all PR validation runs for PR ${{ github.event.pull_request.number }}
       run: |
         echo "Done."
   on-merge:
