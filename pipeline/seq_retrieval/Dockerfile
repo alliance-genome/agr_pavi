@@ -16,6 +16,6 @@ RUN make install-deps
 
 COPY src/ ./
 RUN chmod a+x main.py
-ENV PATH=$PATH:/usr/src/app
+ENV PATH=/usr/src/app/.venv/bin:$PATH:/usr/src/app
 
 CMD [ "main.py", "--help" ]
