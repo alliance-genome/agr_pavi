@@ -34,12 +34,18 @@ updates:
           - "botocore"
           - "botocore-stubs"
           - "aws-cdk-*"
-    # Below version upgrades are ignored because auto-updates on every PR should handle them
-    # (pyproject.toml uses wildcards for minor and patch version definition)
-    # Dependabot will still create PRs for security upgrades with any version.
+    ignore:
+      # Subdependencies temporarily added to ignore list to deal with lack of subdependency support in requirements.txt files.
+      # TODO: migrate to poetry 2.* once released as stable release (support for )
+      #       Tracked by https://github.com/dependabot/dependabot-core/issues/8603 and https://github.com/python-poetry/poetry/issues/9136
+      #       Then remove this sub-dependency ignore list
+      - dependency-name: "typeguard"
+      - dependency-name: "cattrs"
+      # Below version upgrades are ignored because auto-updates on every PR should handle them
+      # (pyproject.toml uses wildcards for minor and patch version definition)
+      # Dependabot will still create PRs for security upgrades with any version.
 
-    #Note: ignoring patch and minor version temporarily disabled to test grouping behaviour
-    # ignore:
+      #Note: ignoring patch and minor version temporarily disabled to test grouping behaviour
     #   - dependency-name: "aws-cdk-*"
     #     update-types:
     #       - version-update:semver-patch
