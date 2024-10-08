@@ -5,6 +5,18 @@ on:
     branches:
       - main
 jobs:
+  cancel-incomplete-validations:
+    name: Cancel all incomplete PR-validations for closed PR (further validation on closed PRs are irrelevant)
+    permissions:
+      actions: write
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Cancel all PR-validation runs on PR HEAD SHA (branch that got merged) that didn't complete yet
+      shell: bash
+      run: |
+        gh run list -c ${{ github.event.pull_request.head.sha }} -w "PR validation" --json databaseId,status \
+            --jq '.[] | select([ .status ] | inside("action_required,stale,in_progress,queued,requested,waiting,pending" | split(","))) | .databaseId' \
+          | xargs -i bash -c 'echo "Cancelling GH Actions run {}" && gh run cancel {}'
   on-merge:
     name: Skip on unmerged
     if: github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'no-deploy')
