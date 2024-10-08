@@ -14,22 +14,83 @@ updates:
       interval: "monthly"
     open-pull-requests-limit: 5
   - package-ecosystem: "pip"
-    directory: "/api/aws_infra/"
+    directories:
+      - "**/aws_infra/"
+      - "shared_aws/py_package/"
+    groups:
+      cdk-deps-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "boto3"
+          - "boto3-stubs"
+          - "botocore"
+          - "botocore-stubs"
+          - "aws-cdk-*"
+      cdk-deps-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "boto3"
+          - "boto3-stubs"
+          - "botocore"
+          - "botocore-stubs"
+          - "aws-cdk-*"
+    # Below version upgrades are ignored because auto-updates on every PR should handle them
+    # (pyproject.toml uses wildcards for minor and patch version definition)
+    # Dependabot will still create PRs for security upgrades with any version.
+    ignore:
+      - dependency-name: "aws-cdk-*"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "boto3"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "boto3-stubs"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "botocore"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "botocore-stubs"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "constructs"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
   - package-ecosystem: "npm"
-    directory: "/api/aws_infra/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-  - package-ecosystem: "pip"
-    directory: "/pipeline/aws_infra/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-  - package-ecosystem: "npm"
-    directory: "/pipeline/aws_infra/"
+    directories:
+      - "**/aws_infra/"
+    groups:
+      cdk-deps-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "aws-cdk"
+          - "cdk"
+      cdk-deps-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "aws-cdk"
+          - "cdk"
+    # Below version upgrades are ignored because auto-updates on every PR should handle them
+    # (package.json uses wildcards for minor and patch version definitions)
+    # Dependabot will still create PRs for security upgrades with any version.
+    ignore:
+      - dependency-name: "aws-cdk"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "cdk"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
@@ -45,26 +106,6 @@ updates:
     open-pull-requests-limit: 5
   - package-ecosystem: "npm"
     directory: "/webui/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-  - package-ecosystem: "pip"
-    directory: "/webui/aws_infra/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-  - package-ecosystem: "npm"
-    directory: "/webui/aws_infra/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-  - package-ecosystem: "pip"
-    directory: "/shared_aws/aws_infra/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-  - package-ecosystem: "npm"
-    directory: "/shared_aws/aws_infra/"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5

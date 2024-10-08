@@ -5,9 +5,22 @@ on:
     branches:
       - main
 jobs:
+  cancel-incomplete-validations:
+    name: Cancel all incomplete PR-validations for closed PR (further validation on closed PRs are irrelevant)
+    permissions:
+      actions: write
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: PR validation-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+    # Execution of this job (step) will cancel all incomplete PR-validation runs on the closed PR through GHA concurrency.
+    - name: Cancelling all PR validation runs for PR #${{ github.event.pull_request.number }}
+      run: |
+        echo "Done."
   on-merge:
     name: Skip on unmerged
-    if: github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'no-deploy')
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
     steps:
     - name: Confirm execution
@@ -17,7 +30,7 @@ jobs:
   on-deploy:
     name: Skip on 'no-deploy' PRs
     needs: on-merge
-    if: github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'no-deploy')
+    if: ! contains(github.event.pull_request.labels.*.name, 'no-deploy')
     runs-on: ubuntu-22.04
     steps:
     - name: Confirm execution

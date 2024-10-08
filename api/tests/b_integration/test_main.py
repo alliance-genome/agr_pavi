@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from main import app
+from src.main import app
 from os import environ, getcwd, getenv
 from typing import Any
 from uuid import UUID
