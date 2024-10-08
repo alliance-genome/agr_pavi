@@ -53,10 +53,7 @@ click==8.1.7 \
 constructs==10.3.0 \
     --hash=sha256:2972f514837565ff5b09171cfba50c0159dfa75ee86a42921ea8c86f2941b3d2 \
     --hash=sha256:518551135ec236f9cc6b86500f4fbbe83b803ccdc6c2cb7684e0b7c4d234e7b1
-    # via
-    #   aws-cdk-lib
-    #   pavi-shared-aws
-    #   webui-aws_infra (pyproject.toml)
+    # via aws-cdk-lib
 importlib-resources==6.4.5 \
     --hash=sha256:980862a1d16c9e147a59603677fa2aa5fd82b87f223b6cb870695bcfce830065 \
     --hash=sha256:ac29d5f956f01d5e4bb63102a5a19957f1b9175e45649977264a1416783bb717
@@ -78,7 +75,7 @@ jsii==1.103.1 \
     #   aws-cdk-lib
     #   constructs
 pavi-shared-aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl \
-    --hash=sha256:597b1e26eeee2cbceda51050be9f86b34a3c5eedf7365b80dbc39cae9c96d48a
+    --hash=sha256:eb7600bd0e4ecd5081d9e701002d6e76022d16c507f526ecb4dc12ce9c9ae734
     # via webui-aws_infra (pyproject.toml)
 publication==0.0.3 \
     --hash=sha256:0248885351febc11d8a1098d5c8e3ab2dabcf3e8c0c96db1e17ecd12b53afbe6 \

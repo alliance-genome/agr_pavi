@@ -37,34 +37,36 @@ updates:
     # Below version upgrades are ignored because auto-updates on every PR should handle them
     # (pyproject.toml uses wildcards for minor and patch version definition)
     # Dependabot will still create PRs for security upgrades with any version.
-    ignore:
-      - dependency-name: "aws-cdk-*"
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
-      - dependency-name: "boto3"
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
-      - dependency-name: "boto3-stubs"
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
-      - dependency-name: "botocore"
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
-      - dependency-name: "botocore-stubs"
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
-      - dependency-name: "constructs"
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
+
+    #Note: ignoring patch and minor version temporarily disabled to test grouping behaviour
+    # ignore:
+    #   - dependency-name: "aws-cdk-*"
+    #     update-types:
+    #       - version-update:semver-patch
+    #       - version-update:semver-minor
+    #   - dependency-name: "boto3"
+    #     update-types:
+    #       - version-update:semver-patch
+    #       - version-update:semver-minor
+    #   - dependency-name: "boto3-stubs"
+    #     update-types:
+    #       - version-update:semver-patch
+    #       - version-update:semver-minor
+    #   - dependency-name: "botocore"
+    #     update-types:
+    #       - version-update:semver-patch
+    #       - version-update:semver-minor
+    #   - dependency-name: "botocore-stubs"
+    #     update-types:
+    #       - version-update:semver-patch
+    #       - version-update:semver-minor
+    #   - dependency-name: "constructs"
+    #     update-types:
+    #       - version-update:semver-patch
+    #       - version-update:semver-minor
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 20
   - package-ecosystem: "npm"
     directories:
       - "**/aws_infra/"
