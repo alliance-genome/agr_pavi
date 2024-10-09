@@ -11,7 +11,8 @@ updates:
   - package-ecosystem: "pip"
     directories:
       - "**/aws_infra/"
-      - "shared_aws/py_package"
+      - "/shared_aws/aws_infra/"
+      - "/shared_aws/py_package/"
     groups:
       cdk-deps-version-updates:
         applies-to: version-updates
