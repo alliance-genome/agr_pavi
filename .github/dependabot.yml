@@ -15,8 +15,8 @@ updates:
     open-pull-requests-limit: 5
   - package-ecosystem: "pip"
     directories:
-      - "**/aws_infra/"
-      - "shared_aws/py_package/"
+      - "**/aws_infra"
+      - "shared_aws/py_package"
     groups:
       cdk-deps-version-updates:
         applies-to: version-updates
