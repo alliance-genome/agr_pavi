@@ -110,7 +110,6 @@ updates:
     # Below version upgrades are ignored because auto-updates on every PR should handle them
     # (package.json uses wildcards for minor and patch version definitions)
     # Dependabot will still create PRs for security upgrades with any version.
-    #Note: ignoring patch and minor version temporarily disabled to test grouping behaviour
     ignore:
       - dependency-name: "aws-cdk"
         update-types:
