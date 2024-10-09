@@ -57,6 +57,9 @@ update-test-deps-lock-shared-aws-only:
 	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
+package-lock.json:
+	npm install --package-lock-only
+
 install-cdk-cli:
 	npm install
 
