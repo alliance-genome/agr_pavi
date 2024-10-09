@@ -1,6 +1,9 @@
 # For all configuration options, see the GitHub documentation:
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
+# TODO: using "groups", "directories" and "ignore" directives:
+#        * Group Python testing framework updates (mypy, flake8, ...) accross components? To be implemented and tested once such updates become available
+
 version: 2
 updates:
   - package-ecosystem: "github-actions"
@@ -11,7 +14,6 @@ updates:
   - package-ecosystem: "pip"
     directories:
       - "**/aws_infra/"
-      - "/shared_aws/aws_infra/"
       - "/shared_aws/py_package/"
     groups:
       cdk-deps-version-updates:
@@ -39,40 +41,58 @@ updates:
       - dependency-name: "cattrs"
       - dependency-name: "s3transfer"
       - dependency-name: "types-s3transfer"
+      - dependency-name: "aws-cdk-cloud-assembly-schema"
+      - dependency-name: "constructs"
       # Below version upgrades are ignored because auto-updates on every PR should handle them
       # (pyproject.toml uses wildcards for minor and patch version definition)
       # Dependabot will still create PRs for security upgrades with any version.
 
-      #Note: ignoring patch and minor version temporarily disabled to test grouping behaviour
-    #   - dependency-name: "aws-cdk-*"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "boto3"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "boto3-stubs"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "botocore"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "botocore-stubs"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "constructs"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
+      - dependency-name: "aws-cdk-*"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "boto3"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "boto3-stubs"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "botocore"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "botocore-stubs"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 20
   - package-ecosystem: "pip"
     directory: "/api/"
+    groups:
+      aws-deps-version-upgrades:
+        applies-to: version-updates
+        patterns:
+          - "boto3"
+          - "botocore"
+      aws-deps-security-upgrades:
+        applies-to: security-updates
+        patterns:
+          - "boto3"
+          - "botocore"
+    # Below version upgrades are ignored because auto-updates on every PR should handle them
+    # (pyproject.toml uses wildcards for minor/patch version definitions)
+    # Dependabot will still create PRs for security upgrades with any version.
+    ignore:
+      - dependency-name: "fastapi[standard]"
+        update-types:
+          - version-update:semver-patch
+      - dependency-name: "smart-open[s3]"
+        update-types:
+          - version-update:semver-patch
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
@@ -93,16 +113,15 @@ updates:
     # Below version upgrades are ignored because auto-updates on every PR should handle them
     # (package.json uses wildcards for minor and patch version definitions)
     # Dependabot will still create PRs for security upgrades with any version.
-    #Note: ignoring patch and minor version temporarily disabled to test grouping behaviour
-    # ignore:
-    #   - dependency-name: "aws-cdk"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "cdk"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
+    ignore:
+      - dependency-name: "aws-cdk"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "cdk"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
@@ -110,9 +129,76 @@ updates:
     directory: "/pipeline/seq_retrieval/"
     schedule:
       interval: "monthly"
+    # Below version upgrades are ignored because auto-updates on every PR should handle them
+    # (pyproject.toml uses wildcards for minor/patch version definitions)
+    # Dependabot will still create PRs for security upgrades with any version.
+    ignore:
+      - dependency-name: "click"
+        update-types:
+          - version-update:semver-patch
+      - dependency-name: "pysam"
+        update-types:
+          - version-update:semver-patch
+      - dependency-name: "requests"
+        update-types:
+          - version-update:semver-patch
     open-pull-requests-limit: 5
   - package-ecosystem: "npm"
     directory: "/webui/"
+    groups:
+      next-js-deps-version-upgrades:
+        applies-to: version-updates
+        patterns:
+          - "next"
+          - "@tsconfig/next"
+          - "eslint-config-next"
+      next-js-deps-security-upgrades:
+        applies-to: security-updates
+        patterns:
+          - "next"
+          - "@tsconfig/next"
+          - "eslint-config-next"
+      jest-deps-version-upgrades:
+        applies-to: version-updates
+        patterns:
+          - "@jest/globals"
+          - "jest"
+          - "jest-environment-jsdom"
+          - "@types/jest"
+      jest-deps-security-upgrades:
+        applies-to: security-updates
+        patterns:
+          - "@jest/globals"
+          - "jest"
+          - "jest-environment-jsdom"
+          - "@types/jest"
+    # Below version upgrades are ignored because auto-updates on every PR should handle them
+    # (package.json uses wildcards for minor and patch version definitions)
+    # Dependabot will still create PRs for security upgrades with any version.
+    ignore:
+      - dependency-name: "primeflex"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "primeicons"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "primereact"
+        update-types:
+          - version-update:semver-patch
+      - dependency-name: "react"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "react-dom"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "uuid"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
