@@ -1,6 +1,9 @@
 # For all configuration options, see the GitHub documentation:
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
+# TODO: using "groups", "directories" and "ignore" directives:
+#        * Group Python testing framework updates (mypy, flake8, ...) accross components? To be implemented and tested once such updates become available
+
 version: 2
 updates:
   - package-ecosystem: "github-actions"
