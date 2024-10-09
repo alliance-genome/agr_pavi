@@ -80,7 +80,16 @@ updates:
         patterns:
           - "boto3"
           - "botocore"
-
+    # Below version upgrades are ignored because auto-updates on every PR should handle them
+    # (pyproject.toml uses wildcards for minor/patch version definitions)
+    # Dependabot will still create PRs for security upgrades with any version.
+    ignore:
+      - dependency-name: "fastapi[standard]"
+        update-types:
+          - version-update:semver-patch
+      - dependency-name: "smart-open[s3]"
+        update-types:
+          - version-update:semver-patch
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
@@ -118,6 +127,19 @@ updates:
     directory: "/pipeline/seq_retrieval/"
     schedule:
       interval: "monthly"
+    # Below version upgrades are ignored because auto-updates on every PR should handle them
+    # (pyproject.toml uses wildcards for minor/patch version definitions)
+    # Dependabot will still create PRs for security upgrades with any version.
+    ignore:
+      - dependency-name: "click"
+        update-types:
+          - version-update:semver-patch
+      - dependency-name: "pysam"
+        update-types:
+          - version-update:semver-patch
+      - dependency-name: "requests"
+        update-types:
+          - version-update:semver-patch
     open-pull-requests-limit: 5
   - package-ecosystem: "npm"
     directory: "/webui/"
@@ -148,6 +170,33 @@ updates:
           - "jest"
           - "jest-environment-jsdom"
           - "@types/jest"
+    # Below version upgrades are ignored because auto-updates on every PR should handle them
+    # (package.json uses wildcards for minor and patch version definitions)
+    # Dependabot will still create PRs for security upgrades with any version.
+    ignore:
+      - dependency-name: "primeflex"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "primeicons"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "primereact"
+        update-types:
+          - version-update:semver-patch
+      - dependency-name: "react"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "react-dom"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "uuid"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
