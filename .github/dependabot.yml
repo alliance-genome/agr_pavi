@@ -69,6 +69,18 @@ updates:
     open-pull-requests-limit: 20
   - package-ecosystem: "pip"
     directory: "/api/"
+    groups:
+      aws-deps-version-upgrades:
+        applies-to: version-updates
+        patterns:
+          - "boto3"
+          - "botocore"
+      aws-deps-security-upgrades:
+        applies-to: security-updates
+        patterns:
+          - "boto3"
+          - "botocore"
+
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
@@ -109,6 +121,33 @@ updates:
     open-pull-requests-limit: 5
   - package-ecosystem: "npm"
     directory: "/webui/"
+    groups:
+      next-js-deps-version-upgrades:
+        applies-to: version-updates
+        patterns:
+          - "next"
+          - "@tsconfig/next"
+          - "eslint-config-next"
+      next-js-deps-security-upgrades:
+        applies-to: security-updates
+        patterns:
+          - "next"
+          - "@tsconfig/next"
+          - "eslint-config-next"
+      jest-deps-version-upgrades:
+        applies-to: version-updates
+        patterns:
+          - "@jest/globals"
+          - "jest"
+          - "jest-environment-jsdom"
+          - "@types/jest"
+      jest-deps-security-upgrades:
+        applies-to: security-updates
+        patterns:
+          - "@jest/globals"
+          - "jest"
+          - "jest-environment-jsdom"
+          - "@types/jest"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
