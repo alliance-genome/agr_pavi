@@ -44,31 +44,26 @@ updates:
       # (pyproject.toml uses wildcards for minor and patch version definition)
       # Dependabot will still create PRs for security upgrades with any version.
 
-      #Note: ignoring patch and minor version temporarily disabled to test grouping behaviour
-    #   - dependency-name: "aws-cdk-*"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "boto3"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "boto3-stubs"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "botocore"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "botocore-stubs"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "constructs"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
+      - dependency-name: "aws-cdk-*"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "boto3"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "boto3-stubs"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "botocore"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "botocore-stubs"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 20
@@ -95,15 +90,15 @@ updates:
     # (package.json uses wildcards for minor and patch version definitions)
     # Dependabot will still create PRs for security upgrades with any version.
     #Note: ignoring patch and minor version temporarily disabled to test grouping behaviour
-    # ignore:
-    #   - dependency-name: "aws-cdk"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
-    #   - dependency-name: "cdk"
-    #     update-types:
-    #       - version-update:semver-patch
-    #       - version-update:semver-minor
+    ignore:
+      - dependency-name: "aws-cdk"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "cdk"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
