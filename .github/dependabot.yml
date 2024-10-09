@@ -37,6 +37,7 @@ updates:
       - dependency-name: "typeguard"
       - dependency-name: "cattrs"
       - dependency-name: "s3transfer"
+      - dependency-name: "types-s3transfer"
       # Below version upgrades are ignored because auto-updates on every PR should handle them
       # (pyproject.toml uses wildcards for minor and patch version definition)
       # Dependabot will still create PRs for security upgrades with any version.
