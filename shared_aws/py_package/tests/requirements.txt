@@ -187,9 +187,9 @@ types-awscrt==0.21.5 \
     --hash=sha256:117ff2b1bb657f09d01b7e0ce3fe3fa6e039be12d30b826896182725c9ce85b1 \
     --hash=sha256:9f7f47de68799cb2bcb9e486f48d77b9f58962b92fba43cb8860da70b3c57d1b
     # via botocore-stubs
-types-s3transfer==0.10.2 \
-    --hash=sha256:60167a3bfb5c536ec6cdb5818f7f9a28edca9dc3e0b5ff85ae374526fc5e576e \
-    --hash=sha256:7a3fec8cd632e2b5efb665a355ef93c2a87fdd5a45b74a949f95a9e628a86356
+types-s3transfer==0.10.3 \
+    --hash=sha256:d34c5a82f531af95bb550927136ff5b737a1ed3087f90a59d545591dfde5b4cc \
+    --hash=sha256:f761b2876ac4c208e6c6b75cdf5f6939009768be9950c545b11b0225e7703ee7
     # via boto3-stubs
 typing-extensions==4.12.2 \
     --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
