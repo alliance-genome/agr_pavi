@@ -15,8 +15,8 @@ updates:
     open-pull-requests-limit: 5
   - package-ecosystem: "pip"
     directories:
-      - "**/aws_infra/"
-      - "shared_aws/py_package/"
+      - "**/aws_infra"
+      - "shared_aws/py_package"
     groups:
       cdk-deps-version-updates:
         applies-to: version-updates
@@ -41,6 +41,7 @@ updates:
       #       Then remove this sub-dependency ignore list
       - dependency-name: "typeguard"
       - dependency-name: "cattrs"
+      - dependency-name: "s3transfer"
       # Below version upgrades are ignored because auto-updates on every PR should handle them
       # (pyproject.toml uses wildcards for minor and patch version definition)
       # Dependabot will still create PRs for security upgrades with any version.
