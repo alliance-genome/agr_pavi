@@ -198,15 +198,11 @@ updates:
           - "react-dom"
           - "@types/react"
           - "@types/react-dom"
-      node-deps-version-upgrades:
-        applies-to: version-updates
-        patterns:
-          - "node"
-          - "@types/node"
+    ignore:
+      - dependency-name: "@types/node"  # Ignored because minor/patch upgrade are enabled through wildcard version specifier in manifest, while major upgrades require node upgrade (simultaneously), which dependabot does not support.
     # Below version upgrades are ignored because auto-updates on every PR should handle them
     # (package.json uses wildcards for minor and patch version definitions)
     # Dependabot will still create PRs for security upgrades with any version.
-    ignore:
       - dependency-name: "primeflex"
         update-types:
           - version-update:semver-patch
@@ -235,14 +231,6 @@ updates:
           - version-update:semver-patch
           - version-update:semver-minor
       - dependency-name: "@types/react-dom"
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
-      - dependency-name: "node"
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
-      - dependency-name: "@types/node"
         update-types:
           - version-update:semver-patch
           - version-update:semver-minor
