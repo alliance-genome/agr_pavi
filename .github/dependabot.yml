@@ -83,10 +83,10 @@ updates:
         patterns:
           - "boto3"
           - "botocore"
-    # Below version upgrades are ignored because auto-updates on every PR should handle them
-    # (pyproject.toml uses wildcards for minor/patch version definitions)
-    # Dependabot will still create PRs for security upgrades with any version.
     ignore:
+      # Below version upgrades are ignored because auto-updates on every PR should handle them
+      # (pyproject.toml uses wildcards for minor/patch version definitions)
+      # Dependabot will still create PRs for security upgrades with any version.
       - dependency-name: "fastapi[standard]"
         update-types:
           - version-update:semver-patch
@@ -95,7 +95,6 @@ updates:
           - version-update:semver-patch
       # Subdependencies temporarily added to ignore list to deal with lack of subdependency support in requirements.txt files.
       # TODO: migrate to poetry 2.* once released as stable release (support for PEP-621-defined pyproject.toml files)
-      # TODO: continue expanding ignore lists for all components to remove all irrelevant version-update PRs
       - dependency-name: "httpcore"
       - dependency-name: "websockets"
       - dependency-name: "uvicorn[standard]"
@@ -104,6 +103,10 @@ updates:
       - dependency-name: "coverage[toml]"
       - dependency-name: "cattrs"
       - dependency-name: "rich"
+      - dependency-name: "idna"
+      - dependency-name: "aws-cdk-*"
+      - dependency-name: "starlette"
+      - dependency-name: "markupsafe"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
@@ -195,15 +198,11 @@ updates:
           - "react-dom"
           - "@types/react"
           - "@types/react-dom"
-      node-deps-version-upgrades:
-        applies-to: version-updates
-        patterns:
-          - "node"
-          - "@types/node"
+    ignore:
+      - dependency-name: "@types/node"  # Ignored because minor/patch upgrade are enabled through wildcard version specifier in manifest, while major upgrades require node upgrade (simultaneously), which dependabot does not support.
     # Below version upgrades are ignored because auto-updates on every PR should handle them
     # (package.json uses wildcards for minor and patch version definitions)
     # Dependabot will still create PRs for security upgrades with any version.
-    ignore:
       - dependency-name: "primeflex"
         update-types:
           - version-update:semver-patch
@@ -235,11 +234,7 @@ updates:
         update-types:
           - version-update:semver-patch
           - version-update:semver-minor
-      - dependency-name: "node"
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
-      - dependency-name: "@types/node"
+      - dependency-name: "postcss"
         update-types:
           - version-update:semver-patch
           - version-update:semver-minor
