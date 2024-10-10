@@ -100,6 +100,10 @@ updates:
       - dependency-name: "websockets"
       - dependency-name: "uvicorn[standard]"
       - dependency-name: "python-multipart"
+      - dependency-name: "anyio"
+      - dependency-name: "coverage[toml]"
+      - dependency-name: "cattrs"
+      - dependency-name: "rich"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
@@ -134,12 +138,15 @@ updates:
     open-pull-requests-limit: 5
   - package-ecosystem: "pip"
     directory: "/pipeline/seq_retrieval/"
-    schedule:
-      interval: "monthly"
-    # Below version upgrades are ignored because auto-updates on every PR should handle them
-    # (pyproject.toml uses wildcards for minor/patch version definitions)
-    # Dependabot will still create PRs for security upgrades with any version.
     ignore:
+      # Ignored subdependencies (waiting for poetry 2.*)
+      - dependency-name: "coverage[toml]"
+      - dependency-name: "charset-normalizer"
+      - dependency-name: "numpy"
+      - dependency-name: "idna"
+      # Below version upgrades are ignored because auto-updates on every PR should handle them
+      # (pyproject.toml uses wildcards for minor/patch version definitions)
+      # Dependabot will still create PRs for security upgrades with any version.
       - dependency-name: "click"
         update-types:
           - version-update:semver-patch
@@ -149,6 +156,8 @@ updates:
       - dependency-name: "requests"
         update-types:
           - version-update:semver-patch
+    schedule:
+      interval: "monthly"
     open-pull-requests-limit: 5
   - package-ecosystem: "npm"
     directory: "/webui/"
