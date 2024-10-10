@@ -93,6 +93,13 @@ updates:
       - dependency-name: "smart-open[s3]"
         update-types:
           - version-update:semver-patch
+      # Subdependencies temporarily added to ignore list to deal with lack of subdependency support in requirements.txt files.
+      # TODO: migrate to poetry 2.* once released as stable release (support for PEP-621-defined pyproject.toml files)
+      # TODO: continue expanding ignore lists for all components to remove all irrelevant version-update PRs
+      - dependency-name: "httpcore"
+      - dependency-name: "websockets"
+      - dependency-name: "uvicorn[standard]"
+      - dependency-name: "python-multipart"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
@@ -172,6 +179,18 @@ updates:
           - "jest"
           - "jest-environment-jsdom"
           - "@types/jest"
+      react-deps-version-upgrades:
+        applies-to: version-updates
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      node-deps-version-upgrades:
+        applies-to: version-updates
+        patterns:
+          - "node"
+          - "@types/node"
     # Below version upgrades are ignored because auto-updates on every PR should handle them
     # (package.json uses wildcards for minor and patch version definitions)
     # Dependabot will still create PRs for security upgrades with any version.
@@ -196,6 +215,22 @@ updates:
           - version-update:semver-patch
           - version-update:semver-minor
       - dependency-name: "uuid"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "@types/react"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "@types/react-dom"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "node"
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+      - dependency-name: "@types/node"
         update-types:
           - version-update:semver-patch
           - version-update:semver-minor
