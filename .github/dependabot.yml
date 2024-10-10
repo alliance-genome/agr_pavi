@@ -43,6 +43,7 @@ updates:
       - dependency-name: "types-s3transfer"
       - dependency-name: "aws-cdk-cloud-assembly-schema"
       - dependency-name: "constructs"
+      - dependency-name: "types-awscrt"
       # Below version upgrades are ignored because auto-updates on every PR should handle them
       # (pyproject.toml uses wildcards for minor and patch version definition)
       # Dependabot will still create PRs for security upgrades with any version.
@@ -73,11 +74,6 @@ updates:
   - package-ecosystem: "pip"
     directory: "/api/"
     groups:
-      aws-deps-version-upgrades:
-        applies-to: version-updates
-        patterns:
-          - "boto3"
-          - "botocore"
       aws-deps-security-upgrades:
         applies-to: security-updates
         patterns:
@@ -101,12 +97,21 @@ updates:
       - dependency-name: "python-multipart"
       - dependency-name: "anyio"
       - dependency-name: "coverage[toml]"
-      - dependency-name: "cattrs"
       - dependency-name: "rich"
       - dependency-name: "idna"
       - dependency-name: "aws-cdk-*"
       - dependency-name: "starlette"
       - dependency-name: "markupsafe"
+      - dependency-name: "pydantic"
+      - dependency-name: "pydantic-core"
+      - dependency-name: "typeguard"
+      - dependency-name: "cattrs"
+      - dependency-name: "s3transfer"
+      - dependency-name: "types-s3transfer"
+      - dependency-name: "aws-cdk-cloud-assembly-schema"
+      - dependency-name: "constructs"
+      - dependency-name: "boto3"
+      - dependency-name: "botocore"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
