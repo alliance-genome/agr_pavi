@@ -103,6 +103,10 @@ updates:
       - dependency-name: "coverage[toml]"
       - dependency-name: "cattrs"
       - dependency-name: "rich"
+      - dependency-name: "idna"
+      - dependency-name: "aws-cdk-*"
+      - dependency-name: "starlette"
+      - dependency-name: "markupsafe"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
