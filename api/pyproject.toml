@@ -9,7 +9,7 @@ authors = [
 
 requires-python = "==3.12.*"
 dependencies = [
-    "fastapi[standard]==0.112.*",
+    "fastapi[standard]==0.115.*",
     "smart-open[s3]==7.0.*"
 ]
 
