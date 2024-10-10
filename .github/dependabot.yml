@@ -112,6 +112,8 @@ updates:
       - dependency-name: "constructs"
       - dependency-name: "boto3"
       - dependency-name: "botocore"
+      - dependency-name: "dnspython"
+      - dependency-name: "email-validator"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
