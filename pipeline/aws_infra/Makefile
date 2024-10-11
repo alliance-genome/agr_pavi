@@ -66,19 +66,35 @@ update-deps-locks-all: update-deps-lock update-test-deps-lock update-cdk-cli-loc
 install-cdk-cli: package-lock.json
 	npm install
 
+install-cdk-cli-update-dev:
+	@$(MAKE) --no-print-directory update-cdk-cli-lock
+	@$(MAKE) --no-print-directory install-cdk-cli
+
 install-deps: .venv/ requirements.txt
 	.venv/bin/pip install -r requirements.txt
 
 install-deps-update-dev: .venv/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only
 	.venv/bin/pip uninstall -y pavi_shared_aws
-	.venv/bin/pip install -U -r requirements.txt
+	@$(MAKE) --no-print-directory update-deps-lock
+	@$(MAKE) --no-print-directory install-deps
 
 install-test-deps: .venv/ tests/requirements.txt
 	.venv/bin/pip install -r tests/requirements.txt
 
 install-test-deps-update-dev: .venv/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only
 	.venv/bin/pip uninstall -y pavi_shared_aws
-	.venv/bin/pip install -U -r tests/requirements.txt
+	@$(MAKE) --no-print-directory update-test-deps-lock
+	@$(MAKE) --no-print-directory install-test-deps
+
+install-deps-all:
+	@$(MAKE) --no-print-directory install-deps
+	@$(MAKE) --no-print-directory install-test-deps
+	@$(MAKE) --no-print-directory install-cdk-cli
+
+install-deps-update-all:
+	@$(MAKE) --no-print-directory update-deps-locks-all
+	.venv/bin/pip uninstall -y pavi_shared_aws
+	@$(MAKE) --no-print-directory install-deps-all
 
 run-unit-tests: install-test-deps
 	.venv/bin/python -m pytest
