@@ -40,7 +40,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -74,7 +74,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -136,7 +136,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -251,7 +251,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Bundle all deps lock files
         run: |
           tar -czv -f shared-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
@@ -344,7 +344,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Bundle all deps lock files
         run: |
           tar -czv -f pipeline-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
@@ -382,7 +382,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Bundle all deps lock files
         run: |
           tar -czv -f api-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
@@ -420,7 +420,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Bundle all deps lock files
         run: |
           tar -czv -f webui-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json

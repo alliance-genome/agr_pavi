@@ -24,6 +24,9 @@ install-cypress-deps:
 update-deps-lock:
 	npm update --package-lock-only
 
+update-deps-locks-all: update-deps-lock
+	@:
+
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
 	@$(eval DOCKER_LOGIN_CMD=docker run --rm -it -v ~/.aws:/root/.aws amazon/aws-cli)

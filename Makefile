@@ -41,3 +41,13 @@ deploy-dev:
                                                PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
                                                EB_ENV_CDK_STACK_NAME=PaviWebUiEbDevStack \
 											   ADD_CDK_ARGS="--require-approval any-change"
+
+update-deps-locks-all:
+	$(MAKE) -C pipeline/seq_retrieval/ update-deps-locks-all
+	$(MAKE) -C api/ update-deps-locks-all
+	$(MAKE) -C webui/ update-deps-locks-all
+	$(MAKE) -C shared_aws/py_package/ update-deps-locks-all
+	$(MAKE) -C shared_aws/aws_infra/ update-deps-locks-all
+	$(MAKE) -C pipeline/aws_infra/ update-deps-locks-all
+	$(MAKE) -C api/aws_infra/ update-deps-locks-all
+	$(MAKE) -C webui/aws_infra/ update-deps-locks-all
