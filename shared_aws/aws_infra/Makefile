@@ -66,9 +66,6 @@ update-cdk-cli-lock: package-lock.json
 update-deps-locks-all: update-deps-lock update-test-deps-lock update-cdk-cli-lock
 	@:
 
-package-lock.json:
-	npm install --package-lock-only
-
 install-cdk-cli: package-lock.json
 	npm install
 
