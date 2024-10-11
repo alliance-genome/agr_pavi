@@ -40,7 +40,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -74,7 +74,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -136,7 +136,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -251,18 +251,15 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools update-deps-lock update-test-deps-lock
-      - name: Upload updated (main) lock file as artifact
+          make update-deps-locks-all
+      - name: Bundle all deps lock files
+        run: |
+          tar -czv -f shared-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
+      - name: Upload deps-lock-files bundle as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: shared_aws_infra_deps_lock
-          path: shared_aws/aws_infra/requirements.txt
-          if-no-files-found: error
-      - name: Upload updated (test) lock file as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: shared_aws_infra_test_deps_lock
-          path: shared_aws/aws_infra/tests/requirements.txt
+          name: shared_aws_infra_deps_locks_bundle
+          path: shared_aws/aws_infra/shared-aws-infra-deps-locks.tar.gz
           if-no-files-found: error
   shared-aws-infra-code-checks:
     name: shared_aws infra code checks
@@ -287,16 +284,14 @@ jobs:
       with:
         name: shared_aws_py_package
         path: /tmp/
-    - name: Download updated shared_aws infra prod dependencies lock file
+    - name: Download updated shared_aws/aws_infra dependencies lock files bundle
       uses: actions/download-artifact@v4
       with:
-        name: shared_aws_infra_deps_lock
+        name: shared_aws_infra_deps_locks_bundle
         path: shared_aws/aws_infra
-    - name: Download updated shared_aws infra test dependencies lock file
-      uses: actions/download-artifact@v4
-      with:
-        name: shared_aws_infra_test_deps_lock
-        path: shared_aws/aws_infra/tests
+    - name: Unpack the bundle
+      run: |
+        tar -xzv -f shared-aws-infra-deps-locks.tar.gz
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -349,7 +344,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Bundle all deps lock files
         run: |
           tar -czv -f pipeline-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
@@ -387,7 +382,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Bundle all deps lock files
         run: |
           tar -czv -f api-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
@@ -425,7 +420,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
         run: |
-          make pip-tools update-deps-lock update-test-deps-lock
+          make update-deps-locks-all
       - name: Bundle all deps lock files
         run: |
           tar -czv -f webui-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
@@ -1187,16 +1182,15 @@ jobs:
         with:
           name: shared_aws_py_package_test_deps_lock
           path: shared_aws/py_package/tests
-      - name: Download updated shared_aws infra prod dependencies lock file
+      - name: Download updated shared_aws/aws_infra dependencies lock files bundle
         uses: actions/download-artifact@v4
         with:
-          name: shared_aws_infra_deps_lock
+          name: shared_aws_infra_deps_locks_bundle
           path: shared_aws/aws_infra
-      - name: Download updated shared_aws infra test dependencies lock file
-        uses: actions/download-artifact@v4
-        with:
-          name: shared_aws_infra_test_deps_lock
-          path: shared_aws/aws_infra/tests
+      - name: Unpack the bundle
+        working-directory: shared_aws/aws_infra/
+        run: |
+          tar -xzv -f shared-aws-infra-deps-locks.tar.gz
       - name: Download updated api/aws_infra dependencies lock files bundle
         uses: actions/download-artifact@v4
         with:

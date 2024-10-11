@@ -16,7 +16,7 @@ app = App()
 # If so, commit, build and install the new package.
 # Then update all PAVI components implementing this Class method to:
 #  1. Implement the new package
-#      1.1 run `make update-deps-lock update-test-deps-lock` to update the lock files
+#      1.1 run `make update-deps-locks-all` to update the lock files
 #      1.2 run `pip uninstall pavi_shared_aws` to uninstall the old package version
 #      1.3 run `make install-test-deps` to install the new version
 #  2. Open the IDE to update all code implementing the ImageRepoCdkStack class to use the new signature.

@@ -9,9 +9,9 @@ authors = [
 requires-python = "==3.12.*"
 dependencies = [
     # CDK requirements
-    "aws-cdk-lib==2.*",
+    "aws-cdk-lib==2.*,<2.162",
     # Helper requirements
-    "boto3==1.35.*",
+    "boto3==1.*",
     "click==8.1.*",
 ]
 
@@ -20,7 +20,7 @@ test = [
     "flake8==7.1.*",
     "mypy==1.11.*",
     "pytest==8.3.*",
-    "boto3-stubs==1.35.*"
+    "boto3-stubs==1.*"
 ]
 
 [build-system]

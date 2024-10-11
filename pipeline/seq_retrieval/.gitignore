@@ -73,7 +73,7 @@ celerybeat.pid
 
 ## (virtual) environments
 .env
-.venv
+.venv*
 env/
 venv/
 ENV/

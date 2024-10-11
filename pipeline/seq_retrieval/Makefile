@@ -1,3 +1,5 @@
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 CONTAINER_NAME=agr_pavi/pipeline_seq_retrieval
 TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
@@ -7,7 +9,7 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-.PHONY: check-% clean container-image install-% pip-tools push-% registry-docker-login run-% update-% _vars-% _write-lock-file
+.PHONY: check-% clean container-image install-% push-% registry-docker-login run-% update-% _vars-% _write-lock-file
 
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
@@ -30,32 +32,32 @@ push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
-pip-tools:
-	pip install pip-tools==7.4.1
-
 requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) _vars-main-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 tests/requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) _vars-test-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 update-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) _vars-main-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
 update-test-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) _vars-test-deps))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
+	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+
+update-deps-locks-all: update-deps-lock update-test-deps-lock
+	@:
 
 install-deps: .venv/ requirements.txt
 	.venv/bin/pip install -r requirements.txt
@@ -85,6 +87,10 @@ run-build-checks: containter-image
 .venv/:
 	python3.12 -m venv .venv/
 
+.venv-build/:
+	python3.12 -m venv .venv-build/
+	.venv-build/bin/pip install pip-tools==7.4.1
+
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
 
@@ -97,5 +103,5 @@ _vars-no-upgrade:
 _vars-upgrade-all:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
 
-_write-lock-file:
-	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
+_write-lock-file: .venv-build/
+	.venv-build/bin/pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
