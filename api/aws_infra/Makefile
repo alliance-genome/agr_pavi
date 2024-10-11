@@ -13,7 +13,7 @@ EB_APP_CDK_STACK_NAME ?= PaviApiEbApplicationCdkStack
 ADD_CDK_ARGS ?=
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: deploy-% install-% pip-tools run-% update-% validate-% _vars-% _write-lock-file
+.PHONY: deploy-% install-% run-% update-% validate-% _vars-% _write-lock-file
 
 .venv/:
 	python3.12 -m venv .venv/
@@ -22,8 +22,9 @@ clean:
 	rm -rf .venv/ || true
 	rm -rf node_modules/ || true
 
-pip-tools:
-	pip install pip-tools==7.4.1
+.venv-build/:
+	python3.12 -m venv .venv-build/
+	.venv-build/bin/pip install pip-tools==7.4.1
 
 requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
@@ -151,5 +152,5 @@ _vars-upgrade-all:
 _vars-upgrade-shared-aws-only:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-P pavi_shared_aws"
 
-_write-lock-file:
-	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
+_write-lock-file: .venv-build/
+	.venv-build/bin/pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

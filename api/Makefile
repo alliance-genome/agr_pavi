@@ -3,7 +3,7 @@ TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-% clean install-% pip-tools run-% update-% _vars-% _write-lock-file
+.PHONY: check-% clean install-% run-% update-% _vars-% _write-lock-file
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
@@ -44,8 +44,9 @@ run-server-dev: install-deps nextflow.sh protein-msa.nf nextflow.config
 .venv/:
 	python3.12 -m venv .venv/
 
-pip-tools:
-	pip install pip-tools==7.4.1
+.venv-build/:
+	python3.12 -m venv .venv-build/
+	.venv-build/bin/pip install pip-tools==7.4.1
 
 requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
@@ -110,5 +111,5 @@ _vars-no-upgrade:
 _vars-upgrade-all:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
 
-_write-lock-file:
-	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
+_write-lock-file: .venv-build/
+	.venv-build/bin/pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

@@ -7,7 +7,7 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-.PHONY: check-% clean container-image install-% pip-tools push-% registry-docker-login run-% update-% _vars-% _write-lock-file
+.PHONY: check-% clean container-image install-% push-% registry-docker-login run-% update-% _vars-% _write-lock-file
 
 registry-docker-login:
 ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
@@ -29,9 +29,6 @@ container-image:
 push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
-
-pip-tools:
-	pip install pip-tools==7.4.1
 
 requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
@@ -85,6 +82,10 @@ run-build-checks: containter-image
 .venv/:
 	python3.12 -m venv .venv/
 
+.venv-build/:
+	python3.12 -m venv .venv-build/
+	.venv-build/bin/pip install pip-tools==7.4.1
+
 _vars-main-deps:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
 
@@ -97,5 +98,5 @@ _vars-no-upgrade:
 _vars-upgrade-all:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
 
-_write-lock-file:
-	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
+_write-lock-file: .venv-build/
+	.venv-build/bin/pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

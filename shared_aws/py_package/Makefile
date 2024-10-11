@@ -1,6 +1,6 @@
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-% clean install install-% pip-tools run-% update-% _vars-% _write-lock-file
+.PHONY: check-% clean install install-% run-% update-% _vars-% _write-lock-file
 
 .venv/:
 	python3.12 -m venv .venv/
@@ -24,8 +24,9 @@ clean:
 	rm -rf build/ || true
 	rm dist/* || true
 
-pip-tools:
-	pip install pip-tools==7.4.1
+.venv-build/:
+	python3.12 -m venv .venv-build/
+	.venv-build/bin/pip install pip-tools==7.4.1
 
 requirements.txt:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
@@ -87,5 +88,5 @@ _vars-no-upgrade:
 _vars-upgrade-all:
 	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
 
-_write-lock-file:
-	pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
+_write-lock-file: .venv-build/
+	.venv-build/bin/pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
