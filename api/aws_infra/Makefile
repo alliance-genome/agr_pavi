@@ -38,12 +38,14 @@ tests/requirements.txt:
 	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
+package-lock.json:
+	npm install --package-lock-only
+
 update-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
 	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
 	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
-	npm update --package-lock-only
 
 update-test-deps-lock:
 	$(eval EXTRA_PIP_COMPILE_ARGS:=)
@@ -63,10 +65,13 @@ update-test-deps-lock-shared-aws-only:
 	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
 	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
 
-update-deps-locks-all: update-deps-lock update-test-deps-lock
+update-cdk-cli-lock: package-lock.json
+	npm update --package-lock-only
+
+update-deps-locks-all: update-deps-lock update-test-deps-lock update-cdk-cli-lock
 	@:
 
-install-cdk-cli:
+install-cdk-cli: package-lock.json
 	npm install
 
 install-deps: requirements.txt .venv/
