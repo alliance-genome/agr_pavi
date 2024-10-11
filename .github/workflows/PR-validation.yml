@@ -259,7 +259,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shared_aws_infra_deps_locks_bundle
-          path: shared/aws_infra/shared-aws-infra-deps-locks.tar.gz
+          path: shared_aws/aws_infra/shared-aws-infra-deps-locks.tar.gz
           if-no-files-found: error
   shared-aws-infra-code-checks:
     name: shared_aws infra code checks
