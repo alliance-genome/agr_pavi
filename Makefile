@@ -47,6 +47,7 @@ update-deps-locks-all:
 	$(MAKE) -C api/ update-deps-locks-all
 	$(MAKE) -C webui/ update-deps-locks-all
 	$(MAKE) -C shared_aws/py_package/ update-deps-locks-all
+	$(MAKE) -C shared_aws/py_package/ clean build install
 	$(MAKE) -C shared_aws/aws_infra/ update-deps-locks-all
 	$(MAKE) -C pipeline/aws_infra/ update-deps-locks-all
 	$(MAKE) -C api/aws_infra/ update-deps-locks-all
