@@ -30,23 +30,23 @@ aws-cdk-lib==2.162.1 \
     --hash=sha256:5c8157f144acecb40fa190bd49feb669f5be5d1bb2cf7bf7b0cdc3daa19615d9 \
     --hash=sha256:696cf76ebe8ee6cb4af14e5d621cf551659e27c5c5c0e6c0146e478eada6195b
     # via pavi_shared_aws (pyproject.toml)
-boto3==1.35.40 \
-    --hash=sha256:33c6a7aeab316f7e0b3ad8552afe95a4a10bfd58519d00741c4d4f3047da8382 \
-    --hash=sha256:9352f6d61f15c789231a5d608613f03425059072ed862c32e1ed102b17206abf
+boto3==1.35.41 \
+    --hash=sha256:2bf7e7f376aee52155fc4ae4487f29333a6bcdf3a05c3bc4fede10b972d951a6 \
+    --hash=sha256:e74bc6d69c04ca611b7f58afe08e2ded6cb6504a4a80557b656abeefee395f88
     # via pavi_shared_aws (pyproject.toml)
-boto3-stubs==1.35.40 \
-    --hash=sha256:d845700ef89fbc523e5524b7d2645a83d6ec5701cca0b4e9905409c3911346b5 \
-    --hash=sha256:f586ba655d91e2967c3e735b42e36762761a0aa2923ec7d86b5b71f04c41b0a8
+boto3-stubs==1.35.41 \
+    --hash=sha256:5884048edf0581479ecc3726c0b4b6d83640b5590d4646cbd229bae8f5a5666b \
+    --hash=sha256:724c5999390eed5ed84832dcd003d1dcd1b12c941e50f6a6f63378c407d8fa0a
     # via pavi_shared_aws (pyproject.toml)
-botocore==1.35.40 \
-    --hash=sha256:072cc47f29cb1de4fa77ce6632e4f0480af29b70816973ff415fbaa3f50bd1db \
-    --hash=sha256:547e0a983856c7d7aeaa30fca2a283873c57c07366cd806d2d639856341b3c31
+botocore==1.35.41 \
+    --hash=sha256:8a09a32136df8768190a6c92f0240cd59c30deb99c89026563efadbbed41fa00 \
+    --hash=sha256:915c4d81e3a0be3b793c1e2efdf19af1d0a9cd4a2d8de08ee18216c14d67764b
     # via
     #   boto3
     #   s3transfer
-botocore-stubs==1.35.40 \
-    --hash=sha256:266e72603cad6927040b2a2d7dcbf0b11240833c213274a0bec8052b214931c0 \
-    --hash=sha256:a1eb2fb186059d667f0583df6d4d3419b7e47c33ad9ab082e970f819c0f511af
+botocore-stubs==1.35.41 \
+    --hash=sha256:62e369aed694471eaf72305cd2f33c356337d49637a5fcc17fc2ef237e8f517f \
+    --hash=sha256:99e8f0e20266b2abc0e095ef19e8e628a926c25c4a0edbfd25978f484677bac6
     # via boto3-stubs
 cattrs==24.1.2 \
     --hash=sha256:67c7495b760168d931a10233f979b28dc04daf853b30752246f4f8471c6d68d0 \
