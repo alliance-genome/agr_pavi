@@ -8,20 +8,20 @@ annotated-types==0.7.0 \
     --hash=sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53 \
     --hash=sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89
     # via pydantic
-anyio==4.6.0 \
-    --hash=sha256:137b4559cbb034c477165047febb6ff83f390fc3b20bf181c1fc0a728cb8beeb \
-    --hash=sha256:c7d2e9d63e31599eeb636c8c5c03a7e108d73b345f064f1c19fdc87b79036a9a
+anyio==4.6.2.post1 \
+    --hash=sha256:4c8bc31ccdb51c7f7bd251f51c609e038d63e34219b44aa86e47576389880b4c \
+    --hash=sha256:6d170c36fba3bdd840c73d3868c1e777e33676a69c3a72cf0a0d5d6d8009b61d
     # via
     #   httpx
     #   starlette
     #   watchfiles
-boto3==1.35.38 \
-    --hash=sha256:234a475fe56b65e99b4f5cfff50adaac6b23d39558d6b55137bbf1e50dd0ef08 \
-    --hash=sha256:90c8cddc4a08c8040057ad44c7468ff82fea9fe8b6517db5ff01a9b2900299cc
+boto3==1.35.40 \
+    --hash=sha256:33c6a7aeab316f7e0b3ad8552afe95a4a10bfd58519d00741c4d4f3047da8382 \
+    --hash=sha256:9352f6d61f15c789231a5d608613f03425059072ed862c32e1ed102b17206abf
     # via smart-open
-botocore==1.35.38 \
-    --hash=sha256:2eb17d32fa2d3bb5d475132a83564d28e3acc2161534f24b75a54418a1d51359 \
-    --hash=sha256:55d9305c44e5ba29476df456120fa4fb919f03f066afa82f2ae400485e7465f4
+botocore==1.35.40 \
+    --hash=sha256:072cc47f29cb1de4fa77ce6632e4f0480af29b70816973ff415fbaa3f50bd1db \
+    --hash=sha256:547e0a983856c7d7aeaa30fca2a283873c57c07366cd806d2d639856341b3c31
     # via
     #   boto3
     #   s3transfer
