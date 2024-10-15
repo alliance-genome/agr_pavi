@@ -7,6 +7,10 @@ services:
       - "8080:8080"
     networks:
       - pavi
+    logging:
+      driver: gelf
+      options:
+        gelf-address: 'udp://logs.alliancegenome.org:12201'
 
 networks:
   # The presence of these objects is sufficient to define them
