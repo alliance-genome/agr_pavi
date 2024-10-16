@@ -79,3 +79,11 @@ def test_pipeline_execution_environment() -> None:
             "JobQueueName": "pavi_pipeline"
         }
     })
+
+
+def test_pipeline_logs_group() -> None:
+    template.has_resource(type='AWS::Logs::LogGroup', props={
+        "Properties": {
+            "LogGroupName": "pavi/pipeline-batch-jobs"
+        }
+    })
