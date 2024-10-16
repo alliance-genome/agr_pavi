@@ -1,4 +1,4 @@
-RELEASE=24.04.2
+NEXTFLOW_VERSION=24.04.4
 AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
@@ -23,7 +23,7 @@ endif
 endif
 
 nextflow.sh:
-	curl -L https://github.com/nextflow-io/nextflow/releases/download/v${RELEASE}/nextflow-${RELEASE}-all -o nextflow.sh
+	curl -L https://github.com/nextflow-io/nextflow/releases/download/v${NEXTFLOW_VERSION}/nextflow-${NEXTFLOW_VERSION}-all -o nextflow.sh
 	chmod u+x nextflow.sh
 
 build-workflow-local-deps:
