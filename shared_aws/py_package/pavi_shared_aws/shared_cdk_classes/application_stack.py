@@ -120,6 +120,11 @@ def defineEbEnvironmentCdkConstructs(
             value='AGR-ssl2'
         ),
         eb.CfnEnvironment.OptionSettingProperty(
+            namespace='aws:autoscaling:launchconfiguration',
+            option_name='SecurityGroups',  # Security groups added in addition to the EB-created security group
+            value='sg-0451f962e9b18aefa'  # Security group allowing write-to-log-server access
+        ),
+        eb.CfnEnvironment.OptionSettingProperty(
             namespace='aws:elasticbeanstalk:application:environment',
             option_name='NET',
             value=env_suffix
