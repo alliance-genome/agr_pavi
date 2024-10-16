@@ -21,6 +21,7 @@ class CdkInfraStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, env_suffix: str = "",
                  shared_seq_retrieval_image_repo: Optional[str] = None,
                  shared_alignment_image_repo: Optional[str] = None,
+                 shared_logs_group: Optional[str] = None,
                  shared_work_dir_bucket: Optional[str] = None,
                  **kwargs: Any) -> None:
         """
@@ -30,6 +31,7 @@ class CdkInfraStack(Stack):
             env_suffix: environment suffix, added to created resource names
             shared_seq_retrieval_image_repo: when defined, use ECR repo with defined the value as repoName as seq_retrieval image repo
             shared_alignment_image_repo: when defined, use ECR repo with defined the value as repoName as alignment image repo
+            shared_logs_group: when defined, use CW log group with the defined value as logGroupName as Nextflow batch log group
             shared_work_dir_bucket: when defined, use S3 bucket with defined the value as bucketName as Nextflow workdir bucket
         """
         super().__init__(scope, construct_id, **kwargs)
@@ -52,4 +54,4 @@ class CdkInfraStack(Stack):
             cdk_tags.of(self.alignment_ecr_repo).add("Product", "PAVI")
             cdk_tags.of(self.alignment_ecr_repo).add("Managed_by", "PAVI")
 
-        self.execution_environment = PaviExecutionEnvironment(self, env_suffix=env_suffix, shared_work_dir_bucket=shared_work_dir_bucket)
+        self.execution_environment = PaviExecutionEnvironment(self, env_suffix=env_suffix, shared_logs_group=shared_logs_group, shared_work_dir_bucket=shared_work_dir_bucket)

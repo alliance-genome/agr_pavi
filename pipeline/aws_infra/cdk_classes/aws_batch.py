@@ -1,6 +1,7 @@
 from aws_cdk import (
     Duration,
     aws_batch,
+    aws_logs as cwl,
     aws_ec2 as ec2,
     aws_iam as iam,
     RemovalPolicy,
@@ -18,18 +19,20 @@ min_compute_vcpu: int = int(getenv('PAVI_COMPUTE_MIN_VCPU', 0))
 
 class PaviExecutionEnvironment:
 
+    batch_log_group: cwl.ILogGroup
     compute_environment: aws_batch.ManagedEc2EcsComputeEnvironment
     job_queue: aws_batch.JobQueue
     nf_output_bucket: s3.Bucket | s3.IBucket
     nf_aws_execution_policy: iam.ManagedPolicy
 
-    def __init__(self, scope: Stack, env_suffix: str, shared_work_dir_bucket: Optional[str]) -> None:
+    def __init__(self, scope: Stack, env_suffix: str, shared_logs_group: Optional[str], shared_work_dir_bucket: Optional[str]) -> None:
         """
         Defines the PAVI execution environment.
 
         Args:
             scope: CDK Stack to which the construct belongs
             env_suffix: environment suffix, added to created resource names
+            shared_logs_group: when defined, use CW log group with the defined value as logGroupName as Nextflow batch log group
             shared_work_dir_bucket: when defined, use S3 bucket with defined the value as bucketName as Nextflow workdir bucket
         """
 
@@ -88,6 +91,17 @@ class PaviExecutionEnvironment:
                                  })
         cdk_tags.of(instance_role).add("Product", "PAVI")  # type: ignore
         cdk_tags.of(instance_role).add("Managed_by", "PAVI")  # type: ignore
+
+        if not shared_logs_group:
+            self.batch_log_group = cwl.LogGroup(
+                scope, 'pipeline-log-group',
+                log_group_name='pavi/pipeline-batch-jobs',
+                retention=cwl.RetentionDays.INFINITE
+            )
+        else:
+            self.batch_log_group = cwl.LogGroup.from_log_group_name(
+                scope, 'pipeline-log-group',
+                log_group_name=shared_logs_group)
 
         ce_name = 'pavi_pipeline_ecs'
         if env_suffix:
