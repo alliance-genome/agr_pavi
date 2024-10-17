@@ -27,10 +27,10 @@ validate-dev:
 
 deploy-dev:
 	make -C pipeline/aws_infra/ validate deploy
-#	make -C pipeline/seq_retrieval/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
-#	make -C pipeline/alignment/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
-#	make -C api/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
-#	make -C webui/ docker-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
+	make -C pipeline/seq_retrieval/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
+	make -C pipeline/alignment/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
+	make -C api/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
+	make -C webui/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
 	make -C api/aws_infra deploy-application PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" ADD_CDK_ARGS="--require-approval any-change"
 	make -C api/aws_infra deploy-environment PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" \
 	                                         PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \

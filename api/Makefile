@@ -5,6 +5,10 @@ TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
 EXTRA_PIP_COMPILE_ARGS ?=
 
+AWS_DEFAULT_REGION := us-east-1
+AWS_ACCT_NR=100225593120
+REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+
 .PHONY: check-% clean install-% run-% update-% _vars-% _write-lock-file
 
 clean:
@@ -20,6 +24,20 @@ clean:
 container-image:
 	cd ../ && \
 	docker build ${ADDITIONAL_BUILD_ARGS} -f api/Dockerfile -t ${CONTAINER_NAME} .
+
+push-container-image: registry-docker-login
+	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
+	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
+
+registry-docker-login:
+ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
+	@$(eval DOCKER_LOGIN_CMD=docker run --rm -it -v ~/.aws:/root/.aws amazon/aws-cli)
+ifneq (${AWS_PROFILE},)
+	@$(eval DOCKER_LOGIN_CMD=${DOCKER_LOGIN_CMD} --profile ${AWS_PROFILE})
+endif
+	@$(eval DOCKER_LOGIN_CMD=${DOCKER_LOGIN_CMD} ecr get-login-password --region=${AWS_DEFAULT_REGION} | docker login -u AWS --password-stdin https://${REG})
+	${DOCKER_LOGIN_CMD}
+endif
 
 run-container-dev:
 	export API_PIPELINE_IMAGE_TAG=main && \
