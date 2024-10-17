@@ -20,7 +20,7 @@ validate-dev:
 	make -C api/aws_infra validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" \
 	                                                                            PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
 																				VALIDATE_ENV_STACK_NAME=PaviApiEbDevStack
-	make -C webui/aws_infra validate-application-stack validate-environment-stack PAVI_API_ENV_NAME="PAVI-api-dev" \
+	make -C webui/aws_infra validate-application-stack validate-environment-stack PAVI_API_STACK_NAME="PaviApiEbDevStack" \
                                                                                   PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" \
 																				  PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
 																				  VALIDATE_ENV_STACK_NAME=PaviWebUiEbDevStack
@@ -37,10 +37,14 @@ deploy-dev:
                                              EB_ENV_CDK_STACK_NAME=PaviApiEbDevStack \
 											 ADD_CDK_ARGS="--require-approval any-change"
 	make -C webui/aws_infra deploy-application PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" ADD_CDK_ARGS="--require-approval any-change"
-	make -C webui/aws_infra deploy-environment PAVI_API_ENV_NAME="PAVI-api-dev" \
+	make -C webui/aws_infra deploy-environment PAVI_API_STACK_NAME="PaviApiEbDevStack" \
                                                PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
                                                EB_ENV_CDK_STACK_NAME=PaviWebUiEbDevStack \
 											   ADD_CDK_ARGS="--require-approval any-change"
+
+destroy-dev:
+	make -C webui/aws_infra destroy-environment EB_ENV_CDK_STACK_NAME=PaviWebUiEbDevStack
+	make -C api/aws_infra destroy-environment EB_ENV_CDK_STACK_NAME=PaviApiEbDevStack
 
 update-deps-locks-all:
 	$(MAKE) -C pipeline/seq_retrieval/ update-deps-locks-all

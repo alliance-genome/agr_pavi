@@ -521,13 +521,13 @@ jobs:
     # webUI validation and deployment
     - name: webUI CDK validations (resource assertions and cdk diff)
       working-directory: webui/aws_infra
-      run: make validate-application-stack validate-environment-stack PAVI_API_ENV_NAME="PAVI-api-main" \
+      run: make validate-application-stack validate-environment-stack PAVI_API_STACK_NAME="PaviApiEbMainStack" \
             PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}"
     - name: Deploy webUI application (and version)
       working-directory: webui/aws_infra
       run: make deploy-application PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" ADD_CDK_ARGS="--require-approval never"
     - name: Deploy webUI to main environment
       working-directory: webui/aws_infra
-      run: make deploy-environment PAVI_API_ENV_NAME="PAVI-api-main" \
+      run: make deploy-environment PAVI_API_STACK_NAME="PaviApiEbMainStack" \
             PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
             EB_ENV_CDK_STACK_NAME=PaviWebUiEbMainStack ADD_CDK_ARGS="--require-approval never"

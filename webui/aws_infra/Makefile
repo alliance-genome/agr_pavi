@@ -161,6 +161,10 @@ deploy-environment: install-deps install-cdk-cli
 	  . .venv/bin/activate && \
 	  npx cdk deploy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
+destroy-environment: install-deps install-cdk-cli
+	. .venv/bin/activate && \
+	  npx cdk destroy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
 
