@@ -42,6 +42,10 @@ deploy-dev:
                                                EB_ENV_CDK_STACK_NAME=PaviWebUiEbDevStack \
 											   ADD_CDK_ARGS="--require-approval any-change"
 
+destroy-dev:
+	make -C webui/aws_infra destroy-environment EB_ENV_CDK_STACK_NAME=PaviWebUiEbDevStack
+	make -C api/aws_infra destroy-environment EB_ENV_CDK_STACK_NAME=PaviApiEbDevStack
+
 update-deps-locks-all:
 	$(MAKE) -C pipeline/seq_retrieval/ update-deps-locks-all
 	$(MAKE) -C api/ update-deps-locks-all
