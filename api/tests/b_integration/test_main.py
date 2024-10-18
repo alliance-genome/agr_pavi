@@ -50,6 +50,12 @@ def test_success_pipeline_workflow() -> None:
     with open('../tests/resources/integration-test-results.aln', mode='r') as expected_result_file:
         assert response.text == expected_result_file.read()
 
+    # Collect pipeline logs and ensure non-empty result
+    response = client.get(f'/api/pipeline-job/{job_uuid}/logs')
+
+    assert response.status_code == 200, f'Log retrieval for {job_uuid} did not return success.'
+    assert response.text != ""
+
 
 def test_invalid_pipeline_submission() -> None:
 
@@ -86,3 +92,9 @@ def test_fail_pipeline_workflow() -> None:
     response = client.get(f'/api/pipeline-job/{job_uuid}/alignment-result')
 
     assert response.status_code == 404, f'Result retrieval for {job_uuid} did not return not-found.'
+
+    # Collect pipeline logs and ensure non-empty result
+    response = client.get(f'/api/pipeline-job/{job_uuid}/logs')
+
+    assert response.status_code == 200, f'Log retrieval for {job_uuid} did not return success.'
+    assert response.text != ""

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
+from io import StringIO
 from os import getenv
 from pydantic import BaseModel
 from smart_open import open  # type: ignore
@@ -9,6 +10,10 @@ from typing import Any
 import json
 import subprocess
 from uuid import uuid1, UUID
+
+from log_mgmt import get_logger
+
+logger = get_logger(name=__name__)
 
 api_results_path_prefix = getenv("API_RESULTS_PATH_PREFIX", './')
 api_execution_env = getenv("API_EXECUTION_ENV", 'local')
@@ -26,6 +31,10 @@ class Pipeline_seq_region(BaseModel):
 class Pipeline_job(BaseModel):
     uuid: UUID
     status: str = 'pending'
+    name: str
+
+    def __init__(self, uuid: UUID):
+        super().__init__(uuid=uuid, name=f'pavi-job-{uuid}')
 
 
 class HTTP_exception_response(BaseModel):
@@ -40,7 +49,15 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
         pipeline_seq_regions: sequence regions for pipeline input
         uuid: UUID to uniquely identify the job being run
     """
-    jobs[uuid].status = 'running'
+    logger.info(f'Initiating pipeline run for job {uuid}.')
+
+    job: Pipeline_job | None = get_pipeline_job(uuid=uuid)
+
+    if job is None:
+        logger.error(f'Failed to initiate pipeline run for job {uuid} because job was not found.')
+        return
+
+    job.status = 'running'
 
     model_dumps: list[dict[str, Any]] = []
     for seq_region in pipeline_seq_regions:
@@ -53,16 +70,21 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
 
     try:
         subprocess.run(
-            ['./nextflow.sh', 'run', '-profile', api_execution_env, 'protein-msa.nf',
+            ['./nextflow.sh', 'run',
+             '-profile', api_execution_env,
+             '-name', job.name,
+             'protein-msa.nf',
              '--image_tag', api_pipeline_image_tag,
              '--input_seq_regions_file', seqregions_filename,
              '--publish_dir_prefix', api_results_path_prefix,
              '--publish_dir', f'pipeline-results_{uuid}'],
             check=True)
     except subprocess.CalledProcessError:
-        jobs[uuid].status = 'failed'
+        logger.warning(f"Pipeline job '{uuid}' completed with failures.\n")
+        job.status = 'failed'
     else:
-        jobs[uuid].status = 'completed'
+        logger.info(f'Pipeline job {uuid} completed successfully.')
+        job.status = 'completed'
 
 
 app = FastAPI()
@@ -71,6 +93,14 @@ router = APIRouter(
 )
 
 jobs: dict[UUID, Pipeline_job] = {}
+
+
+def get_pipeline_job(uuid: UUID) -> Pipeline_job | None:
+    if uuid not in jobs.keys():
+        logger.warning(f'Pipeline job with UUID {uuid} not found.')
+        return None
+    else:
+        return jobs[uuid]
 
 
 @router.get("/")
@@ -87,16 +117,19 @@ async def health() -> dict[str, str]:
 async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region], background_tasks: BackgroundTasks) -> Pipeline_job:
     new_task: Pipeline_job = Pipeline_job(uuid=uuid1())
     jobs[new_task.uuid] = new_task
+    logger.info(f'Created pipeline job {new_task.uuid}.')
     background_tasks.add_task(func=run_pipeline, pipeline_seq_regions=pipeline_seq_regions, uuid=new_task.uuid)
 
     return new_task
 
 
 @router.get("/pipeline-job/{uuid}", response_model_exclude_none=True, responses={404: {'model': HTTP_exception_response}})
-async def get_pipeline_job_details(uuid: UUID) -> Pipeline_job:
-    if uuid not in jobs.keys():
+async def get_pipeline_job_handler(uuid: UUID) -> Pipeline_job:
+    job: Pipeline_job | None = get_pipeline_job(uuid)
+    if job is None:
         raise HTTPException(status_code=404, detail='Job not found.')
-    return jobs[uuid]
+    else:
+        return job
 
 
 @router.get("/pipeline-job/{uuid}/alignment-result", responses={404: {'model': HTTP_exception_response}})
@@ -104,8 +137,10 @@ async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
     try:
         file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/alignment-output.aln', mode="rb")
     except FileNotFoundError:
+        logger.warning(f'GET alignment-result error: File not found for job "{uuid}".')
         raise HTTPException(status_code=404, detail='File not found.')
     except OSError as error:
+        logger.warning(f'GET alignment-result error: OS error caught while opening "{uuid}" result file.')
         raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
     else:
         def iterfile():  # type: ignore
@@ -113,5 +148,30 @@ async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
                 yield from file_like
 
         return StreamingResponse(iterfile(), media_type="text/plain")
+
+
+@router.get("/pipeline-job/{uuid}/logs", responses={404: {'model': HTTP_exception_response}})
+async def get_pipeline_job_logs(uuid: UUID) -> StreamingResponse:
+    job: Pipeline_job | None = get_pipeline_job(uuid)
+    if job is None:
+        logger.warning(f'GET job logs error: job "{uuid}" not found.')
+        raise HTTPException(status_code=404, detail='Job not found.')
+
+    try:
+        result = subprocess.run(
+            ['./nextflow.sh', 'log', job.name, '-f', 'stderr,stdout'],
+            check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Error while fetching nextflow logs for job names {job.name}: {e}')
+        raise HTTPException(status_code=500, detail='Error occured while retrieving logs.')
+    else:
+        def contentStream():  # type: ignore
+            with StringIO(result.stdout) as file_like:
+                yield from file_like
+
+            with StringIO(result.stderr) as file_like:
+                yield from file_like
+
+        return StreamingResponse(contentStream(), media_type="text/plain")
 
 app.include_router(router)
