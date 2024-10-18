@@ -11,6 +11,10 @@ import json
 import subprocess
 from uuid import uuid1, UUID
 
+from log_mgmt import get_logger
+
+logger = get_logger(name=__name__)
+
 api_results_path_prefix = getenv("API_RESULTS_PATH_PREFIX", './')
 api_execution_env = getenv("API_EXECUTION_ENV", 'local')
 api_pipeline_image_tag = getenv("API_PIPELINE_IMAGE_TAG", 'latest')
@@ -45,7 +49,13 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
         pipeline_seq_regions: sequence regions for pipeline input
         uuid: UUID to uniquely identify the job being run
     """
-    job: Pipeline_job = jobs[uuid]
+    logger.info(f'Initiating pipeline run for job {uuid}.')
+
+    job: Pipeline_job | None = get_pipeline_job(uuid=uuid)
+
+    if job is None:
+        logger.error(f'Failed to initiate pipeline run for job {uuid} because job was not found.')
+        return
 
     job.status = 'running'
 
@@ -70,8 +80,10 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
              '--publish_dir', f'pipeline-results_{uuid}'],
             check=True)
     except subprocess.CalledProcessError:
+        logger.warning(f"Pipeline job '{uuid}' completed with failures.\n")
         job.status = 'failed'
     else:
+        logger.info(f'Pipeline job {uuid} completed successfully.')
         job.status = 'completed'
 
 
@@ -85,7 +97,7 @@ jobs: dict[UUID, Pipeline_job] = {}
 
 def get_pipeline_job(uuid: UUID) -> Pipeline_job | None:
     if uuid not in jobs.keys():
-        # TODO: log warning
+        logger.warning(f'Pipeline job with UUID {uuid} not found.')
         return None
     else:
         return jobs[uuid]
@@ -105,6 +117,7 @@ async def health() -> dict[str, str]:
 async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region], background_tasks: BackgroundTasks) -> Pipeline_job:
     new_task: Pipeline_job = Pipeline_job(uuid=uuid1())
     jobs[new_task.uuid] = new_task
+    logger.info(f'Created pipeline job {new_task.uuid}.')
     background_tasks.add_task(func=run_pipeline, pipeline_seq_regions=pipeline_seq_regions, uuid=new_task.uuid)
 
     return new_task
@@ -124,8 +137,10 @@ async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
     try:
         file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/alignment-output.aln', mode="rb")
     except FileNotFoundError:
+        logger.warning(f'GET alignment-result error: File not found for job "{uuid}".')
         raise HTTPException(status_code=404, detail='File not found.')
     except OSError as error:
+        logger.warning(f'GET alignment-result error: OS error caught while opening "{uuid}" result file.')
         raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
     else:
         def iterfile():  # type: ignore
@@ -139,14 +154,15 @@ async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
 async def get_pipeline_job_logs(uuid: UUID) -> StreamingResponse:
     job: Pipeline_job | None = get_pipeline_job(uuid)
     if job is None:
+        logger.warning(f'GET job logs error: job "{uuid}" not found.')
         raise HTTPException(status_code=404, detail='Job not found.')
 
     try:
         result = subprocess.run(
             ['./nextflow.sh', 'log', job.name, '-f', 'stderr,stdout'],
             check=True, capture_output=True, text=True)
-    except subprocess.CalledProcessError:
-        # TODO: log error
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Error while fetching nextflow logs for job names {job.name}: {e}')
         raise HTTPException(status_code=500, detail='Error occured while retrieving logs.')
     else:
         def contentStream():  # type: ignore
