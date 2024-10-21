@@ -12,14 +12,7 @@ REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 .PHONY: check-% clean container-image install-% push-% registry-docker-login run-% update-% _vars-% _write-lock-file
 
 registry-docker-login:
-ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
-	@$(eval DOCKER_LOGIN_CMD=docker run --rm -it -v ~/.aws:/root/.aws amazon/aws-cli)
-ifneq (${AWS_PROFILE},)
-	@$(eval DOCKER_LOGIN_CMD=${DOCKER_LOGIN_CMD} --profile ${AWS_PROFILE})
-endif
-	@$(eval DOCKER_LOGIN_CMD=${DOCKER_LOGIN_CMD} ecr get-login-password --region=${AWS_DEFAULT_REGION} | docker login -u AWS --password-stdin https://${REG})
-	${DOCKER_LOGIN_CMD}
-endif
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile registry-docker-login
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)

@@ -1,3 +1,5 @@
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 CONTAINER_NAME=agr_pavi/webui
 ADDITIONAL_BUILD_ARGS=
 PAVI_API_PORT ?= 8000
@@ -32,14 +34,7 @@ update-deps-locks-all: update-deps-lock
 	@:
 
 registry-docker-login:
-ifneq ($(shell echo ${REG} | egrep "ecr\..+\.amazonaws\.com"),)
-	@$(eval DOCKER_LOGIN_CMD=docker run --rm -it -v ~/.aws:/root/.aws amazon/aws-cli)
-ifneq (${AWS_PROFILE},)
-	@$(eval DOCKER_LOGIN_CMD=${DOCKER_LOGIN_CMD} --profile ${AWS_PROFILE})
-endif
-	@$(eval DOCKER_LOGIN_CMD=${DOCKER_LOGIN_CMD} ecr get-login-password --region=${AWS_DEFAULT_REGION} | docker login -u AWS --password-stdin https://${REG})
-	${DOCKER_LOGIN_CMD}
-endif
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile registry-docker-login
 
 run-container-dev:
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \

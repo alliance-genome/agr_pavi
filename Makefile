@@ -3,6 +3,10 @@ BRANCH_NAME ::= $(shell git rev-parse --abbrev-ref HEAD)
 PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty=-dirty_${BRANCH_NAME}_${LAST_MODIFIED_TIMESTAMP})
 PAVI_CONTAINER_IMAGE_TAG ?= ${PAVI_DEPLOY_VERSION_LABEL}
 
+AWS_DEFAULT_REGION := us-east-1
+AWS_ACCT_NR=100225593120
+REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
 
