@@ -1,5 +1,5 @@
-LAST_MODIFIED_TIMESTAMP ::= $(shell find . -type f -printf '%T@\n' | sort -nr | head -1 | xargs -I £ date -d @£ -u +%Y%m%d-%H%M%S)
-BRANCH_NAME ::= $(shell git rev-parse --abbrev-ref HEAD)
+LAST_MODIFIED_TIMESTAMP ?= $(shell find . -type f -printf '%T@\n' | sort -nr | head -1 | xargs -I £ date -d @£ -u +%Y%m%d-%H%M%S)
+BRANCH_NAME ?= $(shell git rev-parse --abbrev-ref HEAD)
 PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty=-dirty_${BRANCH_NAME}_${LAST_MODIFIED_TIMESTAMP})
 PAVI_CONTAINER_IMAGE_TAG ?= ${PAVI_DEPLOY_VERSION_LABEL}
 
