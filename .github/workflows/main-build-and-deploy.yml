@@ -124,6 +124,7 @@ jobs:
           ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
           fetch-depth: 0
           sparse-checkout: |
+            Makefile
             shared_aws/py_package/
       - name: Setup Python
         uses: actions/setup-python@v5

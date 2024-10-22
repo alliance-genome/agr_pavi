@@ -2,7 +2,7 @@ mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: check-% clean install install-% run-% update-% _vars-% _write-lock-file
+.PHONY: check-% clean install install-% run-% update-%
 
 .venv/:
 	python3.12 -m venv .venv/
@@ -26,42 +26,26 @@ clean:
 	rm -rf build/ || true
 	rm dist/* || true
 
-.venv-build/:
-	python3.12 -m venv .venv-build/
-	.venv-build/bin/pip install pip-tools==7.4.1
-
 requirements.txt:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) requirements.txt
 
 tests/requirements.txt:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) tests/requirements.txt
 
 update-deps-lock:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-deps-lock
 
 update-test-deps-lock:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-test-deps-lock
 
 update-deps-locks-all: update-deps-lock update-test-deps-lock
 	@:
 
-install-deps: .venv/ requirements.txt
-	.venv/bin/pip install -r requirements.txt
+install-deps:
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-deps
 
-install-test-deps: .venv/ tests/requirements.txt
-	.venv/bin/pip install -r tests/requirements.txt
+install-test-deps:
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-test-deps
 
 install-deps-update-dev: .venv/ requirements.txt
 	.venv/bin/pip install -U -r requirements.txt
@@ -80,18 +64,3 @@ run-type-checks: .venv/ install-test-deps
 
 run-style-checks: .venv/ install-test-deps
 	.venv/bin/flake8 ./
-
-_vars-main-deps:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
-
-_vars-test-deps:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=--extra=test -o tests/requirements.txt"
-
-_vars-no-upgrade:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=--no-upgrade"
-
-_vars-upgrade-all:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
-
-_write-lock-file: .venv-build/
-	.venv-build/bin/pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}

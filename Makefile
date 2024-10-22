@@ -1,7 +1,17 @@
-LAST_MODIFIED_TIMESTAMP ::= $(shell find . -type f -printf '%T@\n' | sort -nr | head -1 | xargs -I £ date -d @£ -u +%Y%m%d-%H%M%S)
-BRANCH_NAME ::= $(shell git rev-parse --abbrev-ref HEAD)
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+EXTRA_PIP_COMPILE_ARGS ?=
+
+LAST_MODIFIED_TIMESTAMP ?= $(shell find . -type f -printf '%T@\n' | sort -nr | head -1 | xargs -I £ date -d @£ -u +%Y%m%d-%H%M%S)
+BRANCH_NAME ?= $(shell git rev-parse --abbrev-ref HEAD)
 PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty=-dirty_${BRANCH_NAME}_${LAST_MODIFIED_TIMESTAMP})
 PAVI_CONTAINER_IMAGE_TAG ?= ${PAVI_DEPLOY_VERSION_LABEL}
+
+AWS_DEFAULT_REGION := us-east-1
+AWS_ACCT_NR=100225593120
+REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+
+.PHONY: install-% run-% update-% _vars-% _python-write-lock-file
 
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
@@ -23,7 +33,7 @@ update-install-shared-aws:
 	make -C api/aws_infra/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only install-deps-update-dev
 	make -C webui/aws_infra/ update-deps-lock-shared-aws-only install-deps-update-dev
 
-# Reminder: below targets requires AWS env variables (such as AWS_PROFILE) to be exported for successful execution
+# Reminder: below validate- deploy- and destroy- targets requires AWS env variables (such as AWS_PROFILE) to be exported for successful execution
 
 validate-dev:
 	make -C pipeline/aws_infra/ validate deploy
@@ -66,3 +76,72 @@ update-deps-locks-all:
 	$(MAKE) -C pipeline/aws_infra/ update-deps-locks-all
 	$(MAKE) -C api/aws_infra/ update-deps-locks-all
 	$(MAKE) -C webui/aws_infra/ update-deps-locks-all
+
+# The following (python) deps mgmt targets are not intended to be executed in this directory.
+# They are called from Make targets in subdirectories, as they serve general purpose targets used accross all (python) subcomponents.
+.venv/:
+	python3.12 -m venv .venv/
+
+.venv-build/:
+	python3.12 -m venv .venv-build/
+	.venv-build/bin/pip install pip-tools==7.4.1
+
+requirements.txt:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-no-upgrade))
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-main-deps))
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _python-write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+
+tests/requirements.txt:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-no-upgrade))
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-test-deps))
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _python-write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+
+install-python-deps: .venv/ requirements.txt
+	.venv/bin/pip install -r requirements.txt
+
+install-python-test-deps: .venv/ tests/requirements.txt
+	.venv/bin/pip install -r tests/requirements.txt
+
+update-python-deps-lock:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-upgrade-all))
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-main-deps))
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _python-write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+
+update-python-test-deps-lock:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-upgrade-all))
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-test-deps))
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _python-write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+
+update-python-deps-lock-shared-aws-only:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-upgrade-shared-aws-only))
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-main-deps))
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _python-write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+
+update-python-test-deps-lock-shared-aws-only:
+	$(eval EXTRA_PIP_COMPILE_ARGS:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-upgrade-shared-aws-only))
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _vars-python-test-deps))
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/Makefile _python-write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+
+_vars-python-main-deps:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
+
+_vars-python-test-deps:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--extra=test -o tests/requirements.txt"
+
+_vars-python-no-upgrade:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--no-upgrade"
+
+_vars-python-upgrade-all:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
+
+_vars-python-upgrade-shared-aws-only:
+	@echo "EXTRA_PIP_COMPILE_ARGS+=-P pavi_shared_aws"
+
+_python-write-lock-file: .venv-build/
+	.venv-build/bin/pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
