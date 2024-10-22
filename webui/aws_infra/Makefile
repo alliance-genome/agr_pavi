@@ -14,57 +14,35 @@ EB_APP_CDK_STACK_NAME ?= PaviWebUiEbApplicationCdkStack
 ADD_CDK_ARGS ?=
 EXTRA_PIP_COMPILE_ARGS ?=
 
-.PHONY: deploy-% install-% print-% run-% update-% validate-% _vars-% _write-lock-file
+.PHONY: deploy-% install-% print-% run-% update-% validate-%
 
 .venv/:
-	python3.12 -m venv .venv/
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) .venv/
 
 clean:
 	rm -rf .venv/ || true
 	rm -rf node_modules/ || true
 
-.venv-build/:
-	python3.12 -m venv .venv-build/
-	.venv-build/bin/pip install pip-tools==7.4.1
-
 requirements.txt:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) requirements.txt
 
 tests/requirements.txt:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-no-upgrade))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) tests/requirements.txt
 
 package-lock.json:
 	npm install --package-lock-only
 
 update-deps-lock:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-deps-lock
 
 update-test-deps-lock:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-all))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-test-deps-lock
 
 update-deps-lock-shared-aws-only:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-only))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-main-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-deps-lock-shared-aws-only
 
 update-test-deps-lock-shared-aws-only:
-	$(eval EXTRA_PIP_COMPILE_ARGS:=)
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-upgrade-shared-aws-only))
-	$(eval $(shell $(MAKE) --no-print-directory -C $(mkfile_dir) _vars-test-deps))
-	@$(MAKE) --no-print-directory _write-lock-file EXTRA_PIP_COMPILE_ARGS="${EXTRA_PIP_COMPILE_ARGS}"
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-test-deps-lock-shared-aws-only
 
 update-cdk-cli-lock: package-lock.json
 	npm update --package-lock-only
@@ -79,16 +57,16 @@ install-cdk-cli-update-dev:
 	@$(MAKE) --no-print-directory update-cdk-cli-lock
 	@$(MAKE) --no-print-directory install-cdk-cli
 
-install-deps: .venv/ requirements.txt
-	.venv/bin/pip install -r requirements.txt
+install-deps:
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-deps
 
 install-deps-update-dev: .venv/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only
 	.venv/bin/pip uninstall -y pavi_shared_aws
 	@$(MAKE) --no-print-directory update-deps-lock
 	@$(MAKE) --no-print-directory install-deps
 
-install-test-deps: .venv/ tests/requirements.txt
-	.venv/bin/pip install -r tests/requirements.txt
+install-test-deps:
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-test-deps
 
 install-test-deps-update-dev: .venv/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only
 	.venv/bin/pip uninstall -y pavi_shared_aws
@@ -167,21 +145,3 @@ destroy-environment: install-deps install-cdk-cli
 
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
-
-_vars-main-deps:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=-o requirements.txt"
-
-_vars-test-deps:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=--extra=test -o tests/requirements.txt"
-
-_vars-no-upgrade:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=--no-upgrade"
-
-_vars-upgrade-all:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=--upgrade"
-
-_vars-upgrade-shared-aws-only:
-	@echo "EXTRA_PIP_COMPILE_ARGS+=-P pavi_shared_aws"
-
-_write-lock-file: .venv-build/
-	.venv-build/bin/pip-compile --generate-hashes --no-strip-extras -q ${EXTRA_PIP_COMPILE_ARGS}
