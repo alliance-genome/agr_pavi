@@ -47,11 +47,11 @@ install-deps:
 install-test-deps:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-test-deps
 
-install-deps-update-dev: .venv/ requirements.txt
-	.venv/bin/pip install -U -r requirements.txt
+install-deps-update-dev: update-deps-lock install-deps
+	@:
 
-install-test-deps-update-dev: .venv/ tests/requirements.txt
-	.venv/bin/pip install -U -r tests/requirements.txt
+install-test-deps-update-dev: update-test-deps-lock install-test-deps
+	@:
 
 run-unit-tests: .venv/ install-test-deps
 	.venv/bin/python -m pytest
