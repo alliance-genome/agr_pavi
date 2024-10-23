@@ -15,13 +15,13 @@ anyio==4.6.2.post1 \
     #   httpx
     #   starlette
     #   watchfiles
-boto3==1.35.43 \
-    --hash=sha256:0197f460632804577aa78b2f6daf7b823bffa9d4d67a5cebb179efff0fe9631b \
-    --hash=sha256:e6a50a0599f75b21de0de1a551a0564793d25b304fa623e4052e527b268de734
+boto3==1.35.46 \
+    --hash=sha256:a839ce09a844d92e0039f95851e88da9df80c89ebb4c7818b3e78247fd97a8a7 \
+    --hash=sha256:c9bab807b372d5b076d6aeb1d6513131fa0b74e32d8895128f8568b6521296ea
     # via smart-open
-botocore==1.35.43 \
-    --hash=sha256:04539b85ade060601a3023cacb538fc17aad8c059a5a2e18fe4bc5d0d91fbd72 \
-    --hash=sha256:7cfdee9117617da97daaf259dd8484bcdc259c59eb7d1ce7db9ecf8506b7d36c
+botocore==1.35.46 \
+    --hash=sha256:8bbc9a55cae65a8db7f2e33ff087f4dbfc13fce868e8e3c5273ce9af367a555a \
+    --hash=sha256:8c0ff5fdd611a28f5752189d171c69690dbc484fa06d74376890bb0543ec3dc1
     # via
     #   boto3
     #   s3transfer
@@ -45,9 +45,9 @@ email-validator==2.2.0 \
     --hash=sha256:561977c2d73ce3611850a06fa56b414621e0c8faa9d66f2611407d87465da631 \
     --hash=sha256:cb690f344c617a714f22e66ae771445a1ceb46821152df8e165c5f9a364582b7
     # via fastapi
-fastapi[standard]==0.115.2 \
-    --hash=sha256:3995739e0b09fa12f984bce8fa9ae197b35d433750d3d312422d846e283697ee \
-    --hash=sha256:61704c71286579cc5a598763905928f24ee98bfcc07aabe84cfefb98812bbc86
+fastapi[standard]==0.115.3 \
+    --hash=sha256:8035e8f9a2b0aa89cea03b6c77721178ed5358e1aea4cd8570d9466895c0638c \
+    --hash=sha256:c091c6a35599c036d676fa24bd4a6e19fa30058d93d950216cdc672881f6f7db
     # via pavi-api (pyproject.toml)
 fastapi-cli[standard]==0.0.5 \
     --hash=sha256:d30e1239c6f46fcb95e606f02cdda59a1e2fa778a54b64686b3ff27f6211ff9f \
@@ -366,9 +366,9 @@ pyyaml==6.0.2 \
     --hash=sha256:f753120cb8181e736c57ef7636e83f31b9c0d1722c516f7e86cf15b7aa57ff12 \
     --hash=sha256:ff3824dc5261f50c9b0dfb3be22b4567a6f938ccce4587b38952d85fd9e9afe4
     # via uvicorn
-rich==13.9.2 \
-    --hash=sha256:51a2c62057461aaf7152b4d611168f93a9fc73068f8ded2790f29fe2b5366d0c \
-    --hash=sha256:8c82a3d3f8dcfe9e734771313e606b39d8247bb6b826e196f4914b333b743cf1
+rich==13.9.3 \
+    --hash=sha256:9836f5096eb2172c9e77df411c1b009bace4193d6a481d534fea75ebba758283 \
+    --hash=sha256:bc1e01b899537598cf02579d2b9f4a415104d3fc439313a7a2c165d76557a08e
     # via typer
 s3transfer==0.10.3 \
     --hash=sha256:263ed587a5803c6c708d3ce44dc4dfedaab4c1a32e8329bab818933d79ddcf5d \
@@ -392,9 +392,9 @@ sniffio==1.3.1 \
     # via
     #   anyio
     #   httpx
-starlette==0.40.0 \
-    --hash=sha256:1a3139688fb298ce5e2d661d37046a66ad996ce94be4d4983be019a23a04ea35 \
-    --hash=sha256:c494a22fae73805376ea6bf88439783ecfba9aac88a43911b48c653437e784c4
+starlette==0.41.0 \
+    --hash=sha256:39cbd8768b107d68bfe1ff1672b38a2c38b49777de46d2a592841d58e3bf7c2a \
+    --hash=sha256:a0193a3c413ebc9c78bff1c3546a45bb8c8bcb4a84cae8747d650a65bd37210a
     # via fastapi
 typer==0.12.5 \
     --hash=sha256:62fe4e471711b147e3365034133904df3e235698399bc4de2b36c8579298d52b \
