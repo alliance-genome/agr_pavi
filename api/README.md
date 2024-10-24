@@ -1,6 +1,6 @@
 This subdirectory contains the API component of PAVI.
 
-The API code is written in python, so follows the [general](/README.md#dependency-management) and [python](/README.md#python-components) PAVI coding guidelines.
+The API code is written in python, so follows the [general dependency management](/README.md#dependency-management) and [python](/README.md#python-components) PAVI coding guidelines.
 The API is built using the [fastAPI](https://fastapi.tiangolo.com/) framework.
 
 # Development

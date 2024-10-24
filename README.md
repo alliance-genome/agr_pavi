@@ -9,6 +9,7 @@ AGR's Proteins Annotations and Variants Inspector
        * [Dependency updates](#dependency-updates)
        * [Installing dependencies](#installing-dependencies)
     * [Python components](#python-components)
+       * [Code documentation (docstrings)](#code-documentation-docstrings)
        * [Virtual environment](#virtual-environments)
        * [Dependency management](#dependency-management-1)
        * [Typing](#typing)
@@ -121,13 +122,90 @@ dependencies from subdependencies (something that is possible through poetry) an
 for subdependencies where that may not be appropriate. Such subdependencies must be added to the relevant
 `ignore:` sections in the [dependabot.yml](/.github/dependabot.yml) configuration file to disable such update proposals.
 
+#### Code documentation (docstrings)
+All modules, functions, classes and methods should have their input, attributes and output documented
+through docstrings to make the code easy to read and understand for anyone reading it.
+To ensure this is done in a uniform way accross all code, follow the [Google Python Style Guide on docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
+
 #### Typing
-While Python uses dynamic typic (aka duck typing) at runtime, it supports the use of type hints
-to declare intended types which can be used by IDEs and type checkers to provide code completion,
+**TL;DR**  
+Use Python type hints wherever possible, `mypy` is used to enforce this on PR validation.  
+To check all code typing in a PAVI submodule, run:
+```shell
+make run-type-checks
+```
+
+**Detailed explanation**  
+While Python uses dynamic typic at runtime, it is recommended to use type hints
+to declare intended types. These can be used by IDEs and type checkers to provide code completion,
 usage hints and warning where incompatible types are used.
 This provides a way to catch more potential bugs during development, before they arise in deployed
-environments and require tedious troubleshooting. Therefor, all PAVI subcomponents should use type hints
-wherever possible. `mypy` is used a type checker, and is run on all python subcomponents on every PR
+environments and require tedious troubleshooting.
+
+As an example, the following untyped python function will define local cache usage behavior taking a boolean as toggle:
+```python
+def set_local_cache_reuse(reuse):
+    """
+    Define whether or not data_file_mover will reuse files in local cache where already available pre-execution.
+
+    Args:
+        reuse (bool): set to `True` to enable local cache reuse behavior (default `False`)
+    """
+    global _reuse_local_cache
+    _reuse_local_cache = reuse
+    if reuse:
+        print("Local cache reuse enabled.")
+    else:
+        print("Local cache reuse disabled.")
+```
+
+When called with boolean values, this function works just fine:
+```python
+>>> set_local_cache_reuse(True)
+Local cache reuse enabled.
+>>> set_local_cache_reuse(False)
+Local cache reuse disabled.
+```
+However when calling with a String instead of a boolean, you may get unexpected behaviour:
+```python
+>>> set_local_cache_reuse("False")
+Local cache reuse enabled.
+```
+This happens because Python dynamically types and converts types at runtime,
+and all strings except empty ones are converted to boolean value `True`.
+
+To prevent this, add type hints to your code:
+```python
+def set_local_cache_reuse(reuse: bool) -> None:
+    """
+    Define whether or not data_file_mover will reuse files in local cache where already available pre-execution.
+
+    Args:
+        reuse (bool): set to `True` to enable local cache reuse behavior (default `False`)
+    """
+    global _reuse_local_cache
+    _reuse_local_cache = reuse
+    if reuse:
+        print("Local cache reuse enabled.")
+    else:
+        print("Local cache reuse disabled.")
+set_local_cache_reuse("False")
+```
+
+Type hints themselves are not enforced at runtime, and will thus not stop the code from running (incorrectly),
+but using `myPy` those errors can be revealed before merging this code. Storing the above code snippet in a file
+called `set_local_cache_reuse.py` and running `myPy` on it gives the following result:
+```shell
+> mypy set_local_cache_reuse.py
+set_local_cache_reuse.py:9: error: Name "_reuse_local_cache" is not defined  [name-defined]
+set_local_cache_reuse.py:14: error: Argument 1 to "set_local_cache_reuse" has incompatible type "str"; expected "bool"  [arg-type]
+Found 2 errors in 1 file (checked 1 source file)
+```
+With the myPy output, we can now return to the code and fix the errors reported
+which would otherwise result in silent unexpected behavior and bugs.
+
+To prevent these sort of unexpected bugs, all PAVI subcomponents must use type hints wherever possible.
+`mypy` is used a type checker, and is run on all python subcomponents on every PR validation
 to ensure code of good quality.
 
 To run type checks:
@@ -145,8 +223,11 @@ make run-style-checks
 ```
 
 #### Unit & integration testing
-Unit and integration testing for python components is done through `pytest`,
+Unit and integration testing for python components is done through [Pytest](https://pytest.org/),
 and all unit and integration tests must pass before PRs can be approved and merged.
+A minimum of 80% code coverage is required to ensure new code gets approriate unit
+testing before getting merged, which ensures the code is functional and won't break
+unnoticed in future development iterations.
 
 To run unit testing as a developer (generating an inspectable HTML report):
 ```bash
