@@ -22,6 +22,11 @@ AGR's Proteins Annotations and Variants Inspector
        * [Styling](#styling-1)
        * [Unit and integration testing](#unit--integration-testing-1)
     * [AWS resource definitions (aws_infra)](#aws-resource-definitions-aws_infra)
+       * [Shared AWS CDK code](#shared-aws-cdk-code)
+       * [CDK CLI](#cdk-cli)
+       * [Important files](#important-files)
+       * [Validation](#Validation)
+       * [Deployment](#deployment)
  * [Acknowledgements](#acknowledgements)
  * [Maintainers](#maintainers)
 
@@ -290,20 +295,123 @@ or AWS Batch and ECS to execute pipeline jobs.
 All these AWS resources are defined as code through [AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html),
 which can be found in the `aws_infra` subdirectory of the respective components' directory.
 
+AWS CDK is an open-source framework that enables writing
+the entire cloud application as code, including all event sources and other AWS resources
+which are require to make the application executable in AWS in addition to the application code.
+This allows for an easy and reproducible deployment, that can be fully defined, versioned and documented as code.
+
 To allow better interoperability and code sharing, all AWS CDK code in PAVI is written in Python,
-independent of the language used for the component it serves. This way, all AWS CDK code can import
-the `pavi_shared_aws` package (found in the [/shared_aws/py_package/](/shared_aws/py_package/) directory),
+independent of the language used for the component it serves.
+
+#### Shared AWS CDK code
+All PAVI AWS CDK code depends on the `pavi_shared_aws` python package (found in the [/shared_aws/py_package/](/shared_aws/py_package/) directory),
 which holds all AWS CDK code and classes shared accross multiple components.
+
+Before running or making change to any of the CDK code for PAVI submodules in the `aws_infra` directories,
+build and install the `pavi_shared_aws` package by following the [build-and-install](../../shared_aws/py_package/README.md#build-and-install) instructions in the according README.
+
 While shared AWS CDK code is stored in the `pavi_shared_aws` package, shared AWS resource which
 are managed by PAVI but used by multiple components (such as the AWS Chatbot configuration)
 are defined in the [/shared_aws/aws_infra/](/shared_aws/aws_infra/) directory,
 which holds the AWS CDK definitions for those AWS resources.
 
+#### CDK CLI
 While the CDK code is written in Python, the CDK CLI which is used for validation and deployment
 of the AWS resources defined is installed through `npm`, and has its version defined and frozen
 in the `package.json` and the `package-lock.json` files respectively.
 
+To install the CDK CLI used for any component, execute:
+```shell
+make install-cdk-cli
+```
+
+This will install the CDK CLI in a [local node dependencies directory](#local-dependencies),
+which means the CLI is not installed globally but instead can be executed through `npx cdk`.
+Before calling the CDK CLI on any of the CDK python code, ensure the relevant virtual environment,
+in which the CDK app dependencies are installed, is activated.
+
+All CDK CLI installations in this repository are installed and tested using the same
+node.js version used for the web UI, v20 at time of writing.
+
+Here's a list of the most useful CDK CLI commands. For a full list, call `cdk help`.
+ * `npx cdk ls`          list all stacks in the app
+ * `npx cdk synth`       emits the synthesized CloudFormation template
+ * `npx cdk deploy`      deploy this stack to AWS
+ * `npx cdk diff`        compare deployed stack with current state
+ * `npx cdk docs`        open CDK documentation
+
+#### Important files
+Two standard CDK configuration files can be found at the root level of each `aws_infra` directory:
+ * `cdk.json`
+    Contains the main CDK execution configuration parameters
+ * `cdk.context.json`
+    Contains the VPC context in which to deploy the CDK Stack.
+
+Then the AWS Stack to be deployed using CDK is generally defined in the following files and directories:
+ * `cdk_app.py`
+    The root level CDK application, defining the entire AWS Stack to be deployed (possibly in multiple copies for multiple environments).
+ * `cdk_classes/`
+    Python sub-classes defining the parts of the CDK stack (which represents a single CloudFormation stack)
+    and all individual CDK constructs, representing individual cloud components.
+
 All CDK-defined AWS resource defininitions are validated on every PR, and automatically deployed on merge to main.
+
+#### Validation
+When making changes to any of the CDK files, validate them before requesting a PR
+or attempting a deployment.
+
+**Note**: as part of the validation requires comparison to deployed resources,
+you need to be authenticateable to AWS before you can run below validation target.
+
+To validate the CDK code run the following command:
+```bash
+make validate-all
+```
+This make target will run two things:
+
+1. First it will run the unit tests (through the Makefile's `run-unit-tests` target),
+   which test CDK code for resource definitions exepected by other parts of this repository,
+   to ensure updates to the CDK code don't accidentally remove or rename essential AWS resources.
+
+2. After the unit tests pass, it will run `cdk diff` on the production stack,
+   which compares the production stack defined in the code to the deployed stack
+   and displays the changes that would get deployed. 
+   Inspect these changes to ensure the code changes made will have the expected effect
+   on the deployed AWS resources.
+   As `cdk diff` will synthesize the full (Cloudformation) stack to do so, it will
+   produce errors when errors are present in any of the CDK code (where those
+   errors would not have been caught by the unit tests).
+
+If the validation reports any errors, inspect them and correct the code accordingly.
+
+This validation step allows the developer to fix any errors before deployment,
+reducing the amount of troubleshooting and fixing that would otherwise be required
+on failing or incorrect deployments.
+
+**Note**:  
+While some of the existing CDK code references external resource in AWS
+(outside of the CDK stack defined in the subdirectory in case),
+unit testing does not actually query those resources.
+As a result, unit testing will not catch changes to or errors in those (external) resource definitions.  
+Only `cdk diff` will query actual AWS resources and produce errors accordingly
+if there would be any issues with such externally defined resources.
+Consequently, the `cdk diff` step in the `validate-all` make target requires AWS authentication.
+
+#### Deployment
+To first test the new/updated stack in AWS before updating the main deployment,
+some PAVI components support dev-environment deployments. See the README of the component
+in case for instructions on how to deploy specific components.
+
+To deploy a complete dev-environment to AWS for testing, execute the following command
+at root-level in this repository:
+```bash
+> make deploy-dev
+```
+
+Once all [validation](#validating) and testing returns results as expected, create a PR to merge into main.
+Once approved and merged, all code pushed to the main branch of this repository (both application and the AWS resources
+defined through CDK code) automatically gets built and deployed, through [github actions](./.github/workflows/main-build-and-deploy.yml).
+
 
 ## Acknowledgements
 Just as most modern software, PAVI heavily relies on third-party tools and libraries for much of its core functionality.
