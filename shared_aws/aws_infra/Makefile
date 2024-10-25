@@ -89,9 +89,12 @@ run-type-checks: install-test-deps
 run-style-checks: install-test-deps
 	.venv/bin/flake8 ./
 
-validate-stack: install-deps run-unit-tests install-cdk-cli
+validate-stack: install-deps install-cdk-cli
 	. .venv/bin/activate && \
 	npx cdk diff ${VALIDATE_STACK_NAME}
+
+validate-all: run-unit-tests validate-stack
+	@:
 
 deploy-stack: install-deps install-cdk-cli
 	. .venv/bin/activate && \

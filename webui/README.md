@@ -1,4 +1,11 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/v14.2.3/packages/create-next-app).
+# PAVI Web UI
+This subdirectory contains all code and configs for the PAVI web UI component.
+
+The web UI code is written in typescript, so follows the [general dependency management](/README.md#dependency-management) and [javascript/typescript](/README.md#javascript-components) PAVI coding guidelines.
+
+It is built using the [Next.js](https://nextjs.org/), a [react](https://react.dev/) framework that enables usage of both client and server components, server-side caching and much more.
+
+This project was bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/v14.2.3/packages/create-next-app).
 
 ## Getting Started
 

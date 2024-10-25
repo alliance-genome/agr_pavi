@@ -22,7 +22,13 @@ push-container-image: registry-docker-login
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
 install-deps:
+	npm install --omit-dev
+
+install-test-deps:
 	npm install
+
+install-deps-all: install-test-deps
+	@:
 
 install-cypress-deps:
 	sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
@@ -40,25 +46,25 @@ run-container-dev:
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
 	 docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.webui
 
-run-server-dev: install-deps
+run-server-dev: install-deps-all
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
 	 npm run dev
 
-run-style-checks: install-deps
+run-style-checks: install-test-deps
 	npm run lint
 
-run-type-checks: install-deps
+run-type-checks: install-test-deps
 	npm run typecheck
 
-run-unit-tests: install-deps
+run-unit-tests: install-test-deps
 	npm run test
 
-run-e2e-tests: install-deps
+run-e2e-tests: install-test-deps
 	$(MAKE) --no-print-directory run-container-dev
 	npx cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
 	$(MAKE) --no-print-directory stop-container-dev
 
-run-e2e-tests-dev: install-deps
+run-e2e-tests-dev: install-test-deps
 	npx cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
 
 stop-container-dev:

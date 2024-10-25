@@ -43,8 +43,8 @@ update-deps-locks-all: update-deps-lock update-test-deps-lock
 install-deps:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-deps
 
-install-deps-update: .venv/
-	.venv/bin/pip install -U -r requirements.txt
+install-deps-update: update-deps-lock install-deps
+	@:
 
 install-test-deps:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-test-deps

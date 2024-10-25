@@ -701,6 +701,8 @@ jobs:
     - name: Code style test
       run: |
         make run-style-checks
+    - name: Unit tests
+      run: make run-unit-tests
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
@@ -712,7 +714,7 @@ jobs:
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
         aws-region: us-east-1
     - name: Validate production CDK stack code
-      run: make validate
+      run: make validate-stack
   api-code-checks:
     name: API code checks
     needs:

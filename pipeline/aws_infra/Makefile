@@ -86,11 +86,14 @@ run-type-checks: install-test-deps
 run-style-checks: install-test-deps
 	.venv/bin/flake8 ./
 
-validate: install-deps run-unit-tests install-cdk-cli
+validate-stack: install-deps install-cdk-cli
 # Validate production stack code
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
 	  . .venv/bin/activate && \
 	  npx cdk diff ${CDK_STACK_NAME}
+
+validate-all: run-unit-tests validate-stack
+	@:
 
 validate-dev: validate
 	@:
