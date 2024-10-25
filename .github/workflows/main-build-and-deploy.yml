@@ -223,7 +223,7 @@ jobs:
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
         aws-region: us-east-1
     - name: CDK validations (resource assertions and cdk diff)
-      run: make validate
+      run: make validate-stack
     - name: Deploy CDK Stack
       run: make deploy ADD_CDK_ARGS="--require-approval never"
   api-deploy-image-repo:
