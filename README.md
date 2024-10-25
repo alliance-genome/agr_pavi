@@ -32,7 +32,23 @@ AGR's Proteins Annotations and Variants Inspector
 
 
 ## Architecture
-Section TODO.
+The PAVI repository is a monorepository consisting of all components that make PAVI work,
+while each components is deployed and scaled independently for better isolation of concerns
+and to ensure sufficient availability and performance without needing to oversize to handle multiple
+components concurrently.
+
+PAVI is made up of the following components:
+ * A [Web UI](webui/) that enables (end-)user interaction
+ * An [API](api/) that connects the web UI to the processing pipeline,
+   and serves as job-manager for following up on processing and result retrieval
+ * [pipeline](pipeline/) components that comprise the processing pipeline
+   required to display the requested proteins, annotations and variants.  
+   This forms the heart of PAVI, doing all sequence retrieval, processing, alignments etc.
+
+Each of these components has its required AWS resources defined as code
+through AWS CDK, in a `aws_infra` subdirectory.
+
+![PAVI-architecture component AWS overview diagram](./docs/PAVI-architecture_components-AWS-overview.png)
 
 ## Development principles and guidelines
 This project is divided in subcomponents which function independently but share similar concepts in their setup.
