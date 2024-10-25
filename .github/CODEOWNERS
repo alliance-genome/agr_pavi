@@ -1,2 +1,4 @@
-# Changes to the .github files require approval by the repository owners
+# To protect this repository from changes that could create security leaks
+# Changes to the following files require approval by the repository owners
 /.github/ @alliance-genome/pavi-owners
+**/Makefile @alliance-genome/pavi-owners
