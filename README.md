@@ -32,7 +32,7 @@ AGR's Proteins Annotations and Variants Inspector
 
 
 ## Architecture
-Section TODO.
+![PAVI-architecture component AWS overview diagram](./docs/PAVI-architecture_components-AWS-overview.png)
 
 ## Development principles and guidelines
 This project is divided in subcomponents which function independently but share similar concepts in their setup.
