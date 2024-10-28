@@ -1,6 +1,6 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-NEXTFLOW_VERSION=24.04.4
+NEXTFLOW_VERSION=24.10.0
 TAG_NAME?=main
 
 .PHONY: build-% clean registry-docker-login run-%
@@ -15,7 +15,7 @@ registry-docker-login:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile registry-docker-login
 
 nextflow.sh:
-	curl -L https://github.com/nextflow-io/nextflow/releases/download/v${NEXTFLOW_VERSION}/nextflow-${NEXTFLOW_VERSION}-all -o nextflow.sh
+	curl --fail -L https://github.com/nextflow-io/nextflow/releases/download/v${NEXTFLOW_VERSION}/nextflow-${NEXTFLOW_VERSION}-dist -o nextflow.sh
 	chmod u+x nextflow.sh
 
 build-workflow-local-deps:

@@ -11,6 +11,7 @@ import json
 import subprocess
 from uuid import uuid1, UUID
 
+from constants import JobStatus
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
@@ -30,7 +31,7 @@ class Pipeline_seq_region(BaseModel):
 
 class Pipeline_job(BaseModel):
     uuid: UUID
-    status: str = 'pending'
+    status: str = JobStatus.PENDING.name.lower()
     name: str
 
     def __init__(self, uuid: UUID):
@@ -57,7 +58,7 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
         logger.error(f'Failed to initiate pipeline run for job {uuid} because job was not found.')
         return
 
-    job.status = 'running'
+    job.status = JobStatus.RUNNING.name.lower()
 
     model_dumps: list[dict[str, Any]] = []
     for seq_region in pipeline_seq_regions:
@@ -81,10 +82,10 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
             check=True)
     except subprocess.CalledProcessError:
         logger.warning(f"Pipeline job '{uuid}' completed with failures.\n")
-        job.status = 'failed'
+        job.status = JobStatus.FAILED.name.lower()
     else:
         logger.info(f'Pipeline job {uuid} completed successfully.')
-        job.status = 'completed'
+        job.status = JobStatus.COMPLETED.name.lower()
 
 
 app = FastAPI()
@@ -150,12 +151,19 @@ async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
         return StreamingResponse(iterfile(), media_type="text/plain")
 
 
-@router.get("/pipeline-job/{uuid}/logs", responses={404: {'model': HTTP_exception_response}})
+@router.get("/pipeline-job/{uuid}/logs", responses={400: {'model': HTTP_exception_response}, 404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_logs(uuid: UUID) -> StreamingResponse:
     job: Pipeline_job | None = get_pipeline_job(uuid)
     if job is None:
         logger.warning(f'GET job logs error: job "{uuid}" not found.')
         raise HTTPException(status_code=404, detail='Job not found.')
+
+    # Check if job has completed before running nextflow log
+    # (nextflow log cannot be executed on non-complete jobs, will fail)
+    if JobStatus[job.status.upper()].value < JobStatus.FAILED.value:
+        msg = f'Logs can only be retrieved for failed or completed jobs ({job.uuid} is not yet)'
+        logger.warning(msg)
+        raise HTTPException(status_code=400, detail=msg)
 
     try:
         result = subprocess.run(
