@@ -3,7 +3,7 @@
         "name": "C54H2.5.1",
         "seq_id": "X",
         "seq_strand": "-",
-        "seq_regions": [
+        "exon_seq_regions": [
             "5780644..5780722",
             "5780278..5780585",
             "5779920..5780231",
@@ -15,7 +15,7 @@
         "name": "ERV29-S288C",
         "seq_id": "chrVII",
         "seq_strand": "-",
-        "seq_regions": [
+        "exon_seq_regions": [
             "1061590..1060658"
         ],
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000146045.2_R64_genomic.fna.gz"

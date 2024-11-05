@@ -11,7 +11,7 @@ import re
 from typing import Any, Dict, List, Literal
 
 import data_mover.data_file_mover as data_file_mover
-from seq_region import SeqRegion, MultiPartSeqRegion
+from seq_region import SeqRegion, TranslatedSeqRegion
 from log_mgmt import set_log_level, get_logger
 
 logger = get_logger(name=__name__)
@@ -96,7 +96,7 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
               help="The sequence ID to retrieve sequences for.")
 @click.option("--seq_strand", type=click.Choice(STRAND_POS_CHOICES + STRAND_NEG_CHOICES), default='+', callback=validate_strand_param,
               help="The sequence strand to retrieve sequences for.")
-@click.option("--seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions_param,
+@click.option("--exon_seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions_param,
               help="A JSON list of sequence regions to retrieve sequences for "
                    + "(dicts formatted '{\"start\": 1234, \"end\": 5678}' or strings formatted '`start`..`end`').")
 @click.option("--fasta_file_url", type=click.STRING, required=True,
@@ -115,7 +115,7 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
               help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
-def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, int]], fasta_file_url: str, output_type: str,
+def main(seq_id: str, seq_strand: str, exon_seq_regions: List[Dict[str, int]], fasta_file_url: str, output_type: str,
          name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
@@ -133,16 +133,16 @@ def main(seq_id: str, seq_strand: str, seq_regions: List[Dict[str, int]], fasta_
 
     data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
-    seq_region_objs: List[SeqRegion] = []
-    for region in seq_regions:
-        seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
-                                         fasta_file_url=fasta_file_url))
+    exon_seq_region_objs: List[SeqRegion] = []
+    for region in exon_seq_regions:
+        exon_seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
+                                              fasta_file_url=fasta_file_url))
 
     # Concatenate all regions into single sequence
-    fullRegion = MultiPartSeqRegion(seq_regions=seq_region_objs)
+    fullRegion = TranslatedSeqRegion(exon_seq_regions=exon_seq_region_objs)
 
-    fullRegion.fetch_seq(recursive_fetch=True)
-    seq_concat = fullRegion.get_sequence(unmasked=unmasked)
+    fullRegion.fetch_seq(type='transcript', recursive_fetch=True)
+    seq_concat = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
 
     logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")
 

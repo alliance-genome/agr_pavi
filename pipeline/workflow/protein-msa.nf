@@ -17,11 +17,11 @@ process sequence_retrieval {
         path "${request_map.name}-protein.fa"
 
     script:
-        encoded_seq_regions = JsonOutput.toJson(request_map.seq_regions)
+        encoded_exon_regions = JsonOutput.toJson(request_map.exon_seq_regions)
         """
         main.py --output_type protein \
             --name ${request_map.name} --seq_id ${request_map.seq_id} --seq_strand ${request_map.seq_strand} \
-            --fasta_file_url ${request_map.fasta_file_url} --seq_regions '${encoded_seq_regions}' \
+            --fasta_file_url ${request_map.fasta_file_url} --exon_seq_regions '${encoded_exon_regions}' \
             > ${request_map.name}-protein.fa
         """
 }
