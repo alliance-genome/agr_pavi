@@ -20,7 +20,7 @@ STRAND_POS_CHOICES = ['+', '+1', 'pos']
 STRAND_NEG_CHOICES = ['-', '-1', 'neg']
 
 
-def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str) -> Literal['+', '-']:
+def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str) -> Literal['+', '-']:  # noqa: U100
     """
     Processes and normalises the value of click input argument `strand`.
 
@@ -39,7 +39,7 @@ def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str
         raise click.BadParameter(f"Must be one of {STRAND_POS_CHOICES} for positive strand, or {STRAND_NEG_CHOICES} for negative strand.")
 
 
-def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value: str) -> List[Dict[str, Any]]:
+def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value: str) -> List[Dict[str, Any]]:  # noqa: U100
     """
     Parse the value of click input parameter seq_regions and validate it's structure.
 

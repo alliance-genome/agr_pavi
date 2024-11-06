@@ -57,6 +57,12 @@ constructs==10.4.2 \
 flake8==7.1.1 \
     --hash=sha256:049d058491e228e03e67b390f311bbf88fce2dbaa8fa673e7aea87b7198b8d38 \
     --hash=sha256:597477df7860daa5aa0fdd84bf5208a043ab96b8e96ab708770ae0364dd03213
+    # via
+    #   flake8-unused-arguments
+    #   pipeline-aws_infra (pyproject.toml)
+flake8-unused-arguments==0.0.13 \
+    --hash=sha256:c5894d294424bf7915e44dff0917222c454151016f96edc55b9f847bf307f3f7 \
+    --hash=sha256:df6a76b73a6ce67720332182a80f2f0a80783cab1ccae8175f39787cd3a74b31
     # via pipeline-aws_infra (pyproject.toml)
 importlib-resources==6.4.5 \
     --hash=sha256:980862a1d16c9e147a59603677fa2aa5fd82b87f223b6cb870695bcfce830065 \

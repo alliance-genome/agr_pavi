@@ -1,6 +1,6 @@
 [flake8]
 ignore = E266, E501, W503
 max-complexity = 18
-select = B,C,E,F,W,T4
-exclude = .venv
+select = B,C,E,F,W,T4,U100,U101
+exclude = .venv,.venv-build,.venv-build
 per-file-ignores = __init__.py:F401
