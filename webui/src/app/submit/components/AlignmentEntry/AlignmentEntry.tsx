@@ -104,7 +104,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 fasta_file_url: fastaFileUrl!,
                 seq_id: getSingleGenomeLocation(gene_info.genomeLocations)['chromosome'],
                 seq_strand: getSingleGenomeLocation(gene_info.genomeLocations)['strand'],
-                seq_regions: transcript.exons.map((e) => ({
+                exon_seq_regions: transcript.exons.map((e) => ({
                     'start': e.refStart,
                     'end': e.refEnd
                 }))

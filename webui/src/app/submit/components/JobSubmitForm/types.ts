@@ -10,7 +10,7 @@ export interface JobSumbissionPayloadRecord {
     name: string,
     seq_id: string,
     seq_strand: string,
-    seq_regions: Array<{
+    exon_seq_regions: Array<{
         start: number,
         end: number
     }>,
