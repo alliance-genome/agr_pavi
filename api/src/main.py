@@ -25,7 +25,7 @@ class Pipeline_seq_region(BaseModel):
     name: str
     seq_id: str
     seq_strand: str
-    seq_regions: list[str | dict[str, str | int]]
+    exon_seq_regions: list[str | dict[str, str | int]]
     fasta_file_url: str
 
 
