@@ -105,7 +105,7 @@ class TranslatedSeqRegion():
 
         match type:
             case 'transcript':
-                self.exon_seq_region.fetch_seq(recursive_fetch=True)
+                self.exon_seq_region.fetch_seq(recursive_fetch=recursive_fetch)
             case _:
                 raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.fetch_seq method.")
 
