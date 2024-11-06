@@ -3,4 +3,5 @@ nextflow.sh
 .nextflow.*
 .nextflow/
 work/
+results/
 pipeline-results/

@@ -34,9 +34,9 @@ registry-docker-login:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile registry-docker-login
 
 run-container-dev:
-	$(eval API_RESULTS_PATH_PREFIX?=s3://agr-pavi-pipeline-nextflow/${API_PIPELINE_IMAGE_TAG}/results/)
+	$(eval API_NEXTFLOW_OUT_DIR?=s3://agr-pavi-pipeline-nextflow/${API_PIPELINE_IMAGE_TAG}/)
 	export API_PIPELINE_IMAGE_TAG=${API_PIPELINE_IMAGE_TAG} && \
-	export API_RESULTS_PATH_PREFIX=${API_RESULTS_PATH_PREFIX} && \
+	export API_NEXTFLOW_OUT_DIR=${API_NEXTFLOW_OUT_DIR} && \
 	  docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
 
 stop-container-dev:

@@ -23,7 +23,7 @@ COPY pipeline/workflow/protein-msa.nf protein-msa.nf
 EXPOSE 8080
 
 # Default environment variables
-ENV API_RESULTS_PATH_PREFIX="s3://agr-pavi-pipeline-nextflow/main/results/"
+ENV API_NEXTFLOW_OUT_DIR="s3://agr-pavi-pipeline-nextflow/main/"
 ENV API_EXECUTION_ENV="aws"
 ENV API_PIPELINE_IMAGE_TAG="main"
 
