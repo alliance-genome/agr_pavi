@@ -38,12 +38,12 @@ class MultiPartSeqRegion(SeqRegion):
             ValueError: if `seq_regions` have distinct `seq_id`, `strand` or `fasta_file_path` properties.
         """
 
-        self.start: int = min(map(lambda seq_region: seq_region.start, seq_regions))
-        self.end: int = max(map(lambda seq_region: seq_region.end, seq_regions))
-        self.seq_length: int = sum(map(lambda seq_region: seq_region.seq_length, seq_regions))
+        self.start = min(map(lambda seq_region: seq_region.start, seq_regions))
+        self.end = max(map(lambda seq_region: seq_region.end, seq_regions))
+        self.seq_length = sum(map(lambda seq_region: seq_region.seq_length, seq_regions))
 
         # Ensure one strand
-        strands: Set[str] = set(map(lambda seq_region: seq_region.strand, seq_regions))
+        strands: Set[SeqRegion.STRAND_TYPE] = set(map(lambda seq_region: seq_region.strand, seq_regions))
         if len(strands) > 1:
             raise ValueError(f"Multiple strands defined accross seq regions ({strands})."
                              + " All seqRegions in multiPartSeqRegion must have equal value for strand attribute.")
@@ -75,7 +75,31 @@ class MultiPartSeqRegion(SeqRegion):
         ordered_seq_regions = seq_regions
         ordered_seq_regions.sort(**sort_args)
 
+        # Ensure all or no frame properties are defined on seq regions
+        frames = set(map(lambda seq_region: seq_region.frame, ordered_seq_regions))
+        if None in frames and len(frames) > 1:
+            raise ValueError("Mixed frame definitions for MultipartSeqRegion subparts found. "
+                             + "Frame property must be defined for all subparts or for none.")
+
+        # Ensure frame definitions form sequence triplets (codons)
+        if None not in frames:
+            reading_frame_size = 0
+            for seq_region in ordered_seq_regions:
+                assert seq_region.frame is not None, 'MultiPartSeqRegion codon triple validation code is not supposed to run when frame property is undefined.'
+                # Accept the first frame definition verbatum
+                if reading_frame_size > 0:
+                    # Ensure all following ones match to codon triplets from first frame definition
+                    if (reading_frame_size + seq_region.frame) % 3 != 0:
+                        raise ValueError("Non-triplet frame definition found. "
+                                         + f"Seq region {seq_region} breaks MultiPartSequence reading frame with its frame property.")
+
+                    reading_frame_size += seq_region.seq_length
+                else:
+                    # Extract the first frame definition from it's seq_region length
+                    reading_frame_size += seq_region.seq_length - seq_region.frame
+
         self.ordered_seqRegions = ordered_seq_regions
+        self.frame = ordered_seq_regions[0].frame
 
     @override
     def __str__(self) -> str:  # pragma: no cover
@@ -121,14 +145,14 @@ class MultiPartSeqRegion(SeqRegion):
         sequence_len = len(sequence)
 
         if sequence_len != self.seq_length:
-            raise ValueError(f"Sequence length {sequence_len} does not equal length expected based on region positions {self.seq_length}.")
-        else:
-            self.sequence = sequence
+            raise ValueError(f"Sequence length ({sequence_len}) does not equal length expected based on region positions ({self.seq_length}).")
+
+        self.sequence = sequence
 
     @override
     def get_sequence(self, unmasked: bool = False) -> str:
         """
-        Method to return `sequence` attribute as a string (optionally with modifications).
+        Return `sequence` attribute as a string (optionally with modifications).
 
         Args:
             unmasked: Flag to remove soft masking (lowercase letters) \

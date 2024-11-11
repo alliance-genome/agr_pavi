@@ -18,10 +18,11 @@ process sequence_retrieval {
 
     script:
         encoded_exon_regions = JsonOutput.toJson(request_map.exon_seq_regions)
+        encoded_cds_regions = JsonOutput.toJson(request_map.cds_seq_regions)
         """
         main.py --output_type protein \
             --name ${request_map.name} --seq_id ${request_map.seq_id} --seq_strand ${request_map.seq_strand} \
-            --fasta_file_url ${request_map.fasta_file_url} --exon_seq_regions '${encoded_exon_regions}' \
+            --fasta_file_url ${request_map.fasta_file_url} --exon_seq_regions '${encoded_exon_regions}' --cds_seq_regions '${encoded_cds_regions}' \
             > ${request_map.name}-protein.fa
         """
 }

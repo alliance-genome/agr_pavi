@@ -27,10 +27,10 @@ class TranslatedSeqRegion():
     codon_table: CodonTable.CodonTable = CodonTable.unambiguous_dna_by_name["Standard"]
     """Codon table to be used for translating cDNA to protein sequences."""
 
-    coding_dna_sequence: str
+    coding_dna_sequence: str | None = None
     """DNA sequence of the coding sequence (sub)regions"""
 
-    protein_sequence: str
+    protein_sequence: str | None = None
     """Protein sequence of the coding sequence (sub)regions (after translation)."""
 
     def __init__(self, exon_seq_regions: List[SeqRegion], cds_seq_regions: List[SeqRegion] = []):
@@ -82,7 +82,14 @@ class TranslatedSeqRegion():
             self.fasta_file_path = fasta_file_paths.pop()
 
         self.exon_seq_region = MultiPartSeqRegion(exon_seq_regions)
+
         if len(cds_seq_regions) > 0:
+            # Ensure all CDS seq regions define the frame property
+            for seq_region in cds_seq_regions:
+                if seq_region.frame is None:
+                    raise ValueError(f"undefined frame property found in seq region {seq_region}."
+                                     + " cds_seq_regions require frame property to be set for all seq regions.")
+
             self.cds_seq_region = MultiPartSeqRegion(cds_seq_regions)
         else:
             self.cds_seq_region = None
@@ -106,12 +113,29 @@ class TranslatedSeqRegion():
         match type:
             case 'transcript':
                 self.exon_seq_region.fetch_seq(recursive_fetch=recursive_fetch)
+            case 'coding':
+                if self.cds_seq_region:
+                    self.cds_seq_region.fetch_seq(recursive_fetch=True)
+                    cds_full_sequence = self.cds_seq_region.get_sequence()
+                    self.set_sequence(type='coding', sequence=cds_full_sequence[self.cds_seq_region.frame:])
+                else:
+                    dna_sequence = self.exon_seq_region.get_sequence(unmasked=True)
+
+                    # Find the best open reading frame
+                    orfs = find_orfs(dna_sequence, self.codon_table, return_type='longest')
+
+                    if len(orfs) > 0:
+                        orf = orfs.pop()
+                        self.set_sequence(type='coding', sequence=orf['sequence'])
+                    else:
+                        logger.warning('No open reading frames found.')
+                        return None
             case _:
                 raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.fetch_seq method.")
 
     def get_sequence(self, type: Literal['transcript', 'coding', 'protein'], unmasked: bool = False) -> str:
         """
-        Return TranslatedSeqRegion any of the object sequences as a string (optionally with modifications).
+        Return any of the object's sequences as a string (optionally with modifications).
 
         Args:
             type: type of sequence to return
@@ -127,13 +151,13 @@ class TranslatedSeqRegion():
         seq: str
         match type:
             case 'transcript':
-                seq = str(self.exon_seq_region.get_sequence(unmasked=unmasked))
+                seq = self.exon_seq_region.get_sequence(unmasked=unmasked)
             case 'coding':
-                seq = str(self.coding_dna_sequence)
+                seq = str(self.coding_dna_sequence) if self.coding_dna_sequence is not None else ''
                 if unmasked:
                     seq = seq.upper()
             case 'protein':
-                seq = str(self.protein_sequence)
+                seq = str(self.protein_sequence) if self.protein_sequence is not None else ''
             case _:
                 raise ValueError(f"type {type} not implemented yet in MultiPartSeqRegion.set_multipart_sequence method.")
 
@@ -163,28 +187,24 @@ class TranslatedSeqRegion():
 
     def translate(self) -> str | None:
         """
-        Method to translate (c)DNA sequence of this sequence region to protein sequence.
+        Translate the (c)DNA `sequence` of this sequence region to protein sequence.
 
         Stores the resulting protein sequence in the `protein_sequence` attribute and returns it.
 
         Returns:
             Protein sequence corresponding to the sequence region's `sequence`. Returns `None` if no Open Reading Frame was found in the sequence.
         """
-        dna_sequence = self.exon_seq_region.get_sequence(unmasked=True)
+        if not self.get_sequence('coding'):
+            self.fetch_seq('coding', recursive_fetch=True)
 
-        # Find the best open reading frame
-        orfs = find_orfs(dna_sequence, self.codon_table, return_type='longest')
-
-        if len(orfs) > 0:
-            orf = orfs.pop()
-            self.coding_dna_sequence = orf['sequence']  # TODO: use setter
-
+        coding_sequence = self.get_sequence('coding')
+        if coding_sequence:
             # Translate to protein
-            self.protein_sequence = str(Seq.translate(sequence=orf['sequence'], table=self.codon_table, cds=False, to_stop=True))  # type: ignore
+            self.protein_sequence = str(Seq.translate(sequence=coding_sequence, table=self.codon_table, cds=False, to_stop=True))  # type: ignore
 
             return self.protein_sequence
         else:
-            logger.warning('No open reading frames found, so no translation made.')
+            logger.warning('No coding sequence found, so no translation made.')
             return None
 
 

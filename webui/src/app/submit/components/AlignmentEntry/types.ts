@@ -5,6 +5,8 @@ export interface GeneInfo {
     readonly genomeLocations: Array<any>
 }
 
+export type FeatureStrand = 1 | -1
+
 export enum AlignmentEntryStatus {
     /* eslint-disable no-unused-vars */
     PENDING_INPUT = 'Pending input',

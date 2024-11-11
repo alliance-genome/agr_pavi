@@ -8,7 +8,7 @@ import click
 import json
 import logging
 import re
-from typing import Any, Dict, List, Literal
+from typing import get_args, List, TypedDict, Optional
 
 import data_mover.data_file_mover as data_file_mover
 from seq_region import SeqRegion, TranslatedSeqRegion
@@ -20,7 +20,19 @@ STRAND_POS_CHOICES = ['+', '+1', 'pos']
 STRAND_NEG_CHOICES = ['-', '-1', 'neg']
 
 
-def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str) -> Literal['+', '-']:  # noqa: U100
+class SeqRegionDict(TypedDict):
+    """
+    Type representing seq_region input params after processing
+     * 'start' property indicates the region start (1-based, inclusive)
+     * 'end' property indicates the region end (1-based, inclusive)
+     * Optional 'frame' property indicates the framing of the region for translation (0-based, 0..2, default 0)
+    """
+    start: int
+    end: int
+    frame: Optional[SeqRegion.FRAME_TYPE]
+
+
+def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str) -> SeqRegion.STRAND_TYPE:  # noqa: U100
     """
     Processes and normalises the value of click input argument `strand`.
 
@@ -39,21 +51,18 @@ def validate_strand_param(ctx: click.Context, param: click.Parameter, value: str
         raise click.BadParameter(f"Must be one of {STRAND_POS_CHOICES} for positive strand, or {STRAND_NEG_CHOICES} for negative strand.")
 
 
-def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value: str) -> List[Dict[str, Any]]:  # noqa: U100
+def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value: str) -> List[SeqRegionDict]:  # noqa: U100
     """
     Parse the value of click input parameter seq_regions and validate it's structure.
 
     Value is expected to be a JSON-formatted list of sequence regions to retrieve.
     Sequence regions can either be define as dicts or as string.
 
-    Dict format expected: '{"start": 1234, "end": 5678}'
+    Dict format expected: '{"start": 1234, "end": 5678, "frame": 0}' (see SeqRegionDict)
     String format expected: '`start`..`end`'
-    where:
-     * 'start' property indicates the region start (1-based, inclusive)
-     * 'end' property indicates the region end (1-based, inclusive)
 
     Returns:
-        List of dicts representing start and end of seq region
+        List of dicts representing SeqRegion attributes
 
     Raises:
         click.BadParameter: If value could not be parsed as JSON or had an invalid structure or values.
@@ -76,11 +85,18 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
                     raise click.BadParameter(f"'start' property of region {region} is not an integer. All positions must be integers.")
                 if not isinstance(region['end'], int):
                     raise click.BadParameter(f"'end' property of region {region} is not an integer. All positions must be integers.")
+                if 'frame' in region.keys():
+                    valid_frame_types = get_args(SeqRegion.FRAME_TYPE)
+                    if region['frame'] not in valid_frame_types:
+                        raise click.BadParameter(f"'frame' property of region {region} is not correctly typed. Value {region['frame']} must be one of {valid_frame_types}.")
+                else:
+                    region['frame'] = None
             elif isinstance(region, str):
                 re_match = re.fullmatch(r'(\d+)\.\.(\d+)', region)
                 if re_match is not None:
                     region = dict(start=int(re_match.group(1)),
-                                  end=int(re_match.group(2)))
+                                  end=int(re_match.group(2)),
+                                  frame=None)
                 else:
                     raise click.BadParameter(f"Region {region} of type string has invalid format. Region of type string must be formatted '`start`..`end`'")
             else:
@@ -98,7 +114,10 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
               help="The sequence strand to retrieve sequences for.")
 @click.option("--exon_seq_regions", type=click.UNPROCESSED, required=True, callback=process_seq_regions_param,
               help="A JSON list of sequence regions to retrieve sequences for "
-                   + "(dicts formatted '{\"start\": 1234, \"end\": 5678}' or strings formatted '`start`..`end`').")
+                   + "(dicts formatted '{\"start\": 1234, \"end\": 5678, \"frame\": 0}' or strings formatted '`start`..`end`').")
+@click.option("--cds_seq_regions", type=click.UNPROCESSED, default=[], callback=process_seq_regions_param,
+              help="A JSON list of CDS sequence regions to use for translation for output-type protein "
+                   + "(dicts formatted '{\"start\": 1234, \"end\": 5678, \"frame\": 0}' or strings formatted '`start`..`end`').")
 @click.option("--fasta_file_url", type=click.STRING, required=True,
               help="""URL to (faidx-indexed) fasta file to retrieve sequences from.
                    Assumes additional index files can be found at `<fasta_file_url>.fai`,
@@ -115,7 +134,7 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
               help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
-def main(seq_id: str, seq_strand: str, exon_seq_regions: List[Dict[str, int]], fasta_file_url: str, output_type: str,
+def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict], fasta_file_url: str, output_type: str,
          name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
@@ -138,8 +157,13 @@ def main(seq_id: str, seq_strand: str, exon_seq_regions: List[Dict[str, int]], f
         exon_seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
                                               fasta_file_url=fasta_file_url))
 
-    # Concatenate all regions into single sequence
-    fullRegion = TranslatedSeqRegion(exon_seq_regions=exon_seq_region_objs)
+    cds_seq_region_objs: List[SeqRegion] = []
+    for region in cds_seq_regions:
+        cds_seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
+                                             frame=region['frame'],
+                                             fasta_file_url=fasta_file_url))
+
+    fullRegion = TranslatedSeqRegion(exon_seq_regions=exon_seq_region_objs, cds_seq_regions=cds_seq_region_objs)
 
     fullRegion.fetch_seq(type='transcript', recursive_fetch=True)
     seq_concat = fullRegion.get_sequence(type='transcript', unmasked=unmasked)

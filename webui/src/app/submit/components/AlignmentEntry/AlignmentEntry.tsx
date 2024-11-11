@@ -12,7 +12,7 @@ import React, { createRef, FunctionComponent, useCallback, useEffect, useState }
 
 import { fetchGeneInfo } from './serverActions';
 
-import { AlignmentEntryStatus, GeneInfo } from './types';
+import { AlignmentEntryStatus, GeneInfo, FeatureStrand } from './types';
 import { JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
@@ -55,6 +55,11 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         readonly exons: Array<{
             refStart: number
             refEnd: number
+        }>,
+        readonly cds_regions: Array<{
+            refStart: number
+            refEnd: number,
+            phase: 0 | 1 | 2
         }>
     }
 
@@ -107,12 +112,39 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 exon_seq_regions: transcript.exons.map((e) => ({
                     'start': e.refStart,
                     'end': e.refEnd
+                })),
+                cds_seq_regions: transcript.cds_regions.map((e) => ({
+                    'start': e.refStart,
+                    'end': e.refEnd,
+                    'frame': e.phase
                 }))
             })
         });
 
         return portion
     },[fastaFileUrl])
+
+    // Convert relative positions (to parent feature)
+    // to absolute positions (to chromosome/contig)
+    const jBrowseSubfeatureRelToRefPos = (subfeatureList: any[], featureStrand: FeatureStrand,
+                                          parentRefStart: number, parentRefEnd: number) => (
+        subfeatureList.map((subfeat: any) => {
+            let new_subfeat = {
+                ...subfeat,
+            }
+
+            if (featureStrand === -1) {
+                new_subfeat['refStart'] = parentRefEnd - new_subfeat['start']
+                new_subfeat['refEnd'] = parentRefEnd - new_subfeat['end'] + 1
+            }
+            else {
+                new_subfeat['refStart'] = parentRefStart + new_subfeat['start'] + 1
+                new_subfeat['refEnd'] = parentRefStart + new_subfeat['end']
+            }
+
+            return new_subfeat
+        })
+    )
 
     const processTranscriptEntry = useCallback(async(transcriptIds: String[]) => {
         updateInputPayloadPart({
@@ -159,44 +191,34 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                                         }))
 
                     let exons: any[] = dedupe(children.filter((sub: any) => sub.type === 'exon'))
+                    let cds_regions: any[] = dedupe(children.filter((sub: any) => sub.type === 'CDS'))
 
                     let transcript_length = transcript.get("end") - transcript.get("start")
                     if (feature.strand === -1) {
                         exons = revlist(exons, transcript_length)
+                        cds_regions = revlist(cds_regions, transcript_length)
                     }
 
                     // Convert relative positions (to transcript)
                     // to absolute positions (to chromosome/contig)
-                    exons = exons.map((exon: any) => {
-                        let new_exon = {
-                            ...exon,
-                        }
-
-                        if (feature.strand === -1) {
-                            new_exon['refStart'] = transcript.get('end') - new_exon['start']
-                            new_exon['refEnd'] = transcript.get('end') - new_exon['end'] + 1
-                        }
-                        else {
-                            new_exon['refStart'] = transcript.get('start') + new_exon['start'] + 1
-                            new_exon['refEnd'] = transcript.get('start') + new_exon['end']
-                        }
-
-                        return new_exon
-                    })
+                    exons = jBrowseSubfeatureRelToRefPos(exons, feature.strand, transcript.get('start'), transcript.get('end'))
+                    cds_regions = jBrowseSubfeatureRelToRefPos(cds_regions, feature.strand, transcript.get('start'), transcript.get('end'))
 
                     console.log(`transcript ${transcript.get("name")} resulted in exons:`, exons)
+                    console.log(`transcript ${transcript.get("name")} resulted in cds regions:`, cds_regions)
 
                     const transcriptInfo: TranscriptInfoType = {
                         id: transcript.id(),
                         name: transcript.get('name'),
-                        exons: exons
+                        exons: exons,
+                        cds_regions: cds_regions
                     }
 
                     transcriptsInfo.push(transcriptInfo)
                 }
             })
 
-            const portion = payloadPortion(gene!,transcriptsInfo)
+            const portion = payloadPortion(gene!, transcriptsInfo)
             console.log('AlignmentEntry portion is', portion)
 
             if( (portion === undefined || portion.length < 1) ){

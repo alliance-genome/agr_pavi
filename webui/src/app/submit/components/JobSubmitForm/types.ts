@@ -14,6 +14,11 @@ export interface JobSumbissionPayloadRecord {
         start: number,
         end: number
     }>,
+    cds_seq_regions: Array<{
+        start: number,
+        end: number,
+        frame: 0 | 1 | 2
+    }>,
     fasta_file_url: string
 }
 
