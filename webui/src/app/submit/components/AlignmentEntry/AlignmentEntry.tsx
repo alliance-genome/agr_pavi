@@ -78,7 +78,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 updateInputPayloadPart({
                     status: AlignmentEntryStatus.PENDING_INPUT
                 })
-                console.log('Gene info received:', JSON.stringify(geneInfo))
+                console.log('Gene info received:', geneInfo)
                 setgeneMessageDisplay('none')
                 setGene(geneInfo)
             }
