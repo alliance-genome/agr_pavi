@@ -25,7 +25,7 @@ build-workflow-local-deps:
 
 run-integration-test-local: nextflow.sh
 	./nextflow.sh run -profile test,local protein-msa.nf
-	@diff -qs pipeline-results/alignment-output.aln ../../tests/resources/integration-test-results.aln
+	@diff -qs pipeline-results/alignment-output.aln ../../tests/resources/submit-workflow-success-output.aln
 
 run-integration-test-aws: nextflow.sh
 	@$(eval NEXTFLOW_OUT_DIR=s3://agr-pavi-pipeline-nextflow/${TAG_NAME}/)
@@ -35,4 +35,4 @@ run-integration-test-aws: nextflow.sh
 	./nextflow.sh run -profile test,aws -work-dir ${NEXTFLOW_WORK_DIR} protein-msa.nf --image_tag ${TAG_NAME} \
 	 --publish_dir_prefix ${NEXTFLOW_RESULTS_DIR} --publish_dir ${PUBLISH_DIR}
 	aws s3 cp ${NEXTFLOW_RESULTS_DIR}${PUBLISH_DIR}/alignment-output.aln alignment-output.aln
-	@diff -qs alignment-output.aln ../../tests/resources/integration-test-results.aln
+	@diff -qs alignment-output.aln ../../tests/resources/submit-workflow-success-output.aln
