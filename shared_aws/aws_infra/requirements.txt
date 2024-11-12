@@ -10,9 +10,9 @@ attrs==24.2.0 \
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.210 \
-    --hash=sha256:724f33edd39dd4904f947094fc61b2d2fde007b1f0d7a0dab277a9e25c2375f4 \
-    --hash=sha256:9fed6905755243ab2cae91ca5a0bed2d56876dd1984887bd2c5f78b2e22fb5fd
+aws-cdk-asset-awscli-v1==2.2.211 \
+    --hash=sha256:8237a2a2a1d38cb5982d6ec0dbf1d5c7a4b62c2071d1d058b03440b3af401076 \
+    --hash=sha256:d3fc198b4673b6c2b5978192f4b4764352bb14b5b4b85a96dedc0f47c768c2f3
     # via aws-cdk-lib
 aws-cdk-asset-kubectl-v20==2.1.3 \
     --hash=sha256:237cd8530d9e8be0bbc7159af927dbb6b7f91bf3f4099c8ef4d9a213b34264be \
@@ -26,19 +26,19 @@ aws-cdk-cloud-assembly-schema==38.0.1 \
     --hash=sha256:7c75861adc41f7b959910d4b3b191ea242815402e599dbfa31934892838ae25e \
     --hash=sha256:92613b46213b460681e9424f09b77f06ff059eb1c773092540364ef82fcecf55
     # via aws-cdk-lib
-aws-cdk-lib==2.165.0 \
-    --hash=sha256:1fff96622fbafe48603c0633c62e1afa9fa72ac50bc3607ef385e395dc94c5f4 \
-    --hash=sha256:6fa2f2b76345bf04256b06e2cafa3bcbab9a54eeb1b7c42b74b8a18920e09e4b
+aws-cdk-lib==2.166.0 \
+    --hash=sha256:30aff4086f274ec8788b6fc63d9d3bd24d0ff541c5d8d4d4f7c7fd810b9f435e \
+    --hash=sha256:d55b6a10685e80c6736b798b60da40a6e561285501296579e359eca3e761f43e
     # via
     #   pavi-shared-aws
     #   pavi-shared-aws-infra (pyproject.toml)
-boto3==1.35.54 \
-    --hash=sha256:2d5e160b614db55fbee7981001c54476cb827c441cef65b2fcb2c52a62019909 \
-    --hash=sha256:7d9c359bbbc858a60b51c86328db813353c8bd1940212cdbd0a7da835291c2e1
+boto3==1.35.58 \
+    --hash=sha256:1ee139e63f1545ee0192914cfe422b68360b8c344a94e4612ac657dd7ece93de \
+    --hash=sha256:856896fd5fc5871758eb04b27bad5bbbf0fdb6143a923f9e8d10125351efdf98
     # via pavi-shared-aws
-botocore==1.35.54 \
-    --hash=sha256:131bb59ce59c8a939b31e8e647242d70cf11d32d4529fa4dca01feea1e891a76 \
-    --hash=sha256:9cca1811094b6cdc144c2c063a3ec2db6d7c88194b04d4277cd34fc8e3473aff
+botocore==1.35.58 \
+    --hash=sha256:647b8706ae6484ee4c2208235f38976d9f0e52f80143e81d7941075215e96111 \
+    --hash=sha256:8303309c7b59ddf04b11d79813530809d6b10b411ac9f93916d2032c283d6881
     # via
     #   boto3
     #   s3transfer
