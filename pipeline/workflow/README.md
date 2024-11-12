@@ -18,9 +18,9 @@ To run the protein MSA workflow locally:
     # Input json can either be provided directly as using --input_seq_regions_str
     ./nextflow.sh run protein-msa.nf --input_seq_regions_str '[
     {"name": "C54H2.5.1", "seq_id": "X", "seq_strand": "-",
-    "seq_regions": ["5780644..5780722", "5780278..5780585", "5779920..5780231", "5778875..5779453"],
+    "exon_seq_regions": ["5780644..5780722", "5780278..5780585", "5779920..5780231", "5778875..5779453"],
     "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz"},
-    {"name": "ERV29-S288C", "seq_id": "chrVII", "seq_strand": "-", "seq_regions": ["1061590..1060658"],
+    {"name": "ERV29-S288C", "seq_id": "chrVII", "seq_strand": "-", "exon_seq_regions": ["1061590..1060658"],
     "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000146045.2_R64_genomic.fna.gz"}
     ]'
     # Or can be written to a file and the file passed using --input_seq_regions_file

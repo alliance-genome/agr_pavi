@@ -2,6 +2,7 @@ mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 CONTAINER_NAME=agr_pavi/api
 TAG_NAME?=latest
+API_PIPELINE_IMAGE_TAG?=main
 ADDITIONAL_BUILD_ARGS=
 EXTRA_PIP_COMPILE_ARGS ?=
 
@@ -33,11 +34,13 @@ registry-docker-login:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile registry-docker-login
 
 run-container-dev:
-	export API_PIPELINE_IMAGE_TAG=main && \
+	$(eval API_NEXTFLOW_OUT_DIR?=s3://agr-pavi-pipeline-nextflow/${API_PIPELINE_IMAGE_TAG}/)
+	export API_PIPELINE_IMAGE_TAG=${API_PIPELINE_IMAGE_TAG} && \
+	export API_NEXTFLOW_OUT_DIR=${API_NEXTFLOW_OUT_DIR} && \
 	  docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
 
 stop-container-dev:
-	export API_PIPELINE_IMAGE_TAG=main && \
+	export API_PIPELINE_IMAGE_TAG=${API_PIPELINE_IMAGE_TAG} && \
 	  docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.api
 
 nextflow.sh:

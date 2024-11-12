@@ -5,7 +5,7 @@
     {
         "seq_id": "chrVII",
         "seq_strand": "-",
-        "seq_regions": [
+        "exon_seq_regions": [
             "1061590..1060658"
         ],
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000146045.2_R64_genomic.fna.gz"

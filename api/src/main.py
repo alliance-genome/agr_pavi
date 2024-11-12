@@ -16,7 +16,8 @@ from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
 
-api_results_path_prefix = getenv("API_RESULTS_PATH_PREFIX", './')
+api_results_path_prefix = getenv("API_NEXTFLOW_OUT_DIR", './') + 'results/'
+nf_workdir = getenv("API_NEXTFLOW_OUT_DIR", './') + 'work/'
 api_execution_env = getenv("API_EXECUTION_ENV", 'local')
 api_pipeline_image_tag = getenv("API_PIPELINE_IMAGE_TAG", 'latest')
 
@@ -25,7 +26,8 @@ class Pipeline_seq_region(BaseModel):
     name: str
     seq_id: str
     seq_strand: str
-    seq_regions: list[str | dict[str, str | int]]
+    exon_seq_regions: list[str | dict[str, str | int]]
+    cds_seq_regions: list[str | dict[str, str | int]]
     fasta_file_url: str
 
 
@@ -72,6 +74,7 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
     try:
         subprocess.run(
             ['./nextflow.sh', 'run',
+             '-work-dir', nf_workdir,
              '-profile', api_execution_env,
              '-name', job.name,
              'protein-msa.nf',

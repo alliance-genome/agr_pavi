@@ -213,6 +213,12 @@ coverage[toml]==7.6.4 \
 flake8==7.1.1 \
     --hash=sha256:049d058491e228e03e67b390f311bbf88fce2dbaa8fa673e7aea87b7198b8d38 \
     --hash=sha256:597477df7860daa5aa0fdd84bf5208a043ab96b8e96ab708770ae0364dd03213
+    # via
+    #   flake8-unused-arguments
+    #   seq-retrieval (pyproject.toml)
+flake8-unused-arguments==0.0.13 \
+    --hash=sha256:c5894d294424bf7915e44dff0917222c454151016f96edc55b9f847bf307f3f7 \
+    --hash=sha256:df6a76b73a6ce67720332182a80f2f0a80783cab1ccae8175f39787cd3a74b31
     # via seq-retrieval (pyproject.toml)
 idna==3.10 \
     --hash=sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9 \

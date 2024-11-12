@@ -110,7 +110,7 @@ describe('submit form behaviour', () => {
         })
 
         // Result page should display the expected alignment results
-        cy.readFile('cypress/fixtures/test-submit-success-output.txt').then(function(txt){
+        cy.readFile('../tests/resources/submit-workflow-success-output.aln').then(function(txt){
             expect(txt).to.be.a('string')
 
             cy.get('textarea#alignment-result-text').should('have.text', txt)

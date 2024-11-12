@@ -1070,9 +1070,12 @@ jobs:
   e2e-testing:
     name: end-to-end testing
     needs:
+      - container-build-context
       - webui-update-dependency-lock-files
       - webui-container-image-build
       - api-container-image-build
+      - pipeline-alignment-container-image-build
+      - pipeline-seq-retrieval-container-image-build
     permissions:
       id-token: write # Required for OIDC authentication to AWS (to perform AWS actions / access AGR AWS resources)
     runs-on: ubuntu-22.04
@@ -1098,7 +1101,7 @@ jobs:
       - name: Run local API container to run E2E tests on
         working-directory: api/
         run: |
-          make run-container-dev
+          API_PIPELINE_IMAGE_TAG=${{needs.container-build-context.outputs.tagname}} make run-container-dev
       - name: Download webUI image artifact
         uses: actions/download-artifact@v4
         with:

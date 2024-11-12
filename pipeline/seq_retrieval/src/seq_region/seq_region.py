@@ -1,7 +1,7 @@
 """
 Module containing the SeqRegion class and related functions.
 """
-from typing import Optional, override
+from typing import Literal, Optional, override
 
 from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
@@ -23,7 +23,12 @@ class SeqRegion():
     end: int
     """The end position of the sequence region (1-base, inclusive). Asserted to be `start` < `end`."""
 
-    strand: str
+    FRAME_TYPE = Literal[0, 1, 2]
+    frame: Optional[FRAME_TYPE]
+    """Startposition of the first complete reading frame in the seq region."""
+
+    STRAND_TYPE = Literal['+', '-']
+    strand: STRAND_TYPE
     """The (genomic) strand of the sequence region"""
 
     seq_length: int
@@ -35,7 +40,7 @@ class SeqRegion():
     sequence: Optional[str]
     """the DNA sequence of a sequence region"""
 
-    def __init__(self, seq_id: str, start: int, end: int, strand: str, fasta_file_url: str, seq: Optional[str] = None):
+    def __init__(self, seq_id: str, start: int, end: int, strand: STRAND_TYPE, fasta_file_url: str, frame: Optional[FRAME_TYPE] = None, seq: Optional[str] = None):
         """
         Initializes a SeqRegion instance
 
@@ -46,6 +51,7 @@ class SeqRegion():
             end: The end position of the sequence region (1-base, inclusive).\
                  If negative strand, `start` and `end` are swapped if `end` < `start`.
             strand: the (genomic) strand of the sequence region
+            frame: optional int indicating startposition of the first complete reading frame in the seq region
             fasta_file_url: URL of faidx-indexed FASTA file containing the reference sequences to retrieve (regions of).\
                             Faidx-index files `fasta_file_url`.fai and `fasta_file_url`.gzi for compressed fasta file must be accessible URLs.
             seq: optional DNA sequence of the sequence region
@@ -55,6 +61,7 @@ class SeqRegion():
         """
         self.seq_id = seq_id
         self.strand = strand
+        self.frame = frame
 
         # If strand is -, ensure start <= end (swap as required)
         if strand == '-':
@@ -131,7 +138,7 @@ class SeqRegion():
 
     def get_sequence(self, unmasked: bool = False) -> str:
         """
-        Method to return `sequence` attribute as a string (optionally with modifications).
+        Return the `sequence` attribute as a string (optionally with modifications).
 
         Args:
             unmasked: Flag to remove soft masking (lowercase letters) \

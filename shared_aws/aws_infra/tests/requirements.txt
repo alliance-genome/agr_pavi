@@ -57,6 +57,12 @@ constructs==10.4.2 \
 flake8==7.1.1 \
     --hash=sha256:049d058491e228e03e67b390f311bbf88fce2dbaa8fa673e7aea87b7198b8d38 \
     --hash=sha256:597477df7860daa5aa0fdd84bf5208a043ab96b8e96ab708770ae0364dd03213
+    # via
+    #   flake8-unused-arguments
+    #   pavi-shared-aws-infra (pyproject.toml)
+flake8-unused-arguments==0.0.13 \
+    --hash=sha256:c5894d294424bf7915e44dff0917222c454151016f96edc55b9f847bf307f3f7 \
+    --hash=sha256:df6a76b73a6ce67720332182a80f2f0a80783cab1ccae8175f39787cd3a74b31
     # via pavi-shared-aws-infra (pyproject.toml)
 importlib-resources==6.4.5 \
     --hash=sha256:980862a1d16c9e147a59603677fa2aa5fd82b87f223b6cb870695bcfce830065 \
@@ -124,7 +130,7 @@ packaging==24.1 \
     --hash=sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124
     # via pytest
 pavi-shared-aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl \
-    --hash=sha256:3d18e74f5ff5fbcb52833356d29f566d2487afeccbb5d73de0eb93cdaadaccb9
+    --hash=sha256:bc27463d6905970a99d5d5bedc5d0141986980151c6cc1aada9b24f1035d2320
     # via pavi-shared-aws-infra (pyproject.toml)
 pluggy==1.5.0 \
     --hash=sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1 \

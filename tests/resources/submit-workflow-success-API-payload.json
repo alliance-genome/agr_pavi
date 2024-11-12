@@ -1,0 +1,654 @@
+[
+    {
+        "name": "apl-1_C42D8.8a.1",
+        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+        "seq_id": "X",
+        "seq_strand": "-",
+        "exon_seq_regions": [
+            {
+                "start": 5116866,
+                "end": 5116799
+            },
+            {
+                "start": 5116338,
+                "end": 5116171
+            },
+            {
+                "start": 5115682,
+                "end": 5115556
+            },
+            {
+                "start": 5115372,
+                "end": 5115139
+            },
+            {
+                "start": 5115002,
+                "end": 5114910
+            },
+            {
+                "start": 5114856,
+                "end": 5114723
+            },
+            {
+                "start": 5114583,
+                "end": 5114374
+            },
+            {
+                "start": 5114320,
+                "end": 5114124
+            },
+            {
+                "start": 5114080,
+                "end": 5113898
+            },
+            {
+                "start": 5113848,
+                "end": 5113650
+            },
+            {
+                "start": 5113597,
+                "end": 5113469
+            },
+            {
+                "start": 5113420,
+                "end": 5112422
+            }
+        ],
+        "cds_seq_regions": [
+            {
+                "start": 5116864,
+                "end": 5116799,
+                "frame": 0
+            },
+            {
+                "start": 5116338,
+                "end": 5116171,
+                "frame": 0
+            },
+            {
+                "start": 5115682,
+                "end": 5115556,
+                "frame": 0
+            },
+            {
+                "start": 5115372,
+                "end": 5115139,
+                "frame": 2
+            },
+            {
+                "start": 5115002,
+                "end": 5114910,
+                "frame": 2
+            },
+            {
+                "start": 5114856,
+                "end": 5114723,
+                "frame": 2
+            },
+            {
+                "start": 5114583,
+                "end": 5114374,
+                "frame": 0
+            },
+            {
+                "start": 5114320,
+                "end": 5114124,
+                "frame": 0
+            },
+            {
+                "start": 5114080,
+                "end": 5113898,
+                "frame": 1
+            },
+            {
+                "start": 5113848,
+                "end": 5113650,
+                "frame": 1
+            },
+            {
+                "start": 5113597,
+                "end": 5113469,
+                "frame": 0
+            },
+            {
+                "start": 5113420,
+                "end": 5113100,
+                "frame": 0
+            }
+        ]
+    },
+    {
+        "name": "apl-1_C42D8.8b.1",
+        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+        "seq_id": "X",
+        "seq_strand": "-",
+        "exon_seq_regions": [
+            {
+                "start": 5116864,
+                "end": 5116799
+            },
+            {
+                "start": 5116338,
+                "end": 5116171
+            },
+            {
+                "start": 5115682,
+                "end": 5115556
+            },
+            {
+                "start": 5115372,
+                "end": 5115139
+            },
+            {
+                "start": 5115002,
+                "end": 5114910
+            },
+            {
+                "start": 5114856,
+                "end": 5114723
+            },
+            {
+                "start": 5114583,
+                "end": 5114374
+            },
+            {
+                "start": 5114320,
+                "end": 5114124
+            },
+            {
+                "start": 5114080,
+                "end": 5113898
+            },
+            {
+                "start": 5113848,
+                "end": 5113650
+            },
+            {
+                "start": 5113591,
+                "end": 5113469
+            },
+            {
+                "start": 5113420,
+                "end": 5113100
+            }
+        ],
+        "cds_seq_regions": [
+            {
+                "start": 5116864,
+                "end": 5116799,
+                "frame": 0
+            },
+            {
+                "start": 5116338,
+                "end": 5116171,
+                "frame": 0
+            },
+            {
+                "start": 5115682,
+                "end": 5115556,
+                "frame": 0
+            },
+            {
+                "start": 5115372,
+                "end": 5115139,
+                "frame": 2
+            },
+            {
+                "start": 5115002,
+                "end": 5114910,
+                "frame": 2
+            },
+            {
+                "start": 5114856,
+                "end": 5114723,
+                "frame": 2
+            },
+            {
+                "start": 5114583,
+                "end": 5114374,
+                "frame": 0
+            },
+            {
+                "start": 5114320,
+                "end": 5114124,
+                "frame": 0
+            },
+            {
+                "start": 5114080,
+                "end": 5113898,
+                "frame": 1
+            },
+            {
+                "start": 5113848,
+                "end": 5113650,
+                "frame": 1
+            },
+            {
+                "start": 5113591,
+                "end": 5113469,
+                "frame": 0
+            },
+            {
+                "start": 5113420,
+                "end": 5113100,
+                "frame": 0
+            }
+        ]
+    },
+    {
+        "name": "Appl_Appl-RA",
+        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz",
+        "seq_id": "X",
+        "seq_strand": "+",
+        "exon_seq_regions": [
+            {
+                "start": 530501,
+                "end": 530534
+            },
+            {
+                "start": 531627,
+                "end": 531876
+            },
+            {
+                "start": 560606,
+                "end": 560776
+            },
+            {
+                "start": 570862,
+                "end": 571000
+            },
+            {
+                "start": 571134,
+                "end": 571352
+            },
+            {
+                "start": 571427,
+                "end": 572070
+            },
+            {
+                "start": 572149,
+                "end": 572289
+            },
+            {
+                "start": 573853,
+                "end": 574002
+            },
+            {
+                "start": 574196,
+                "end": 574878
+            },
+            {
+                "start": 574942,
+                "end": 575089
+            },
+            {
+                "start": 575168,
+                "end": 575350
+            },
+            {
+                "start": 575471,
+                "end": 578130
+            }
+        ],
+        "cds_seq_regions": [
+            {
+                "start": 531799,
+                "end": 531876,
+                "frame": 0
+            },
+            {
+                "start": 560606,
+                "end": 560776,
+                "frame": 0
+            },
+            {
+                "start": 570862,
+                "end": 571000,
+                "frame": 0
+            },
+            {
+                "start": 571134,
+                "end": 571352,
+                "frame": 2
+            },
+            {
+                "start": 571427,
+                "end": 572070,
+                "frame": 2
+            },
+            {
+                "start": 572149,
+                "end": 572289,
+                "frame": 0
+            },
+            {
+                "start": 573853,
+                "end": 574002,
+                "frame": 0
+            },
+            {
+                "start": 574196,
+                "end": 574878,
+                "frame": 0
+            },
+            {
+                "start": 574942,
+                "end": 575089,
+                "frame": 1
+            },
+            {
+                "start": 575168,
+                "end": 575350,
+                "frame": 0
+            },
+            {
+                "start": 575471,
+                "end": 575578,
+                "frame": 0
+            }
+        ]
+    },
+    {
+        "name": "Appl_Appl-RB",
+        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz",
+        "seq_id": "X",
+        "seq_strand": "+",
+        "exon_seq_regions": [
+            {
+                "start": 531170,
+                "end": 531189
+            },
+            {
+                "start": 531627,
+                "end": 531876
+            },
+            {
+                "start": 560606,
+                "end": 560776
+            },
+            {
+                "start": 570862,
+                "end": 571000
+            },
+            {
+                "start": 571134,
+                "end": 571352
+            },
+            {
+                "start": 571427,
+                "end": 572070
+            },
+            {
+                "start": 572149,
+                "end": 572289
+            },
+            {
+                "start": 573853,
+                "end": 574002
+            },
+            {
+                "start": 574196,
+                "end": 574878
+            },
+            {
+                "start": 574945,
+                "end": 575089
+            },
+            {
+                "start": 575168,
+                "end": 575362
+            },
+            {
+                "start": 575471,
+                "end": 579044
+            }
+        ],
+        "cds_seq_regions": [
+            {
+                "start": 531799,
+                "end": 531876,
+                "frame": 0
+            },
+            {
+                "start": 560606,
+                "end": 560776,
+                "frame": 0
+            },
+            {
+                "start": 570862,
+                "end": 571000,
+                "frame": 0
+            },
+            {
+                "start": 571134,
+                "end": 571352,
+                "frame": 2
+            },
+            {
+                "start": 571427,
+                "end": 572070,
+                "frame": 2
+            },
+            {
+                "start": 572149,
+                "end": 572289,
+                "frame": 0
+            },
+            {
+                "start": 573853,
+                "end": 574002,
+                "frame": 0
+            },
+            {
+                "start": 574196,
+                "end": 574878,
+                "frame": 0
+            },
+            {
+                "start": 574945,
+                "end": 575089,
+                "frame": 1
+            },
+            {
+                "start": 575168,
+                "end": 575362,
+                "frame": 0
+            },
+            {
+                "start": 575471,
+                "end": 575578,
+                "frame": 0
+            }
+        ]
+    },
+    {
+        "name": "mgl-1_ZC506.4a.1",
+        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+        "seq_id": "X",
+        "seq_strand": "-",
+        "exon_seq_regions": [
+            {
+                "start": 9976017,
+                "end": 9975783
+            },
+            {
+                "start": 9974005,
+                "end": 9973922
+            },
+            {
+                "start": 9973834,
+                "end": 9973799
+            },
+            {
+                "start": 9973196,
+                "end": 9973090
+            },
+            {
+                "start": 9973032,
+                "end": 9972951
+            },
+            {
+                "start": 9972906,
+                "end": 9972797
+            },
+            {
+                "start": 9972674,
+                "end": 9972486
+            },
+            {
+                "start": 9972440,
+                "end": 9972331
+            },
+            {
+                "start": 9972215,
+                "end": 9972101
+            },
+            {
+                "start": 9972022,
+                "end": 9971651
+            },
+            {
+                "start": 9971279,
+                "end": 9971183
+            },
+            {
+                "start": 9971137,
+                "end": 9970990
+            },
+            {
+                "start": 9970941,
+                "end": 9970778
+            },
+            {
+                "start": 9970720,
+                "end": 9970619
+            },
+            {
+                "start": 9970577,
+                "end": 9970339
+            },
+            {
+                "start": 9970049,
+                "end": 9969791
+            },
+            {
+                "start": 9969748,
+                "end": 9969676
+            },
+            {
+                "start": 9969633,
+                "end": 9969386
+            },
+            {
+                "start": 9969336,
+                "end": 9969191
+            },
+            {
+                "start": 9968788,
+                "end": 9968517
+            }
+        ],
+        "cds_seq_regions": [
+            {
+                "start": 9975791,
+                "end": 9975783,
+                "frame": 0
+            },
+            {
+                "start": 9974005,
+                "end": 9973922,
+                "frame": 0
+            },
+            {
+                "start": 9973834,
+                "end": 9973799,
+                "frame": 0
+            },
+            {
+                "start": 9973196,
+                "end": 9973090,
+                "frame": 0
+            },
+            {
+                "start": 9973032,
+                "end": 9972951,
+                "frame": 1
+            },
+            {
+                "start": 9972906,
+                "end": 9972797,
+                "frame": 0
+            },
+            {
+                "start": 9972674,
+                "end": 9972486,
+                "frame": 1
+            },
+            {
+                "start": 9972440,
+                "end": 9972331,
+                "frame": 1
+            },
+            {
+                "start": 9972215,
+                "end": 9972101,
+                "frame": 2
+            },
+            {
+                "start": 9972022,
+                "end": 9971651,
+                "frame": 1
+            },
+            {
+                "start": 9971279,
+                "end": 9971183,
+                "frame": 1
+            },
+            {
+                "start": 9971137,
+                "end": 9970990,
+                "frame": 0
+            },
+            {
+                "start": 9970941,
+                "end": 9970778,
+                "frame": 2
+            },
+            {
+                "start": 9970720,
+                "end": 9970619,
+                "frame": 0
+            },
+            {
+                "start": 9970577,
+                "end": 9970339,
+                "frame": 0
+            },
+            {
+                "start": 9970049,
+                "end": 9969791,
+                "frame": 1
+            },
+            {
+                "start": 9969748,
+                "end": 9969676,
+                "frame": 0
+            },
+            {
+                "start": 9969633,
+                "end": 9969386,
+                "frame": 2
+            },
+            {
+                "start": 9969336,
+                "end": 9969191,
+                "frame": 0
+            },
+            {
+                "start": 9968788,
+                "end": 9968629,
+                "frame": 1
+            }
+        ]
+    }
+]

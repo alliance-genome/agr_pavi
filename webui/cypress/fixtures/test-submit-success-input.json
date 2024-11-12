@@ -20,5 +20,11 @@
             "Appl-RA",
             "Appl-RB"
         ]
+    },
+    {
+        "gene": "WB:WBGene00003232",
+        "transcripts": [
+            "ZC506.4a.1"
+        ]
     }
 ]
