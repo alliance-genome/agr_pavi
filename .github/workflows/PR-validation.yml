@@ -97,9 +97,6 @@ jobs:
         shell: bash
         working-directory: ./webui/
     steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -107,6 +104,9 @@ jobs:
           sparse-checkout: |
             Makefile
             webui/
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "webui/.nvmrc"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
@@ -1026,7 +1026,7 @@ jobs:
           path: webui
       - uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: "webui/.nvmrc"
       - name: Code typing test
         run: |
           make run-type-checks
@@ -1122,7 +1122,7 @@ jobs:
       - name: setup webui-compatible node.js version
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: "webui/.nvmrc"
       - name: Run cypress E2E tests
         uses: cypress-io/github-action@v6
         with:
