@@ -21,10 +21,10 @@ push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
-install-deps:
+install-deps: package-lock.json
 	npm install --omit-dev
 
-install-test-deps:
+install-test-deps: package-lock.json
 	npm install
 
 install-deps-all: install-test-deps
@@ -33,7 +33,10 @@ install-deps-all: install-test-deps
 install-cypress-deps:
 	sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
 
-update-deps-lock:
+package-lock.json:
+	npm install --package-lock-only
+
+update-deps-lock: package-lock.json
 	npm update --package-lock-only
 
 update-deps-locks-all: update-deps-lock
