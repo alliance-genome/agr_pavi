@@ -9,13 +9,17 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
+NVM_CMD=. ${NVM_DIR}/nvm.sh && nvm
 ifdef NVM_DIR
-NPM_EXEC=. ${NVM_DIR}/nvm.sh && nvm exec npm
-NPX_EXEC=. ${NVM_DIR}/nvm.sh && nvm exec npx
+NPM_EXEC=${NVM_CMD} exec npm
+NPX_EXEC=${NVM_CMD} exec npx
 else
 NPM_EXEC=npm
 NPX_EXEC=npx
 endif
+
+.nvmrc:
+	${NVM_CMD} version-remote v20 > .nvmrc
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
@@ -40,6 +44,13 @@ install-deps-all: install-test-deps
 
 install-cypress-deps:
 	sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+
+install-node: .nvmrc
+	${NVM_CMD} install
+
+update-install-node:
+	${MAKE} --no-print-directory -B .nvmrc
+	${MAKE} --no-print-directory -B install-node
 
 package-lock.json:
 	${NPM_EXEC} install --package-lock-only
