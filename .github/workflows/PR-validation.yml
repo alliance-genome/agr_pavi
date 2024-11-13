@@ -99,7 +99,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: ".nvmrc"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -1026,7 +1026,7 @@ jobs:
           path: webui
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: ".nvmrc"
       - name: Code typing test
         run: |
           make run-type-checks
@@ -1122,7 +1122,7 @@ jobs:
       - name: setup webui-compatible node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: ".nvmrc"
       - name: Run cypress E2E tests
         uses: cypress-io/github-action@v6
         with:
