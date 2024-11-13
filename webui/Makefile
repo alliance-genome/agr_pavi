@@ -11,9 +11,12 @@ REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
 NVM_CMD=. ${NVM_DIR}/nvm.sh && nvm
 ifdef NVM_DIR
+ifndef CI
 NPM_EXEC=${NVM_CMD} exec npm
 NPX_EXEC=${NVM_CMD} exec npx
-else
+endif
+endif
+ifndef NPM_EXEC
 NPM_EXEC=npm
 NPX_EXEC=npx
 endif
