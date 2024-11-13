@@ -5,6 +5,14 @@ CDK_STACK_NAME ?= PaviPipelineCdkStack
 ADD_CDK_ARGS ?=
 EXTRA_PIP_COMPILE_ARGS ?=
 
+ifdef NVM_DIR
+NPM_EXEC=. ${NVM_DIR}/nvm.sh && nvm exec npm
+NPX_EXEC=. ${NVM_DIR}/nvm.sh && nvm exec npx
+else
+NPM_EXEC=npm
+NPX_EXEC=npx
+endif
+
 .PHONY: deploy install-% run-% update-% validate validate-%
 
 .venv/:
@@ -21,7 +29,7 @@ tests/requirements.txt:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) tests/requirements.txt
 
 package-lock.json:
-	npm install --package-lock-only
+	${NPM_EXEC} install --package-lock-only
 
 update-deps-lock:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-deps-lock
@@ -36,13 +44,13 @@ update-test-deps-lock-shared-aws-only:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-test-deps-lock-shared-aws-only
 
 update-cdk-cli-lock: package-lock.json
-	npm update --package-lock-only
+	${NPM_EXEC} update --package-lock-only
 
 update-deps-locks-all: update-deps-lock update-test-deps-lock update-cdk-cli-lock
 	@:
 
 install-cdk-cli: package-lock.json
-	npm install
+	${NPM_EXEC} install
 
 install-cdk-cli-update-dev:
 	@$(MAKE) --no-print-directory update-cdk-cli-lock
@@ -90,7 +98,7 @@ validate-stack: install-deps install-cdk-cli
 # Validate production stack code
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
 	  . .venv/bin/activate && \
-	  npx cdk diff ${CDK_STACK_NAME}
+	  ${NPX_EXEC} cdk diff ${CDK_STACK_NAME}
 
 validate-all: run-unit-tests validate-stack
 	@:
@@ -101,4 +109,4 @@ validate-dev: validate
 deploy: install-deps install-cdk-cli
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
 	  . .venv/bin/activate && \
-	  npx cdk deploy ${CDK_STACK_NAME} ${ADD_CDK_ARGS}
+	  ${NPX_EXEC} cdk deploy ${CDK_STACK_NAME} ${ADD_CDK_ARGS}

@@ -9,6 +9,14 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
+ifdef NVM_DIR
+NPM_EXEC=. ${NVM_DIR}/nvm.sh && nvm exec npm
+NPX_EXEC=. ${NVM_DIR}/nvm.sh && nvm exec npx
+else
+NPM_EXEC=npm
+NPX_EXEC=npx
+endif
+
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
 	@rm -rf .next/
@@ -22,10 +30,10 @@ push-container-image: registry-docker-login
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
 install-deps: package-lock.json
-	npm install --omit-dev
+	${NPM_EXEC} install --omit-dev
 
 install-test-deps: package-lock.json
-	npm install
+	${NPM_EXEC} install
 
 install-deps-all: install-test-deps
 	@:
@@ -34,10 +42,10 @@ install-cypress-deps:
 	sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
 
 package-lock.json:
-	npm install --package-lock-only
+	${NPM_EXEC} install --package-lock-only
 
 update-deps-lock: package-lock.json
-	npm update --package-lock-only
+	${NPM_EXEC} update --package-lock-only
 
 update-deps-locks-all: update-deps-lock
 	@:
@@ -51,24 +59,24 @@ run-container-dev:
 
 run-server-dev: install-deps-all
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
-	 npm run dev
+	 ${NPM_EXEC} run dev
 
 run-style-checks: install-test-deps
-	npm run lint
+	${NPM_EXEC} run lint
 
 run-type-checks: install-test-deps
-	npm run typecheck
+	${NPM_EXEC} run typecheck
 
 run-unit-tests: install-test-deps
-	npm run test
+	${NPM_EXEC} run test
 
 run-e2e-tests: install-test-deps
 	$(MAKE) --no-print-directory run-container-dev
-	npx cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
+	${NPX_EXEC} cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
 	$(MAKE) --no-print-directory stop-container-dev
 
 run-e2e-tests-dev: install-test-deps
-	npx cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
+	${NPX_EXEC} cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
 
 stop-container-dev:
 	@docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.webui

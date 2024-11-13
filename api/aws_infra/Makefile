@@ -13,6 +13,14 @@ EB_APP_CDK_STACK_NAME ?= PaviApiEbApplicationCdkStack
 ADD_CDK_ARGS ?=
 EXTRA_PIP_COMPILE_ARGS ?=
 
+ifdef NVM_DIR
+NPM_EXEC=. ${NVM_DIR}/nvm.sh && nvm exec npm
+NPX_EXEC=. ${NVM_DIR}/nvm.sh && nvm exec npx
+else
+NPM_EXEC=npm
+NPX_EXEC=npx
+endif
+
 .PHONY: deploy-% install-% run-% update-% validate-%
 
 .venv/:
@@ -29,7 +37,7 @@ tests/requirements.txt:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) tests/requirements.txt
 
 package-lock.json:
-	npm install --package-lock-only
+	${NPM_EXEC} install --package-lock-only
 
 update-deps-lock:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-deps-lock
@@ -44,13 +52,13 @@ update-test-deps-lock-shared-aws-only:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-test-deps-lock-shared-aws-only
 
 update-cdk-cli-lock: package-lock.json
-	npm update --package-lock-only
+	${NPM_EXEC} update --package-lock-only
 
 update-deps-locks-all: update-deps-lock update-test-deps-lock update-cdk-cli-lock
 	@:
 
 install-cdk-cli: package-lock.json
-	npm install
+	${NPM_EXEC} install
 
 install-cdk-cli-update-dev:
 	@$(MAKE) --no-print-directory update-cdk-cli-lock
@@ -96,18 +104,18 @@ run-style-checks: install-test-deps
 
 validate-image-stack: install-deps run-unit-tests install-cdk-cli
 	. .venv/bin/activate && \
-	npx cdk diff ${IMAGE_REPO_CDK_STACK_NAME}
+	${NPX_EXEC} cdk diff ${IMAGE_REPO_CDK_STACK_NAME}
 
 validate-application-stack: install-deps run-unit-tests install-cdk-cli
 	. .venv/bin/activate && \
-	npx cdk diff ${EB_APP_CDK_STACK_NAME}
+	${NPX_EXEC} cdk diff ${EB_APP_CDK_STACK_NAME}
 
 validate-environment-stack: install-deps run-unit-tests install-cdk-cli
 	export PAVI_DEPLOY_VERSION_LABEL=${PAVI_DEPLOY_VERSION_LABEL} && \
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
 	  . .venv/bin/activate && \
-	  npx cdk diff ${VALIDATE_ENV_STACK_NAME}
+	  ${NPX_EXEC} cdk diff ${VALIDATE_ENV_STACK_NAME}
 
 validate-environment-stack-dev: VALIDATE_ENV_STACK_NAME := ${EB_ENV_CDK_STACK_NAME}
 validate-environment-stack-dev: validate-environment-stack
@@ -122,11 +130,11 @@ validate-all-dev: validate-all
 
 deploy-image-stack: install-deps install-cdk-cli
 	. .venv/bin/activate && \
-	npx cdk deploy ${IMAGE_REPO_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+	${NPX_EXEC} cdk deploy ${IMAGE_REPO_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
 deploy-application: install-deps install-cdk-cli
 	. .venv/bin/activate && \
-	npx cdk deploy ${EB_APP_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+	${NPX_EXEC} cdk deploy ${EB_APP_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 	.venv/bin/python -m pavi_shared_aws.aws_helpers.deploy_eb_app_version --eb_app_name PAVI-api --version_label ${PAVI_DEPLOY_VERSION_LABEL}
 
 deploy-environment: install-deps install-cdk-cli
@@ -134,11 +142,11 @@ deploy-environment: install-deps install-cdk-cli
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${PAVI_IMAGE_REGISTRY} && \
 	  . .venv/bin/activate && \
-	  npx cdk deploy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+	  ${NPX_EXEC} cdk deploy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
 destroy-environment: install-deps install-cdk-cli
 	. .venv/bin/activate && \
-	  npx cdk destroy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+	  ${NPX_EXEC} cdk destroy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
 
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
