@@ -11,6 +11,19 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
+# Node.js vars
+NVM_CMD=. ${NVM_DIR}/nvm.sh && nvm
+ifdef NVM_DIR
+ifndef CI
+NPM_EXEC=${NVM_CMD} exec npm
+NPX_EXEC=${NVM_CMD} exec npx
+endif
+endif
+ifndef NPM_EXEC
+NPM_EXEC=npm
+NPX_EXEC=npx
+endif
+
 .PHONY: install-% run-% update-% _vars-% _python-write-lock-file
 
 print-deploy-version-label:
@@ -77,8 +90,41 @@ update-deps-locks-all:
 	$(MAKE) -C api/aws_infra/ update-deps-locks-all
 	$(MAKE) -C webui/aws_infra/ update-deps-locks-all
 
-# The following (python) deps mgmt targets are not intended to be executed in this directory.
-# They are called from Make targets in subdirectories, as they serve general purpose targets used accross all (python) subcomponents.
+# The following deps mgmt targets are not intended to be executed in this directory.
+# They are called from Make targets in subdirectories, as they serve general purpose targets used accross all subcomponents requiring them.
+
+## Node.js
+.nvmrc:
+	echo 20 > .nvmrc
+
+install-node-deps: package-lock.json
+	${NPM_EXEC} install --omit-dev
+
+install-node-test-deps: package-lock.json
+	${NPM_EXEC} install
+
+install-node: .nvmrc
+	${NVM_CMD} install
+
+update-install-node: install-node
+	@:
+
+package-lock.json:
+	${NPM_EXEC} install --package-lock-only
+
+update-node-deps-lock: package-lock.json
+	${NPM_EXEC} update --package-lock-only
+
+_vars-node-nvm-exec:
+	@echo "NVM_CMD=${NVM_CMD}"
+
+_vars-node-npm-exec:
+	@echo "NPM_EXEC=${NPM_EXEC}"
+
+_vars-node-npx-exec:
+	@echo "NPX_EXEC=${NPX_EXEC}"
+
+## Python
 .venv/:
 	python3.12 -m venv .venv/
 
