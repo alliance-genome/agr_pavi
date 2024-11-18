@@ -17,8 +17,8 @@ clean:
 	@rm -rf .next/
 	@rm -rf node_modules/
 
-container-image:
-	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
+container-image: .nvmrc
+	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
 
 push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}

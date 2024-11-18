@@ -443,6 +443,14 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
+    - name: Report node version stored in .nvmrc
+      id: nvmrc-node-version
+      run: |
+        {
+          echo 'content<<EOF'
+          cat webui/.nvmrc
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
@@ -459,6 +467,7 @@ jobs:
       env:
           DOCKER_BUILD_SUMMARY: false
       with:
+        build-args: NODE_VERSION=${{steps.nvmrc-node-version.outputs.content}}
         context: ./webui/
         push: true
         tags: |
