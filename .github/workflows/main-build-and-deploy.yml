@@ -162,7 +162,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: 'shared_aws/aws_infra/.nvmrc'
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -206,7 +206,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "pipeline/aws_infra/.nvmrc"
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -249,7 +249,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "api/aws_infra/.nvmrc"
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -501,7 +501,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "shared_aws/aws_infra/.nvmrc"
     - name: Setup Python
       uses: actions/setup-python@v5
       with:

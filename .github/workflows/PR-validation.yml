@@ -315,7 +315,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "shared_aws/aws_infra/.nvmrc"
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -706,7 +706,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "pipeline/aws_infra/.nvmrc"
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -938,7 +938,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "api/aws_infra/.nvmrc"
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
