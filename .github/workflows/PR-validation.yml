@@ -97,9 +97,6 @@ jobs:
         shell: bash
         working-directory: ./webui/
     steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -107,6 +104,9 @@ jobs:
           sparse-checkout: |
             Makefile
             webui/
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "webui/.nvmrc"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
@@ -315,7 +315,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "shared_aws/aws_infra/.nvmrc"
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -706,7 +706,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "pipeline/aws_infra/.nvmrc"
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -938,7 +938,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "api/aws_infra/.nvmrc"
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -993,7 +993,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "webui/aws_infra/.nvmrc"
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -1026,7 +1026,7 @@ jobs:
           path: webui
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: "webui/.nvmrc"
       - name: Code typing test
         run: |
           make run-type-checks
@@ -1050,6 +1050,14 @@ jobs:
         with:
           name: webui_deps_lock
           path: webui
+      - name: Report node version stored in .nvmrc
+        id: nvmrc-node-version
+        run: |
+          {
+            echo 'content<<EOF'
+            cat webui/.nvmrc
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build container image
@@ -1060,6 +1068,7 @@ jobs:
           context: ./webui/
           file: webui/Dockerfile
           push: false
+          build-args: NODE_VERSION=${{steps.nvmrc-node-version.outputs.content}}
           tags: agr_pavi/webui:latest
           outputs: type=docker,dest=/tmp/pavi_webui_docker_image.tar
       - name: Upload image as artifact (share between jobs)
@@ -1122,7 +1131,7 @@ jobs:
       - name: setup webui-compatible node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: "webui/.nvmrc"
       - name: Run cypress E2E tests
         uses: cypress-io/github-action@v6
         with:

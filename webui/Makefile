@@ -9,23 +9,26 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
+.nvmrc:
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile -C $(mkfile_dir) .nvmrc
+
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
 	@rm -rf .next/
 	@rm -rf node_modules/
 
-container-image:
-	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
+container-image: .nvmrc
+	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
 
 push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
 install-deps: package-lock.json
-	npm install --omit-dev
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile -C $(mkfile_dir) install-node-deps
 
 install-test-deps: package-lock.json
-	npm install
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile -C $(mkfile_dir) install-node-test-deps
 
 install-deps-all: install-test-deps
 	@:
@@ -33,11 +36,17 @@ install-deps-all: install-test-deps
 install-cypress-deps:
 	sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
 
-package-lock.json:
-	npm install --package-lock-only
+install-node: .nvmrc
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) install-node
 
-update-deps-lock: package-lock.json
-	npm update --package-lock-only
+update-install-node: .nvmrc
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-install-node
+
+package-lock.json:
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) package-lock.json
+
+update-deps-lock:
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-node-deps-lock
 
 update-deps-locks-all: update-deps-lock
 	@:
@@ -50,25 +59,37 @@ run-container-dev:
 	 docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.webui
 
 run-server-dev: install-deps-all
+	$(eval NPM_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
 	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
-	 npm run dev
+	 ${NPM_EXEC} run dev
 
 run-style-checks: install-test-deps
-	npm run lint
+	$(eval NPM_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
+	${NPM_EXEC} run lint
 
 run-type-checks: install-test-deps
-	npm run typecheck
+	$(eval NPM_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
+	${NPM_EXEC} run typecheck
 
 run-unit-tests: install-test-deps
-	npm run test
+	$(eval NPM_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
+	${NPM_EXEC} run test
 
 run-e2e-tests: install-test-deps
+	$(eval NPX_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
 	$(MAKE) --no-print-directory run-container-dev
-	npx cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
+	${NPX_EXEC} cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
 	$(MAKE) --no-print-directory stop-container-dev
 
 run-e2e-tests-dev: install-test-deps
-	npx cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
+	$(eval NPX_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/..Makefile _vars-node-npx-exec))
+	${NPX_EXEC} cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
 
 stop-container-dev:
 	@docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.webui

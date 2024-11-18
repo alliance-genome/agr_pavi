@@ -162,7 +162,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: 'shared_aws/aws_infra/.nvmrc'
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -206,7 +206,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "pipeline/aws_infra/.nvmrc"
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -249,7 +249,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "api/aws_infra/.nvmrc"
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -292,7 +292,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "webui/aws_infra/.nvmrc"
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -443,6 +443,14 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
+    - name: Report node version stored in .nvmrc
+      id: nvmrc-node-version
+      run: |
+        {
+          echo 'content<<EOF'
+          cat webui/.nvmrc
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
@@ -459,6 +467,7 @@ jobs:
       env:
           DOCKER_BUILD_SUMMARY: false
       with:
+        build-args: NODE_VERSION=${{steps.nvmrc-node-version.outputs.content}}
         context: ./webui/
         push: true
         tags: |
@@ -492,7 +501,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "shared_aws/aws_infra/.nvmrc"
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
