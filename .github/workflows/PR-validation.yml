@@ -993,7 +993,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "webui/aws_infra/.nvmrc"
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:

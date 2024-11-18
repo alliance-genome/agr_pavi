@@ -27,6 +27,9 @@ endif
 .venv/:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) .venv/
 
+.nvmrc:
+	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) .nvmrc
+
 clean:
 	rm -rf .venv/ || true
 	rm -rf node_modules/ || true

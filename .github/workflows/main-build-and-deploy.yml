@@ -292,7 +292,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: "webui/aws_infra/.nvmrc"
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
