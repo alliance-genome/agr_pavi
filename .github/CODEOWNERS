@@ -1,4 +1,4 @@
 # To protect this repository from changes that could create security leaks
-# Changes to the following files require approval by the repository owners
-/.github/ @alliance-genome/pavi-owners
-**/Makefile @alliance-genome/pavi-owners
+# Changes to the following files require approval by the repository admins
+/.github/ @alliance-genome/role-pavi-admins
+**/Makefile @alliance-genome/role-pavi-admins
