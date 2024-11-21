@@ -26,17 +26,17 @@ aws-cdk-cloud-assembly-schema==38.0.1 \
     --hash=sha256:7c75861adc41f7b959910d4b3b191ea242815402e599dbfa31934892838ae25e \
     --hash=sha256:92613b46213b460681e9424f09b77f06ff059eb1c773092540364ef82fcecf55
     # via aws-cdk-lib
-aws-cdk-lib==2.167.1 \
-    --hash=sha256:a40d53a0ad0cd911a0755f56e980a19db5cba046a4d0e9e4a9a9a02c4b2e4f71 \
-    --hash=sha256:fa4c2a0ae6980c0e4ee67abe0597e6ea368ede111f57412005a53f129e6db503
+aws-cdk-lib==2.169.0 \
+    --hash=sha256:55657bb592419d5f79528f5b6f17221f0fb4d2c3591cdd2b6184ce1753841c65 \
+    --hash=sha256:ab16f5a246ec250e41dba08f6a5ace88911af34d1fe0fdd22215c0befea3a8a8
     # via pavi_shared_aws (pyproject.toml)
-boto3==1.35.64 \
-    --hash=sha256:bc3fc12b41fa2c91e51ab140f74fb1544408a2b1e00f88a4c2369a66d18ddf20 \
-    --hash=sha256:cdacf03fc750caa3aa0dbf6158166def9922c9d67b4160999ff8fc350662facc
+boto3==1.35.66 \
+    --hash=sha256:09a610f8cf4d3c22d4ca69c1f89079e3a1c82805ce94fa0eb4ecdd4d2ba6c4bc \
+    --hash=sha256:c392b9168b65e9c23483eaccb5b68d1f960232d7f967a1e00a045ba065ce050d
     # via pavi_shared_aws (pyproject.toml)
-botocore==1.35.64 \
-    --hash=sha256:2f95c83f31c9e38a66995c88810fc638c829790e125032ba00ab081a2cf48cb9 \
-    --hash=sha256:bbd96bf7f442b1d5e35b36f501076e4a588c83d8d84a1952e9ee1d767e5efb3e
+botocore==1.35.66 \
+    --hash=sha256:51f43220315f384959f02ea3266740db4d421592dd87576c18824e424b349fdb \
+    --hash=sha256:d0683e9c18bb6852f768da268086c3749d925332a664db0dd1459cfa7e96e475
     # via
     #   boto3
     #   s3transfer
@@ -89,9 +89,9 @@ python-dateutil==2.9.0.post0 \
     # via
     #   botocore
     #   jsii
-s3transfer==0.10.3 \
-    --hash=sha256:263ed587a5803c6c708d3ce44dc4dfedaab4c1a32e8329bab818933d79ddcf5d \
-    --hash=sha256:4f50ed74ab84d474ce614475e0b8d5047ff080810aac5d01ea25231cfc944b0c
+s3transfer==0.10.4 \
+    --hash=sha256:244a76a24355363a68164241438de1b72f8781664920260c48465896b712a41e \
+    --hash=sha256:29edc09801743c21eb5ecbc617a152df41d3c287f67b615f73e5f750583666a7
     # via boto3
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
