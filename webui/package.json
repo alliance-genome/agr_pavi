@@ -15,7 +15,7 @@
         "node": "^20.16"
     },
     "dependencies": {
-        "generic-sequence-panel": "^1.5.1",
+        "generic-sequence-panel": "^1.5.2",
         "next": "~14.2.7",
         "primeflex": "^3.3.1",
         "primeicons": "^7.0.0",
