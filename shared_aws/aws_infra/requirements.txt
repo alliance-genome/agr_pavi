@@ -32,13 +32,13 @@ aws-cdk-lib==2.172.0 \
     # via
     #   pavi-shared-aws
     #   pavi-shared-aws-infra (pyproject.toml)
-boto3==1.35.77 \
-    --hash=sha256:a09871805f8e462349a1c33c23eb413668df0bf68424e61d53518e1a7d883b2f \
-    --hash=sha256:cc819cdbccbc2d0dc185f1dcfe74cf3809489c4cae63c2e5d6a557aa0c5ab928
+boto3==1.35.78 \
+    --hash=sha256:5ef7166fe5060637b92af8dc152cd7acecf96b3fc9c5456706a886cadb534391 \
+    --hash=sha256:fc8001519c8842e766ad3793bde3fbd0bb39e821a582fc12cf67876b8f3cf7f1
     # via pavi-shared-aws
-botocore==1.35.77 \
-    --hash=sha256:17b778016644e9342ca3ff2f430c1d1db0c6126e9b41a57cff52ac58e7a455e0 \
-    --hash=sha256:3faa27d65841499762228902d7e215fa99a4c2fdc76c9113e1c3f339bdf685b8
+botocore==1.35.78 \
+    --hash=sha256:41c37bd7c0326f25122f33ec84fb80fc0a14d7fcc9961431b0e57568e88c9cb5 \
+    --hash=sha256:6905036c25449ae8dba5e950e4b908e4b8a6fe6b516bf61e007ecb62fa21f323
     # via
     #   boto3
     #   s3transfer
@@ -75,7 +75,7 @@ jsii==1.105.0 \
     #   aws-cdk-lib
     #   constructs
 pavi-shared-aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl \
-    --hash=sha256:7a7cf5d6a83b65270b512bc8bcfad7cebd14a70e6014868daa4b0a4ac6a2b545
+    --hash=sha256:778b35c02bc35b70ce5df48ed80b431588496c51b841afabee10ff1ebf1e3d90
     # via pavi-shared-aws-infra (pyproject.toml)
 publication==0.0.3 \
     --hash=sha256:0248885351febc11d8a1098d5c8e3ab2dabcf3e8c0c96db1e17ecd12b53afbe6 \
