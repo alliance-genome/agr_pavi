@@ -4,6 +4,8 @@ import React, { FunctionComponent } from 'react';
 
 import { validate as uuid_validate } from 'uuid';
 
+import { TextAlignment } from './TextAlignment';
+
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
 }
@@ -69,6 +71,8 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const alignmentResult = await getAlignmentResults()
 
     return (
-        <div><textarea id='alignment-result-text' value={alignmentResult} readOnly={true} style={{width: "700px", height: "500px"}} /></div>
+        <div>
+            <TextAlignment alignmentResult={alignmentResult} />
+        </div>
     )
 }
