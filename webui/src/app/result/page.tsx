@@ -1,4 +1,4 @@
-'use server'
+// Server-generated page
 
 import { AlignmentResultView } from './components/AlignmentResultView'
 import { redirect } from 'next/navigation'

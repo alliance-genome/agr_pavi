@@ -1,4 +1,4 @@
-'use server'
+// Server-generated page
 
 export default async function Page() {
     return (
