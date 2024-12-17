@@ -1,4 +1,4 @@
-'use server;'
+'use server';
 
 import React, { FunctionComponent } from 'react';
 

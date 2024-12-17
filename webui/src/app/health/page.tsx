@@ -1,4 +1,4 @@
-'use server'
+// Server-generated page
 
 import { WebUiHealthCheck } from "./components/WebUiHealthCheck";
 

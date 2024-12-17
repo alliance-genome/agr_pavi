@@ -1,4 +1,4 @@
-'use server'
+// Server-generated page
 
 import { JobProgressTracker } from './components/JobProgressTracker/JobProgressTracker'
 import { redirect } from 'next/navigation'

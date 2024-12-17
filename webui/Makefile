@@ -88,7 +88,7 @@ run-e2e-tests: install-test-deps
 
 run-e2e-tests-dev: install-test-deps
 	$(eval NPX_EXEC:=)
-	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)/..Makefile _vars-node-npx-exec))
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
 	${NPX_EXEC} cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
 
 stop-container-dev:
