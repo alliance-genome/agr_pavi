@@ -5,6 +5,7 @@ import React, { FunctionComponent } from 'react';
 import { validate as uuid_validate } from 'uuid';
 
 import { TextAlignment } from './TextAlignment';
+import { NightingaleSequenceComponent } from './NightingaleSequenceComponent';
 
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
@@ -71,8 +72,14 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const alignmentResult = await getAlignmentResults()
 
     return (
-        <div>
-            <TextAlignment alignmentResult={alignmentResult} />
-        </div>
+        <>
+            <div>
+                <TextAlignment alignmentResult={alignmentResult} />
+            </div>
+            <br />
+            <div>
+                <NightingaleSequenceComponent />
+            </div>
+        </>
     )
 }
