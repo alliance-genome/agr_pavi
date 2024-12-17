@@ -1,5 +1,3 @@
-'use client;'
-
 import React, { FunctionComponent } from 'react';
 
 export interface TextAlignmentProps {
