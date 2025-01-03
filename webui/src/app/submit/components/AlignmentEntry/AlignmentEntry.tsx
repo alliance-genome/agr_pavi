@@ -29,10 +29,10 @@ export interface AlignmentEntryProps {
 }
 export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: AlignmentEntryProps) => {
     const [setupCompleted, setSetupCompleted] = useState<Boolean>(false)
-    const geneMessageRef: React.RefObject<Message> = createRef();
+    const geneMessageRef: React.RefObject<Message | null> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [gene, setGene] = useState<GeneInfo>()
-    const transcriptMultiselectRef: React.RefObject<MultiSelect> = createRef();
+    const transcriptMultiselectRef: React.RefObject<MultiSelect | null> = createRef();
     const [transcriptList, setTranscriptList] = useState<Feature[]>([])
     const [transcriptListFocused, setTranscriptListFocused] = useState<Boolean>(false)
     const [transcriptListOpened, setTranscriptListOpened] = useState<Boolean>(false)

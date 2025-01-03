@@ -7,3 +7,5 @@ export default async function Page() {
         <WebUiHealthCheck />
     )
 }
+
+export const dynamic = 'force-dynamic'
