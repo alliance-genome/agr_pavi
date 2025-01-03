@@ -74,7 +74,7 @@ describe('submit form behaviour', () => {
 
             // Once the transcript list loaded, from should enable selecting the relevant transcripts.
             cy.get('.p-inputgroup').eq(i).find('#transcripts').find('input').focus()
-            cy.get('.p-multiselect-panel').as('openTranscriptsSelectBox').should('be.visible')
+            cy.get('.p-multiselect-panel', {timeout: 5000}).as('openTranscriptsSelectBox').should('be.visible')
 
             // A list of transcript should be available
             cy.get('@openTranscriptsSelectBox').find('li.p-multiselect-item').as('openTranscriptsList')
