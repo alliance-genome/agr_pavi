@@ -8,4 +8,5 @@ export default async function Page() {
     )
 }
 
+// Force dynamic page rendering by next.js
 export const dynamic = 'force-dynamic'
