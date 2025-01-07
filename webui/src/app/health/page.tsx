@@ -7,3 +7,6 @@ export default async function Page() {
         <WebUiHealthCheck />
     )
 }
+
+// Force dynamic page rendering by next.js
+export const dynamic = 'force-dynamic'
