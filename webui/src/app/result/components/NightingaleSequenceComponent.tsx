@@ -1,20 +1,24 @@
 'use client';
 
-import React, { FunctionComponent, useEffect, useRef } from 'react';
-import "@nightingale-elements/nightingale-sequence";
+import React, { FunctionComponent, useEffect } from 'react';
 
-// declare global {
-//     namespace JSX {
-//         interface IntrinsicElements {
-//             'nightingale-sequence': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
-//         }
-//     }
-// }
+import "@nightingale-elements/nightingale-sequence";
+import NightingaleSequence from '@nightingale-elements/nightingale-sequence';
+
+type CustomElement<T> = Partial<T & React.DOMAttributes<T> & { children: any }>;
+
+declare global {
+    // eslint-disable-next-line no-unused-vars
+    namespace JSX {
+        // eslint-disable-next-line no-unused-vars
+        interface IntrinsicElements {
+            ["nightingale-sequence"]: CustomElement<NightingaleSequence>;
+        }
+    }
+}
 
 const NightingaleSequenceComponent: FunctionComponent<{}> = () => {
-    
-    const seqContainer = useRef(null);
-    
+
     const seq = "SEQUENCESEQUENCESEQUENCESEQUENCE";
     
     useEffect(()=> {
@@ -27,12 +31,11 @@ const NightingaleSequenceComponent: FunctionComponent<{}> = () => {
     
     return (
         <nightingale-sequence
-        ref={seqContainer}
-        width="800"
-        height="40"
-        length="32"
-        display-start="10"
-        display-end="20"
+        width={800}
+        height={40}
+        length={32}
+        display-start={10}
+        display-end={20}
         highlight="3:15"
         sequence={seq}
         ></nightingale-sequence>
