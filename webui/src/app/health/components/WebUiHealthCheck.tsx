@@ -3,6 +3,7 @@
 import React, { FunctionComponent } from 'react';
 
 import { redirect } from "next/navigation";
+import { DynamicServerError } from 'next/dist/client/components/hooks-server-context';
 
 export async function apiHealthHTTPStatus(): Promise<[number, string]|undefined> {
     const apiHealthResponse = fetch(`${process.env.PAVI_API_BASE_URL}/api/health`, {
@@ -17,8 +18,16 @@ export async function apiHealthHTTPStatus(): Promise<[number, string]|undefined>
         return Promise.all([response.status, responseText])
     })
     .catch((e: Error) => {
-        console.error('Error caught while querying API health:', e)
-        return undefined;
+        // Rethrow DynamicServerErrors, which are used by Next.js at build time to detect pages requiring dynamic rendering
+        // https://nextjs.org/docs/messages/dynamic-server-error
+        if( e instanceof DynamicServerError ){
+            console.info('Detected next.js DynamicServerError.')
+            throw e
+        }
+        else{
+            console.error('Error caught while querying API health:', e)
+            return undefined;
+        }
     });
 
     return apiHealthResponse
