@@ -4,7 +4,7 @@ const PUBLIC_DATA_PORTAL_URL = 'https://www.alliancegenome.org'
 
 async function getAgrDataRelease(publicDataPortalUrl: string): Promise<string> {
     const releaseInfoURL = `${publicDataPortalUrl}/api/releaseInfo`
-    return fetch(releaseInfoURL)
+    return fetch(releaseInfoURL, { next: { revalidate: 3600 }})  // Revalidate once per hour
             .then((response) => {
                 if( response.ok ){
                     return response.json() as any;
