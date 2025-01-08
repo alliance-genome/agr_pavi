@@ -11,7 +11,7 @@ import "@nightingale-elements/nightingale-sequence";
 //     }
 // }
 
-export const NightingaleSequenceComponent: FunctionComponent = () => {
+const NightingaleSequenceComponent: FunctionComponent<{}> = () => {
     
     const seqContainer = useRef(null);
     
@@ -38,3 +38,5 @@ export const NightingaleSequenceComponent: FunctionComponent = () => {
         ></nightingale-sequence>
     );
 }
+
+export default NightingaleSequenceComponent

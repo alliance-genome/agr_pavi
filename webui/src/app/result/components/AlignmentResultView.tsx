@@ -5,7 +5,10 @@ import React, { FunctionComponent } from 'react';
 import { validate as uuid_validate } from 'uuid';
 
 import { TextAlignment } from './TextAlignment';
-import { NightingaleSequenceComponent } from './NightingaleSequenceComponent';
+
+import dynamic from 'next/dynamic';
+
+const NightingaleSequenceComponent = dynamic(() => import('./NightingaleSequenceComponent'), { ssr: false })
 
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
