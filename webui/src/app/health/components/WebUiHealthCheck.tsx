@@ -1,4 +1,4 @@
-'use server';
+// Server-generated component
 
 import React, { FunctionComponent } from 'react';
 
