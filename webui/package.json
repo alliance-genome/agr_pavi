@@ -16,7 +16,7 @@
     },
     "dependencies": {
         "generic-sequence-panel": "^1.6.0",
-        "next": "~14.2.7",
+        "next": "~15.1.4",
         "primeflex": "^3.3.1",
         "primeicons": "^7.0.0",
         "primereact": "~10.8.2",
@@ -36,7 +36,7 @@
         "@types/react": "^18",
         "@types/react-dom": "^18",
         "cypress": "^13.14.1",
-        "eslint-config-next": "~14.2.7",
+        "eslint-config-next": "~15.1.4",
         "eslint-plugin-cypress": "^3.5.0",
         "eslint-plugin-jest": "^28.6.0",
         "fetch-mock": "^12.1.0",
