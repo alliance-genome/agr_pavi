@@ -55,7 +55,7 @@ nextflow.config:
 run-server-dev: install-deps nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 export API_EXECUTION_ENV="local" && \
-	 fastapi dev src/main.py
+	 .venv/bin/fastapi dev src/main.py
 
 .venv/:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) .venv/
