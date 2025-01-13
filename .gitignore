@@ -163,6 +163,7 @@ cython_debug/
 # VS Code
 .vscode/
 *.code-workspace
+!agr-pavi-monorepo.code-workspace
 
 # tmp directories used for downloading and storing local testing resources
 tmp/
