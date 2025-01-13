@@ -1,0 +1,14 @@
+{
+    "files.exclude": {
+        "api": true,
+        "api/aws_infra": true,
+        "pipeline/alignment": true,
+        "pipeline/aws_infra": true,
+        "pipeline/seq_retrieval": true,
+        "pipeline/workflow": true,
+        "shared_aws/py_package": true,
+        "shared_aws/aws_infra": true,
+        "webui": true,
+        "webui/aws_infra": true
+    }
+}
