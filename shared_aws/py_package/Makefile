@@ -7,8 +7,8 @@ EXTRA_PIP_COMPILE_ARGS ?=
 .venv/:
 	python3.12 -m venv .venv/
 
-build:
-	pip install build==1.*
+build: .venv/
+	.venv/bin/pip install build==1.*
 # Setting SOURCE_DATE_EPOCH to commit date,
 # so that build produces whl with reproducable hash given same source-code,
 # resulting in reproducable builds that don't result in hash mismatches on rebuild
@@ -16,8 +16,8 @@ build:
 	 echo "REF: $$REF" && \
 	 export SOURCE_DATE_EPOCH=$$(git show --no-patch --format=%ct $$REF) && \
 	 echo "SOURCE_DATE_EPOCH: $$SOURCE_DATE_EPOCH" && \
-	 python3.12 -m build
-	 pip hash dist/pavi_shared_aws-0.0.0-py3-none-any.whl
+	 .venv/bin/python3 -m build
+	 .venv/bin/pip hash dist/pavi_shared_aws-0.0.0-py3-none-any.whl
 
 install:
 	cp dist/pavi_shared_aws-0.0.0-py3-none-any.whl /tmp/
