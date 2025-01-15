@@ -37,7 +37,7 @@ run-container-dev:
 	$(eval API_NEXTFLOW_OUT_DIR?=s3://agr-pavi-pipeline-nextflow/${API_PIPELINE_IMAGE_TAG}/)
 	export API_PIPELINE_IMAGE_TAG=${API_PIPELINE_IMAGE_TAG} && \
 	export API_NEXTFLOW_OUT_DIR=${API_NEXTFLOW_OUT_DIR} && \
-	  docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
+	  docker compose -f docker-compose-dev.yml --env-file dev.env up --pull never -d agr.pavi.dev-local.api
 
 stop-container-dev:
 	export API_PIPELINE_IMAGE_TAG=${API_PIPELINE_IMAGE_TAG} && \
@@ -95,7 +95,7 @@ run-tests-dev: .venv/ install-test-deps nextflow.sh protein-msa.nf nextflow.conf
 
 run-integration-test-container: .venv/ install-test-deps
 	export API_PIPELINE_IMAGE_TAG=${TAG_NAME} && \
-	  docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
+	  docker compose -f docker-compose-dev.yml --env-file dev.env up --pull never -d agr.pavi.dev-local.api
 	sleep 30 # Allow container some startup time before attempting to connect
 	export EXTERNAL_API_BASE_URL="http://localhost:8080" && \
 	  .venv/bin/python -m pytest tests/b_integration \
