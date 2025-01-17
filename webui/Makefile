@@ -4,6 +4,7 @@ CONTAINER_NAME=agr_pavi/webui
 ADDITIONAL_BUILD_ARGS=
 PAVI_API_PORT ?= 8000
 PAVI_API_BASE_URL ?= http://localhost:${PAVI_API_PORT}
+PAVI_API_BASE_DOCKER_URL ?= http://agr.pavi.dev-local.api.server:${PAVI_API_PORT}
 
 AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
@@ -55,7 +56,7 @@ registry-docker-login:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile registry-docker-login
 
 run-container-dev:
-	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
+	@export PAVI_API_BASE_URL=${PAVI_API_BASE_DOCKER_URL} && \
 	 docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.webui
 
 run-server-dev: install-deps-all
