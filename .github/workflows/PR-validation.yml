@@ -795,9 +795,9 @@ jobs:
           file: api/Dockerfile
           push: false
           secrets: |
-            id=aws-key-id,env=AWS_ACCESS_KEY_ID
-            id=aws-secret-key,env=AWS_SECRET_ACCESS_KEY
-            id=aws-session-token,env=AWS_SESSION_TOKEN
+            aws-key-id=${{ env.AWS_ACCESS_KEY_ID }}
+            aws-secret-key=${{ env.AWS_SECRET_ACCESS_KEY }}
+            aws-session-token=${{ env.AWS_SESSION_TOKEN }}
           tags: agr_pavi/api:latest
           outputs: type=docker,dest=/tmp/pavi_api_docker_image.tar
       - name: Upload image as artifact (share between jobs)
