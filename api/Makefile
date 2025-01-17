@@ -23,8 +23,11 @@ clean:
 	@rm -rf work/
 
 container-image:
-	cd ../ && \
-	docker build ${ADDITIONAL_BUILD_ARGS} -f api/Dockerfile -t ${CONTAINER_NAME} .
+	cd ../ && AWS_PROFILE?=default && \
+	docker build ${ADDITIONAL_BUILD_ARGS} -f api/Dockerfile -t ${CONTAINER_NAME} \
+	  --secret id=AWS_PROFILE --secret id=AWS_SHARED_CREDENTIALS_FILE,src=${HOME}/.aws/credentials \
+	  --secret id=AWS_CONFIG_FILE,src=${HOME}/.aws/config \
+	  .
 
 push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
@@ -37,7 +40,7 @@ run-container-dev:
 	$(eval API_NEXTFLOW_OUT_DIR?=s3://agr-pavi-pipeline-nextflow/${API_PIPELINE_IMAGE_TAG}/)
 	export API_PIPELINE_IMAGE_TAG=${API_PIPELINE_IMAGE_TAG} && \
 	export API_NEXTFLOW_OUT_DIR=${API_NEXTFLOW_OUT_DIR} && \
-	  docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
+	  docker compose -f docker-compose-dev.yml --env-file dev.env up --pull never -d agr.pavi.dev-local.api
 
 stop-container-dev:
 	export API_PIPELINE_IMAGE_TAG=${API_PIPELINE_IMAGE_TAG} && \
@@ -55,7 +58,7 @@ nextflow.config:
 run-server-dev: install-deps nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 export API_EXECUTION_ENV="local" && \
-	 fastapi dev src/main.py
+	 .venv/bin/fastapi dev src/main.py
 
 .venv/:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) .venv/
@@ -94,10 +97,9 @@ run-tests-dev: .venv/ install-test-deps nextflow.sh protein-msa.nf nextflow.conf
 	.venv/bin/python -m pytest --cov --cov-fail-under=80 --cov-report html -v
 
 run-integration-test-container: .venv/ install-test-deps
-	export API_PIPELINE_IMAGE_TAG=${TAG_NAME} && \
-	  docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.api
+	$(MAKE) --no-print-directory run-container-dev
 	sleep 30 # Allow container some startup time before attempting to connect
 	export EXTERNAL_API_BASE_URL="http://localhost:8080" && \
 	  .venv/bin/python -m pytest tests/b_integration \
 	  || (echo "Container logs:" && docker logs agr.pavi.dev-local.api.server && exit 1)
-	docker compose -f docker-compose-dev.yml --env-file dev.env down
+	$(MAKE) --no-print-directory stop-container-dev

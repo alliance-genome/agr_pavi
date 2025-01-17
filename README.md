@@ -4,6 +4,9 @@ AGR's Proteins Annotations and Variants Inspector
 ## Tabel of content
  * [Architecture](#architecture)
  * [Development principles and guidelines](#development-principles-and-guidelines)
+    * [Development environment setup](#development-environment-setup)
+       * [IDE](#ide)
+       * [Execution environment](#execution-environment)
     * [Dependency management](#dependency-management)
        * [Dependency and version specifications](#dependency-and-version-specifications)
        * [Dependency updates](#dependency-updates)
@@ -54,6 +57,39 @@ through AWS CDK, in a `aws_infra` subdirectory.
 This project is divided in subcomponents which function independently but share similar concepts in their setup.
 All components have a `Makefile` in their subdirectory that contains all targets for code validation, dependency management,
 build and deployment. Below subchapters describe common concepts and make targets used for specific groups of subcomponents.
+
+### Development environment setup
+#### IDE
+Any IDE or text editor can be used to develop the PAVI code, but this repository contains a few VS Code configuration files
+to simplify getting started developing using VS Code.
+
+To open a workspace containing all components contained in this repository:
+```bash
+code agr-pavi-monorepo.code-workspace
+```
+
+The following VS code extension are recommended to be installed in this workspace:
+ * [bash IDE](https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode)
+ * [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)
+ * [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+ * [Flake8](https://marketplace.visualstudio.com/items?itemName=ms-python.flake8)
+ * [Makefile Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.makefile-tools)
+ * [Github Actions](https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-github-actions)
+ * [MyPy type checker](https://marketplace.visualstudio.com/items?itemName=ms-python.mypy-type-checker)
+ * [Nextflow](https://marketplace.visualstudio.com/items?itemName=nextflow.nextflow)
+
+#### Execution environment
+Execution of the PAVI code through the several make targets requires the following dependencies.
+Install instructions assume execution in Ubuntu 24.04:
+ * Docker: see the apt installation instructions on the [docker website](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
+ * Make: `apt install make`
+ * Python 3.12 (default distribution on Ubuntu 24.04)
+ * python 3 venv: `apt install python3.12-venv`
+ * Java (NextFlow runtime requirement): see adoptium [temurin docs](https://adoptium.net/en-GB/installation/linux/#_deb_installation_on_debian_or_ubuntu) (install v21)
+ * Node Version Manager (NVM):
+    * prerequisites: `apt install build-essential libssl-dev`
+    * NVM installation: see the [nvm docs](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating).
+ * Cypress [linux prerequisites](https://docs.cypress.io/app/get-started/install-cypress#Linux-Prerequisites).
 
 ### Dependency management
 #### Dependency and version specifications

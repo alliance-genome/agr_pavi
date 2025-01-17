@@ -12,7 +12,7 @@ AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
 # Node.js vars
-NVM_CMD=. ${NVM_DIR}/nvm.sh && nvm
+NVM_CMD=. ${NVM_DIR}/nvm.sh --install && nvm
 ifdef NVM_DIR
 ifndef CI
 NPM_EXEC=${NVM_CMD} exec npm

@@ -1,0 +1,5 @@
+{
+    "files.exclude": {
+        "aws_infra": true
+    }
+}

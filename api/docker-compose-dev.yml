@@ -21,5 +21,6 @@ services:
       - ~/.aws:/root/.aws
 
 networks:
-  # The presence of these objects is sufficient to define them
   pavi:
+    driver: bridge
+    name: pavi
