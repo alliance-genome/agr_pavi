@@ -787,6 +787,9 @@ jobs:
         uses: docker/build-push-action@v6
         env:
           DOCKER_BUILD_SUMMARY: false
+          AWS_ACCESS_KEY_ID:
+          AWS_SECRET_ACCESS_KEY:
+          AWS_SESSION_TOKEN:
         with:
           context: ./
           file: api/Dockerfile
