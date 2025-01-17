@@ -799,6 +799,8 @@ jobs:
           context: ./
           file: api/Dockerfile
           push: false
+          secrets: |
+            AWS_PROFILE=default
           secret-files: |
             AWS_SHARED_CREDENTIALS_FILE=aws.credentials
             AWS_CONFIG_FILE=aws.config

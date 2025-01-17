@@ -23,7 +23,7 @@ clean:
 	@rm -rf work/
 
 container-image:
-	cd ../ && \
+	cd ../ && AWS_PROFILE?=default && \
 	docker build ${ADDITIONAL_BUILD_ARGS} -f api/Dockerfile -t ${CONTAINER_NAME} \
 	  --secret id=AWS_PROFILE --secret id=AWS_SHARED_CREDENTIALS_FILE,src=${HOME}/.aws/credentials \
 	  --secret id=AWS_CONFIG_FILE,src=${HOME}/.aws/config \
