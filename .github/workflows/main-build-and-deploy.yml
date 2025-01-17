@@ -416,6 +416,14 @@ jobs:
     - name: Amazon ECR login
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
+    - name: Store AWS credentials in (AWS CLI compatible) config and credentials files
+      run: |
+        echo "[default]" > aws.config
+        echo "region = $AWS_REGION" >> aws.config
+        echo "[default]" > aws.credentials
+        echo "aws_access_key_id = $AWS_ACCESS_KEY_ID" >> aws.credentials
+        echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" >> aws.credentials
+        echo "aws_session_token = $AWS_SESSION_TOKEN" >> aws.credentials
     - name: Build and push container image
       uses: docker/build-push-action@v6
       env:
@@ -424,6 +432,11 @@ jobs:
         context: ./
         file: api/Dockerfile
         push: true
+        secrets: |
+          AWS_PROFILE=default
+        secret-files: |
+          AWS_SHARED_CREDENTIALS_FILE=aws.credentials
+          AWS_CONFIG_FILE=aws.config
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ env.tagname }}
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ github.event.pull_request.base.ref }}
