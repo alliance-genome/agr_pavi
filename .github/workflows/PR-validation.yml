@@ -783,21 +783,25 @@ jobs:
           role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
           role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-api-aws-test
           aws-region: us-east-1
+      - name: Store AWS credentials in (AWS CLI compatible) config and credentials files
+        run: |
+          echo "[default]" > aws.config
+          echo "region = $AWS_REGION" >> aws.config
+          echo "[default]" > aws.credentials
+          echo "aws_access_key_id = $AWS_ACCESS_KEY_ID" >> aws.credentials
+          echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" >> aws.credentials
+          echo "aws_session_token = $AWS_SESSION_TOKEN" >> aws.credentials
       - name: Build container image
         uses: docker/build-push-action@v6
         env:
           DOCKER_BUILD_SUMMARY: false
-          AWS_ACCESS_KEY_ID:
-          AWS_SECRET_ACCESS_KEY:
-          AWS_SESSION_TOKEN:
         with:
           context: ./
           file: api/Dockerfile
           push: false
-          secrets: |
-            aws-key-id=${{ env.AWS_ACCESS_KEY_ID }}
-            aws-secret-key=${{ env.AWS_SECRET_ACCESS_KEY }}
-            aws-session-token=${{ env.AWS_SESSION_TOKEN }}
+          secret-files: |
+            AWS_SHARED_CREDENTIALS_FILE=aws.credentials
+            AWS_CONFIG_FILE=aws.config
           tags: agr_pavi/api:latest
           outputs: type=docker,dest=/tmp/pavi_api_docker_image.tar
       - name: Upload image as artifact (share between jobs)

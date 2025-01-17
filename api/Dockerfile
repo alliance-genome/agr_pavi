@@ -28,9 +28,11 @@ ENV API_EXECUTION_ENV="aws"
 ENV API_PIPELINE_IMAGE_TAG="main"
 
 # Run the nextflow pipeline once to pre-download and install all required plugins
-RUN --mount=type=secret,id=aws-key-id,env=AWS_ACCESS_KEY_ID \
-    --mount=type=secret,id=aws-secret-key,env=AWS_SECRET_ACCESS_KEY \
-    --mount=type=secret,id=aws-session-token,env=AWS_SESSION_TOKEN \
+RUN --mount=type=secret,id=AWS_PROFILE,env=AWS_PROFILE \
+    --mount=type=secret,id=AWS_SHARED_CREDENTIALS_FILE \
+    --mount=type=secret,id=AWS_CONFIG_FILE \
+    AWS_SHARED_CREDENTIALS_FILE=/run/secrets/AWS_SHARED_CREDENTIALS_FILE \
+    AWS_CONFIG_FILE=/run/secrets/AWS_CONFIG_FILE \
     ./nextflow.sh run -work-dir ${API_NEXTFLOW_OUT_DIR}work -profile ${API_EXECUTION_ENV} -name 'deps-download' protein-msa.nf --help
 
 # Set Nextflow to offline mode
