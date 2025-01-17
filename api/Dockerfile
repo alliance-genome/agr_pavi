@@ -27,5 +27,14 @@ ENV API_NEXTFLOW_OUT_DIR="s3://agr-pavi-pipeline-nextflow/main/"
 ENV API_EXECUTION_ENV="aws"
 ENV API_PIPELINE_IMAGE_TAG="main"
 
+# Run the nextflow pipeline once to pre-download and install all required plugins
+RUN --mount=type=secret,id=aws-key-id,env=AWS_ACCESS_KEY_ID \
+    --mount=type=secret,id=aws-secret-key,env=AWS_SECRET_ACCESS_KEY \
+    --mount=type=secret,id=aws-session-token,env=AWS_SESSION_TOKEN \
+    ./nextflow.sh run -work-dir ${API_NEXTFLOW_OUT_DIR}work -profile ${API_EXECUTION_ENV} -name 'deps-download' protein-msa.nf --help
+
+# Set Nextflow to offline mode
+ENV NXF_OFFLINE='true'
+
 # Start the API server application
 CMD [ "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8080"]

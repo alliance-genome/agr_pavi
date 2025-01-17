@@ -24,7 +24,10 @@ clean:
 
 container-image:
 	cd ../ && \
-	docker build ${ADDITIONAL_BUILD_ARGS} -f api/Dockerfile -t ${CONTAINER_NAME} .
+	docker build ${ADDITIONAL_BUILD_ARGS} -f api/Dockerfile -t ${CONTAINER_NAME} \
+	  --secret id=aws-key-id,env=AWS_ACCESS_KEY_ID --secret id=aws-secret-key,env=AWS_SECRET_ACCESS_KEY \
+	  --secret id=aws-session-token,env=AWS_SESSION_TOKEN \
+	  .
 
 push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}

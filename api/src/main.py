@@ -74,6 +74,7 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
     try:
         subprocess.run(
             ['./nextflow.sh', 'run',
+             '-offline',
              '-work-dir', nf_workdir,
              '-profile', api_execution_env,
              '-name', job.name,
