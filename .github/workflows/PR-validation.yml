@@ -27,9 +27,6 @@ jobs:
         shell: bash
         working-directory: ./pipeline/seq_retrieval/
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -37,6 +34,9 @@ jobs:
           sparse-checkout: |
             Makefile
             pipeline/seq_retrieval/
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: "pipeline/seq_retrieval/pyproject.toml"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
@@ -522,7 +522,7 @@ jobs:
           path: pipeline/seq_retrieval/tests
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "pipeline/seq_retrieval/pyproject.toml"
       - name: Code typing test
         run: |
           make run-type-checks
