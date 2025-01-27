@@ -1,25 +1,23 @@
 'use client';
 
+import { EventName, createComponent } from '@lit/react';
 import React, { FunctionComponent, useEffect } from 'react';
 
-import "@nightingale-elements/nightingale-sequence";
 import NightingaleSequence from '@nightingale-elements/nightingale-sequence';
 
-type CustomElement<T> = Partial<T & React.DOMAttributes<T> & { children: any }>;
-
-declare global {
-    // eslint-disable-next-line no-unused-vars
-    namespace JSX {
-        // eslint-disable-next-line no-unused-vars
-        interface IntrinsicElements {
-            ["nightingale-sequence"]: CustomElement<NightingaleSequence>;
-        }
-    }
-}
+export type OnFeatureClick = CustomEvent<{ id: string; event: MouseEvent }>;
 
 const NightingaleSequenceComponent: FunctionComponent<{}> = () => {
 
     const seq = "SEQUENCESEQUENCESEQUENCESEQUENCE";
+    const NightingaleSequenceReactComponent = createComponent({
+        tagName: 'nightingale-sequence',
+        elementClass: NightingaleSequence,
+        react: React,
+        events: {
+          onFeatureClick: 'onFeatureClick' as EventName<OnFeatureClick>,
+        },
+    });
     
     useEffect(()=> {
         console.log('NightingaleSequenceComponent effect triggered. seq:', seq)
@@ -30,7 +28,7 @@ const NightingaleSequenceComponent: FunctionComponent<{}> = () => {
     }, [seq]);
     
     return (
-        <nightingale-sequence
+        <NightingaleSequenceReactComponent
         width={800}
         height={40}
         length={32}
@@ -38,7 +36,7 @@ const NightingaleSequenceComponent: FunctionComponent<{}> = () => {
         display-end={20}
         highlight="3:15"
         sequence={seq}
-        ></nightingale-sequence>
+        />
     );
 }
 
