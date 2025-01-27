@@ -28,6 +28,8 @@ jobs:
         working-directory: ./pipeline/seq_retrieval/
     steps:
       - uses: actions/setup-python@v5
+        with:
+          python-version-file: "pipeline/seq_retrieval/.python-version"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -519,6 +521,8 @@ jobs:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline/seq_retrieval/tests
       - uses: actions/setup-python@v5
+        with:
+          python-version-file: "pipeline/seq_retrieval/.python-version"
       - name: Code typing test
         run: |
           make run-type-checks
