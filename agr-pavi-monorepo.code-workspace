@@ -1,0 +1,57 @@
+{
+	"folders": [
+		{
+			"name": "PAVI root",
+			"path": "."
+		},
+		{
+			"name": "API",
+			"path": "api"
+		},
+		{
+			"name": "API AWS infra",
+			"path": "api/aws_infra"
+		},
+		{
+			"name": "pipeline alignment component",
+			"path": "pipeline/alignment"
+		},
+		{
+			"name": "pipeline AWS infra",
+			"path": "pipeline/aws_infra"
+		},
+		{
+			"name": "pipeline seq_retrieval component",
+			"path": "pipeline/seq_retrieval"
+		},
+		{
+			"name": "pipeline workflow mgmt",
+			"path": "pipeline/workflow"
+		},
+		{
+			"name": "shared aws py package",
+			"path": "shared_aws/py_package"
+		},
+		{
+			"name": "shared AWS infra",
+			"path": "shared_aws/aws_infra"
+		},
+		{
+			"name": "webUI",
+			"path": "webui"
+		},
+		{
+			"name": "webUI AWS infra",
+			"path": "webui/aws_infra"
+		}
+	],
+	"settings": {
+		"python.analysis.autoImportCompletions": false,
+		"python.analysis.typeCheckingMode": "basic",
+		"python.analysis.supportRestructuredText": true,
+		"explorer.excludeGitIgnore": true,
+		"typescript.tsdk": "webUI/node_modules/typescript/lib",
+		"restructuredtext.experimental": true,
+		"makefile.configureOnOpen": false
+	}
+}
