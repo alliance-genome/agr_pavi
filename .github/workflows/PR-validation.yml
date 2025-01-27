@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version-file: "pipeline/seq_retrieval/.python-version"
+          python-version-file: ".python-version"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -522,7 +522,7 @@ jobs:
           path: pipeline/seq_retrieval/tests
       - uses: actions/setup-python@v5
         with:
-          python-version-file: "pipeline/seq_retrieval/.python-version"
+          python-version-file: ".python-version"
       - name: Code typing test
         run: |
           make run-type-checks
