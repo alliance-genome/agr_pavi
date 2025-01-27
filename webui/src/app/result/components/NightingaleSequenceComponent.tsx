@@ -3,6 +3,7 @@
 import { EventName, createComponent } from '@lit/react';
 import React, { FunctionComponent, useEffect } from 'react';
 
+import NightingaleManager from '@nightingale-elements/nightingale-manager';
 import NightingaleSequence from '@nightingale-elements/nightingale-sequence';
 
 export type OnFeatureClick = CustomEvent<{ id: string; event: MouseEvent }>;
@@ -10,6 +11,11 @@ export type OnFeatureClick = CustomEvent<{ id: string; event: MouseEvent }>;
 const NightingaleSequenceComponent: FunctionComponent<{}> = () => {
 
     const seq = "SEQUENCESEQUENCESEQUENCESEQUENCE";
+    const NightingaleManagerReactComponent = createComponent({
+        tagName: 'nightingale-manager',
+        elementClass: NightingaleManager,
+        react: React,
+    });
     const NightingaleSequenceReactComponent = createComponent({
         tagName: 'nightingale-sequence',
         elementClass: NightingaleSequence,
@@ -28,15 +34,19 @@ const NightingaleSequenceComponent: FunctionComponent<{}> = () => {
     }, [seq]);
     
     return (
-        <NightingaleSequenceReactComponent
-        width={800}
-        height={40}
-        length={32}
-        display-start={10}
-        display-end={20}
-        highlight="3:15"
-        sequence={seq}
-        />
+        <NightingaleManagerReactComponent
+          reflected-attributes="highlight,display-start,display-end"
+        >
+            <NightingaleSequenceReactComponent
+            width={800}
+            height={40}
+            length={32}
+            display-start={10}
+            display-end={20}
+            highlight="3:15"
+            sequence={seq}
+            />
+        </NightingaleManagerReactComponent>
     );
 }
 
