@@ -64,7 +64,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "api/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -128,7 +128,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "shared_aws/py_package/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -182,7 +182,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.12"
+        python-version-file: "shared_aws/py_package/pyproject.toml"
     - name: Code typing test
       run: |
         make run-type-checks
@@ -220,7 +220,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.12"
+        python-version-file: "shared_aws/py_package/pyproject.toml"
     - name: Build package
       run: |
         make clean build
@@ -241,7 +241,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "shared_aws/aws_infra/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -303,7 +303,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.12"
+        python-version-file: "shared_aws/aws_infra/pyproject.toml"
     - name: Code typing test
       run: |
         make run-type-checks
@@ -336,7 +336,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "pipeline/aws_infra/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -375,7 +375,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "api/aws_infra/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -414,7 +414,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "webui/aws_infra/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -694,7 +694,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.12"
+        python-version-file: "pipeline/aws_infra/pyproject.toml"
     - name: Code typing test
       run: |
         make run-type-checks
@@ -744,7 +744,7 @@ jobs:
           path: api/tests
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "api/pyproject.toml"
       - name: Code typing test
         run: |
           make run-type-checks
@@ -855,7 +855,7 @@ jobs:
           docker load --input /tmp/pavi_alignment_docker_image.tar
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "api/pyproject.toml"
       - name: Run unit and integration tests
         run: |
           make run-tests
@@ -903,7 +903,7 @@ jobs:
           docker load --input /tmp/pavi_api_docker_image.tar
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: "api/pyproject.toml"
       # This step will configure environment variables to be used by all steps
       # involving AWS interaction further down
       - name: AWS credentials configuration
@@ -951,7 +951,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.12"
+        python-version-file: "api/aws_infra/pyproject.toml"
     - name: Code typing test
       run: |
         make run-type-checks
@@ -1006,7 +1006,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.12"
+        python-version-file: "webui/aws_infra/pyproject.toml"
     - name: Code typing test
       run: |
         make run-type-checks
