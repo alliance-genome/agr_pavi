@@ -517,10 +517,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version-file: "shared_aws/aws_infra/.nvmrc"
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version-file: "shared_aws/aws_infra/pyproject.toml"
     - name: Download shared AWS package
       uses: actions/download-artifact@v4
       with:
@@ -533,6 +529,10 @@ jobs:
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-app-cdk-deploy
         aws-region: us-east-1
     # API validation and deployment
+    - name: Setup Python for API deployment
+      uses: actions/setup-python@v5
+      with:
+        python-version-file: "api/aws_infra/pyproject.toml"
     - name: API CDK validations (resource assertions and cdk diff)
       working-directory: api/aws_infra
       run: make validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}"
@@ -544,6 +544,10 @@ jobs:
       run: make deploy-environment PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
             EB_ENV_CDK_STACK_NAME=PaviApiEbMainStack ADD_CDK_ARGS="--require-approval never"
     # webUI validation and deployment
+    - name: Setup Python for webUI deployment
+      uses: actions/setup-python@v5
+      with:
+        python-version-file: "webui/aws_infra/pyproject.toml"
     - name: webUI CDK validations (resource assertions and cdk diff)
       working-directory: webui/aws_infra
       run: make validate-application-stack validate-environment-stack PAVI_API_STACK_NAME="PaviApiEbMainStack" \
