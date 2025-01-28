@@ -62,9 +62,6 @@ jobs:
         shell: bash
         working-directory: ./api/
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: "api/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -72,6 +69,9 @@ jobs:
           sparse-checkout: |
             Makefile
             api/
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: "api/pyproject.toml"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
@@ -126,9 +126,6 @@ jobs:
         shell: bash
         working-directory: ./shared_aws/py_package/
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: "shared_aws/py_package/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -136,6 +133,9 @@ jobs:
           sparse-checkout: |
             Makefile
             shared_aws/py_package/
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: "shared_aws/py_package/pyproject.toml"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
@@ -239,9 +239,6 @@ jobs:
         shell: bash
         working-directory: ./shared_aws/aws_infra/
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: "shared_aws/aws_infra/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -249,6 +246,9 @@ jobs:
           sparse-checkout: |
             Makefile
             shared_aws/aws_infra/
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: "shared_aws/aws_infra/pyproject.toml"
       - name: Download shared AWS package
         uses: actions/download-artifact@v4
         with:
@@ -334,9 +334,6 @@ jobs:
         shell: bash
         working-directory: ./pipeline/aws_infra/
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: "pipeline/aws_infra/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -344,6 +341,9 @@ jobs:
           sparse-checkout: |
             Makefile
             pipeline/aws_infra/
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: "pipeline/aws_infra/pyproject.toml"
       - name: Download shared AWS package
         uses: actions/download-artifact@v4
         with:
@@ -373,9 +373,6 @@ jobs:
         shell: bash
         working-directory: ./api/aws_infra/
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: "api/aws_infra/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -383,6 +380,9 @@ jobs:
           sparse-checkout: |
             Makefile
             api/aws_infra/
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: "api/aws_infra/pyproject.toml"
       - name: Download shared AWS package
         uses: actions/download-artifact@v4
         with:
@@ -412,9 +412,6 @@ jobs:
         shell: bash
         working-directory: ./webui/aws_infra/
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: "webui/aws_infra/pyproject.toml"
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -422,6 +419,9 @@ jobs:
           sparse-checkout: |
             Makefile
             webui/aws_infra/
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: "webui/aws_infra/pyproject.toml"
       - name: Download shared AWS package
         uses: actions/download-artifact@v4
         with:
