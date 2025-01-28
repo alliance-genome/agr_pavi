@@ -35,6 +35,7 @@ updates:
       #       Tracked by https://github.com/dependabot/dependabot-core/issues/8603 and https://github.com/python-poetry/poetry/issues/9136
       #       Then remove this sub-dependency ignore list
       - dependency-name: "typeguard"
+      - dependency-name: "attrs"
       - dependency-name: "cattrs"
       - dependency-name: "s3transfer"
       - dependency-name: "types-s3transfer"
@@ -102,6 +103,7 @@ updates:
       - dependency-name: "pydantic"
       - dependency-name: "pydantic-core"
       - dependency-name: "typeguard"
+      - dependency-name: "attrs"
       - dependency-name: "cattrs"
       - dependency-name: "s3transfer"
       - dependency-name: "types-s3transfer"
