@@ -19,7 +19,7 @@ dependencies = [
 test = [
     "flake8==7.1.*",
     "flake8-unused-arguments==0.0.*",
-    "mypy==1.13.*",
+    "mypy==1.14.*",
     "pytest==8.3.*"
 ]
 
