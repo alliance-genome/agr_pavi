@@ -11,6 +11,8 @@ jobs:
   skip-validation-on-closed:
     name: Skip PR-validations for closed PR (validation on closed PRs are irrelevant)
     if: github.event.pull_request.state == 'closed'
+    # This concurrency causes a deadlock between this job and the top level workflow,
+    # which effectively cancels the current workflow run.
     concurrency:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
