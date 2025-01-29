@@ -8,7 +8,7 @@ import { TextAlignment } from './TextAlignment';
 
 import dynamic from 'next/dynamic';
 
-const NightingaleMSAComponent = dynamic(() => import('./NightingaleMSAComponent'), { ssr: false })
+const InteractiveAlignment = dynamic(() => import('./InteractiveAlignment'), { ssr: false })
 
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
@@ -81,7 +81,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
             </div>
             <br />
             <div>
-                <NightingaleMSAComponent />
+                <InteractiveAlignment />
             </div>
         </>
     )

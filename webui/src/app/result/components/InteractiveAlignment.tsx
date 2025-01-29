@@ -1,36 +1,15 @@
 'use client';
 
-import { EventName, createComponent } from '@lit/react';
 import React, { FunctionComponent, useEffect, useMemo, useRef } from 'react';
 
-import NightingaleMSA from '@nightingale-elements/nightingale-msa';
-import NightingaleManager from '@nightingale-elements/nightingale-manager';
-import NightingaleNavigation from '@nightingale-elements/nightingale-navigation';
+import NightingaleMSAComponent, { NightingaleMSAType } from './nightingale/MSA';
+import NightingaleManagerComponent from './nightingale/Manager';
+import NightingaleNavigationComponent from './nightingale/Navigation';
 
-export type OnFeatureClick = CustomEvent<{ id: string; event: MouseEvent }>;
 
-const NightingaleMSAComponent: FunctionComponent<{}> = () => {
+const InteractiveAlignmentComponent: FunctionComponent<{}> = () => {
 
-    const NightingaleManagerReactComponent = createComponent({
-        tagName: 'nightingale-manager',
-        elementClass: NightingaleManager,
-        react: React,
-    });
-    const NightingaleMSAReactComponent = createComponent({
-        tagName: 'nightingale-msa',
-        elementClass: NightingaleMSA,
-        react: React,
-        events: {
-            onFeatureClick: 'onFeatureClick' as EventName<OnFeatureClick>,
-        },
-    });
-    const NightingaleNavigationReactComponent = createComponent({
-        tagName: 'nightingale-navigation',
-        elementClass: NightingaleNavigation,
-        react: React,
-    });
-
-    const nightingaleMSARef = useRef<NightingaleMSA>(null);
+    const nightingaleMSARef = useRef<NightingaleMSAType>(null);
 
     const labelWidth = 200;
     const seqLength = 60;
@@ -43,7 +22,7 @@ const NightingaleMSAComponent: FunctionComponent<{}> = () => {
     ],[])
 
     useEffect(()=> {
-        console.log('NightingaleMSAComponent rendered.')
+        console.log('InteractiveAlignmentComponent rendered.')
         if(nightingaleMSARef.current){
             console.log('nightingaleMSARef.current defined, loading data...')
             nightingaleMSARef.current.data = alignmentData;
@@ -56,14 +35,14 @@ const NightingaleMSAComponent: FunctionComponent<{}> = () => {
 
     // TODO: Receive alignment data (or file?) through props from AlignmentResultView
     return (
-        <NightingaleManagerReactComponent>
+        <NightingaleManagerComponent>
             <div style={{paddingLeft: labelWidth.toString()+'px'}}>
-                <NightingaleNavigationReactComponent
+                <NightingaleNavigationComponent
                     height={40}
                     length={seqLength}
                 />
             </div>
-            <NightingaleMSAReactComponent
+            <NightingaleMSAComponent
                 ref={nightingaleMSARef}
                 label-width={labelWidth}
                 width={800}
@@ -71,8 +50,8 @@ const NightingaleMSAComponent: FunctionComponent<{}> = () => {
                 length={seqLength}
                 colorScheme='conservation'
             />
-        </NightingaleManagerReactComponent>
+        </NightingaleManagerComponent>
     );
 }
 
-export default NightingaleMSAComponent
+export default InteractiveAlignmentComponent
