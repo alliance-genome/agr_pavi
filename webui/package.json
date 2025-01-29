@@ -16,7 +16,11 @@
     },
     "dependencies": {
         "generic-sequence-panel": "^1.6.0",
+        "@lit/react": "^1.0.7",
         "next": "~14.2.7",
+        "@nightingale-elements/nightingale-manager": "^5.0.0",
+        "@nightingale-elements/nightingale-msa": "^5.0.0",
+        "@nightingale-elements/nightingale-navigation": "^5.0.0",
         "primeflex": "^3.3.1",
         "primeicons": "^7.0.0",
         "primereact": "~10.9.1",
