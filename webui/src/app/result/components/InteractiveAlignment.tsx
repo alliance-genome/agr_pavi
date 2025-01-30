@@ -1,10 +1,10 @@
 'use client';
 
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
 
 import {parse} from 'clustal-js';
 
-import NightingaleMSAComponent, { NightingaleMSAType } from './nightingale/MSA';
+import NightingaleMSAComponent from './nightingale/MSA';
 import NightingaleManagerComponent from './nightingale/Manager';
 import NightingaleNavigationComponent from './nightingale/Navigation';
 import { Dropdown } from 'primereact/dropdown';
@@ -16,7 +16,6 @@ export interface InteractiveAlignmentProps {
 }
 const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (props: InteractiveAlignmentProps) => {
 
-    const nightingaleMSARef = useRef<NightingaleMSAType>(null);
     const [alignmentColorScheme, setAlignmentColorScheme] = useState<string>('clustal2');
     const colorSchemeOptions = [
         {label: 'Conservation', value: 'conservation'},
@@ -97,7 +96,6 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     />
                 </div>
                 <NightingaleMSAComponent
-                    ref={nightingaleMSARef}
                     label-width={labelWidth}
                     data={alignmentData}
                     height={300}
