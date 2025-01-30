@@ -81,7 +81,11 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
             </div>
             <br />
             <div>
-                <InteractiveAlignment />
+                {(alignmentResult)?
+                    (<InteractiveAlignment alignmentResult={alignmentResult} />)
+                    :
+                    (<p>Failed to retrieve alignment results.</p>)
+                }
             </div>
         </>
     )

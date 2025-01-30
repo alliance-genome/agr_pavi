@@ -1,52 +1,72 @@
 'use client';
 
-import React, { FunctionComponent, useEffect, useMemo, useRef } from 'react';
+import React, { FunctionComponent, useEffect, useRef } from 'react';
+
+import {parse} from 'clustal-js';
 
 import NightingaleMSAComponent, { NightingaleMSAType } from './nightingale/MSA';
 import NightingaleManagerComponent from './nightingale/Manager';
 import NightingaleNavigationComponent from './nightingale/Navigation';
 
 
-const InteractiveAlignmentComponent: FunctionComponent<{}> = () => {
+export interface InteractiveAlignmentProps {
+    readonly alignmentResult: string
+}
+const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (props: InteractiveAlignmentProps) => {
 
     const nightingaleMSARef = useRef<NightingaleMSAType>(null);
 
-    const labelWidth = 200;
-    const seqLength = 60;
-    const alignmentData = useMemo( () => [
-        {sequence: "-MCAALRRNLLLRSL-WVVLAIGTAQVQAASPRWEPQIAVLCEAGQIYQPQYLSEEGRWV", name: "Appl_Appl-RA"},
-        {sequence: "-MCAALRRNLLLRSL-WVVLAIGTAQVQAASPRWEPQIAVLCEAGQIYQPQYLSEEGRWV", name: "Appl_Appl-RB"},
-        {sequence: "MTVGKLMIGLLIPILVATVYAEGSPAGSKRHEKFIPMVAFSC----GYRNQYMTEEGSWK", name: "apl-1_C42D8.8a.1"},
-        {sequence: "MTVGKLMIGLLIPILVATVYAEGSPAGSKRHEKFIPMVAFSC----GYRNQYMTEEGSWK", name: "apl-1_C42D8.8b.1"},
-        {sequence: "------------------------------------------------------------", name: "mgl-1_ZC506.4a.1"}
-    ],[])
+    const parsedAlignment = parse(props.alignmentResult)
+    const alignmentData = parsedAlignment['alns'].map((aln: {id: string, seq: string}) => {
+        return {sequence: aln.seq, name: aln.id}
+    })
+
+    const maxLabelLength = alignmentData.reduce((maxLength, alignment) => {
+        return Math.max(maxLength, alignment.name.length);
+    }, 0);
+    const labelWidth = maxLabelLength * 12;
+    const seqLength = alignmentData.reduce((maxLength, alignment) => {
+        return Math.max(maxLength, alignment.sequence.length);
+    }, 0);
+
+    let displayStart: number
+    let displayEnd: number
+    let displayCenter: number
+
+    if(seqLength <= 150){
+        displayStart = 1;
+        displayEnd = seqLength;
+    }
+    else {
+        displayCenter = Math.round(seqLength/2)
+        displayStart = displayCenter - 75;
+        displayEnd = displayCenter + 75;
+    }
 
     useEffect(()=> {
-        console.log('InteractiveAlignmentComponent rendered.')
-        if(nightingaleMSARef.current){
-            console.log('nightingaleMSARef.current defined, loading data...')
-            nightingaleMSARef.current.data = alignmentData;
-            console.log('NightingaleMSAReactComponent data loaded.')
-        }
-        else{
-            console.log('nightingaleMSARef.current is not set, nothing to do.')
-        }
-    }, [alignmentData]);
+        console.log('InteractiveAlignment rendered.')
+    }, []);
 
-    // TODO: Receive alignment data (or file?) through props from AlignmentResultView
     return (
-        <NightingaleManagerComponent>
+        <NightingaleManagerComponent
+            reflected-attributes='display-start,display-end'
+        >
             <div style={{paddingLeft: labelWidth.toString()+'px'}}>
                 <NightingaleNavigationComponent
                     height={40}
                     length={seqLength}
+                    display-start={displayStart}
+                    display-end={displayEnd}
                 />
             </div>
             <NightingaleMSAComponent
                 ref={nightingaleMSARef}
                 label-width={labelWidth}
+                data={alignmentData}
                 width={800}
                 height={300}
+                display-start={displayStart}
+                display-end={displayEnd}
                 length={seqLength}
                 colorScheme='conservation'
             />
@@ -54,4 +74,4 @@ const InteractiveAlignmentComponent: FunctionComponent<{}> = () => {
     );
 }
 
-export default InteractiveAlignmentComponent
+export default InteractiveAlignment
