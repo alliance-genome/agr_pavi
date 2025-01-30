@@ -80,6 +80,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                 <TextAlignment alignmentResult={alignmentResult} />
             </div>
             <br />
+            <br />
             <div>
                 {(alignmentResult)?
                     (<InteractiveAlignment alignmentResult={alignmentResult} />)
