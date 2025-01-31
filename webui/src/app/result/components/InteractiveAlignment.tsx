@@ -39,6 +39,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         // {label: 'Hydrophobicity', value: 'hydro'},
         // {label: 'Lesk', value: 'lesk'},
         // {label: 'Mae', value: 'mae'},
+        // {label: 'Negative', value: 'negative'},
         // {label: 'Polar', value: 'polar'},
         // {label: 'Positive', value: 'positive'},
         // {label: 'Strand', value: 'strand'},
