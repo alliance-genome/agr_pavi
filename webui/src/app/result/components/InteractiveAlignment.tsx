@@ -27,30 +27,33 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         console.log('Alignment color scheme updated to:', newColorScheme)
     }
     const colorSchemeOptions = [
+        // Amino-acid color schemes
         {label: 'Conservation', value: 'conservation'},
         {label: 'Clustal2', value: 'clustal2'},
         // {label: 'Charged', value: 'charged'},
         // {label: 'Aliphatic', value: 'aliphatic'},
-        // {label: 'Purine', value: 'purine'},
-        // {label: 'Purin_pyrimidine', value: 'purin_pyrimidine'},
         // {label: 'Aromatic', value: 'aromatic'},
         // {label: 'Buried', value: 'buried'},
         // {label: 'Buried_index', value: 'buried_index'},
         // {label: 'Cinema', value: 'cinema'},
-        // {label: 'Helix_propensity', value: 'helix_propensity'},
-        // {label: 'Helix', value: 'helix'},
         // {label: 'Hydrophobicity', value: 'hydro'},
         // {label: 'Lesk', value: 'lesk'},
         // {label: 'Mae', value: 'mae'},
         // {label: 'Polar', value: 'polar'},
         // {label: 'Positive', value: 'positive'},
-        // {label: 'Serine_threonine', value: 'serine_threonine'},
         // {label: 'Strand', value: 'strand'},
         // {label: 'Strand_propensity', value: 'strand_propensity'},
         // {label: 'Taylor', value: 'taylor'},
         // {label: 'Turn', value: 'turn'},
         // {label: 'Turn_propensity', value: 'turn_propensity'},
         // {label: 'Zappo', value: 'zappo'},
+
+        // Nucleic-acid color schemes
+        // {label: 'Purine', value: 'purine'},
+        // {label: 'Purin_pyrimidine', value: 'purin_pyrimidine'},
+        // {label: 'Helix_propensity', value: 'helix_propensity'},
+        // {label: 'Helix', value: 'helix'},
+        // {label: 'Serine_threonine', value: 'serine_threonine'},
     ]
 
     const parsedAlignment = parse(props.alignmentResult)
