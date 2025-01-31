@@ -1,12 +1,12 @@
 'use client';
 
-import React, { FunctionComponent, useEffect, useState } from 'react';
+import React, { FunctionComponent, useEffect, useState, useRef } from 'react';
 
 import {parse} from 'clustal-js';
 
 import NightingaleMSAComponent from './nightingale/MSA';
 import NightingaleManagerComponent from './nightingale/Manager';
-import NightingaleNavigationComponent from './nightingale/Navigation';
+import NightingaleNavigationComponent, {NightingaleNavigationType} from './nightingale/Navigation';
 import { Dropdown } from 'primereact/dropdown';
 import { FloatLabel } from 'primereact/floatlabel';
 
@@ -17,6 +17,15 @@ export interface InteractiveAlignmentProps {
 const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (props: InteractiveAlignmentProps) => {
 
     const [alignmentColorScheme, setAlignmentColorScheme] = useState<string>('clustal2');
+    const updateAlignmentColorScheme = (newColorScheme: string) => {
+        if(nightingaleNavigationRef.current){
+            console.log('Saving display-start and display-end before rerender.')
+            if(nightingaleNavigationRef.current['display-start']) setDisplayStart(nightingaleNavigationRef.current['display-start'])
+            if(nightingaleNavigationRef.current['display-end']) setDisplayEnd(nightingaleNavigationRef.current['display-end'])
+        }
+        setAlignmentColorScheme(newColorScheme)
+        console.log('Alignment color scheme updated to:', newColorScheme)
+    }
     const colorSchemeOptions = [
         {label: 'Conservation', value: 'conservation'},
         {label: 'Clustal2', value: 'clustal2'},
@@ -57,19 +66,11 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         return Math.max(maxLength, alignment.sequence.length);
     }, 0);
 
-    let displayStart: number
-    let displayEnd: number
-    let displayCenter: number
+    const initDisplayCenter = Math.round(seqLength/2)
+    const [displayStart, setDisplayStart] = useState<number>(seqLength <= 150 ? 1 : initDisplayCenter - 75);
+    const [displayEnd, setDisplayEnd] = useState<number>(seqLength <= 150 ? seqLength : initDisplayCenter + 75);
 
-    if(seqLength <= 150){
-        displayStart = 1;
-        displayEnd = seqLength;
-    }
-    else {
-        displayCenter = Math.round(seqLength/2)
-        displayStart = displayCenter - 75;
-        displayEnd = displayCenter + 75;
-    }
+    const nightingaleNavigationRef = useRef<NightingaleNavigationType>(null);
 
     useEffect(()=> {
         console.log('InteractiveAlignment rendered.')
@@ -80,7 +81,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
             <FloatLabel>
                 <label htmlFor="dd-colorscheme">Color scheme</label>
                 <Dropdown id="dd-colorscheme" placeholder='Select an alignment color scheme'
-                    value={alignmentColorScheme} onChange={(e) => setAlignmentColorScheme(e.value)}
+                    value={alignmentColorScheme} onChange={(e) => updateAlignmentColorScheme(e.value)}
                     options={colorSchemeOptions}
                 />
             </FloatLabel>
@@ -89,6 +90,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
             >
                 <div style={{paddingLeft: labelWidth.toString()+'px'}}>
                     <NightingaleNavigationComponent
+                        ref={nightingaleNavigationRef}
                         height={40}
                         length={seqLength}
                         display-start={displayStart}
