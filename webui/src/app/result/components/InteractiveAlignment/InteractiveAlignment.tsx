@@ -8,7 +8,6 @@ import NightingaleMSAComponent from './nightingale/MSA';
 import NightingaleManagerComponent from './nightingale/Manager';
 import NightingaleNavigationComponent, {NightingaleNavigationType} from './nightingale/Navigation';
 import { Dropdown } from 'primereact/dropdown';
-import { FloatLabel } from 'primereact/floatlabel';
 
 interface ColorSchemeSelectItem {
     label: string;
@@ -22,16 +21,24 @@ interface ColorSchemeSelectGroup {
 
 export interface InteractiveAlignmentProps {
     readonly alignmentResult: string
+    readonly hidden: boolean
 }
 const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (props: InteractiveAlignmentProps) => {
 
     const [alignmentColorScheme, setAlignmentColorScheme] = useState<string>('clustal2');
-    const updateAlignmentColorScheme = (newColorScheme: string) => {
+
+    const saveDisplayRange = () => {
         if(nightingaleNavigationRef.current){
-            console.log('Saving display-start and display-end before rerender.')
+            console.log('Saving nightingale navigation display-start and display-end.')
+            console.log(`nightingaleNavigationRef.current['display-start']: ${nightingaleNavigationRef.current['display-start']}`)
+            console.log(`nightingaleNavigationRef.current['display-end']: ${nightingaleNavigationRef.current['display-end']}`)
             if(nightingaleNavigationRef.current['display-start']) setDisplayStart(nightingaleNavigationRef.current['display-start'])
             if(nightingaleNavigationRef.current['display-end']) setDisplayEnd(nightingaleNavigationRef.current['display-end'])
         }
+    }
+
+    const updateAlignmentColorScheme = (newColorScheme: string) => {
+        saveDisplayRange()
         setAlignmentColorScheme(newColorScheme)
         console.log('Alignment color scheme updated to:', newColorScheme)
     }
@@ -112,18 +119,22 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
 
     useEffect(()=> {
         console.log('InteractiveAlignment rendered.')
+
+        return () => {
+            console.log('InteractiveAlignment unmounted.')
+        }
     }, []);
 
     return (
         <div>
-            <FloatLabel>
-                <label htmlFor="dd-colorscheme">Color scheme</label>
+            <div style={{paddingBottom: '10px'}}>
+                <label htmlFor="dd-colorscheme">Color scheme: </label>
                 <Dropdown id="dd-colorscheme" placeholder='Select an alignment color scheme'
                     value={alignmentColorScheme} onChange={(e) => updateAlignmentColorScheme(e.value)}
                     options={aminoAcidcolorSchemeOptions}
                     optionGroupChildren='items' optionGroupLabel='groupLabel' optionGroupTemplate={itemGroupTemplate}
                 />
-            </FloatLabel>
+            </div>
             <NightingaleManagerComponent
                 reflected-attributes='display-start,display-end'
             >
@@ -139,7 +150,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                 <NightingaleMSAComponent
                     label-width={labelWidth}
                     data={alignmentData}
-                    height={300}
+                    //TODO: adjust height according to number of sequences to be displayed
+                    height={150}
                     display-start={displayStart}
                     display-end={displayEnd}
                     length={seqLength}
