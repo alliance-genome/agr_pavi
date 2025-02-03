@@ -38,7 +38,6 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
     }
 
     const updateAlignmentColorScheme = (newColorScheme: string) => {
-        saveDisplayRange()
         setAlignmentColorScheme(newColorScheme)
         console.log('Alignment color scheme updated to:', newColorScheme)
     }
@@ -117,11 +116,29 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
 
     const nightingaleNavigationRef = useRef<NightingaleNavigationType>(null);
 
-    useEffect(()=> {
+    useEffect(() => {
         console.log('InteractiveAlignment rendered.')
+
+        // Trigger saveDisplayRange when the nightingale navigation 'display-start' or 'display-end' changes
+        const observer = new MutationObserver(() => {
+            console.log('Display start or end change detected.');
+            saveDisplayRange();
+        });
+
+        if (nightingaleNavigationRef.current) {
+            console.log('automatic saveDisplayRange is enabled.')
+            observer.observe(nightingaleNavigationRef.current, {
+                attributes: true,
+                attributeFilter: ['display-start', 'display-end']
+            });
+        }
+        else{
+            console.warn('nightingaleNavigationRef.current is null so saveDisplayRange is not enabled.')
+        }
 
         return () => {
             console.log('InteractiveAlignment unmounted.')
+            observer.disconnect();
         }
     }, []);
 
