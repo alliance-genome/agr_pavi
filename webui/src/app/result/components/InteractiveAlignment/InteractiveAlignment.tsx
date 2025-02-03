@@ -98,7 +98,9 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
     };
 
     const parsedAlignment = parse(props.alignmentResult)
-    const alignmentData = parsedAlignment['alns'].map((aln: {id: string, seq: string}) => {
+
+    type alignmentDataType = {sequence: string, name: string}[]
+    const alignmentData: alignmentDataType = parsedAlignment['alns'].map((aln: {id: string, seq: string}) => {
         return {sequence: aln.seq, name: aln.id}
     })
 
@@ -167,8 +169,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                 <NightingaleMSAComponent
                     label-width={labelWidth}
                     data={alignmentData}
-                    //TODO: adjust height according to number of sequences to be displayed
-                    height={150}
+                    height={alignmentData.length * 20}
                     display-start={displayStart}
                     display-end={displayEnd}
                     length={seqLength}
