@@ -82,7 +82,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                 {alignmentResult ?
                     (
                         <>
-                            <div style={{display: interactiveDisplayStyle()}}><InteractiveAlignment alignmentResult={alignmentResult} hidden={!interactiveMode} /></div>
+                            <div style={{display: interactiveDisplayStyle()}}><InteractiveAlignment alignmentResult={alignmentResult} /></div>
                             <div style={{display: textDisplayStyle()}}><TextAlignment alignmentResult={alignmentResult} /></div>
                         </>
                     )

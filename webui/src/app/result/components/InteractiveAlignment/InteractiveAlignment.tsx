@@ -21,7 +21,6 @@ interface ColorSchemeSelectGroup {
 
 export interface InteractiveAlignmentProps {
     readonly alignmentResult: string
-    readonly hidden: boolean
 }
 const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (props: InteractiveAlignmentProps) => {
 
