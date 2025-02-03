@@ -3,9 +3,10 @@
 import React, { FunctionComponent, useEffect, useState } from 'react';
 
 import dynamic from 'next/dynamic';
-import { ToggleButton } from 'primereact/togglebutton';
+import { Dropdown } from 'primereact/dropdown';
 
 import { fetchAlignmentResults } from './serverActions';
+import { displayModeType } from './types';
 import { TextAlignment } from '../TextAlignment/TextAlignment';
 
 const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
@@ -15,18 +16,27 @@ export interface AlignmentResultViewProps {
 }
 export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = (props: AlignmentResultViewProps) => {
 
-    const [interactiveMode, setInteractiveMode] = useState(true)
+    const [displayMode, setDisplayMode] = useState('interactive' as displayModeType)
+    type displayModeOptionsType = {
+        label: string,
+        value: displayModeType
+    }
+    const displayModeOptions: displayModeOptionsType[] = [
+        {label: 'Text', value: 'text'},
+        {label: 'Interactive', value: 'interactive'}
+    ]
+
     const [alignmentResult, setAlignmentResult] = useState(String)
-    function toggleInteractiveMode(interactiveMode: boolean) {
-        console.log(`Toggling interactive mode to ${interactiveMode?'enabled':'disabled'}.`)
-        setInteractiveMode(interactiveMode)
+    function changeDisplayMode(displayMode: displayModeType) {
+        console.log(`Changing display mode to ${displayMode}.`)
+        setDisplayMode(displayMode)
     }
 
     const interactiveDisplayStyle = () => {
-        return interactiveMode ? 'block' : 'none'
+        return displayMode == 'interactive' ? 'block' : 'none'
     }
     const textDisplayStyle = () => {
-        return interactiveMode ? 'none' : 'block'
+        return displayMode == 'text' ? 'block' : 'none'
     }
 
     async function getAlignmentResult(){
@@ -62,10 +72,11 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     return (
         <>
             <div style={{paddingBottom: '10px'}}>
-                <ToggleButton onLabel="Interactive"
-                            offLabel="Text"
-                            tooltip='display mode'
-                            checked={interactiveMode} onChange={(e) => toggleInteractiveMode(e.value)} />
+                <label htmlFor="display-mode">Display mode: </label>
+                <Dropdown id="display-mode"
+                    value={displayMode} onChange={(e) => changeDisplayMode(e.value)}
+                    options={displayModeOptions}
+                    optionLabel='label'/>
             </div>
             <div>
                 {alignmentResult ?
