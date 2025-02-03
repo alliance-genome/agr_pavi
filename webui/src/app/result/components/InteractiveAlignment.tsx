@@ -10,6 +10,15 @@ import NightingaleNavigationComponent, {NightingaleNavigationType} from './night
 import { Dropdown } from 'primereact/dropdown';
 import { FloatLabel } from 'primereact/floatlabel';
 
+interface ColorSchemeSelectItem {
+    label: string;
+    value: string;
+}
+
+interface ColorSchemeSelectGroup {
+    groupLabel: string;
+    items: ColorSchemeSelectItem[];
+}
 
 export interface InteractiveAlignmentProps {
     readonly alignmentResult: string
@@ -26,36 +35,61 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         setAlignmentColorScheme(newColorScheme)
         console.log('Alignment color scheme updated to:', newColorScheme)
     }
-    const colorSchemeOptions = [
-        // Amino-acid color schemes
-        {label: 'Conservation', value: 'conservation'},
-        {label: 'Clustal2', value: 'clustal2'},
-        // {label: 'Charged', value: 'charged'},
-        // {label: 'Aliphatic', value: 'aliphatic'},
-        // {label: 'Aromatic', value: 'aromatic'},
-        // {label: 'Buried', value: 'buried'},
-        // {label: 'Buried_index', value: 'buried_index'},
-        // {label: 'Cinema', value: 'cinema'},
-        // {label: 'Hydrophobicity', value: 'hydro'},
-        // {label: 'Lesk', value: 'lesk'},
-        // {label: 'Mae', value: 'mae'},
-        // {label: 'Negative', value: 'negative'},
-        // {label: 'Polar', value: 'polar'},
-        // {label: 'Positive', value: 'positive'},
-        // {label: 'Strand', value: 'strand'},
-        // {label: 'Strand_propensity', value: 'strand_propensity'},
-        // {label: 'Taylor', value: 'taylor'},
-        // {label: 'Turn', value: 'turn'},
-        // {label: 'Turn_propensity', value: 'turn_propensity'},
-        // {label: 'Zappo', value: 'zappo'},
-
-        // Nucleic-acid color schemes
-        // {label: 'Purine', value: 'purine'},
-        // {label: 'Purin_pyrimidine', value: 'purin_pyrimidine'},
-        // {label: 'Helix_propensity', value: 'helix_propensity'},
-        // {label: 'Helix', value: 'helix'},
-        // {label: 'Serine_threonine', value: 'serine_threonine'},
+    const aminoAcidcolorSchemeOptions: ColorSchemeSelectGroup[] = [
+        {
+            groupLabel: 'Common options',
+            items: [
+                {label: 'Conservation', value: 'conservation'},
+                {label: 'Clustal2', value: 'clustal2'},
+            ]
+        },
+        {
+            groupLabel: 'Chemical properties',
+            items: [
+                {label: 'Aliphatic', value: 'aliphatic'},
+                {label: 'Aromatic', value: 'aromatic'},
+                {label: 'Charged', value: 'charged'},
+                {label: 'Positive', value: 'positive'},
+                {label: 'Negative', value: 'negative'},
+                {label: 'Hydrophobicity', value: 'hydro'},
+                {label: 'Polar', value: 'polar'},
+            ]
+        },
+        {
+            groupLabel: 'Alternative color schemes',
+            items: [
+                {label: 'Cinema', value: 'cinema'},
+                {label: 'Lesk', value: 'lesk'},
+                {label: 'Mae', value: 'mae'},
+                {label: 'Taylor', value: 'taylor'},
+                {label: 'Zappo', value: 'zappo'},
+            ]
+        },
+        {
+            groupLabel: 'Other options',
+            items: [
+                {label: 'Buried', value: 'buried'},
+                // {label: 'Strand', value: 'strand'},
+                {label: 'Strand propensity', value: 'strand_propensity'},
+                // {label: 'Turn', value: 'turn'},
+                {label: 'Turn propensity', value: 'turn_propensity'},
+            ]
+        }
     ]
+
+    // const nucleicAcidcolorSchemeOptions: ColorSchemeSelectGroup[] = [
+    //     {label: 'Purine', value: 'purine'},
+    //     {label: 'Purin_pyrimidine', value: 'purin_pyrimidine'},
+    //     {label: 'Helix_propensity', value: 'helix_propensity'},
+    //     {label: 'Helix', value: 'helix'},
+    //     {label: 'Serine_threonine', value: 'serine_threonine'},
+    // ]
+
+    const itemGroupTemplate = (option: ColorSchemeSelectGroup) => {
+        return (
+            <div><b>{option.groupLabel}</b></div>
+        );
+    };
 
     const parsedAlignment = parse(props.alignmentResult)
     const alignmentData = parsedAlignment['alns'].map((aln: {id: string, seq: string}) => {
@@ -86,7 +120,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                 <label htmlFor="dd-colorscheme">Color scheme</label>
                 <Dropdown id="dd-colorscheme" placeholder='Select an alignment color scheme'
                     value={alignmentColorScheme} onChange={(e) => updateAlignmentColorScheme(e.value)}
-                    options={colorSchemeOptions}
+                    options={aminoAcidcolorSchemeOptions}
+                    optionGroupChildren='items' optionGroupLabel='groupLabel' optionGroupTemplate={itemGroupTemplate}
                 />
             </FloatLabel>
             <NightingaleManagerComponent
