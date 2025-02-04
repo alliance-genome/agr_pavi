@@ -80,6 +80,11 @@ run-unit-tests: install-test-deps
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
 	${NPM_EXEC} run test
 
+run-unit-tests-dev: install-test-deps
+	$(eval NPM_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
+	${NPM_EXEC} run test:watch
+
 run-e2e-tests: install-test-deps
 	$(eval NPX_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
