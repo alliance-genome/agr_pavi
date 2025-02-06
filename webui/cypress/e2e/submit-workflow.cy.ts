@@ -109,7 +109,55 @@ describe('submit form behaviour', () => {
             expect(loc.search).to.eq(`?uuid=${jobUuid}`)
         })
 
-        // Result page should display the expected alignment results
+        // Result page should have a display mode selector
+        cy.get('#display-mode').as('displayModeDropdown')
+        cy.get('@displayModeDropdown').should('have.length', 1)
+
+        // Display mode selector should default to 'interactive'
+        cy.get('@displayModeDropdown').find('option[selected]').should('have.value', 'interactive')
+
+        // nightingale-elements should be visible
+        cy.get('nightingale-msa').as('nightingaleMsa')
+        cy.get('@nightingaleMsa').should('be.visible')
+        cy.get('@nightingaleMsa').find('msa-sequence-viewer').as('nightingaleSequenceView')
+        cy.get('@nightingaleSequenceView').should('be.visible')
+        cy.get('@nightingaleSequenceView')
+          .invoke('width').should('be.gt', 0)
+        cy.get('@nightingaleSequenceView')
+          .invoke('height').should('be.gt', 0)
+
+        // all sequences should be visible in nightingale-msa
+        cy.get('@nightingaleMsa').find('msa-labels').as('nightingaleSequenceLabels')
+        cy.get('@nightingaleSequenceLabels').contains('li', 'Appl_Appl-RA')
+        cy.get('@nightingaleSequenceLabels').contains('li', 'Appl_Appl-RB')
+        cy.get('@nightingaleSequenceLabels').contains('li', 'apl-1_C42D8.8a.1')
+        cy.get('@nightingaleSequenceLabels').contains('li', 'apl-1_C42D8.8b.1')
+        cy.get('@nightingaleSequenceLabels').contains('li', 'mgl-1_ZC506.4a.1')
+
+        // Color-scheme selector should default to 'clustal2'
+        const defaultColorScheme = 'clustal2'
+        cy.get('#dd-colorscheme').as('colorSchemeDropdown')
+        cy.get('@colorSchemeDropdown').should('have.length', 1)
+        cy.get('@colorSchemeDropdown').find('option[selected]').should('have.value', defaultColorScheme)
+
+        // Selected color scheme should be represented in nightingale view
+        cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', defaultColorScheme)
+
+        // TODO: selecting a different color scheme should change the colors in nightingale-msa
+
+
+        // TODO: changing navigation should update sequence displayed
+
+        // Changing display mode to 'text' should hide the interactive alignment and display the text alignment
+        cy.get('@displayModeDropdown').click()
+        cy.get('ul.p-dropdown-items').find('li').contains('Text').click()
+
+        cy.get('@nightingaleMsa').should('not.be.visible')
+
+        cy.get('textarea#alignment-result-text').as('alignmentTextDisplay')
+        cy.get('@alignmentTextDisplay').should('be.visible')
+
+        // Displayed alignment should match the expected output
         cy.readFile('../tests/resources/submit-workflow-success-output.aln').then(function(txt){
             expect(txt).to.be.a('string')
 
