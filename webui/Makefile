@@ -56,7 +56,7 @@ registry-docker-login:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile registry-docker-login
 
 run-container-dev:
-	@export PAVI_API_BASE_URL=${PAVI_API_BASE_DOCKER_URL} && \
+	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
 	 docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.webui
 
 run-server-dev: install-deps-all

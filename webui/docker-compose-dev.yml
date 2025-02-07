@@ -7,10 +7,4 @@ services:
       - PAVI_API_BASE_URL
     ports:
       - "3000:3000"
-    networks:
-      - pavi
-
-networks:
-  pavi:
-    driver: bridge
-    name: pavi
+    network_mode: host
