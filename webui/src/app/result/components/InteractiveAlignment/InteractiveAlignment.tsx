@@ -26,13 +26,18 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
 
     const [alignmentColorScheme, setAlignmentColorScheme] = useState<string>('clustal2');
 
-    const saveDisplayRange = () => {
-        if(nightingaleNavigationRef.current){
-            console.log('Saving nightingale navigation display-start and display-end.')
-            console.log(`nightingaleNavigationRef.current['display-start']: ${nightingaleNavigationRef.current['display-start']}`)
-            console.log(`nightingaleNavigationRef.current['display-end']: ${nightingaleNavigationRef.current['display-end']}`)
-            if(nightingaleNavigationRef.current['display-start']) setDisplayStart(nightingaleNavigationRef.current['display-start'])
-            if(nightingaleNavigationRef.current['display-end']) setDisplayEnd(nightingaleNavigationRef.current['display-end'])
+    type updateRangeArgs = {
+        displayStart?: number
+        displayEnd?: number
+    }
+    function updateDisplayRange(args: updateRangeArgs){
+        if(args.displayStart !== undefined){
+            console.log(`Updating dipslayStart to ${args.displayStart}`)
+            setDisplayStart(args.displayStart)
+        }
+        if(args.displayEnd !== undefined){
+            console.log(`Updating dipslayEnd to ${args.displayEnd}`)
+            setDisplayEnd(args.displayEnd)
         }
     }
 
@@ -120,26 +125,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
     useEffect(() => {
         console.log('InteractiveAlignment rendered.')
 
-        // Trigger saveDisplayRange when the nightingale navigation 'display-start' or 'display-end' changes
-        const observer = new MutationObserver(() => {
-            console.log('Display start or end change detected.');
-            saveDisplayRange();
-        });
-
-        if (nightingaleNavigationRef.current) {
-            console.log('automatic saveDisplayRange is enabled.')
-            observer.observe(nightingaleNavigationRef.current, {
-                attributes: true,
-                attributeFilter: ['display-start', 'display-end']
-            });
-        }
-        else{
-            console.warn('nightingaleNavigationRef.current is null so saveDisplayRange is not enabled.')
-        }
-
         return () => {
             console.log('InteractiveAlignment unmounted.')
-            observer.disconnect();
         }
     }, []);
 
@@ -163,6 +150,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                         length={seqLength}
                         display-start={displayStart}
                         display-end={displayEnd}
+                        onChange={(e) => updateDisplayRange({displayStart: e.detail['display-start'], displayEnd: e.detail['display-end']})}
                     />
                 </div>
                 <NightingaleMSAComponent
@@ -173,6 +161,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     display-end={displayEnd}
                     length={seqLength}
                     colorScheme={alignmentColorScheme}
+                    onChange={(e) => updateDisplayRange({displayStart: e.detail['display-start'], displayEnd: e.detail['display-end']})}
                 />
             </NightingaleManagerComponent>
         </div>
