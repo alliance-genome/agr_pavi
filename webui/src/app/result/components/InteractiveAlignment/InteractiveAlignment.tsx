@@ -116,9 +116,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         return Math.max(maxLength, alignment.sequence.length);
     }, 0);
 
-    const initDisplayCenter = Math.round(seqLength/2)
-    const [displayStart, setDisplayStart] = useState<number>(seqLength <= 150 ? 1 : initDisplayCenter - 75);
-    const [displayEnd, setDisplayEnd] = useState<number>(seqLength <= 150 ? seqLength : initDisplayCenter + 75);
+    const [displayStart, setDisplayStart] = useState<number>(1);
+    const [displayEnd, setDisplayEnd] = useState<number>(-1);
 
     const nightingaleNavigationRef = useRef<NightingaleNavigationType>(null);
 
@@ -129,6 +128,20 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
             console.log('InteractiveAlignment unmounted.')
         }
     }, []);
+
+    useEffect(() => {
+        // Update zoom to show readable sequence at centre of alignment
+        console.log('Updating navigation to readable centre.')
+        const initDisplayCenter = Math.round(seqLength/2)
+        const newDisplayStart = seqLength <= 150 ? 1 : initDisplayCenter - 75
+        const newDisplayEnd = seqLength <= 150 ? seqLength : initDisplayCenter + 75
+        if( newDisplayStart != displayStart ){
+            updateDisplayRange({displayStart: newDisplayStart})
+        }
+        if( newDisplayEnd != displayEnd ){
+            updateDisplayRange({displayEnd: newDisplayEnd})
+        }
+    }, [seqLength]);  // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div>
