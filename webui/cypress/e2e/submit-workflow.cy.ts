@@ -14,6 +14,23 @@ describe('submit form behaviour', () => {
         cy.visit('/')
     })
 
+    Cypress.on('uncaught:exception', (err, runnable) => {  // eslint-disable-line no-unused-vars
+        // Expect errors from nightingale elements are ignored
+        // InvalidStateError: CanvasRenderingContext2D.drawImage: Passed-in canvas is empty
+        console.log(`Uncaught error intercepted during cypress testing.`)
+        console.log(`Intercepted error cause: ${err.cause}`)
+        console.log(`Intercepted error message: ${err.message}`)
+        console.log(`Intercepted error name: ${err.name}`)
+        console.log(`Intercepted error stack: ${err.stack}`)
+        console.log('End of intercepted error.')
+        if ( err.message.includes('CanvasRenderingContext2D') ) {
+            console.log('CanvasRenderingContext2D error detected during Cypress E2E testing. Ignoring as expected.')
+            return false
+        }
+        // we still want to ensure there are no other unexpected
+        // errors, so we let them fail the test
+    })
+
     it('tests job submission success', () => {
         // We use the `cy.get()` command to get all elements that match the selector.
         // There should only be one cell with a inputgroup.
