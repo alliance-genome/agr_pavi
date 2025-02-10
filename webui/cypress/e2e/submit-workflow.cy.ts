@@ -134,22 +134,56 @@ describe('submit form behaviour', () => {
         cy.get('@displayModeDropdown').find('option[selected]').should('have.value', 'interactive')
 
         // nightingale-elements should be visible
-        cy.get('nightingale-msa').as('nightingaleMsa')
+        cy.get('nightingale-manager').as('nightingaleManager')
+        cy.get('@nightingaleManager').should('have.length', 1)
+
+        cy.get('@nightingaleManager').find('nightingale-navigation').as('nightingaleNavigation')
+        cy.get('@nightingaleNavigation').should('have.length', 1)
+        cy.get('@nightingaleNavigation').should('be.visible')
+
+        cy.get('@nightingaleManager').find('nightingale-msa').as('nightingaleMsa')
+        cy.get('@nightingaleMsa').should('have.length', 1)
         cy.get('@nightingaleMsa').should('be.visible')
-        cy.get('@nightingaleMsa').find('msa-sequence-viewer').as('nightingaleSequenceView')
+
+        cy.get('@nightingaleMsa').find('msa-labels:visible')
+            .as('nightingaleSequenceLabels')
+
+        cy.get('@nightingaleMsa').find('msa-sequence-viewer:visible').as('nightingaleSequenceView')
+        cy.get('@nightingaleSequenceView').should('have.length', 1)
+        // MouseOver to allow nightingale elements to define cursor position for correct rendering
+        cy.get('@nightingaleSequenceView')
+          .trigger('mouseover')
+
         cy.get('@nightingaleSequenceView').should('be.visible')
         cy.get('@nightingaleSequenceView')
-          .invoke('width').should('be.gt', 0)
+          .invoke('attr', 'width')
+          .should('be.a', 'string')
+          .then((widthStr) => {
+                expect(widthStr).not.to.be.undefined
+                const width = parseInt(widthStr!)
+                expect(width).to.be.gt(0)
+            })
         cy.get('@nightingaleSequenceView')
-          .invoke('height').should('be.gt', 0)
+          .invoke('attr', 'height')
+          .should('be.a', 'string')
+          .then((heightStr) => {
+                expect(heightStr).not.to.be.undefined
+                const height = parseInt(heightStr!)
+                expect(height).to.be.gt(0)
+            })
 
         // all sequences should be visible in nightingale-msa
-        cy.get('@nightingaleMsa').find('msa-labels').as('nightingaleSequenceLabels')
-        cy.get('@nightingaleSequenceLabels').contains('li', 'Appl_Appl-RA')
-        cy.get('@nightingaleSequenceLabels').contains('li', 'Appl_Appl-RB')
-        cy.get('@nightingaleSequenceLabels').contains('li', 'apl-1_C42D8.8a.1')
-        cy.get('@nightingaleSequenceLabels').contains('li', 'apl-1_C42D8.8b.1')
-        cy.get('@nightingaleSequenceLabels').contains('li', 'mgl-1_ZC506.4a.1')
+        cy.get('@nightingaleSequenceLabels').should('have.length', 1)
+        cy.get('@nightingaleSequenceLabels').should('be.visible')
+        cy.get('@nightingaleSequenceLabels').shadow().find('ul').as('NightingaleLabelsList')
+        cy.get('@NightingaleLabelsList').find('li').as('NightingaleLabels')
+
+        cy.get('@NightingaleLabels').should('have.length', 5)
+        cy.get('@NightingaleLabels').contains('Appl_Appl-RA')
+        cy.get('@NightingaleLabels').contains('Appl_Appl-RB')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1')
+        cy.get('@NightingaleLabels').contains('mgl-1_ZC506.4a.1')
 
         // Color-scheme selector should default to 'clustal2'
         const defaultColorScheme = 'clustal2'
@@ -164,6 +198,10 @@ describe('submit form behaviour', () => {
 
 
         // TODO: changing navigation should update sequence displayed
+        //TODO: try dragging nightingale-msa or nightingal-navigation to change display?
+        //   .trigger('mousedown', {button: 0})
+        //   .trigger('mousemove',{ clientX: 100, clientY: 100 })
+        //   .trigger('mouseup', {force: true})
 
         // Changing display mode to 'text' should hide the interactive alignment and display the text alignment
         cy.get('@displayModeDropdown').click()
