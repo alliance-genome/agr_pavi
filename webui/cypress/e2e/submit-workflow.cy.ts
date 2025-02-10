@@ -14,6 +14,11 @@ describe('submit form behaviour', () => {
         cy.visit('/')
     })
 
+    // cypress-image-diff - Legacy HTML report
+    // after(() => {
+    //     cy.task("generateReport");
+    // });
+
     Cypress.on('uncaught:exception', (err, runnable) => {  // eslint-disable-line no-unused-vars
         // Expect errors from nightingale elements are ignored
         // InvalidStateError: CanvasRenderingContext2D.drawImage: Passed-in canvas is empty
@@ -194,8 +199,16 @@ describe('submit form behaviour', () => {
         // Selected color scheme should be represented in nightingale view
         cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', defaultColorScheme)
 
-        // TODO: selecting a different color scheme should change the colors in nightingale-msa
+        // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
+        cy.get('@nightingaleSequenceView')
+          .then(
+            ($target) => {
+                let coords = $target[0].getBoundingClientRect();
+                cy.compareSnapshot({name: 'initial-msa-viewer', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
+            }
+          )
 
+        // TODO: selecting a different color scheme should change the colors in nightingale-msa
 
         // TODO: changing navigation should update sequence displayed
         //TODO: try dragging nightingale-msa or nightingal-navigation to change display?
