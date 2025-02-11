@@ -45,6 +45,11 @@ install-node: .nvmrc
 update-install-node: .nvmrc
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-install-node
 
+open-cypress-image-diff-html-report:
+	$(eval NPX_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
+	${NPX_EXEC} cypress-image-diff-html-report start -c cypress-image-diff.config.cjs --rd cypress/visual-tests/cypress-image-diff-html-report/
+
 package-lock.json:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) package-lock.json
 
