@@ -153,13 +153,31 @@ describe('submit form behaviour', () => {
         cy.get('@nightingaleMsa').find('msa-labels:visible')
             .as('nightingaleSequenceLabels')
 
-        cy.get('@nightingaleMsa').find('msa-sequence-viewer:visible').as('nightingaleSequenceView')
-        cy.get('@nightingaleSequenceView').should('have.length', 1)
-        // MouseOver to allow nightingale elements to define cursor position for correct rendering
-        cy.get('@nightingaleSequenceView')
-          .trigger('mouseover')
+        // all sequences should be visible in nightingale-msa
+        cy.get('@nightingaleSequenceLabels').should('have.length', 1)
+        cy.get('@nightingaleSequenceLabels').should('be.visible')
+        cy.get('@nightingaleSequenceLabels').shadow().find('ul > li').as('NightingaleLabels')
 
-        cy.get('@nightingaleSequenceView').should('be.visible')
+        cy.get('@NightingaleLabels').should('have.length', 5)
+        cy.get('@NightingaleLabels').contains('Appl_Appl-RA')
+        cy.get('@NightingaleLabels').contains('Appl_Appl-RB')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1')
+        cy.get('@NightingaleLabels').contains('mgl-1_ZC506.4a.1')
+
+        cy.get('@nightingaleSequenceLabels').parent('div').find('msa-sequence-viewer:visible').as('nightingaleSequenceView')
+        cy.get('@nightingaleSequenceView').should('have.length', 1)
+
+        // Wait for @nightingaleSequenceView to get a width and height >= 0 (no negative values)
+        cy.get('@nightingaleSequenceView')
+          .invoke('attr', 'width')
+          .should('match', /^[0-9]+$/)
+
+        cy.get('@nightingaleSequenceView')
+          .invoke('attr', 'height')
+          .should('match', /^[0-9]+$/)
+
+        // Ensure @nightingaleSequenceView width and height != 0
         cy.get('@nightingaleSequenceView')
           .invoke('attr', 'width')
           .should('be.a', 'string')
@@ -177,19 +195,6 @@ describe('submit form behaviour', () => {
                 expect(height).to.be.gt(0)
             })
 
-        // all sequences should be visible in nightingale-msa
-        cy.get('@nightingaleSequenceLabels').should('have.length', 1)
-        cy.get('@nightingaleSequenceLabels').should('be.visible')
-        cy.get('@nightingaleSequenceLabels').shadow().find('ul').as('NightingaleLabelsList')
-        cy.get('@NightingaleLabelsList').find('li').as('NightingaleLabels')
-
-        cy.get('@NightingaleLabels').should('have.length', 5)
-        cy.get('@NightingaleLabels').contains('Appl_Appl-RA')
-        cy.get('@NightingaleLabels').contains('Appl_Appl-RB')
-        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1')
-        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1')
-        cy.get('@NightingaleLabels').contains('mgl-1_ZC506.4a.1')
-
         // Color-scheme selector should default to 'clustal2'
         const defaultColorScheme = 'clustal2'
         cy.get('#dd-colorscheme').as('colorSchemeDropdown')
@@ -198,6 +203,9 @@ describe('submit form behaviour', () => {
 
         // Selected color scheme should be represented in nightingale view
         cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', defaultColorScheme)
+
+        // Give visual nightingale-elements some time to render
+        cy.wait(1000)
 
         // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
         cy.get('@nightingaleSequenceView')
