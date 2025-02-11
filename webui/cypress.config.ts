@@ -11,6 +11,9 @@ export default defineConfig({
       "runMode": 1,
       "openMode": 0
     },
-    supportFile: 'cypress/support/e2e.ts'
+    supportFile: 'cypress/support/e2e.ts',
+    // Testing at 1080p resolution (full HD)
+    viewportHeight: 1080,
+    viewportWidth: 1920,
   },
 });
