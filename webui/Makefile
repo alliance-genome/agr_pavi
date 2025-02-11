@@ -1,5 +1,7 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+# DEBUG=1
+
 CONTAINER_NAME=agr_pavi/webui
 ADDITIONAL_BUILD_ARGS=
 PAVI_API_PORT ?= 8000
@@ -89,12 +91,18 @@ run-e2e-tests: install-test-deps
 	$(eval NPX_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
 	$(MAKE) --no-print-directory run-container-dev
+ifneq ($(DEBUG),)
+	$(eval NPX_EXEC:=export ELECTRON_ENABLE_LOGGING=1  && ${NPX_EXEC})
+endif
 	${NPX_EXEC} cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
 	$(MAKE) --no-print-directory stop-container-dev
 
 run-e2e-tests-dev: install-test-deps
 	$(eval NPX_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
+ifneq ($(DEBUG),)
+	$(eval NPX_EXEC:=export ELECTRON_ENABLE_LOGGING=1  && ${NPX_EXEC})
+endif
 	${NPX_EXEC} cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
 
 stop-container-dev:
