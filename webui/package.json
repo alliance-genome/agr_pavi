@@ -15,6 +15,11 @@
         "node": "^20.16"
     },
     "dependencies": {
+        "@lit/react": "^1.0.7",
+        "@nightingale-elements/nightingale-manager": "^5.0.0",
+        "@nightingale-elements/nightingale-msa": "^5.0.0",
+        "@nightingale-elements/nightingale-navigation": "^5.0.0",
+        "clustal-js": "^2.0.6",
         "generic-sequence-panel": "^1.6.0",
         "next": "~14.2.7",
         "primeflex": "^3.3.1",
@@ -36,6 +41,8 @@
         "@types/react": "^18",
         "@types/react-dom": "^18",
         "cypress": "^14.0.0",
+        "cypress-image-diff-html-report": "^2.2.0",
+        "cypress-image-diff-js": "^2.3.0",
         "eslint-config-next": "~14.2.7",
         "eslint-plugin-cypress": "^3.5.0",
         "eslint-plugin-jest": "^28.6.0",

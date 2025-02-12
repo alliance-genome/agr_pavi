@@ -1,5 +1,7 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+# DEBUG=1
+
 CONTAINER_NAME=agr_pavi/webui
 ADDITIONAL_BUILD_ARGS=
 PAVI_API_PORT ?= 8000
@@ -43,6 +45,11 @@ install-node: .nvmrc
 update-install-node: .nvmrc
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-install-node
 
+open-cypress-image-diff-html-report:
+	$(eval NPX_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
+	${NPX_EXEC} cypress-image-diff-html-report start -c cypress-image-diff.config.cjs --rd cypress/visual-tests/cypress-image-diff-html-report/
+
 package-lock.json:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) package-lock.json
 
@@ -56,7 +63,7 @@ registry-docker-login:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile registry-docker-login
 
 run-container-dev:
-	@export PAVI_API_BASE_URL=${PAVI_API_BASE_DOCKER_URL} && \
+	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
 	 docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.webui
 
 run-server-dev: install-deps-all
@@ -80,16 +87,27 @@ run-unit-tests: install-test-deps
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
 	${NPM_EXEC} run test
 
+run-unit-tests-dev: install-test-deps
+	$(eval NPM_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
+	${NPM_EXEC} run test:watch
+
 run-e2e-tests: install-test-deps
 	$(eval NPX_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
 	$(MAKE) --no-print-directory run-container-dev
+ifneq ($(DEBUG),)
+	$(eval NPX_EXEC:=export ELECTRON_ENABLE_LOGGING=1  && ${NPX_EXEC})
+endif
 	${NPX_EXEC} cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
 	$(MAKE) --no-print-directory stop-container-dev
 
 run-e2e-tests-dev: install-test-deps
 	$(eval NPX_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
+ifneq ($(DEBUG),)
+	$(eval NPX_EXEC:=export ELECTRON_ENABLE_LOGGING=1  && ${NPX_EXEC})
+endif
 	${NPX_EXEC} cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
 
 stop-container-dev:

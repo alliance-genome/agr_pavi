@@ -14,6 +14,28 @@ describe('submit form behaviour', () => {
         cy.visit('/')
     })
 
+    // cypress-image-diff - Legacy HTML report
+    // after(() => {
+    //     cy.task("generateReport");
+    // });
+
+    Cypress.on('uncaught:exception', (err, runnable) => {  // eslint-disable-line no-unused-vars
+        // Expect errors from nightingale elements are ignored
+        // InvalidStateError: CanvasRenderingContext2D.drawImage: Passed-in canvas is empty
+        console.log(`Uncaught error intercepted during cypress testing.`)
+        console.log(`Intercepted error cause: ${err.cause}`)
+        console.log(`Intercepted error message: ${err.message}`)
+        console.log(`Intercepted error name: ${err.name}`)
+        console.log(`Intercepted error stack: ${err.stack}`)
+        console.log('End of intercepted error.')
+        if ( err.message.includes('CanvasRenderingContext2D') ) {
+            console.log('CanvasRenderingContext2D error detected during Cypress E2E testing. Ignoring as expected.')
+            return false
+        }
+        // we still want to ensure there are no other unexpected
+        // errors, so we let them fail the test
+    })
+
     it('tests job submission success', () => {
         // We use the `cy.get()` command to get all elements that match the selector.
         // There should only be one cell with a inputgroup.
@@ -109,7 +131,109 @@ describe('submit form behaviour', () => {
             expect(loc.search).to.eq(`?uuid=${jobUuid}`)
         })
 
-        // Result page should display the expected alignment results
+        // Result page should have a display mode selector
+        cy.get('#display-mode').as('displayModeDropdown')
+        cy.get('@displayModeDropdown').should('have.length', 1)
+
+        // Display mode selector should default to 'interactive'
+        cy.get('@displayModeDropdown').find('option[selected]').should('have.value', 'interactive')
+
+        // nightingale-elements should be visible
+        cy.get('nightingale-manager').as('nightingaleManager')
+        cy.get('@nightingaleManager').should('have.length', 1)
+
+        cy.get('@nightingaleManager').find('nightingale-navigation').as('nightingaleNavigation')
+        cy.get('@nightingaleNavigation').should('have.length', 1)
+        cy.get('@nightingaleNavigation').should('be.visible')
+
+        cy.get('@nightingaleManager').find('nightingale-msa').as('nightingaleMsa')
+        cy.get('@nightingaleMsa').should('have.length', 1)
+        cy.get('@nightingaleMsa').should('be.visible')
+
+        cy.get('@nightingaleMsa').find('msa-labels:visible')
+            .as('nightingaleSequenceLabels')
+
+        // all sequences should be visible in nightingale-msa
+        cy.get('@nightingaleSequenceLabels').should('have.length', 1)
+        cy.get('@nightingaleSequenceLabels').should('be.visible')
+        cy.get('@nightingaleSequenceLabels').shadow().find('ul > li').as('NightingaleLabels')
+
+        cy.get('@NightingaleLabels').should('have.length', 5)
+        cy.get('@NightingaleLabels').contains('Appl_Appl-RA')
+        cy.get('@NightingaleLabels').contains('Appl_Appl-RB')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1')
+        cy.get('@NightingaleLabels').contains('mgl-1_ZC506.4a.1')
+
+        cy.get('@nightingaleSequenceLabels').parent('div').find('msa-sequence-viewer:visible').as('nightingaleSequenceView')
+        cy.get('@nightingaleSequenceView').should('have.length', 1)
+
+        // Wait for @nightingaleSequenceView to get a width and height >= 0 (no negative values)
+        cy.get('@nightingaleSequenceView')
+          .invoke('attr', 'width')
+          .should('match', /^[0-9]+$/)
+
+        cy.get('@nightingaleSequenceView')
+          .invoke('attr', 'height')
+          .should('match', /^[0-9]+$/)
+
+        // Ensure @nightingaleSequenceView width and height != 0
+        cy.get('@nightingaleSequenceView')
+          .invoke('attr', 'width')
+          .should('be.a', 'string')
+          .then((widthStr) => {
+                expect(widthStr).not.to.be.undefined
+                const width = parseInt(widthStr!)
+                expect(width).to.be.gt(0)
+            })
+        cy.get('@nightingaleSequenceView')
+          .invoke('attr', 'height')
+          .should('be.a', 'string')
+          .then((heightStr) => {
+                expect(heightStr).not.to.be.undefined
+                const height = parseInt(heightStr!)
+                expect(height).to.be.gt(0)
+            })
+
+        // Color-scheme selector should default to 'clustal2'
+        const defaultColorScheme = 'clustal2'
+        cy.get('#dd-colorscheme').as('colorSchemeDropdown')
+        cy.get('@colorSchemeDropdown').should('have.length', 1)
+        cy.get('@colorSchemeDropdown').find('option[selected]').should('have.value', defaultColorScheme)
+
+        // Selected color scheme should be represented in nightingale view
+        cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', defaultColorScheme)
+
+        // Give visual nightingale-elements some time to render
+        cy.wait(1000)
+
+        // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
+        cy.get('@nightingaleSequenceView')
+          .then(
+            ($target) => {
+                let coords = $target[0].getBoundingClientRect();
+                cy.compareSnapshot({name: 'initial-msa-viewer', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
+            }
+          )
+
+        // TODO: selecting a different color scheme should change the colors in nightingale-msa
+
+        // TODO: changing navigation should update sequence displayed
+        //TODO: try dragging nightingale-msa or nightingal-navigation to change display?
+        //   .trigger('mousedown', {button: 0})
+        //   .trigger('mousemove',{ clientX: 100, clientY: 100 })
+        //   .trigger('mouseup', {force: true})
+
+        // Changing display mode to 'text' should hide the interactive alignment and display the text alignment
+        cy.get('@displayModeDropdown').click()
+        cy.get('ul.p-dropdown-items').find('li').contains('Text').click()
+
+        cy.get('@nightingaleMsa').should('not.be.visible')
+
+        cy.get('textarea#alignment-result-text').as('alignmentTextDisplay')
+        cy.get('@alignmentTextDisplay').should('be.visible')
+
+        // Displayed alignment should match the expected output
         cy.readFile('../tests/resources/submit-workflow-success-output.aln').then(function(txt){
             expect(txt).to.be.a('string')
 
