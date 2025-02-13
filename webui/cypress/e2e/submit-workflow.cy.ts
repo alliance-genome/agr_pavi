@@ -216,7 +216,27 @@ describe('submit form behaviour', () => {
             }
           )
 
-        // TODO: selecting a different color scheme should change the colors in nightingale-msa
+        // Selecting a different color scheme should change the colors in nightingale-msa
+        const newColorScheme = {
+            label: 'Conservation',
+            value: 'conservation'
+        }
+        cy.get('@colorSchemeDropdown').click()
+        cy.get('div.p-dropdown-panel > div.p-dropdown-items-wrapper > ul > li:visible')
+          .contains(newColorScheme.label).click()
+
+        // Selected color scheme should be represented in nightingale view
+        cy.get('@colorSchemeDropdown').find('option[selected]').should('have.value', newColorScheme.value)
+        cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', newColorScheme.value)
+
+        // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
+        cy.get('@nightingaleSequenceView')
+          .then(
+            ($target) => {
+                let coords = $target[0].getBoundingClientRect();
+                cy.compareSnapshot({name: 'conservation-msa-viewer', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
+            }
+          )
 
         // TODO: changing navigation should update sequence displayed
         //TODO: try dragging nightingale-msa or nightingal-navigation to change display?
