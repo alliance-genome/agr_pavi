@@ -10,8 +10,8 @@
 /coverage
 /cypress/screenshots/
 /cypress/visual-tests/cypress-image-diff-html-report/
-cypress/visual-tests/cypress-image-diff-screenshots/
-!cypress/visual-tests/cypress-image-diff-screenshots/baseline/
+/cypress/visual-tests/cypress-image-diff-screenshots/*
+!/cypress/visual-tests/cypress-image-diff-screenshots/baseline/
 
 # next.js
 /.next/
