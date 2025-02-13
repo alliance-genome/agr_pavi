@@ -153,30 +153,32 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     optionGroupChildren='items' optionGroupLabel='groupLabel' optionGroupTemplate={itemGroupTemplate}
                 />
             </div>
-            <NightingaleManagerComponent
-                reflected-attributes='display-start,display-end'
-            >
-                <div style={{paddingLeft: labelWidth.toString()+'px'}}>
-                    <NightingaleNavigationComponent
-                        ref={nightingaleNavigationRef}
-                        height={40}
-                        length={seqLength}
+            <div>
+                <NightingaleManagerComponent
+                    reflected-attributes='display-start,display-end'
+                >
+                    <div style={{paddingLeft: labelWidth.toString()+'px'}}>
+                        <NightingaleNavigationComponent
+                            ref={nightingaleNavigationRef}
+                            height={40}
+                            length={seqLength}
+                            display-start={displayStart}
+                            display-end={displayEnd}
+                            onChange={(e) => updateDisplayRange({displayStart: e.detail['display-start'], displayEnd: e.detail['display-end']})}
+                        />
+                    </div>
+                    <NightingaleMSAComponent
+                        label-width={labelWidth}
+                        data={alignmentData}
+                        height={alignmentData.length * 20}
                         display-start={displayStart}
                         display-end={displayEnd}
+                        length={seqLength}
+                        colorScheme={alignmentColorScheme}
                         onChange={(e) => updateDisplayRange({displayStart: e.detail['display-start'], displayEnd: e.detail['display-end']})}
                     />
-                </div>
-                <NightingaleMSAComponent
-                    label-width={labelWidth}
-                    data={alignmentData}
-                    height={alignmentData.length * 20}
-                    display-start={displayStart}
-                    display-end={displayEnd}
-                    length={seqLength}
-                    colorScheme={alignmentColorScheme}
-                    onChange={(e) => updateDisplayRange({displayStart: e.detail['display-start'], displayEnd: e.detail['display-end']})}
-                />
-            </NightingaleManagerComponent>
+                </NightingaleManagerComponent>
+            </div>
         </div>
     );
 }
