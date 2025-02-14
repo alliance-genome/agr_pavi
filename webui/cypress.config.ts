@@ -8,7 +8,7 @@ export default defineConfig({
     },
     baseUrl: 'http://localhost:3000',
     retries: {
-      "runMode": 1,
+      "runMode": 0,
       "openMode": 0
     },
     supportFile: 'cypress/support/e2e.ts',
