@@ -283,7 +283,7 @@ describe('submit form behaviour', () => {
         cy.get('@alignmentTextDisplay').should('be.visible')
 
         // Displayed alignment should match the expected output
-        cy.readFile('../tests/resources/submit-workflow-success-output.aln').then(function(txt){
+        cy.readFile('test-resources/submit-workflow-success-output.aln').then(function(txt){
             expect(txt).to.be.a('string')
 
             cy.get('textarea#alignment-result-text').should('have.text', txt)

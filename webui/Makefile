@@ -23,6 +23,9 @@ clean:
 container-image: .nvmrc
 	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
 
+container-image-cypress: .nvmrc
+	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME}/cypress_testing -f Dockerfile-cypress-testing .
+
 google-chrome:
 	sudo apt install -y xdg-utils fonts-liberation
 	wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -50,7 +53,7 @@ install-node: .nvmrc
 update-install-node: .nvmrc
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-install-node
 
-open-cypress-image-diff-html-report:
+open-cypress-image-diff-html-report: install-test-deps
 	$(eval NPX_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
 	${NPX_EXEC} cypress-image-diff-html-report start -c cypress-image-diff.config.cjs --rd cypress/visual-tests/cypress-image-diff-html-report/
@@ -60,6 +63,9 @@ package-lock.json:
 
 update-deps-lock:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-node-deps-lock
+
+test-resources/:
+	@cp -r $(mkfile_dir)../tests/resources/ $(mkfile_dir)/test-resources/
 
 update-deps-locks-all: update-deps-lock
 	@:
@@ -97,15 +103,10 @@ run-unit-tests-dev: install-test-deps
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
 	${NPM_EXEC} run test:watch
 
-run-e2e-tests: install-test-deps
-	$(eval NPX_EXEC:=)
-	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
-ifneq ($(DEBUG),)
-	$(eval NPX_EXEC:=export ELECTRON_ENABLE_LOGGING=1  && ${NPX_EXEC})
-endif
-	${NPX_EXEC} cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
+run-e2e-tests: test-resources/
+	API_BASE_URL=${PAVI_API_BASE_URL} docker compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.cypress-e2e-testing
 
-run-e2e-tests-dev: install-test-deps
+run-e2e-tests-dev: install-test-deps test-resources/
 	$(eval NPX_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
 ifneq ($(DEBUG),)

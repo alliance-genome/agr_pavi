@@ -8,3 +8,11 @@ services:
     ports:
       - "3000:3000"
     network_mode: host
+
+  agr.pavi.cypress-e2e-testing:
+    container_name: agr.pavi.${NET:-dev-local}.cypress-e2e-testing
+    image: ${REGISTRY}agr_pavi/webui/cypress_testing:${AGR_PAVI_RELEASE:-latest}
+    environment:
+      - PAVI_API_BASE_URL
+    network_mode: host
+    command: ["npx", "cypress", "run", "--e2e", "--env", "API_BASE_URL=${PAVI_API_BASE_URL}"]
