@@ -208,13 +208,15 @@ describe('submit form behaviour', () => {
         cy.wait(1000)
 
         // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
-        cy.get('@nightingaleSequenceView')
-          .then(
-            ($target) => {
-                let coords = $target[0].getBoundingClientRect();
-                cy.compareSnapshot({name: 'initial-msa-viewer', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
-            }
-          )
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+            .then(
+                ($target) => {
+                    let coords = $target[0].getBoundingClientRect();
+                    cy.compareSnapshot({name: 'initial-msa-viewer', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
+                }
+            )
+        }
 
         // Selecting a different color scheme should change the colors in nightingale-msa
         const newColorScheme = {
@@ -230,19 +232,67 @@ describe('submit form behaviour', () => {
         cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', newColorScheme.value)
 
         // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
-        cy.get('@nightingaleSequenceView')
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+            .then(
+                ($target) => {
+                    let coords = $target[0].getBoundingClientRect();
+                    cy.compareSnapshot({name: 'conservation-msa-viewer', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
+                }
+            )
+        }
+
+        // Changing navigation should update sequence displayed
+        cy.get('@nightingaleNavigation').find('svg > g > rect.selection').as('nightingaleNavigationSelector')
           .then(
-            ($target) => {
-                let coords = $target[0].getBoundingClientRect();
-                cy.compareSnapshot({name: 'conservation-msa-viewer', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
+            (nightingaleNavigationSelector) => {
+                const nightingaleNavigationSelectorCoords = nightingaleNavigationSelector[0].getBoundingClientRect();
+
+                if( !Cypress.config('isInteractive') ) {
+                    cy.get('@nightingaleNavigation')
+                      .then(
+                        ($target) => {
+                            let nightingaleNavigationCoords = $target[0].getBoundingClientRect();
+
+                            // Validate (visual) snapshot of @nightingaleNavigation render
+                            cy.compareSnapshot({name: 'initial-msa-navigation', cypressScreenshotOptions: {clip: {x: nightingaleNavigationCoords.x, y: nightingaleNavigationCoords.y, width: nightingaleNavigationCoords.width, height: nightingaleNavigationCoords.height}}})
+                        })
+                }
+
+                // TODO: Dragging the navigation selector should update the displayed navigation bar and the displayed sequence.
+                // cy.trigger('mousdown') seem to not work as expected with nightingale-elements throwing errors.
+                // Try https://github.com/dmtrKovalenko/cypress-real-events ?
+
+                // cy.get('@nightingaleNavigationSelector')
+                // cy.get('@nightingaleNavigationSelector').trigger('mouseover')
+                // cy.get('@nightingaleNavigationSelector').trigger('mousedown', {button: 0, clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y})
+                // cy.get('@nightingaleNavigationSelector').trigger('mousemove',{ clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y - 100 })
+                // cy.get('@nightingaleNavigationSelector').trigger('mouseup', {force: true})
+
+                // if( !Cypress.config('isInteractive') ) {
+                //     cy.get('@nightingaleNavigation')
+                //     .then(
+                //         ($target) => {
+                //             const coords = $target[0].getBoundingClientRect();
+                //             cy.compareSnapshot({name: 'msa-navigation-bar-moved-left', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
+                //         })
+                // }
+
+                // if( !Cypress.config('isInteractive') ) {
+                //     cy.get('@nightingaleSequenceView')
+                //     .then(
+                //         ($target) => {
+                //             const coords = $target[0].getBoundingClientRect();
+                //             cy.compareSnapshot({name: 'msa-sequence-view-bar-moved-left', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
+                //         })
+                // }
+
+                // TODO: Resizing the navigation selector should update the displayed navigation bar and the displayed sequence.
+
+                // TODO: Dragging the displayed sequence should update the displayed sequence and navigation bar.
+
             }
           )
-
-        // TODO: changing navigation should update sequence displayed
-        //TODO: try dragging nightingale-msa or nightingal-navigation to change display?
-        //   .trigger('mousedown', {button: 0})
-        //   .trigger('mousemove',{ clientX: 100, clientY: 100 })
-        //   .trigger('mouseup', {force: true})
 
         // Changing display mode to 'text' should hide the interactive alignment and display the text alignment
         cy.get('@displayModeDropdown').click()
