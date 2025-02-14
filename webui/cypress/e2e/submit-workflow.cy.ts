@@ -232,43 +232,46 @@ describe('submit form behaviour', () => {
               .compareSnapshot({name: 'conservation-msa-viewer'})
         }
 
-        // Changing navigation should update sequence displayed
+        // Compare (visual) snapshot of successfull @nightingaleNavigation render
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleNavigation')
+              .compareSnapshot({name: 'initial-msa-navigation'})
+        }
+
         cy.get('@nightingaleNavigation').find('svg > g > rect.selection').as('nightingaleNavigationSelector')
-          .then(
-            (nightingaleNavigationSelector) => {
-                const nightingaleNavigationSelectorCoords = nightingaleNavigationSelector[0].getBoundingClientRect();
 
-                if( !Cypress.config('isInteractive') ) {
-                    cy.get('@nightingaleNavigation')
-                      .compareSnapshot({name: 'initial-msa-navigation'})
-                }
+        // Changing navigation should update sequence displayed
+        // cy.get('@nightingaleNavigationSelector')
+        //   .then(
+        //     (nightingaleNavigationSelector) => {
+        //         // const nightingaleNavigationSelectorCoords = nightingaleNavigationSelector[0].getBoundingClientRect();
 
-                // TODO: Dragging the navigation selector should update the displayed navigation bar and the displayed sequence.
-                // cy.trigger('mousdown') seem to not work as expected with nightingale-elements throwing errors.
-                // Try https://github.com/dmtrKovalenko/cypress-real-events ?
+        //         // TODO: Dragging the navigation selector should update the displayed navigation bar and the displayed sequence.
+        //         // cy.trigger('mousdown') seem to not work as expected with nightingale-elements throwing errors.
+        //         // Try https://github.com/dmtrKovalenko/cypress-real-events ?
 
-                // cy.get('@nightingaleNavigationSelector')
-                // cy.get('@nightingaleNavigationSelector').trigger('mouseover')
-                // cy.get('@nightingaleNavigationSelector').trigger('mousedown', {button: 0, clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y})
-                // cy.get('@nightingaleNavigationSelector').trigger('mousemove',{ clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y - 100 })
-                // cy.get('@nightingaleNavigationSelector').trigger('mouseup', {force: true})
+        //         // cy.get('@nightingaleNavigationSelector')
+        //         // cy.get('@nightingaleNavigationSelector').trigger('mouseover')
+        //         // cy.get('@nightingaleNavigationSelector').trigger('mousedown', {button: 0, clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y})
+        //         // cy.get('@nightingaleNavigationSelector').trigger('mousemove',{ clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y - 100 })
+        //         // cy.get('@nightingaleNavigationSelector').trigger('mouseup', {force: true})
 
-                // if( !Cypress.config('isInteractive') ) {
-                //     cy.get('@nightingaleNavigation')
-                //       .compareSnapshot({name: 'msa-navigation-bar-moved-left'})
-                // }
+        //         // if( !Cypress.config('isInteractive') ) {
+        //         //     cy.get('@nightingaleNavigation')
+        //         //       .compareSnapshot({name: 'msa-navigation-bar-moved-left'})
+        //         // }
 
-                // if( !Cypress.config('isInteractive') ) {
-                //     cy.get('@nightingaleSequenceView')
-                //       .compareSnapshot({name: 'msa-sequence-view-bar-moved-left'})
-                // }
+        //         // if( !Cypress.config('isInteractive') ) {
+        //         //     cy.get('@nightingaleSequenceView')
+        //         //       .compareSnapshot({name: 'msa-sequence-view-bar-moved-left'})
+        //         // }
 
-                // TODO: Resizing the navigation selector should update the displayed navigation bar and the displayed sequence.
+        //         // TODO: Resizing the navigation selector should update the displayed navigation bar and the displayed sequence.
 
-                // TODO: Dragging the displayed sequence should update the displayed sequence and navigation bar.
+        //         // TODO: Dragging the displayed sequence should update the displayed sequence and navigation bar.
 
-            }
-          )
+        //     }
+        //   )
 
         // Changing display mode to 'text' should hide the interactive alignment and display the text alignment
         cy.get('@displayModeDropdown').click()
