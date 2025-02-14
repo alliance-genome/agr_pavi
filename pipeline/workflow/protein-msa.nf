@@ -1,5 +1,3 @@
-import groovy.json.JsonOutput
-
 params.image_registry = ''
 params.image_tag = 'latest'
 params.input_seq_regions_str = ''
@@ -17,8 +15,8 @@ process sequence_retrieval {
         path "${request_map.name}-protein.fa"
 
     script:
-        encoded_exon_regions = JsonOutput.toJson(request_map.exon_seq_regions)
-        encoded_cds_regions = JsonOutput.toJson(request_map.cds_seq_regions)
+        encoded_exon_regions = groovy.json.JsonOutput.toJson(request_map.exon_seq_regions)
+        encoded_cds_regions = groovy.json.JsonOutput.toJson(request_map.cds_seq_regions)
         """
         main.py --output_type protein \
             --name ${request_map.name} --seq_id ${request_map.seq_id} --seq_strand ${request_map.seq_strand} \
