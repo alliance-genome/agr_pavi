@@ -210,12 +210,7 @@ describe('submit form behaviour', () => {
         // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
-            .then(
-                ($target) => {
-                    let coords = $target[0].getBoundingClientRect();
-                    cy.compareSnapshot({name: 'initial-msa-viewer', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
-                }
-            )
+              .compareSnapshot({name: 'initial-msa-viewer'})
         }
 
         // Selecting a different color scheme should change the colors in nightingale-msa
@@ -234,12 +229,7 @@ describe('submit form behaviour', () => {
         // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
-            .then(
-                ($target) => {
-                    let coords = $target[0].getBoundingClientRect();
-                    cy.compareSnapshot({name: 'conservation-msa-viewer', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
-                }
-            )
+              .compareSnapshot({name: 'conservation-msa-viewer'})
         }
 
         // Changing navigation should update sequence displayed
@@ -250,13 +240,7 @@ describe('submit form behaviour', () => {
 
                 if( !Cypress.config('isInteractive') ) {
                     cy.get('@nightingaleNavigation')
-                      .then(
-                        ($target) => {
-                            let nightingaleNavigationCoords = $target[0].getBoundingClientRect();
-
-                            // Validate (visual) snapshot of @nightingaleNavigation render
-                            cy.compareSnapshot({name: 'initial-msa-navigation', cypressScreenshotOptions: {clip: {x: nightingaleNavigationCoords.x, y: nightingaleNavigationCoords.y, width: nightingaleNavigationCoords.width, height: nightingaleNavigationCoords.height}}})
-                        })
+                      .compareSnapshot({name: 'initial-msa-navigation'})
                 }
 
                 // TODO: Dragging the navigation selector should update the displayed navigation bar and the displayed sequence.
@@ -271,20 +255,12 @@ describe('submit form behaviour', () => {
 
                 // if( !Cypress.config('isInteractive') ) {
                 //     cy.get('@nightingaleNavigation')
-                //     .then(
-                //         ($target) => {
-                //             const coords = $target[0].getBoundingClientRect();
-                //             cy.compareSnapshot({name: 'msa-navigation-bar-moved-left', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
-                //         })
+                //       .compareSnapshot({name: 'msa-navigation-bar-moved-left'})
                 // }
 
                 // if( !Cypress.config('isInteractive') ) {
                 //     cy.get('@nightingaleSequenceView')
-                //     .then(
-                //         ($target) => {
-                //             const coords = $target[0].getBoundingClientRect();
-                //             cy.compareSnapshot({name: 'msa-sequence-view-bar-moved-left', cypressScreenshotOptions: {clip: {x: coords.x, y: coords.y, width: coords.width, height: coords.height}}})
-                //         })
+                //       .compareSnapshot({name: 'msa-sequence-view-bar-moved-left'})
                 // }
 
                 // TODO: Resizing the navigation selector should update the displayed navigation bar and the displayed sequence.
