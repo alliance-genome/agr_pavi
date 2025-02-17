@@ -25,7 +25,7 @@ container-image: .nvmrc
 	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_IMAGE_NAME_WEBUI} .
 
 container-image-cypress: .nvmrc
-	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_IMAGE_NAME_CYPRESS}/cypress_testing -f Dockerfile-cypress-testing .
+	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_IMAGE_NAME_CYPRESS} -f Dockerfile-cypress-testing .
 
 google-chrome:
 	sudo apt install -y xdg-utils fonts-liberation
