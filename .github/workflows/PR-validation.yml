@@ -1112,6 +1112,47 @@ jobs:
         with:
           name: webui_image
           path: /tmp/pavi_webui_docker_image.tar
+  cypress-testing-container-image-build:
+    name: cypress E2E testing container-image build
+    needs:
+      - webui-update-dependency-lock-files
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download updated webui dependencies lock file
+        uses: actions/download-artifact@v4
+        with:
+          name: webui_deps_lock
+          path: webui
+      - name: Report node version stored in .nvmrc
+        id: nvmrc-node-version
+        run: |
+          {
+            echo 'content<<EOF'
+            cat webui/.nvmrc
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build container image
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_SUMMARY: false
+        with:
+          context: ./webui/
+          file: webui/Dockerfile-cypress-testing
+          push: false
+          build-args: NODE_VERSION=${{steps.nvmrc-node-version.outputs.content}}
+          tags: agr_pavi/cypress_testing:latest
+          outputs: type=docker,dest=/tmp/pavi_cypress_testing_docker_image.tar
+      - name: Upload image as artifact (share between jobs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress_testing_image
+          path: /tmp/pavi_cypress_testing_docker_image.tar
   e2e-testing:
     name: end-to-end testing
     needs:
@@ -1121,6 +1162,7 @@ jobs:
       - api-container-image-build
       - pipeline-alignment-container-image-build
       - pipeline-seq-retrieval-container-image-build
+      - cypress-testing-container-image-build
     permissions:
       id-token: write # Required for OIDC authentication to AWS (to perform AWS actions / access AGR AWS resources)
     runs-on: ubuntu-22.04
@@ -1159,21 +1201,28 @@ jobs:
         working-directory: webui/
         run: |
           PAVI_API_PORT=8080 make run-container-dev
-      - name: Download updated webui dependencies lock file
+      - name: Download cypress testing image artifact
         uses: actions/download-artifact@v4
         with:
-          name: webui_deps_lock
-          path: webui
-      - name: setup webui-compatible node.js version
-        uses: actions/setup-node@v4
+          name: cypress_testing_image
+          path: /tmp
+      - name: Load cypress testing Docker image
+        run: |
+          docker load --input /tmp/pavi_cypress_testing_docker_image.tar
+      - name: Wait for API interface to be available
+        uses: iFaxity/wait-on-action@v1
         with:
-          node-version-file: "webui/.nvmrc"
+          resource: http://localhost:8080/api/health
+      - name: Wait for webUI interface to be available
+        uses: iFaxity/wait-on-action@v1
+        with:
+          resource: http://localhost:3000/health
       - name: Run cypress E2E tests
-        uses: cypress-io/github-action@v6
-        with:
-          working-directory: webui/
-          wait-on: 'http://localhost:8080/api/health, http://localhost:3000/health'
-          env: 'API_BASE_URL=http://localhost:8080'
+        working-directory: webui/
+        env:
+          PAVI_API_BASE_URL: http://localhost:8080
+        run:
+          make run-e2e-tests
       - name: Report API container logs on E2E test failure
         if: failure()
         run: |

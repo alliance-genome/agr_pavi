@@ -2,7 +2,8 @@ mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # DEBUG=1
 
-CONTAINER_NAME=agr_pavi/webui
+CONTAINER_IMAGE_NAME_WEBUI=agr_pavi/webui
+CONTAINER_IMAGE_NAME_CYPRESS=agr_pavi/cypress_testing
 ADDITIONAL_BUILD_ARGS=
 PAVI_API_PORT ?= 8000
 PAVI_API_BASE_URL ?= http://localhost:${PAVI_API_PORT}
@@ -21,10 +22,10 @@ clean:
 	@rm -rf node_modules/
 
 container-image: .nvmrc
-	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
+	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_IMAGE_NAME_WEBUI} .
 
 container-image-cypress: .nvmrc
-	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME}/cypress_testing -f Dockerfile-cypress-testing .
+	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_IMAGE_NAME_CYPRESS}/cypress_testing -f Dockerfile-cypress-testing .
 
 google-chrome:
 	sudo apt install -y xdg-utils fonts-liberation
@@ -32,8 +33,8 @@ google-chrome:
 	sudo dpkg -i google-chrome-stable_current_amd64.deb
 
 push-container-image: registry-docker-login
-	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
-	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
+	docker tag ${CONTAINER_IMAGE_NAME_WEBUI} ${REG}/${CONTAINER_IMAGE_NAME_WEBUI}:${TAG_NAME}
+	docker push ${REG}/${CONTAINER_IMAGE_NAME_WEBUI}:${TAG_NAME}
 
 install-deps: package-lock.json
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile -C $(mkfile_dir) install-node-deps
