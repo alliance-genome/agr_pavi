@@ -106,7 +106,8 @@ run-unit-tests-dev: install-test-deps
 	${NPM_EXEC} run test:watch
 
 run-e2e-tests: cypress/test-resources/
-	API_BASE_URL=${PAVI_API_BASE_URL} docker compose -f docker-compose-dev.yml --env-file dev.env up --no-log-prefix agr.pavi.cypress-e2e-testing
+	API_BASE_URL=${PAVI_API_BASE_URL} docker compose -f docker-compose-dev.yml --env-file dev.env \
+	up --no-log-prefix --exit-code-from agr.pavi.cypress-e2e-testing agr.pavi.cypress-e2e-testing
 
 run-e2e-tests-dev: install-test-deps cypress/test-resources/
 	$(eval NPX_EXEC:=)
