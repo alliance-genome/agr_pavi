@@ -11,7 +11,7 @@ services:
 
   agr.pavi.cypress-e2e-testing:
     container_name: agr.pavi.${NET:-dev-local}.cypress-e2e-testing
-    image: ${REGISTRY}agr_pavi/webui/cypress_testing:${AGR_PAVI_RELEASE:-latest}
+    image: ${REGISTRY}agr_pavi/cypress_testing:${AGR_PAVI_RELEASE:-latest}
     environment:
       - PAVI_API_BASE_URL
     network_mode: host
