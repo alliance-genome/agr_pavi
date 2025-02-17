@@ -37,6 +37,9 @@ describe('submit form behaviour', () => {
     })
 
     it('tests job submission success', () => {
+        // Ensure test-resource file required further down exists
+        cy.readFile('cypress/test-resources/submit-workflow-success-output.aln', {timeout: 100}).should('exist')
+
         // We use the `cy.get()` command to get all elements that match the selector.
         // There should only be one cell with a inputgroup.
         // cy.get('table tbody tr td .p-inputgroup').should('have.length', 1)
