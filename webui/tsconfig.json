@@ -17,7 +17,6 @@
   ],
   "exclude": [
     "cypress.config.ts",
-    "cypress",
     "node_modules"
   ]
 }

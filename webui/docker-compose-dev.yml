@@ -15,4 +15,6 @@ services:
     environment:
       - PAVI_API_BASE_URL
     network_mode: host
+    volumes:
+      - ./cypress:/app/cypress:rw
     command: ["npx", "cypress", "run", "--e2e", "--env", "API_BASE_URL=${PAVI_API_BASE_URL}"]

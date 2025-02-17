@@ -12,7 +12,7 @@
 /cypress/visual-tests/cypress-image-diff-html-report/
 /cypress/visual-tests/cypress-image-diff-screenshots/*
 !/cypress/visual-tests/cypress-image-diff-screenshots/baseline/
-/test-resources/
+/cypress/test-resources/
 
 # next.js
 /.next/

@@ -20,6 +20,7 @@ clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
 	@rm -rf .next/
 	@rm -rf node_modules/
+	@rm -rf cypress/test-resources/
 
 container-image: .nvmrc
 	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_IMAGE_NAME_WEBUI} .
@@ -65,8 +66,8 @@ package-lock.json:
 update-deps-lock:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-node-deps-lock
 
-test-resources/:
-	@cp -r $(mkfile_dir)../tests/resources/ $(mkfile_dir)/test-resources/
+cypress/test-resources/:
+	@cp -r $(mkfile_dir)../tests/resources/ $(mkfile_dir)/cypress/test-resources/
 
 update-deps-locks-all: update-deps-lock
 	@:
@@ -104,10 +105,10 @@ run-unit-tests-dev: install-test-deps
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
 	${NPM_EXEC} run test:watch
 
-run-e2e-tests: test-resources/
-	API_BASE_URL=${PAVI_API_BASE_URL} docker compose -f docker-compose-dev.yml --env-file dev.env up agr.pavi.cypress-e2e-testing
+run-e2e-tests: cypress/test-resources/
+	API_BASE_URL=${PAVI_API_BASE_URL} docker compose -f docker-compose-dev.yml --env-file dev.env up --no-log-prefix agr.pavi.cypress-e2e-testing
 
-run-e2e-tests-dev: install-test-deps test-resources/
+run-e2e-tests-dev: install-test-deps cypress/test-resources/
 	$(eval NPX_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
 ifneq ($(DEBUG),)
