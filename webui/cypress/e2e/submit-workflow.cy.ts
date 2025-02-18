@@ -309,5 +309,21 @@ describe('submit form behaviour', () => {
             cy.get('textarea#alignment-result-text').should('have.text', txt)
         });
 
+        // Returning to 'interactive' display mode should show the interactive alignment with restored state
+        cy.get('@displayModeDropdown').click()
+        cy.get('ul.p-dropdown-items').find('li').contains('Interactive').click()
+
+        cy.get('@alignmentTextDisplay').should('not.be.visible')
+        cy.get('@nightingaleMsa').should('be.visible')
+
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleNavigation')
+                .compareSnapshot({name: 'msa-navigation-nav-resize-left-zoom-in'})
+        }
+
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+                .compareSnapshot({name: 'msa-sequence-view-nav-resize-left-zoom-in'})
+        }
     })
 })
