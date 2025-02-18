@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { expect } from '@jest/globals';
 import '@testing-library/jest-dom';
 
 // Mock lit elements, because jest otherwise trips over @lit/react
