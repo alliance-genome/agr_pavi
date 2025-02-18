@@ -171,32 +171,14 @@ describe('submit form behaviour', () => {
         cy.get('@nightingaleSequenceLabels').parent('div').find('msa-sequence-viewer:visible').as('nightingaleSequenceView')
         cy.get('@nightingaleSequenceView').should('have.length', 1)
 
-        // Wait for @nightingaleSequenceView to get a width and height >= 0 (no negative values)
+        // Wait for @nightingaleSequenceView to get a width and height > 0 (no negative values)
         cy.get('@nightingaleSequenceView')
           .invoke('attr', 'width')
-          .should('match', /^[0-9]+$/)
+          .should('match', /^[1-9][0-9]*$/)
 
         cy.get('@nightingaleSequenceView')
           .invoke('attr', 'height')
-          .should('match', /^[0-9]+$/)
-
-        // Ensure @nightingaleSequenceView width and height != 0
-        cy.get('@nightingaleSequenceView')
-          .invoke('attr', 'width')
-          .should('be.a', 'string')
-          .then((widthStr) => {
-                expect(widthStr).not.to.be.undefined
-                const width = parseInt(widthStr!)
-                expect(width).to.be.gt(0)
-            })
-        cy.get('@nightingaleSequenceView')
-          .invoke('attr', 'height')
-          .should('be.a', 'string')
-          .then((heightStr) => {
-                expect(heightStr).not.to.be.undefined
-                const height = parseInt(heightStr!)
-                expect(height).to.be.gt(0)
-            })
+          .should('match', /^[1-9][0-9]*$/)
 
         // Color-scheme selector should default to 'clustal2'
         const defaultColorScheme = 'clustal2'
