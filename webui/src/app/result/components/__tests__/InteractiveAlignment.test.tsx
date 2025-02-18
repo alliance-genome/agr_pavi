@@ -24,9 +24,9 @@ import InteractiveAlignment from '../InteractiveAlignment/InteractiveAlignment';
 describe('InteractiveAlignment Component', () => {
     const mockAlignmentResult = `CLUSTAL O(1.2.4) multiple sequence alignment
 
-seq1        ACGT        4
-seq2        A-GT        3
-seq3        ACG-        3
+seq1        PRTL        4
+seq2        P-TL        3
+seq3        PKT-        3
 `;
 
     test('renders without crashing', () => {

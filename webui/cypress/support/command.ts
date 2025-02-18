@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+import "cypress-real-events"
 import compareSnapshotCommand from 'cypress-image-diff-js/command';
 
 compareSnapshotCommand();
