@@ -45,12 +45,16 @@ To run the E2E tests including the visual regression testing, run cypress throug
 make run-e2e-tests
 ```
 
-When any of the visual regression tests fail, generate an interactive report of the failing visual regression tests with below command:
+When any of the visual regression tests fail, cypress will stop further testing and fail.
+To generate an interactive report of the failing visual regression test, run below command:
 ```bash
 make open-cypress-image-diff-html-report
 ```
 This will open an interactive interface at http://localhost:6868 for inspecting the difference
 between the baseline and the actually rendered interface and can be used to update the baseline when needed.
+
+If the difference in a visual regression test is deemed acceptable, update the baseline
+and run the e2e testing again until all tests pass.
 
 For more info on how to use the cypress-image-diff HTML report,
 see [the README](https://github.com/haim-io/cypress-image-diff#readme)
