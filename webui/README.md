@@ -23,20 +23,34 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
 
 ### E2E testing
-The [cypress](./cypress/) subdirectory contains all code and configurations to run end-to-end testing on PAVI.
-To run the E2E testing in interactive mode, run:
+The [cypress](./cypress/) subdirectory contains the specs and configurations to run end-to-end testing on PAVI.
+To run the E2E testing locally in interactive mode, run:
 ```bash
 make run-e2e-tests-dev
 ```
 
-These tests include visual regression testing through [cypress-image-diff](https://github.com/haim-io/cypress-image-diff),
- a tool that can take snapshots of (parts of) the user interface and compare them to the expected baseline.  
-When any of these tests fail, run the E2E tests in headless mode to generate a report of the failing visual tests,
-and generate an interactive report to evaluate the difference between the expected baseline and the generated interface:
+While useful for troubleshooting failing test, these interactive mode does not run the visual regression testing.
+
+Visual regression testing is done through [cypress-image-diff](https://github.com/haim-io/cypress-image-diff),
+a tool that can take snapshots of (parts of) the user interface and compare them to the expected baseline.
+However, these test require a uniform system to run in order to generate consistent results.
+System differences at client level can result in small differences in rendering, which results in small visual differences
+that fail the visual regression testing. As a consequence, the only reliable way of doing consistent visual regression testing
+is through the `agr_pavi/cypress_testing` container. This container is built to contain all required cypress configuration,
+but none of the test specification files or application code. The application is to be run externally through the respective containers,
+while the test specification files are to be mounted in to the cypress_testing container.
+
+To run the E2E tests including the visual regression testing, run cypress through the following command:
 ```bash
 make run-e2e-tests
+```
+
+When any of the visual regression tests fail, generate an interactive report of the failing visual regression tests with below command:
+```bash
 make open-cypress-image-diff-html-report
 ```
+This will open an interactive interface at http://localhost:6868 for inspecting the difference
+between the baseline and the actually rendered interface and can be used to update the baseline when needed.
 
 For more info on how to use the cypress-image-diff HTML report,
 see [the README](https://github.com/haim-io/cypress-image-diff#readme)
