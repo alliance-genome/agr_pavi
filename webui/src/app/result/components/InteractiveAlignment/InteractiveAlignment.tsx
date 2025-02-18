@@ -45,16 +45,17 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         setAlignmentColorScheme(newColorScheme)
         console.log('Alignment color scheme updated to:', newColorScheme)
     }
+    //TODO: update groups and group labels to match Uniprot grouping
     const aminoAcidcolorSchemeOptions: ColorSchemeSelectGroup[] = [
         {
             groupLabel: 'Common options',
             items: [
-                {label: 'Conservation', value: 'conservation'},
+                {label: 'Similarity', value: 'conservation'},
                 {label: 'Clustal2', value: 'clustal2'},
             ]
         },
         {
-            groupLabel: 'Chemical properties',
+            groupLabel: 'Physical properties',
             items: [
                 {label: 'Aliphatic', value: 'aliphatic'},
                 {label: 'Aromatic', value: 'aromatic'},
@@ -66,23 +67,22 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
             ]
         },
         {
-            groupLabel: 'Alternative color schemes',
+            groupLabel: 'Structural properties',
+            items: [
+                {label: 'Buried index', value: 'buried_index'},
+                {label: 'Helix propensity', value: 'helix_propensity'},
+                {label: 'Strand propensity', value: 'strand_propensity'},
+                {label: 'Turn propensity', value: 'turn_propensity'},
+            ]
+        },
+        {
+            groupLabel: 'Other color schemes',
             items: [
                 {label: 'Cinema', value: 'cinema'},
                 {label: 'Lesk', value: 'lesk'},
                 {label: 'Mae', value: 'mae'},
                 {label: 'Taylor', value: 'taylor'},
                 {label: 'Zappo', value: 'zappo'},
-            ]
-        },
-        {
-            groupLabel: 'Other options',
-            items: [
-                {label: 'Buried', value: 'buried'},
-                // {label: 'Strand', value: 'strand'},
-                {label: 'Strand propensity', value: 'strand_propensity'},
-                // {label: 'Turn', value: 'turn'},
-                {label: 'Turn propensity', value: 'turn_propensity'},
             ]
         }
     ]

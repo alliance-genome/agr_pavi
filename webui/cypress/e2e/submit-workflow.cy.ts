@@ -200,7 +200,7 @@ describe('submit form behaviour', () => {
 
         // Selecting a different color scheme should change the colors in nightingale-msa
         const newColorScheme = {
-            label: 'Conservation',
+            label: 'Similarity',
             value: 'conservation'
         }
         cy.get('@colorSchemeDropdown').click()
