@@ -1,6 +1,9 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-CONTAINER_NAME=agr_pavi/webui
+# DEBUG=1
+
+CONTAINER_IMAGE_NAME_WEBUI=agr_pavi/webui
+CONTAINER_IMAGE_NAME_CYPRESS=agr_pavi/cypress_testing
 ADDITIONAL_BUILD_ARGS=
 PAVI_API_PORT ?= 8000
 PAVI_API_BASE_URL ?= http://localhost:${PAVI_API_PORT}
@@ -17,13 +20,22 @@ clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
 	@rm -rf .next/
 	@rm -rf node_modules/
+	@rm -rf cypress/test-resources/
 
 container-image: .nvmrc
-	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
+	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_IMAGE_NAME_WEBUI} .
+
+container-image-cypress: .nvmrc
+	docker build --build-arg NODE_VERSION=$(shell cat .nvmrc) ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_IMAGE_NAME_CYPRESS} -f Dockerfile-cypress-testing .
+
+google-chrome:
+	sudo apt install -y xdg-utils fonts-liberation
+	wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+	sudo dpkg -i google-chrome-stable_current_amd64.deb
 
 push-container-image: registry-docker-login
-	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
-	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
+	docker tag ${CONTAINER_IMAGE_NAME_WEBUI} ${REG}/${CONTAINER_IMAGE_NAME_WEBUI}:${TAG_NAME}
+	docker push ${REG}/${CONTAINER_IMAGE_NAME_WEBUI}:${TAG_NAME}
 
 install-deps: package-lock.json
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile -C $(mkfile_dir) install-node-deps
@@ -43,11 +55,19 @@ install-node: .nvmrc
 update-install-node: .nvmrc
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-install-node
 
+open-cypress-image-diff-html-report: install-test-deps
+	$(eval NPX_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
+	${NPX_EXEC} cypress-image-diff-html-report start -c cypress-image-diff.config.cjs --rd cypress/visual-tests/cypress-image-diff-html-report/
+
 package-lock.json:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) package-lock.json
 
 update-deps-lock:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-node-deps-lock
+
+cypress/test-resources/:
+	@cp -r $(mkfile_dir)../tests/resources/ $(mkfile_dir)/cypress/test-resources/
 
 update-deps-locks-all: update-deps-lock
 	@:
@@ -56,7 +76,7 @@ registry-docker-login:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile registry-docker-login
 
 run-container-dev:
-	@export PAVI_API_BASE_URL=${PAVI_API_BASE_DOCKER_URL} && \
+	@export PAVI_API_BASE_URL=${PAVI_API_BASE_URL} && \
 	 docker compose -f docker-compose-dev.yml --env-file dev.env up -d agr.pavi.dev-local.webui
 
 run-server-dev: install-deps-all
@@ -80,16 +100,21 @@ run-unit-tests: install-test-deps
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
 	${NPM_EXEC} run test
 
-run-e2e-tests: install-test-deps
-	$(eval NPX_EXEC:=)
-	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
-	$(MAKE) --no-print-directory run-container-dev
-	${NPX_EXEC} cypress run --e2e --env API_BASE_URL=${PAVI_API_BASE_URL} || true
-	$(MAKE) --no-print-directory stop-container-dev
+run-unit-tests-dev: install-test-deps
+	$(eval NPM_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
+	${NPM_EXEC} run test:watch
 
-run-e2e-tests-dev: install-test-deps
+run-e2e-tests: cypress/test-resources/
+	API_BASE_URL=${PAVI_API_BASE_URL} docker compose -f docker-compose-dev.yml --env-file dev.env \
+	up --no-log-prefix --exit-code-from agr.pavi.cypress-e2e-testing agr.pavi.cypress-e2e-testing
+
+run-e2e-tests-dev: install-test-deps cypress/test-resources/
 	$(eval NPX_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npx-exec))
+ifneq ($(DEBUG),)
+	$(eval NPX_EXEC:=export ELECTRON_ENABLE_LOGGING=1  && ${NPX_EXEC})
+endif
 	${NPX_EXEC} cypress open --e2e --env API_BASE_URL=${PAVI_API_BASE_URL}
 
 stop-container-dev:

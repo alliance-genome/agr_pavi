@@ -2,15 +2,19 @@ services:
 
   agr.pavi.dev-local.webui:
     container_name: agr.pavi.${NET}.webui.server
-    image: ${REGISTRY}agr_pavi/webui:${AGR_PAVI_RELEASE:?error}
+    image: ${REGISTRY}agr_pavi/webui:${AGR_PAVI_RELEASE:-latest}
     environment:
       - PAVI_API_BASE_URL
     ports:
       - "3000:3000"
-    networks:
-      - pavi
+    network_mode: host
 
-networks:
-  pavi:
-    driver: bridge
-    name: pavi
+  agr.pavi.cypress-e2e-testing:
+    container_name: agr.pavi.${NET:-dev-local}.cypress-e2e-testing
+    image: ${REGISTRY}agr_pavi/cypress_testing:${AGR_PAVI_RELEASE:-latest}
+    environment:
+      - PAVI_API_BASE_URL
+    network_mode: host
+    volumes:
+      - ./cypress:/app/cypress:rw
+    command: ["npx", "cypress", "run", "--e2e", "--env", "API_BASE_URL=${PAVI_API_BASE_URL}"]

@@ -6,6 +6,8 @@ API_PIPELINE_IMAGE_TAG?=main
 ADDITIONAL_BUILD_ARGS=
 EXTRA_PIP_COMPILE_ARGS ?=
 
+AWS_PROFILE ?= default
+
 AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
@@ -23,7 +25,7 @@ clean:
 	@rm -rf work/
 
 container-image:
-	cd ../ && AWS_PROFILE?=default && \
+	cd ../ && export AWS_PROFILE=${AWS_PROFILE} && \
 	docker build ${ADDITIONAL_BUILD_ARGS} -f api/Dockerfile -t ${CONTAINER_NAME} \
 	  --secret id=AWS_PROFILE --secret id=AWS_SHARED_CREDENTIALS_FILE,src=${HOME}/.aws/credentials \
 	  --secret id=AWS_CONFIG_FILE,src=${HOME}/.aws/config \

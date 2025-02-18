@@ -1,0 +1,6 @@
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!cypress.config.ts
+!cypress-image-diff.config.cjs

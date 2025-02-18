@@ -6,7 +6,8 @@
         "./src/*"
       ]
     },
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "esModuleInterop": true,
   },
   "include": [
     "next-env.d.ts",
@@ -16,7 +17,6 @@
   ],
   "exclude": [
     "cypress.config.ts",
-    "cypress",
     "node_modules"
   ]
 }

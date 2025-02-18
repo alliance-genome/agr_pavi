@@ -1,6 +1,6 @@
 // Server-generated page
 
-import { AlignmentResultView } from './components/AlignmentResultView'
+import { AlignmentResultView } from './components/AlignmentResultView/AlignmentResultView'
 import { redirect } from 'next/navigation'
 
 export default async function Page( props: any ) {

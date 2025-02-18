@@ -14,7 +14,32 @@ describe('submit form behaviour', () => {
         cy.visit('/')
     })
 
+    // cypress-image-diff - Legacy HTML report
+    // after(() => {
+    //     cy.task("generateReport");
+    // });
+
+    Cypress.on('uncaught:exception', (err, runnable) => {  // eslint-disable-line no-unused-vars
+        // Expect errors from nightingale elements are ignored
+        // InvalidStateError: CanvasRenderingContext2D.drawImage: Passed-in canvas is empty
+        console.log(`Uncaught error intercepted during cypress testing.`)
+        console.log(`Intercepted error cause: ${err.cause}`)
+        console.log(`Intercepted error message: ${err.message}`)
+        console.log(`Intercepted error name: ${err.name}`)
+        console.log(`Intercepted error stack: ${err.stack}`)
+        console.log('End of intercepted error.')
+        if ( err.message.includes('CanvasRenderingContext2D') ) {
+            console.log('CanvasRenderingContext2D error detected during Cypress E2E testing. Ignoring as expected.')
+            return false
+        }
+        // we still want to ensure there are no other unexpected
+        // errors, so we let them fail the test
+    })
+
     it('tests job submission success', () => {
+        // Ensure test-resource file required further down exists
+        cy.readFile('cypress/test-resources/submit-workflow-success-output.aln', {timeout: 100}).should('exist')
+
         // We use the `cy.get()` command to get all elements that match the selector.
         // There should only be one cell with a inputgroup.
         // cy.get('table tbody tr td .p-inputgroup').should('have.length', 1)
@@ -109,8 +134,141 @@ describe('submit form behaviour', () => {
             expect(loc.search).to.eq(`?uuid=${jobUuid}`)
         })
 
-        // Result page should display the expected alignment results
-        cy.readFile('../tests/resources/submit-workflow-success-output.aln').then(function(txt){
+        // Result page should have a display mode selector
+        cy.get('#display-mode').as('displayModeDropdown')
+        cy.get('@displayModeDropdown').should('have.length', 1)
+
+        // Display mode selector should default to 'interactive'
+        cy.get('@displayModeDropdown').find('option[selected]').should('have.value', 'interactive')
+
+        // nightingale-elements should be visible
+        cy.get('nightingale-manager').as('nightingaleManager')
+        cy.get('@nightingaleManager').should('have.length', 1)
+
+        cy.get('@nightingaleManager').find('nightingale-navigation').as('nightingaleNavigation')
+        cy.get('@nightingaleNavigation').should('have.length', 1)
+        cy.get('@nightingaleNavigation').should('be.visible')
+
+        cy.get('@nightingaleManager').find('nightingale-msa').as('nightingaleMsa')
+        cy.get('@nightingaleMsa').should('have.length', 1)
+        cy.get('@nightingaleMsa').should('be.visible')
+
+        cy.get('@nightingaleMsa').find('msa-labels:visible')
+            .as('nightingaleSequenceLabels')
+
+        // all sequences should be visible in nightingale-msa
+        cy.get('@nightingaleSequenceLabels').should('have.length', 1)
+        cy.get('@nightingaleSequenceLabels').should('be.visible')
+        cy.get('@nightingaleSequenceLabels').shadow().find('ul > li').as('NightingaleLabels')
+
+        cy.get('@NightingaleLabels').should('have.length', 5)
+        cy.get('@NightingaleLabels').contains('Appl_Appl-RA')
+        cy.get('@NightingaleLabels').contains('Appl_Appl-RB')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1')
+        cy.get('@NightingaleLabels').contains('mgl-1_ZC506.4a.1')
+
+        cy.get('@nightingaleSequenceLabels').parent('div').find('msa-sequence-viewer:visible').as('nightingaleSequenceView')
+        cy.get('@nightingaleSequenceView').should('have.length', 1)
+
+        // Wait for @nightingaleSequenceView to get a width and height > 0 (no negative values)
+        cy.get('@nightingaleSequenceView')
+          .invoke('attr', 'width')
+          .should('match', /^[1-9][0-9]*$/)
+
+        cy.get('@nightingaleSequenceView')
+          .invoke('attr', 'height')
+          .should('match', /^[1-9][0-9]*$/)
+
+        // Color-scheme selector should default to 'clustal2'
+        const defaultColorScheme = 'clustal2'
+        cy.get('#dd-colorscheme').as('colorSchemeDropdown')
+        cy.get('@colorSchemeDropdown').should('have.length', 1)
+        cy.get('@colorSchemeDropdown').find('option[selected]').should('have.value', defaultColorScheme)
+
+        // Selected color scheme should be represented in nightingale view
+        cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', defaultColorScheme)
+
+        // Give visual nightingale-elements some time to render
+        cy.wait(1000)
+
+        // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+              .compareSnapshot({name: 'initial-msa-viewer'})
+        }
+
+        // Selecting a different color scheme should change the colors in nightingale-msa
+        const newColorScheme = {
+            label: 'Conservation',
+            value: 'conservation'
+        }
+        cy.get('@colorSchemeDropdown').click()
+        cy.get('div.p-dropdown-panel > div.p-dropdown-items-wrapper > ul > li:visible')
+          .contains(newColorScheme.label).click()
+
+        // Selected color scheme should be represented in nightingale view
+        cy.get('@colorSchemeDropdown').find('option[selected]').should('have.value', newColorScheme.value)
+        cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', newColorScheme.value)
+
+        // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+              .compareSnapshot({name: 'conservation-msa-viewer'})
+        }
+
+        // Compare (visual) snapshot of successfull @nightingaleNavigation render
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleNavigation')
+              .compareSnapshot({name: 'initial-msa-navigation'})
+        }
+
+        cy.get('@nightingaleNavigation').find('svg > g > rect.selection').as('nightingaleNavigationSelector')
+
+        // Changing navigation should update sequence displayed
+        // cy.get('@nightingaleNavigationSelector')
+        //   .then(
+        //     (nightingaleNavigationSelector) => {
+        //         // const nightingaleNavigationSelectorCoords = nightingaleNavigationSelector[0].getBoundingClientRect();
+
+        //         // TODO: Dragging the navigation selector should update the displayed navigation bar and the displayed sequence.
+        //         // cy.trigger('mousdown') seem to not work as expected with nightingale-elements throwing errors.
+        //         // Try https://github.com/dmtrKovalenko/cypress-real-events ?
+
+        //         // cy.get('@nightingaleNavigationSelector')
+        //         // cy.get('@nightingaleNavigationSelector').trigger('mouseover')
+        //         // cy.get('@nightingaleNavigationSelector').trigger('mousedown', {button: 0, clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y})
+        //         // cy.get('@nightingaleNavigationSelector').trigger('mousemove',{ clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y - 100 })
+        //         // cy.get('@nightingaleNavigationSelector').trigger('mouseup', {force: true})
+
+        //         // if( !Cypress.config('isInteractive') ) {
+        //         //     cy.get('@nightingaleNavigation')
+        //         //       .compareSnapshot({name: 'msa-navigation-bar-moved-left'})
+        //         // }
+
+        //         // if( !Cypress.config('isInteractive') ) {
+        //         //     cy.get('@nightingaleSequenceView')
+        //         //       .compareSnapshot({name: 'msa-sequence-view-bar-moved-left'})
+        //         // }
+
+        //         // TODO: Resizing the navigation selector should update the displayed navigation bar and the displayed sequence.
+
+        //         // TODO: Dragging the displayed sequence should update the displayed sequence and navigation bar.
+
+        //     }
+        //   )
+
+        // Changing display mode to 'text' should hide the interactive alignment and display the text alignment
+        cy.get('@displayModeDropdown').click()
+        cy.get('ul.p-dropdown-items').find('li').contains('Text').click()
+
+        cy.get('@nightingaleMsa').should('not.be.visible')
+
+        cy.get('textarea#alignment-result-text').as('alignmentTextDisplay')
+        cy.get('@alignmentTextDisplay').should('be.visible')
+
+        // Displayed alignment should match the expected output
+        cy.readFile('cypress/test-resources/submit-workflow-success-output.aln').then(function(txt){
             expect(txt).to.be.a('string')
 
             cy.get('textarea#alignment-result-text').should('have.text', txt)
