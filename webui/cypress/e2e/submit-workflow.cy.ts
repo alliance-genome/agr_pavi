@@ -225,38 +225,73 @@ describe('submit form behaviour', () => {
 
         cy.get('@nightingaleNavigation').find('svg > g > rect.selection').as('nightingaleNavigationSelector')
 
-        // Changing navigation should update sequence displayed
-        // cy.get('@nightingaleNavigationSelector')
-        //   .then(
-        //     (nightingaleNavigationSelector) => {
-        //         // const nightingaleNavigationSelectorCoords = nightingaleNavigationSelector[0].getBoundingClientRect();
+        // Dragging the navigation selector should update the displayed navigation bar and the displayed sequence.
+        cy.get('@nightingaleNavigationSelector').realMouseDown({button: 'left', position: 'center'})
+        cy.get('@nightingaleNavigationSelector').realMouseMove(-100, 0, { position: 'center' })
+        cy.get('@nightingaleNavigationSelector').realMouseUp()
 
-        //         // TODO: Dragging the navigation selector should update the displayed navigation bar and the displayed sequence.
-        //         // cy.trigger('mousdown') seem to not work as expected with nightingale-elements throwing errors.
-        //         // Try https://github.com/dmtrKovalenko/cypress-real-events ?
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleNavigation')
+                .compareSnapshot({name: 'msa-navigation-bar-moved-left'})
+        }
 
-        //         // cy.get('@nightingaleNavigationSelector')
-        //         // cy.get('@nightingaleNavigationSelector').trigger('mouseover')
-        //         // cy.get('@nightingaleNavigationSelector').trigger('mousedown', {button: 0, clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y})
-        //         // cy.get('@nightingaleNavigationSelector').trigger('mousemove',{ clientX: nightingaleNavigationSelectorCoords.x, clientY: nightingaleNavigationSelectorCoords.y - 100 })
-        //         // cy.get('@nightingaleNavigationSelector').trigger('mouseup', {force: true})
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+                .compareSnapshot({name: 'msa-sequence-view-bar-moved-left'})
+        }
 
-        //         // if( !Cypress.config('isInteractive') ) {
-        //         //     cy.get('@nightingaleNavigation')
-        //         //       .compareSnapshot({name: 'msa-navigation-bar-moved-left'})
-        //         // }
+        // Return to original position
+        cy.get('@nightingaleNavigationSelector').realMouseDown({button: 'left', position: 'center'})
+        cy.get('@nightingaleNavigationSelector').realMouseMove(100, 0, { position: 'center' })
+        cy.get('@nightingaleNavigationSelector').realMouseUp()
 
-        //         // if( !Cypress.config('isInteractive') ) {
-        //         //     cy.get('@nightingaleSequenceView')
-        //         //       .compareSnapshot({name: 'msa-sequence-view-bar-moved-left'})
-        //         // }
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+                .compareSnapshot({name: 'conservation-msa-viewer'})
+        }
 
-        //         // TODO: Resizing the navigation selector should update the displayed navigation bar and the displayed sequence.
+        // Dragging the displayed sequence should update the displayed sequence and navigation bar.
+        cy.get('@nightingaleSequenceView')
+        cy.get('@nightingaleSequenceView').realMouseDown({button: 'left', position: 'center'})
+        cy.get('@nightingaleSequenceView').realMouseMove(-100, 0, { position: 'center' })
+        cy.get('@nightingaleSequenceView').realMouseUp()
 
-        //         // TODO: Dragging the displayed sequence should update the displayed sequence and navigation bar.
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleNavigation')
+                .compareSnapshot({name: 'msa-navigation-sequence-moved-left'})
+        }
 
-        //     }
-        //   )
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+                .compareSnapshot({name: 'msa-sequence-view-sequence-moved-left'})
+        }
+
+        // Return to original position
+        cy.get('@nightingaleSequenceView').realMouseDown({button: 'left', position: 'center'})
+        cy.get('@nightingaleSequenceView').realMouseMove(100, 0, { position: 'center' })
+        cy.get('@nightingaleSequenceView').realMouseUp()
+
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+                .compareSnapshot({name: 'conservation-msa-viewer'})
+        }
+
+        // Resizing the navigation selector should update the displayed navigation bar and the displayed sequence.
+        cy.get('@nightingaleNavigation').find('svg > g > rect.handle--w').as('nightingaleNavigationResizeLeft')
+
+        cy.get('@nightingaleNavigationResizeLeft').realMouseDown({button: 'left', position: 'center'})
+        cy.get('@nightingaleNavigationResizeLeft').realMouseMove(50, 0, { position: 'center' })
+        cy.get('@nightingaleNavigationResizeLeft').realMouseUp()
+
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleNavigation')
+                .compareSnapshot({name: 'msa-navigation-nav-resize-left-zoom-in'})
+        }
+
+        if( !Cypress.config('isInteractive') ) {
+            cy.get('@nightingaleSequenceView')
+                .compareSnapshot({name: 'msa-sequence-view-nav-resize-left-zoom-in'})
+        }
 
         // Changing display mode to 'text' should hide the interactive alignment and display the text alignment
         cy.get('@displayModeDropdown').click()
