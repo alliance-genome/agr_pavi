@@ -66,7 +66,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                 console.log(`AlignmentResult updated to: ${alignmentResult}`)
             }
 
-        }, [alignmentResult] // eslint-disable-line react-hooks/exhaustive-deps
+        }, [alignmentResult]
     )
 
     return (
