@@ -28,14 +28,14 @@ export interface AlignmentEntryProps {
     readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>
 }
 export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: AlignmentEntryProps) => {
-    const [setupCompleted, setSetupCompleted] = useState<Boolean>(false)
+    const [setupCompleted, setSetupCompleted] = useState<boolean>(false)
     const geneMessageRef: React.RefObject<Message | null> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [gene, setGene] = useState<GeneInfo>()
     const transcriptMultiselectRef: React.RefObject<MultiSelect | null> = createRef();
     const [transcriptList, setTranscriptList] = useState<Feature[]>([])
-    const [transcriptListFocused, setTranscriptListFocused] = useState<Boolean>(false)
-    const [transcriptListOpened, setTranscriptListOpened] = useState<Boolean>(false)
+    const [transcriptListFocused, setTranscriptListFocused] = useState<boolean>(false)
+    const [transcriptListOpened, setTranscriptListOpened] = useState<boolean>(false)
     const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<Array<any>>([])
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
     const [fastaFileUrl, setFastaFileUrl] = useState<string>()
@@ -101,7 +101,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     }
 
     const payloadPortion = useCallback((gene_info: GeneInfo, transcripts_info: TranscriptInfoType[]) => {
-        let portion: JobSumbissionPayloadRecord[] = []
+        const portion: JobSumbissionPayloadRecord[] = []
 
         transcripts_info.forEach(transcript => {
             portion.push({
@@ -129,7 +129,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const jBrowseSubfeatureRelToRefPos = (subfeatureList: any[], featureStrand: FeatureStrand,
                                           parentRefStart: number, parentRefEnd: number) => (
         subfeatureList.map((subfeat: any) => {
-            let new_subfeat = {
+            const new_subfeat = {
                 ...subfeat,
             }
 
@@ -146,7 +146,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         })
     )
 
-    const processTranscriptEntry = useCallback(async(transcriptIds: String[]) => {
+    const processTranscriptEntry = useCallback(async(transcriptIds: string[]) => {
         updateInputPayloadPart({
             status: AlignmentEntryStatus.PROCESSING,
             payloadPart: undefined
@@ -154,7 +154,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
         console.log('Fetching exon info for selected transcripts...')
 
-        let transcriptsInfo: Array<TranscriptInfoType> = []
+        const transcriptsInfo: Array<TranscriptInfoType> = []
 
         if(transcriptIds.length < 1){
             updateInputPayloadPart({
@@ -193,7 +193,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     let exons: any[] = dedupe(children.filter((sub: any) => sub.type === 'exon'))
                     let cds_regions: any[] = dedupe(children.filter((sub: any) => sub.type === 'CDS'))
 
-                    let transcript_length = transcript.get("end") - transcript.get("start")
+                    const transcript_length = transcript.get("end") - transcript.get("start")
                     if (feature.strand === -1) {
                         exons = revlist(exons, transcript_length)
                         cds_regions = revlist(cds_regions, transcript_length)

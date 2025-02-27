@@ -19,7 +19,7 @@ describe('submit form behaviour', () => {
     //     cy.task("generateReport");
     // });
 
-    Cypress.on('uncaught:exception', (err, runnable) => {  // eslint-disable-line no-unused-vars
+    Cypress.on('uncaught:exception', (err, ) => {
         // Expect errors from nightingale elements are ignored
         // InvalidStateError: CanvasRenderingContext2D.drawImage: Passed-in canvas is empty
         console.log(`Uncaught error intercepted during cypress testing.`)

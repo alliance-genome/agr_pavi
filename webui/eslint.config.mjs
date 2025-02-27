@@ -14,7 +14,12 @@ const compat = new FlatCompat({
 });
 
 const config = [
-    ...compat.extends("next/core-web-vitals", "eslint:recommended"),
+    ...compat.config({
+        extends: ["next/core-web-vitals", "next/typescript", "eslint:recommended"],
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'off',
+        }
+    }),
     {
         files: ["**/__tests__/**/*.[jt]s?(x)"],
 
@@ -26,8 +31,9 @@ const config = [
             globals: pluginJest.environments.globals.globals
         }
     }, {
-        ...pluginCypress.configs.recommended,
         files: ["cypress/**/*.cy.[jt]s?(x)"],
+
+        ...pluginCypress.configs.recommended,
     }
 ];
 

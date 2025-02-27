@@ -14,9 +14,9 @@ describe('check all health endpoints', () => {
                 response_cache_control = cache_control_flags
             }
 
-            expect(response_cache_control).not.to.be.undefined
+            expect(response_cache_control).not.to.be.an('undefined')
 
-            let cache_control_map = new Map()
+            const cache_control_map = new Map()
             response_cache_control.forEach((val) => { cache_control_map.set(val, true) })
 
             expect(cache_control_map).to.include.any.keys('no-cache', 'no-store')
