@@ -15,13 +15,13 @@ anyio==4.8.0 \
     #   httpx
     #   starlette
     #   watchfiles
-boto3==1.36.24 \
-    --hash=sha256:777ec08a6fe0ad77fa0607b431542c51d2d2e4145fecd512bee9f383ee4184f2 \
-    --hash=sha256:c9055fe6a33f79c43053c06db432092cfcf88f4b4181950f5ca8f2f0cb6abb87
+boto3==1.37.2 \
+    --hash=sha256:d64491bd4142c2c6dfe44479bf89c4ab7fa8d00210c2aaa7361931e61898b608 \
+    --hash=sha256:e58136d52d79425ce26c3c1578bf94d4b2e91ead55fed9f6950406ee9713e6af
     # via smart-open
-botocore==1.36.24 \
-    --hash=sha256:7d35ba92ccbed7aa7e1563b12bb339bde612d5f845c89bfdd79a6db8c26b9f2e \
-    --hash=sha256:b8b2ad60e6545aaef3a40163793c39555fcfd67fb081a38695018026c4f4db25
+botocore==1.37.2 \
+    --hash=sha256:3f460f3c32cd6d747d5897a9cbde011bf1715abc7bf0a6ea6fdb0b812df63287 \
+    --hash=sha256:5f59b966f3cd0c8055ef6f7c2600f7db5f8218071d992e5f95da3f9156d4370f
     # via
     #   boto3
     #   s3transfer
@@ -543,9 +543,9 @@ rich-toolkit==0.13.2 \
     --hash=sha256:f3f6c583e5283298a2f7dbd3c65aca18b7f818ad96174113ab5bec0b0e35ed61 \
     --hash=sha256:fea92557530de7c28f121cbed572ad93d9e0ddc60c3ca643f1b831f2f56b95d3
     # via fastapi-cli
-s3transfer==0.11.2 \
-    --hash=sha256:3b39185cb72f5acc77db1a58b6e25b977f28d20496b6e58d6813d75f464d632f \
-    --hash=sha256:be6ecb39fadd986ef1701097771f87e4d2f821f27f6071c872143884d2950fbc
+s3transfer==0.11.3 \
+    --hash=sha256:ca855bdeb885174b5ffa95b9913622459d4ad8e331fc98eb01e6d5eb6a30655d \
+    --hash=sha256:edae4977e3a122445660c7c114bba949f9d191bae3b34a096f18a1c8c354527a
     # via boto3
 shellingham==1.5.4 \
     --hash=sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686 \
