@@ -4,7 +4,7 @@ import { PrimeReactContext } from 'primereact/api';
 import { ToggleButton } from "primereact/togglebutton";
 import React, { FunctionComponent, useContext, useState } from 'react';
 
-export const DarkModeToggle: FunctionComponent<{}> = () => {
+export const DarkModeToggle: FunctionComponent = () => {
     const [darkMode, setDarkMode] = useState(false)
     const { changeTheme } = useContext(PrimeReactContext);
 

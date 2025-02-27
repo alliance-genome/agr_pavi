@@ -20,7 +20,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
 
     const inputPayloadReducer = (prevState: InputPayloadPartMap, action: InputPayloadDispatchAction) => {
-        let newState = new Map(prevState)
+        const newState = new Map(prevState)
         const entityIndex = action.index
 
         switch (action.type) {

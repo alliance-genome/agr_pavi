@@ -19,7 +19,7 @@ describe('submit form behaviour', () => {
     //     cy.task("generateReport");
     // });
 
-    Cypress.on('uncaught:exception', (err, runnable) => {  // eslint-disable-line no-unused-vars
+    Cypress.on('uncaught:exception', (err, ) => {
         // Expect errors from nightingale elements are ignored
         // InvalidStateError: CanvasRenderingContext2D.drawImage: Passed-in canvas is empty
         console.log(`Uncaught error intercepted during cypress testing.`)
@@ -68,11 +68,13 @@ describe('submit form behaviour', () => {
         for(let i = 0, len = formInput.length; i < len; ++i){
 
             // Form should be able to receive gene as user input.
-            cy.get('.p-inputgroup').eq(i).find('input#gene').focus().type(formInput[i].gene)
+            cy.get('.p-inputgroup').eq(i).find('input#gene').as('geneInputField')
+            cy.get('@geneInputField').focus()
+            cy.get('@geneInputField').type(formInput[i].gene)
 
             // Once the transcript list loaded, from should enable selecting the relevant transcripts.
             cy.get('.p-inputgroup').eq(i).find('#transcripts').find('input').focus()
-            cy.get('.p-multiselect-panel').as('openTranscriptsSelectBox').should('be.visible')
+            cy.get('.p-multiselect-panel', {timeout: 5000}).as('openTranscriptsSelectBox').should('be.visible')
 
             // A list of transcript should be available
             cy.get('@openTranscriptsSelectBox').find('li.p-multiselect-item').as('openTranscriptsList')
@@ -91,6 +93,7 @@ describe('submit form behaviour', () => {
                 cy.get('@submitBtn').should('be.disabled')
 
                 if (i === 0) {
+                    // eslint-disable-next-line cypress/no-unnecessary-waiting
                     cy.wait(5000)
                     cy.get('@submitBtn').should('be.disabled')
                 }
@@ -190,7 +193,7 @@ describe('submit form behaviour', () => {
         cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', defaultColorScheme)
 
         // Give visual nightingale-elements some time to render
-        cy.wait(1000)
+        cy.wait(1000)  //eslint-disable-line cypress/no-unnecessary-waiting
 
         // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
         if( !Cypress.config('isInteractive') ) {

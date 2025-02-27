@@ -31,7 +31,7 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
     const [alignmentEntries, setAlignmentEntries] = useState<Map<number, AlignmentEntryListItem>>(new Map())
     function initiateFirstAlignmentEntry(){
         setAlignmentEntries((prevState) => {
-            let newState = new Map(prevState)
+            const newState = new Map(prevState)
             if(prevState.size === 0){
                 console.log('Initiating first alignmentEntry.')
                 const firstItemIndex = 0

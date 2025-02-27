@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    eslint: {
+        dirs: ['src', 'cypress/e2e', 'cypress/support'],
+    },
     output: 'standalone',
     skipTrailingSlashRedirect: true,
     experimental: {

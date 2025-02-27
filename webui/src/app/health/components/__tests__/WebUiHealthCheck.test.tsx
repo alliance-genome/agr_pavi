@@ -51,7 +51,7 @@ describe('apiHealthHTTPStatus function testing', () => {
         fetchMock.route('/api/health', mockChangingApiHealthResponse, {name: 'catch-api-health'});
 
         const apiHealthUpResponse = await apiHealthHTTPStatus()
-        expect(apiHealthUpResponse).toBeDefined
+        expect(apiHealthUpResponse).toBeDefined()
         expect(apiHealthUpResponse![0]).toBe(200)
 
         const fetchCalls1 = fetchMock.callHistory.calls('catch-api-health')
@@ -61,7 +61,7 @@ describe('apiHealthHTTPStatus function testing', () => {
 
         // Test second API Health query response (failure)
         const apiHealthDownResponse = await apiHealthHTTPStatus()
-        expect(apiHealthDownResponse).toBeDefined
+        expect(apiHealthDownResponse).toBeDefined()
         expect(apiHealthDownResponse![0]).toBe(500)
 
         const fetchCalls2 = fetchMock.callHistory.calls('catch-api-health')
@@ -72,7 +72,7 @@ describe('apiHealthHTTPStatus function testing', () => {
 
         // Test third API Health query response (not accessible)
         const apiHealthInaccessibleResponse = await apiHealthHTTPStatus()
-        expect(apiHealthInaccessibleResponse).toBeUndefined
+        expect(apiHealthInaccessibleResponse).toBeUndefined()
 
         const fetchCalls3 = fetchMock.callHistory.calls('catch-api-health')
         expect(fetchCalls3).toHaveLength(3)

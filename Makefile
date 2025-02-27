@@ -98,10 +98,10 @@ update-deps-locks-all:
 	echo 20 > .nvmrc
 
 install-node-deps: package-lock.json
-	${NPM_EXEC} install --omit-dev
+	${NPM_EXEC} install --strict-peer-deps --omit-dev
 
 install-node-test-deps: package-lock.json
-	${NPM_EXEC} install
+	${NPM_EXEC} install --strict-peer-deps
 
 install-node: .nvmrc
 	${NVM_CMD} install
@@ -110,10 +110,10 @@ update-install-node: install-node
 	@:
 
 package-lock.json:
-	${NPM_EXEC} install --package-lock-only
+	${NPM_EXEC} install --strict-peer-deps --package-lock-only
 
 update-node-deps-lock: package-lock.json
-	${NPM_EXEC} update --package-lock-only
+	${NPM_EXEC} update --strict-peer-deps --package-lock-only
 
 _vars-node-nvm-exec:
 	@echo "NVM_CMD=${NVM_CMD}"
