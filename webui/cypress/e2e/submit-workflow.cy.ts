@@ -193,7 +193,7 @@ describe('submit form behaviour', () => {
         cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', defaultColorScheme)
 
         // Give visual nightingale-elements some time to render
-        cy.wait(1000)
+        cy.wait(1000)  //eslint-disable-line cypress/no-unnecessary-waiting
 
         // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
         if( !Cypress.config('isInteractive') ) {
