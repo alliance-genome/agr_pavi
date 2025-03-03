@@ -1,6 +1,9 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-# DEBUG=1
+# Set DEBUG to 1 to enable debug printing
+DEBUG=0
+
+ELECTRON_ENABLE_LOGGING=${DEBUG}
 
 CONTAINER_IMAGE_NAME_WEBUI=agr_pavi/webui
 CONTAINER_IMAGE_NAME_CYPRESS=agr_pavi/cypress_testing
@@ -106,6 +109,7 @@ run-unit-tests-dev: install-test-deps
 	${NPM_EXEC} run test:watch
 
 run-e2e-tests: cypress/test-resources/
+	if [ "${DEBUG}" = 1 ]; then export ELECTRON_ENABLE_LOGGING=1; fi; \
 	API_BASE_URL=${PAVI_API_BASE_URL} docker compose -f docker-compose-dev.yml --env-file dev.env \
 	up --no-log-prefix --exit-code-from agr.pavi.cypress-e2e-testing agr.pavi.cypress-e2e-testing
 

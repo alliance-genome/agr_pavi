@@ -3,7 +3,10 @@ const config = {
     JSON_REPORT: {
         OVERWRITE: true
     },
-    FAIL_ON_MISSING_BASELINE: true
+    FAIL_ON_MISSING_BASELINE: true,
+    RETRY_OPTIONS: {
+        doNotFail: true
+    }
 };
 
 module.exports = config

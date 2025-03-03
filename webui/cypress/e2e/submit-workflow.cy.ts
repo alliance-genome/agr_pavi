@@ -14,10 +14,9 @@ describe('submit form behaviour', () => {
         cy.visit('/')
     })
 
-    // cypress-image-diff - Legacy HTML report
-    // after(() => {
-    //     cy.task("generateReport");
-    // });
+    afterEach(() => {
+        cy.task('clearSnapshotResults');
+    });
 
     Cypress.on('uncaught:exception', (err, ) => {
         // Expect errors from nightingale elements are ignored
@@ -198,7 +197,10 @@ describe('submit form behaviour', () => {
         // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
-              .compareSnapshot({name: 'initial-msa-viewer'})
+                .compareSnapshot({name: 'initial-msa-viewer'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'initial-msa-viewer', result: snapshotResult})
+                })
         }
 
         // Selecting a different color scheme should change the colors in nightingale-msa
@@ -217,13 +219,19 @@ describe('submit form behaviour', () => {
         // Compare (visual) snapshot of successfull cypress @nightingaleSequenceView render
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
-              .compareSnapshot({name: 'conservation-msa-viewer'})
+                .compareSnapshot({name: 'conservation-msa-viewer'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'conservation-msa-viewer', result: snapshotResult})
+                })
         }
 
         // Compare (visual) snapshot of successfull @nightingaleNavigation render
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleNavigation')
-              .compareSnapshot({name: 'initial-msa-navigation'})
+                .compareSnapshot({name: 'initial-msa-navigation'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'initial-msa-navigation', result: snapshotResult})
+                })
         }
 
         cy.get('@nightingaleNavigation').find('svg > g > rect.selection').as('nightingaleNavigationSelector')
@@ -236,11 +244,17 @@ describe('submit form behaviour', () => {
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleNavigation')
                 .compareSnapshot({name: 'msa-navigation-bar-moved-left'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-navigation-bar-moved-left', result: snapshotResult})
+                })
         }
 
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
                 .compareSnapshot({name: 'msa-sequence-view-bar-moved-left'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-sequence-view-bar-moved-left', result: snapshotResult})
+                })
         }
 
         // Return to original position
@@ -251,6 +265,9 @@ describe('submit form behaviour', () => {
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
                 .compareSnapshot({name: 'conservation-msa-viewer'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-sequence-view-bar-reset1', result: snapshotResult})
+                })
         }
 
         // Dragging the displayed sequence should update the displayed sequence and navigation bar.
@@ -262,11 +279,17 @@ describe('submit form behaviour', () => {
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleNavigation')
                 .compareSnapshot({name: 'msa-navigation-sequence-moved-left'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-navigation-sequence-moved-left', result: snapshotResult})
+                })
         }
 
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
                 .compareSnapshot({name: 'msa-sequence-view-sequence-moved-left'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-sequence-view-sequence-moved-left', result: snapshotResult})
+                })
         }
 
         // Return to original position
@@ -277,6 +300,9 @@ describe('submit form behaviour', () => {
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
                 .compareSnapshot({name: 'conservation-msa-viewer'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-sequence-view-reset2', result: snapshotResult})
+                })
         }
 
         // Resizing the navigation selector should update the displayed navigation bar and the displayed sequence.
@@ -289,11 +315,17 @@ describe('submit form behaviour', () => {
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleNavigation')
                 .compareSnapshot({name: 'msa-navigation-nav-resize-left-zoom-in'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-navigation-nav-resize-left-zoom-in', result: snapshotResult})
+                })
         }
 
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
                 .compareSnapshot({name: 'msa-sequence-view-nav-resize-left-zoom-in'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-sequence-view-nav-resize-left-zoom-in', result: snapshotResult})
+                })
         }
 
         // Changing display mode to 'text' should hide the interactive alignment and display the text alignment
@@ -322,11 +354,19 @@ describe('submit form behaviour', () => {
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleNavigation')
                 .compareSnapshot({name: 'msa-navigation-nav-resize-left-zoom-in'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-navigation-nav-resume-interactive', result: snapshotResult})
+                })
         }
 
         if( !Cypress.config('isInteractive') ) {
             cy.get('@nightingaleSequenceView')
                 .compareSnapshot({name: 'msa-sequence-view-nav-resize-left-zoom-in'})
+                .then((snapshotResult) => {
+                    cy.task('storeSnapshotResult', {id: 'msa-sequence-view-nav-resume-interactive', result: snapshotResult})
+                })
         }
+
+        cy.task('errorOnSnapshotFailures')
     })
 })
