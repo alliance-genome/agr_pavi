@@ -22,19 +22,19 @@ aws-cdk-cloud-assembly-schema==39.2.20 \
     --hash=sha256:7b1ab0593fbfaac4ff0d5d0aa6a3b54185e0286f4aa68376557cac2d50c59183 \
     --hash=sha256:e110b22f961d15c25a9099590375280c0b45637c8325ade9b570a0ef11e6e907
     # via aws-cdk-lib
-aws-cdk-lib==2.181.0 \
-    --hash=sha256:717b1c9fab00924b3c6ef1a6febb4d8816b822e07879da2dd0422c3339436219 \
-    --hash=sha256:f532acd18ba209727fdde7c6f12bc1e3265b59dd0d24de8b6efb743e541504a2
+aws-cdk-lib==2.181.1 \
+    --hash=sha256:59356371569797f57bc2832d97dc70802d479244822e84e509739b1d41b2b4c5 \
+    --hash=sha256:c4246dc6689dd46b0f666b98ce3049ab2b1faf390c50eeb9c6ba0a83cd53970e
     # via
     #   pavi-shared-aws
     #   pavi-shared-aws-infra (pyproject.toml)
-boto3==1.37.2 \
-    --hash=sha256:d64491bd4142c2c6dfe44479bf89c4ab7fa8d00210c2aaa7361931e61898b608 \
-    --hash=sha256:e58136d52d79425ce26c3c1578bf94d4b2e91ead55fed9f6950406ee9713e6af
+boto3==1.37.4 \
+    --hash=sha256:024c37c2f85f4b907f5fc817d0db6fda7fd6ab3c6148ee4ed35fe7cecdf7db0c \
+    --hash=sha256:1bbf8bbacb3932956b7020d9a2c49d72c64e21bae9397ba6d3aadffab5e192eb
     # via pavi-shared-aws
-botocore==1.37.2 \
-    --hash=sha256:3f460f3c32cd6d747d5897a9cbde011bf1715abc7bf0a6ea6fdb0b812df63287 \
-    --hash=sha256:5f59b966f3cd0c8055ef6f7c2600f7db5f8218071d992e5f95da3f9156d4370f
+botocore==1.37.4 \
+    --hash=sha256:7e15cd487617440e9eac3144044b6a2bd833d7f3e2bed6a2865693cc11489cc3 \
+    --hash=sha256:89130998c82d53f875a42646b692da507c9871b580fd1aea0f861bf9da36e41a
     # via
     #   boto3
     #   s3transfer
@@ -160,9 +160,9 @@ pyflakes==3.2.0 \
     --hash=sha256:1c61603ff154621fb2a9172037d84dca3500def8c8b630657d1701f026f8af3f \
     --hash=sha256:84b5be138a2dfbb40689ca07e2152deb896a65c3a3e24c251c5c62489568074a
     # via flake8
-pytest==8.3.4 \
-    --hash=sha256:50e16d954148559c9a74109af1eaf0c945ba2d8f30f0a3d3335edde19788b6f6 \
-    --hash=sha256:965370d062bce11e73868e0335abac31b4d3de0e82f4007408d242b4f8610761
+pytest==8.3.5 \
+    --hash=sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820 \
+    --hash=sha256:f4efe70cc14e511565ac476b57c279e12a855b11f48f212af1080ef2263d3845
     # via pavi-shared-aws-infra (pyproject.toml)
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
