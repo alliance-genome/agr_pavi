@@ -14,6 +14,7 @@ services:
     image: ${REGISTRY}agr_pavi/cypress_testing:${AGR_PAVI_RELEASE:-latest}
     environment:
       - PAVI_API_BASE_URL
+      - ELECTRON_ENABLE_LOGGING
     network_mode: host
     volumes:
       - ./cypress:/app/cypress:rw
