@@ -12,6 +12,8 @@ AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
 REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
+API_BASE_URL ?= http://localhost:8080
+
 .PHONY: check-% clean install-% run-% update-%
 
 clean:
@@ -101,7 +103,7 @@ run-tests-dev: .venv/ install-test-deps nextflow.sh protein-msa.nf nextflow.conf
 run-integration-test-container: .venv/ install-test-deps
 	$(MAKE) --no-print-directory run-container-dev
 	sleep 30 # Allow container some startup time before attempting to connect
-	export EXTERNAL_API_BASE_URL="http://localhost:8080" && \
+	export EXTERNAL_API_BASE_URL="${API_BASE_URL}" && \
 	  .venv/bin/python -m pytest tests/b_integration \
 	  || (echo "Container logs:" && docker logs agr.pavi.dev-local.api.server && exit 1)
 	$(MAKE) --no-print-directory stop-container-dev
