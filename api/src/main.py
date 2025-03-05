@@ -178,6 +178,10 @@ async def get_pipeline_job_logs(uuid: UUID) -> StreamingResponse:
         logger.error(f'Failing command output: {e.output}')
         raise HTTPException(status_code=500, detail='Error occured while retrieving logs.')
     else:
+        if not result.stdout:
+            logger.warning(f'GET job logs error: No logs found for uuid {job.uuid}.')
+            raise HTTPException(status_code=404, detail='Job found but no logs found.')
+
         def contentStream():  # type: ignore
             with StringIO(result.stdout) as file_like:
                 yield from file_like
