@@ -105,5 +105,5 @@ run-integration-test-container: .venv/ install-test-deps
 	sleep 30 # Allow container some startup time before attempting to connect
 	export EXTERNAL_API_BASE_URL="${API_BASE_URL}" && \
 	  .venv/bin/python -m pytest tests/b_integration \
-	  || (echo "Container logs:" && docker logs agr.pavi.dev-local.api.server && exit 1)
+	  || (echo "\n\n\nContainer logs:" && docker logs agr.pavi.dev-local.api.server 2>&1 && exit 1)
 	$(MAKE) --no-print-directory stop-container-dev
