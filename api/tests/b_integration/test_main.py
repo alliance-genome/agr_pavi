@@ -9,6 +9,10 @@ from .helper_fns import poll_job_progress
 
 from httpx import Client, codes, ReadTimeout, Timeout
 
+from src.log_mgmt import get_logger
+
+
+logger = get_logger(name=__name__)
 
 external_api_base_url = getenv('EXTERNAL_API_BASE_URL')
 
@@ -43,7 +47,14 @@ def test_success_pipeline_workflow() -> None:
     assert final_response['status'] == 'completed'
 
     # Collect and compare pipeline result
-    response = client.get(f'/api/pipeline-job/{job_uuid}/alignment-result')
+    try:
+        response = client.get(f'/api/pipeline-job/{job_uuid}/alignment-result')
+    except ReadTimeout as e:
+        logger.error(f'Reading alignment-result for {job_uuid} exceeded timeout.')
+        raise e
+    except Exception as e:
+        logger.error(f'Exception caught while reading alignment-result for {job_uuid}.')
+        raise e
 
     assert response.status_code == 200, f'Result retrieval for {job_uuid} did not return success.'
 
@@ -51,7 +62,14 @@ def test_success_pipeline_workflow() -> None:
         assert response.text == expected_result_file.read()
 
     # Collect pipeline logs and ensure non-empty result
-    response = client.get(f'/api/pipeline-job/{job_uuid}/logs')
+    try:
+        response = client.get(f'/api/pipeline-job/{job_uuid}/logs')
+    except ReadTimeout as e:
+        logger.error(f'Reading logs for {job_uuid} exceeded timeout.')
+        raise e
+    except Exception as e:
+        logger.error(f'Exception caught while reading logs for {job_uuid}.')
+        raise e
 
     assert response.status_code == 200, f'Log retrieval for {job_uuid} did not return success.'
     assert response.text != ""
@@ -89,12 +107,26 @@ def test_fail_pipeline_workflow() -> None:
     assert final_response['status'] == 'failed'
 
     # Pipeline results should not be found
-    response = client.get(f'/api/pipeline-job/{job_uuid}/alignment-result')
+    try:
+        response = client.get(f'/api/pipeline-job/{job_uuid}/alignment-result')
+    except ReadTimeout as e:
+        logger.error(f'Reading alignment-result for {job_uuid} exceeded timeout.')
+        raise e
+    except Exception as e:
+        logger.error(f'Exception caught while reading alignment-result for {job_uuid}.')
+        raise e
 
     assert response.status_code == 404, f'Result retrieval for {job_uuid} did not return not-found.'
 
     # Collect pipeline logs and ensure non-empty result
-    response = client.get(f'/api/pipeline-job/{job_uuid}/logs')
+    try:
+        response = client.get(f'/api/pipeline-job/{job_uuid}/logs')
+    except ReadTimeout as e:
+        logger.error(f'Reading logs for {job_uuid} exceeded timeout.')
+        raise e
+    except Exception as e:
+        logger.error(f'Exception caught while reading logs for {job_uuid}.')
+        raise e
 
     assert response.status_code == 200, f'Log retrieval for {job_uuid} did not return success.'
     assert response.text != ""
