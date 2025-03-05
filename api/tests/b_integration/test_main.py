@@ -7,15 +7,15 @@ from uuid import UUID
 
 from .helper_fns import poll_job_progress
 
-from httpx import Client
-from httpx import codes
+from httpx import Client, codes, ReadTimeout, Timeout
 
 
 external_api_base_url = getenv('EXTERNAL_API_BASE_URL')
 
 client: TestClient | Client
 if external_api_base_url:
-    client = Client(base_url=external_api_base_url, follow_redirects=False)
+    timeout = Timeout(5.0, read=10.0)
+    client = Client(base_url=external_api_base_url, follow_redirects=False, timeout=timeout)
 else:
     client = TestClient(app, follow_redirects=False)
     environ["API_RESULTS_PATH_PREFIX"] = f'{getcwd()}/'
