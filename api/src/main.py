@@ -172,7 +172,7 @@ async def get_pipeline_job_logs(uuid: UUID) -> StreamingResponse:
     try:
         result = subprocess.run(
             ['./nextflow.sh', 'log', job.name, '-f', 'stderr,stdout'],
-            check=True, capture_output=True, text=True, stderr=subprocess.STDOUT)
+            check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         logger.error(f'Error while fetching nextflow logs for job named {job.name}: {e}')
         logger.error(f'Failing command output: {e.output}')
