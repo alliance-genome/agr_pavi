@@ -1,7 +1,7 @@
 [
     {
         "name": "C54H2.5.1",
-        "seq_id": "XX",
+        "seq_id": "FAILURE_TEST_SEQ_ID",
         "seq_strand": "-",
         "exon_seq_regions": [
             "5780644..5780722",
