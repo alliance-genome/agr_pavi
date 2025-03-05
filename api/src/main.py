@@ -172,16 +172,14 @@ async def get_pipeline_job_logs(uuid: UUID) -> StreamingResponse:
     try:
         result = subprocess.run(
             ['./nextflow.sh', 'log', job.name, '-f', 'stderr,stdout'],
-            check=True, capture_output=True, text=True)
+            check=True, capture_output=True, text=True, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
-        logger.error(f'Error while fetching nextflow logs for job names {job.name}: {e}')
+        logger.error(f'Error while fetching nextflow logs for job named {job.name}: {e}')
+        logger.error(f'Failing command output: {e.output}')
         raise HTTPException(status_code=500, detail='Error occured while retrieving logs.')
     else:
         def contentStream():  # type: ignore
             with StringIO(result.stdout) as file_like:
-                yield from file_like
-
-            with StringIO(result.stderr) as file_like:
                 yield from file_like
 
         return StreamingResponse(contentStream(), media_type="text/plain")
