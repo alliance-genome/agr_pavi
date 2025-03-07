@@ -6,6 +6,8 @@ params.publish_dir = 'pipeline-results/'
 params.publish_dir_prefix = ''
 
 process sequence_retrieval {
+    memory '200 MB'
+
     container "${params.image_registry}agr_pavi/pipeline_seq_retrieval:${params.image_tag}"
 
     input:
@@ -26,6 +28,8 @@ process sequence_retrieval {
 }
 
 process alignment {
+    memory '2 GB'
+
     container "${params.image_registry}agr_pavi/pipeline_alignment:${params.image_tag}"
 
     publishDir "${params.publish_dir_prefix}${params.publish_dir}", mode: 'copy'
