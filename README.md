@@ -468,11 +468,15 @@ defined through CDK code) automatically gets built and deployed, through [github
 ## Acknowledgements
 Just as most modern software, PAVI heavily relies on third-party tools and libraries for much of its core functionality.
 We specifically acknowledge the creators and developers of the following third-party tools and libraries:
- * BioPython: [Cock PJ, Antao T, Chang JT, et al. Biopython: freely available Python tools for computational molecular biology and bioinformatics. Bioinformatics. 2009;25(11):1422-1423. doi:10.1093/bioinformatics/btp163](https://pubmed.ncbi.nlm.nih.gov/19304878/)
- * Nextflow: [Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017;35(4):316-319. doi:10.1038/nbt.3820](https://pubmed.ncbi.nlm.nih.gov/28398311/)
- * Nightingale: [Salazar GA, Luciani A, Watkins X, et al. Nightingale: web components for protein feature visualization. Bioinform Adv. 2023;3(1):vbad064. Published 2023 May 24. doi:10.1093/bioadv/vbad064](https://pubmed.ncbi.nlm.nih.gov/37359723/)
- * PySam: https://github.com/pysam-developers/pysam
- * Samtools: [Danecek P, Bonfield JK, Liddle J, et al. Twelve years of SAMtools and BCFtools. Gigascience. 2021;10(2):giab008. doi:10.1093/gigascience/giab008](https://pubmed.ncbi.nlm.nih.gov/33590861/)
+ * [BioPython](https://biopython.org/):
+ _Cock PJ, Antao T, Chang JT, et al. Biopython: freely available Python tools for computational molecular biology and bioinformatics. Bioinformatics. 2009;25(11):1422-1423. [doi:10.1093/bioinformatics/btp163](https://doi.org/10.1093/bioinformatics/btp163)_
+ * [Nextflow](https://www.nextflow.io/):
+ _Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017;35(4):316-319. [doi:10.1038/nbt.3820](https://doi.org/10.1038/nbt.3820)_
+ * [Nightingale](https://github.com/ebi-webcomponents/nightingale):
+ _Salazar GA, Luciani A, Watkins X, et al. Nightingale: web components for protein feature visualization. Bioinform Adv. 2023;3(1):vbad064. Published 2023 May 24. [doi:10.1093/bioadv/vbad064](https://doi.org/10.1093/bioadv/vbad064)_
+ * [PySam](https://github.com/pysam-developers/pysam)
+ * [Samtools](http://www.htslib.org/):
+ _Danecek P, Bonfield JK, Liddle J, et al. Twelve years of SAMtools and BCFtools. Gigascience. 2021;10(2):giab008. [doi:10.1093/gigascience/giab008](https://doi.org/10.1093/gigascience/giab008)_
 
 ## Maintainers
 Current maintainer: [Manuel Luypaert](https://github.com/mluypaert)
