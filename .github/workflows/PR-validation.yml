@@ -26,7 +26,10 @@ jobs:
             repo: context.repo.repo,
             run_id: context.runId
           });
-
+    - name: Waiting for workflow to cancel
+      uses: actions/github-script@v6
+      with:
+        script: |
           while (true) {
             core.info('Waiting for workflow to cancel ...');
             await delay(5000);
