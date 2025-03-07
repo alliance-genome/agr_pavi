@@ -11,16 +11,24 @@ jobs:
   skip-validation-on-closed:
     name: Skip PR-validations for closed PR (validation on closed PRs are irrelevant)
     if: github.event.pull_request.state == 'closed'
-    # This concurrency causes a deadlock between this job and the top level workflow,
-    # which effectively cancels the current workflow run.
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
     runs-on: ubuntu-22.04
     steps:
-    - name: Cancelling all PR validation runs for PR ${{ github.event.pull_request.number }}
-      run: |
-        echo "Done."
+    - name: Cancelling this PR validation run.
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const delay = ms => new Promise(res => setTimeout(res, ms));
+
+          github.rest.actions.cancelWorkflowRun({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: context.runId
+          });
+
+          while (true) {
+            core.info('Waiting for workflow to cancel ...');
+            await delay(5000);
+          }
   container-build-context:
     name: define container image build context variables
     runs-on: ubuntu-22.04
