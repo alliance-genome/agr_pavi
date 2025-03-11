@@ -10,9 +10,9 @@ import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import React, { createRef, FunctionComponent, useCallback, useEffect, useState } from 'react';
 
-import { fetchGeneInfo } from './serverActions';
+import { fetchGeneInfo, fetchAlleles } from './serverActions';
 
-import { AlignmentEntryStatus, GeneInfo, FeatureStrand } from './types';
+import { AlignmentEntryStatus, GeneInfo, FeatureStrand, AlleleInfo } from './types';
 import { JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
@@ -38,7 +38,37 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [transcriptListOpened, setTranscriptListOpened] = useState<boolean>(false)
     const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<Array<any>>([])
     const [transcriptListLoading, setTranscriptListLoading] = useState(true)
+    const alleleMultiselectRef: React.RefObject<MultiSelect | null> = createRef();
+    const [alleleList, setAlleleList] = useState<AlleleInfo[]>([])
+    const [alleleListFocused, setAlleleListFocused] = useState<boolean>(false)
+    const [alleleListOpened, setAlleleListOpened] = useState<boolean>(false)
+    const [selectedAlleleIds, setSelectedAlleleIds] = useState<Array<any>>([])
+    const [alleleListLoading, setAlleleListLoading] = useState(false)
     const [fastaFileUrl, setFastaFileUrl] = useState<string>()
+
+    const alleleLabel = (allele: AlleleInfo): string => {
+        let label = `${allele.id}: ${allele.displayName}`
+
+        if( allele.variants.size > 1 ){
+            // Add variant count if allele has multiple variants
+            label += ` (${allele.variants.size} variants)`
+        }
+        else {
+            // Add variant displayName if allele has one variant and name is not identical to Allele's
+            const variant = Array.from(allele.variants.values()).pop()
+            if( variant?.displayName !== allele.displayName ){
+                label += ` (${variant?.displayName})`
+            }
+        }
+        return label
+    }
+    const alleleOptionTemplate = (option: any) => {
+        return (
+            <div className="flex align-items-center">
+                <p dangerouslySetInnerHTML={{__html: option.label}} />
+            </div>
+        );
+    };
 
     const updateInputPayloadPart = useCallback((newProperties: Partial<InputPayloadPart>) => {
         const dispatchAction: InputPayloadDispatchAction = {
@@ -70,8 +100,12 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         })
         if( geneId ){
             console.log('Fetching gene info for geneID', geneId, '...')
+            // Reset transcript selection
             setTranscriptListLoading(true)
             setSelectedTranscriptIds([])
+            // Reset allele selection
+            setAlleleListLoading(true)
+            setSelectedAlleleIds([])
 
             const geneInfo: GeneInfo | undefined = await fetchGeneInfo(geneId)
             if(geneInfo){
@@ -236,10 +270,15 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         }
     },[gene, transcriptList, payloadPortion, updateInputPayloadPart])
 
+    const processAlleleEntry = useCallback(async(alleleIds: string[]) => {
+        //TODO: implement function body
+        console.log(`Processing selected alleles for gene ${gene?.id}: ${alleleIds}`)
+    },[gene])
+
     // Handle transcriptList updates once gene object has been saved
     useEffect(() => {
         async function updateTranscriptList() {
-            console.log(`New gene object: ${gene}`)
+            console.log(`Updating transcript list for gene object: ${gene}`)
 
             if(gene){
                 const speciesConfig = getSpecies(gene.species.taxonId)
@@ -265,7 +304,21 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 setTranscriptList(transcripts)
             }
         }
+
+        async function updateAlleleList() {
+            console.log(`Updating alleles list for gene object: ${gene}`)
+
+            if(gene){
+                const alleles = await fetchAlleles(gene['id'])
+                console.log("alleles received:", alleles)
+
+                // Define alleles list
+                setAlleleList(alleles)
+            }
+        }
+
         updateTranscriptList()
+        updateAlleleList()
     }, [gene]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Update transcriptList loading status and open selection panel once transcriptList object has been saved
@@ -284,13 +337,40 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         [transcriptList] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
+    // Update alleleList loading status once alleleList object has been saved
+    useEffect(
+        () => {
+            console.log(`New allele list loaded.`)
+            setAlleleListLoading(false)
+            if(alleleList.length > 0){
+                const select_menu = alleleMultiselectRef.current
+                if( select_menu && alleleListFocused ){
+                    console.log(`Opening allele panel.`)
+                    alleleMultiselectRef.current?.show()
+                }
+            }
+        },
+        [alleleList] // eslint-disable-line react-hooks/exhaustive-deps
+    );
+
     useEffect(
         () => {
             if( setupCompleted === true && transcriptListFocused === false && transcriptListOpened === false ){
                 processTranscriptEntry(selectedTranscriptIds)
             }
-        }
-    ,[setupCompleted, selectedTranscriptIds, transcriptListFocused, transcriptListOpened, processTranscriptEntry])
+        },
+        [setupCompleted, selectedTranscriptIds, transcriptListFocused, transcriptListOpened, processTranscriptEntry]
+    )
+
+    // Process allele entry once allele selection panel gets closed
+    useEffect(
+        () => {
+            if( setupCompleted === true && alleleListFocused === false && alleleListOpened === false ){
+                processAlleleEntry(selectedAlleleIds)
+            }
+        },
+        [setupCompleted, selectedAlleleIds, alleleListFocused, alleleListOpened, processAlleleEntry]
+    )
 
     useEffect(
         () => {
@@ -316,6 +396,25 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             </FloatLabel>
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
                             text="Failed to find gene, correct input and try again." />
+            <FloatLabel>
+                <MultiSelect id="alleles" loading={alleleListLoading} ref={alleleMultiselectRef}
+                    display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
+                    value={selectedAlleleIds} onChange={(e) => setSelectedAlleleIds(e.value)}
+                    itemTemplate={alleleOptionTemplate} optionLabel='key'
+                    onFocus={ () => setAlleleListFocused(true) }
+                    onBlur={ () => setAlleleListFocused(false) }
+                    onHide={ () => setAlleleListOpened(false) }
+                    onShow={ () => setAlleleListOpened(true) }
+                    options={
+                    alleleList.map(r => (
+                        {
+                            key: r['id'],
+                            value: r['id'],
+                            label: alleleLabel(r),
+                            allele: r
+                        } ))} />
+                <label htmlFor="alleles">Alleles</label>
+            </FloatLabel>
             <FloatLabel>
                 <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
                     display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
