@@ -116,7 +116,7 @@ export async function fetchAlleles (geneId: string): Promise<AlleleInfo[]> {
     })
     .then(([response, body]) => {
         if (response.ok) {
-            console.log(`Allele info for gene ${geneId} received successfully: ${JSON.stringify(body['results'])}`)
+            console.log(`Allele info for gene ${geneId} received successfully.`)
             const allelesMap = new Map<string, AlleleInfo>()
 
             body['results'].forEach((result: any) => {

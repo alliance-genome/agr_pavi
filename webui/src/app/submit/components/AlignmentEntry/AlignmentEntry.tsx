@@ -310,7 +310,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
             if(gene){
                 const alleles = await fetchAlleles(gene['id'])
-                console.log("alleles received:", alleles)
+                console.log(`${alleles.length} alleles received.`)
+                if( alleles.length > 0 ){
+                    console.log('allele 0:', alleles[0])
+                }
 
                 // Define alleles list
                 setAlleleList(alleles)
