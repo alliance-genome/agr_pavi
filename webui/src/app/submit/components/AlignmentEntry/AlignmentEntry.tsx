@@ -12,7 +12,7 @@ import React, { createRef, FunctionComponent, useCallback, useEffect, useState }
 
 import { fetchGeneInfo, fetchAlleles } from './serverActions';
 
-import { AlignmentEntryStatus, GeneInfo, FeatureStrand, AlleleInfo } from './types';
+import { AlignmentEntryStatus, GeneInfo, TranscriptInfo, FeatureStrand, AlleleInfo } from './types';
 import { JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
@@ -32,6 +32,8 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const geneMessageRef: React.RefObject<Message | null> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [gene, setGene] = useState<GeneInfo>()
+    const [selectedAllelesInfo, setSelectedAllelesInfo] = useState<AlleleInfo[]>([])
+    const [selectedTranscriptsInfo, setSelectedTranscriptsInfo] = useState<TranscriptInfo[]>([])
     const transcriptMultiselectRef: React.RefObject<MultiSelect | null> = createRef();
     const [transcriptList, setTranscriptList] = useState<Feature[]>([])
     const [transcriptListFocused, setTranscriptListFocused] = useState<boolean>(false)
@@ -85,20 +87,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         props.dispatchInputPayloadPart(dispatchAction)
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    interface TranscriptInfoType {
-        readonly id: string,
-        readonly name: string,
-        readonly exons: Array<{
-            refStart: number
-            refEnd: number
-        }>,
-        readonly cds_regions: Array<{
-            refStart: number
-            refEnd: number,
-            phase: 0 | 1 | 2
-        }>
-    }
-
     const processGeneEntry = async(geneId: string) => {
         updateInputPayloadPart({
                 status: AlignmentEntryStatus.PROCESSING,
@@ -140,7 +128,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         }
     }
 
-    const payloadPortion = useCallback((gene_info: GeneInfo, transcripts_info: TranscriptInfoType[]) => {
+    const payloadPortion = useCallback((gene_info: GeneInfo, transcripts_info: TranscriptInfo[], alleles_info: AlleleInfo[]) => {
         const portion: JobSumbissionPayloadRecord[] = []
 
         transcripts_info.forEach(transcript => {
@@ -157,7 +145,8 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     'start': e.refStart,
                     'end': e.refEnd,
                     'frame': e.phase
-                }))
+                })),
+                variant_ids: alleles_info.map((a) => (Array.from(a.variants.keys()))).flat()
             })
         });
 
@@ -194,7 +183,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
         console.log('Fetching exon info for selected transcripts...')
 
-        const transcriptsInfo: Array<TranscriptInfoType> = []
+        const transcriptsInfo: Array<TranscriptInfo> = []
 
         if(transcriptIds.length < 1){
             updateInputPayloadPart({
@@ -247,7 +236,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     console.log(`transcript ${transcript.get("name")} resulted in exons:`, exons)
                     console.log(`transcript ${transcript.get("name")} resulted in cds regions:`, cds_regions)
 
-                    const transcriptInfo: TranscriptInfoType = {
+                    const transcriptInfo: TranscriptInfo = {
                         id: transcript.id(),
                         name: transcript.get('name'),
                         exons: exons,
@@ -258,28 +247,34 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 }
             })
 
-            const portion = payloadPortion(gene!, transcriptsInfo)
-            console.log('AlignmentEntry portion is', portion)
-
-            if( (portion === undefined || portion.length < 1) ){
-                updateInputPayloadPart({
-                    status: AlignmentEntryStatus.FAILED_PROCESSING,
-                    payloadPart: undefined
-                })
-            }
-            else {
-                updateInputPayloadPart({
-                    status: AlignmentEntryStatus.READY,
-                    payloadPart: portion
-                })
-            }
+            setSelectedTranscriptsInfo(transcriptsInfo)
         }
-    },[gene, transcriptList, payloadPortion, updateInputPayloadPart])
+    }, [transcriptList, updateInputPayloadPart])
 
     const processAlleleEntry = useCallback(async(alleleIds: string[]) => {
         //TODO: implement function body
         console.log(`Processing selected alleles for gene ${gene?.id}: ${alleleIds}`)
-    },[gene])
+
+        // Convert alleleList into map keyed by allele ID
+        const allelesMap = new Map<string, AlleleInfo>()
+        alleleList.forEach((allele) => {
+            allelesMap.set(allele.id, allele)
+        })
+
+        const alleleEntryInfo: AlleleInfo[] = []
+        alleleIds.forEach((alleleId) => {
+            const allele = allelesMap.get(alleleId)
+            if(allele){
+                alleleEntryInfo.push(allele)
+            }
+            else{
+                console.error(`Selected allele not found: ${alleleId}`)
+            }
+        })
+
+        setSelectedAllelesInfo(alleleEntryInfo)
+
+    }, [gene, alleleList])
 
     // Handle transcriptList updates once gene object has been saved
     useEffect(() => {
@@ -380,6 +375,29 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         },
         [setupCompleted, selectedAlleleIds, alleleListFocused, alleleListOpened, processAlleleEntry]
     )
+
+    // Calculate input payload part on update of gene, transcript and allele selection
+    useEffect(() => {
+        if( gene !== undefined && selectedTranscriptsInfo.length > 0 ){
+            console.log('Calculating payload portion...')
+
+            const portion = payloadPortion(gene!, selectedTranscriptsInfo, selectedAllelesInfo)
+            console.log('AlignmentEntry portion is', portion)
+
+            if( (portion === undefined || portion.length < 1) ){
+                updateInputPayloadPart({
+                    status: AlignmentEntryStatus.FAILED_PROCESSING,
+                    payloadPart: undefined
+                })
+            }
+            else {
+                updateInputPayloadPart({
+                    status: AlignmentEntryStatus.READY,
+                    payloadPart: portion
+                })
+            }
+        }
+    }, [gene, selectedTranscriptsInfo, selectedAllelesInfo, payloadPortion, updateInputPayloadPart])
 
     useEffect(
         () => {

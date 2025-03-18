@@ -29,6 +29,7 @@ class Pipeline_seq_region(BaseModel):
     exon_seq_regions: list[str | dict[str, str | int]]
     cds_seq_regions: list[str | dict[str, str | int]]
     fasta_file_url: str
+    variant_ids: list[str]
 
 
 class Pipeline_job(BaseModel):
