@@ -401,7 +401,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                             text="Failed to find gene, correct input and try again." />
             <FloatLabel>
                 <MultiSelect id="alleles" loading={alleleListLoading} ref={alleleMultiselectRef}
-                    display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
+                    display='chip' filter maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedAlleleIds} onChange={(e) => setSelectedAlleleIds(e.value)}
                     itemTemplate={alleleOptionTemplate} optionLabel='key'
                     onFocus={ () => setAlleleListFocused(true) }
