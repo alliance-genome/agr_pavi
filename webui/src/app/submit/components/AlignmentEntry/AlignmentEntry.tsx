@@ -306,6 +306,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             }
         }
 
+        // TODO: limit Alleles to those that are relevant to the selected transcripts when selected (and vice versa)
         async function updateAlleleList() {
             console.log(`Updating alleles list for gene object: ${gene}`)
 
@@ -425,6 +426,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
                             text="Failed to find gene, correct input and try again." />
             <FloatLabel>
+                {/* TODO: Enable filtering on all text represented in label, not just the allele ID */}
                 <MultiSelect id="alleles" loading={alleleListLoading} ref={alleleMultiselectRef}
                     display='chip' filter maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedAlleleIds} onChange={(e) => setSelectedAlleleIds(e.value)}
