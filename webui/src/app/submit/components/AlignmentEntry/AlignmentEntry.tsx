@@ -276,7 +276,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     }, [gene, alleleList])
 
-    // Handle transcriptList updates once gene object has been saved
+    // Handle transcriptList and alleleList updates once gene object has been saved
     useEffect(() => {
         async function updateTranscriptList() {
             console.log(`Updating transcript list for gene object: ${gene}`)
@@ -357,6 +357,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         [alleleList] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
+    // Process transcript entry once transcript selection panel gets closed
     useEffect(
         () => {
             if( setupCompleted === true && transcriptListFocused === false && transcriptListOpened === false ){
