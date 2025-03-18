@@ -46,26 +46,32 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [alleleListLoading, setAlleleListLoading] = useState(false)
     const [fastaFileUrl, setFastaFileUrl] = useState<string>()
 
-    const alleleLabel = (allele: AlleleInfo): string => {
-        let label = `${allele.id}: ${allele.displayName}`
+    const alleleOptionTemplate = (option: any) => {
+        const alleleInfo = option.allele as AlleleInfo
 
-        if( allele.variants.size > 1 ){
+        let alleleText = alleleInfo.id
+        if( alleleInfo.id !== alleleInfo.displayName ){
+            // Add allele displayName if not identical to ID
+            alleleText += ` - ${alleleInfo.displayName}`
+        }
+
+        let variantText = ''
+        if( alleleInfo.variants.size > 1 ){
             // Add variant count if allele has multiple variants
-            label += ` (${allele.variants.size} variants)`
+            variantText = `(${alleleInfo.variants.size} variants)`
         }
         else {
             // Add variant displayName if allele has one variant and name is not identical to Allele's
-            const variant = Array.from(allele.variants.values()).pop()
-            if( variant?.displayName !== allele.displayName ){
-                label += ` (${variant?.displayName})`
+            const variant = Array.from(alleleInfo.variants.values()).pop()
+            if( variant?.displayName !== alleleInfo.displayName ){
+                variantText += `(${variant?.displayName})`
             }
         }
-        return label
-    }
-    const alleleOptionTemplate = (option: any) => {
+
         return (
-            <div className="flex align-items-center">
-                <p dangerouslySetInnerHTML={{__html: option.label}} />
+            <div className="flex align-items-left">
+                <p dangerouslySetInnerHTML={{__html: alleleText}} />
+                <p dangerouslySetInnerHTML={{__html: variantText}} />
             </div>
         );
     };
@@ -413,7 +419,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                         {
                             key: r['id'],
                             value: r['id'],
-                            label: alleleLabel(r),
                             allele: r
                         } ))} />
                 <label htmlFor="alleles">Alleles</label>
