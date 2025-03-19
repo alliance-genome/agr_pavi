@@ -25,7 +25,7 @@ jest.mock("next/navigation", () => ({
 describe('AlignmentEntry', () => {
     it('renders a data-entry form', () => {
         const result = render(
-            <JobSubmitForm agrjBrowseDataRelease='7.3.0' />
+            <JobSubmitForm agrjBrowseDataRelease='8.0.0' />
         )
 
         const inputGroup = result.container.querySelector('div.p-inputgroup')
@@ -36,7 +36,7 @@ describe('AlignmentEntry', () => {
 
     it('renders a submit button that is disabled by default', () => {
         const result = render(
-            <JobSubmitForm agrjBrowseDataRelease='7.3.0' />
+            <JobSubmitForm agrjBrowseDataRelease='8.0.0' />
         )
 
         const submitBtn = result.container.querySelector('button[aria-label="Submit"]')

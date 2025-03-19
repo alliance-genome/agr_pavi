@@ -16,7 +16,7 @@ jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib
 describe('AlignmentEntry', () => {
     it('renders a gene input element', () => {
         const result = render(
-            <AlignmentEntry index={0} agrjBrowseDataRelease='7.3.0' dispatchInputPayloadPart={jest.fn()} />
+            <AlignmentEntry index={0} agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
         const geneInputElement = result.container.querySelector('#gene')
@@ -26,7 +26,7 @@ describe('AlignmentEntry', () => {
 
     it('renders transcript input element', () => {
         const result = render(
-            <AlignmentEntry index={0} agrjBrowseDataRelease='7.3.0' dispatchInputPayloadPart={jest.fn()} />
+            <AlignmentEntry index={0} agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
         const transcriptInputElement = result.container.querySelector('#transcripts')
