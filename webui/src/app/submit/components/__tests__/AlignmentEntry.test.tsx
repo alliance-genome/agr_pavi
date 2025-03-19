@@ -33,4 +33,15 @@ describe('AlignmentEntry', () => {
         expect(transcriptInputElement).not.toBe(null)  // Expect transcript input element to be found
         expect(transcriptInputElement).toHaveClass('p-multiselect') // Expect element to be multiselect box
     })
+
+    it('renders allele input element', () => {
+        const result = render(
+            <AlignmentEntry index={0} agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
+        )
+
+        const alleleInputElement = result.container.querySelector('#alleles')
+        expect(alleleInputElement).not.toBe(null)  // Expect allele input element to be found
+        expect(alleleInputElement).toHaveClass('p-multiselect') // Expect element to be multiselect box
+    })
+
 })
