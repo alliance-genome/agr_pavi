@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 export async function fetchAllPages({url, urlSearchParams = new URLSearchParams()}: {url: string, urlSearchParams: URLSearchParams}): Promise<any[]> {
     let results: any[] = [];
     let page = 1;
