@@ -1,9 +1,9 @@
 import { GeneInfo, AlleleInfo } from "../types";
 
 const mockGenes = new Map<string, GeneInfo>()
-mockGenes.set('MOCK1', {
-    id: 'MOCK1',
-    symbol: 'MOCK1',
+mockGenes.set('MOCK:GENE1', {
+    id: 'MOCK:GENE1',
+    symbol: 'MOCKGENE1',
     species: {
         taxonId: 1
     },
@@ -17,7 +17,7 @@ mockGenes.set('MOCK1', {
 })
 
 const mockAlleles = new Map<string, AlleleInfo[]>()
-mockAlleles.set('MOCK1', [
+mockAlleles.set('MOCK:GENE1', [
     {id: 'ALLELE:MOCK1',
      displayName: 'MOCK1',
      variants: new Map([['VARIANT:MOCK1.1', {id: 'VARIANT:MOCK1.1', displayName: 'MOCK1.1'}],

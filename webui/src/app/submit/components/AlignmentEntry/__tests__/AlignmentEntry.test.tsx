@@ -179,7 +179,7 @@ describe('AlignmentEntry', () => {
 
         // test kown gene input
         fireEvent.focusIn(geneInputElement!)
-        fireEvent.input(geneInputElement!, {target: {value: 'MOCK1'}})
+        fireEvent.input(geneInputElement!, {target: {value: 'MOCK:GENE1'}})
         fireEvent.focusOut(geneInputElement!)
 
         // Find transcripts and alleles loading spinner
