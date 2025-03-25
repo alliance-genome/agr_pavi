@@ -16,6 +16,17 @@ mockGenes.set('MOCK1', {
     }]
 })
 
+const mockAlleles = new Map<string, AlleleInfo[]>()
+mockAlleles.set('MOCK1', [
+    {id: 'ALLELE:MOCK1',
+     displayName: 'MOCK1',
+     variants: new Map([['VARIANT:MOCK1.1', {id: 'VARIANT:MOCK1.1', displayName: 'MOCK1.1'}],
+                        ['VARIANT:MOCK1.2', {id: 'VARIANT:MOCK1.2', displayName: 'MOCK1.2'}] ])},
+    {id: 'ALLELE:MOCK2',
+     displayName: 'MOCK2',
+     variants: new Map([['VARIANT:MOCK2.1', {id: 'VARIANT:MOCK2.1', displayName: 'MOCK2.1'}]])}
+])
+
 export async function fetchGeneInfo (geneId: string): Promise<GeneInfo|undefined> {
     console.log('Mocking fetchGeneInfo for geneId:', geneId)
     return Promise.resolve(mockGenes.get(geneId))
@@ -23,13 +34,5 @@ export async function fetchGeneInfo (geneId: string): Promise<GeneInfo|undefined
 
 export async function fetchAlleles (geneId: string): Promise<AlleleInfo[]> {
     console.log('Mocking fetchAlleles for geneId:', geneId)
-    return Promise.resolve([
-        {id: 'ALLELE:MOCK1',
-         displayName: 'MOCK1',
-         variants: new Map([['VARIANT:MOCK1.1', {id: 'VARIANT:MOCK1.1', displayName: 'MOCK1.1'}],
-                            ['VARIANT:MOCK1.2', {id: 'VARIANT:MOCK1.2', displayName: 'MOCK1.2'}] ])},
-        {id: 'ALLELE:MOCK2',
-         displayName: 'MOCK2',
-         variants: new Map([['VARIANT:MOCK2.1', {id: 'VARIANT:MOCK2.1', displayName: 'MOCK2.1'}]])}
-    ])
+    return Promise.resolve(mockAlleles.get(geneId) || [])
 }
