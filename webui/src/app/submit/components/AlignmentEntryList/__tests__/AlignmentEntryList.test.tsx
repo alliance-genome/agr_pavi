@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { render, fireEvent } from '@testing-library/react'
-import { AlignmentEntryList } from '../AlignmentEntryList/AlignmentEntryList'
+import { AlignmentEntryList } from '../AlignmentEntryList'
 
 jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
     () => {

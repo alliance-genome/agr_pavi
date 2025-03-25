@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { render, fireEvent, waitFor } from '@testing-library/react'
 
 import { Feature } from '@jbrowse/core/util';
-import { AlignmentEntry } from '../AlignmentEntry/AlignmentEntry'
+import { AlignmentEntry } from '../AlignmentEntry'
 
 jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
     () => {
@@ -38,7 +38,7 @@ jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib
 )
 
 // Mock server Actions
-jest.mock("../AlignmentEntry/serverActions")
+jest.mock("../serverActions")
 
 // Mock seqpanel transcript retrieval
 class mockFeature {
