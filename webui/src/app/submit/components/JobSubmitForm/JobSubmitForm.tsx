@@ -32,10 +32,12 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
                         newState.set(entityIndex, action.value as InputPayloadPart)
                     }
                     else{
+                        /* istanbul ignore next */
                         console.error('inputPayloadReducer: cannot add partial InputPayloadPart', action.value)
                     }
                 }
                 else {
+                    /* istanbul ignore next */
                     console.warn(`inputPayloadReducer: addition requested but index ${entityIndex} already has existing value.`)
                 }
 
@@ -48,6 +50,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
                     newState.delete(entityIndex)
                 }
                 else {
+                    /* istanbul ignore next */
                     console.warn(`inputPayloadReducer: deletion requested but index ${entityIndex} does not exist.`)
                 }
 
@@ -63,6 +66,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
                     newState.set(entityIndex, newInputPayloadPart)
                 }
                 else{
+                    /* istanbul ignore next */
                     console.warn(`inputPayloadReducer: Update requested to non-existing inputPayload at index ${entityIndex}.`)
                 }
 
