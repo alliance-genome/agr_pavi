@@ -165,15 +165,22 @@ describe('AlignmentEntry', () => {
         const geneInputElement = result.container.querySelector('input#gene')
         expect(geneInputElement).not.toBe(null)  // Expect gene input element to be found
 
+        // test unkown gene input
         fireEvent.focusIn(geneInputElement!)
-        fireEvent.input(geneInputElement!, {target: {value: 'mock:gene1'}})
-        // fireEvent.focusOut(geneInputElement!)
-
-        // Find transcript multiselect element
-        const transcriptsElement = result.container.querySelector('div#transcripts')
-        expect(transcriptsElement).not.toBe(null)
+        fireEvent.input(geneInputElement!, {target: {value: 'UNKNOWN'}})
         fireEvent.focusOut(geneInputElement!)
-        // fireEvent.focusIn(transcriptsElement!)
+
+        // Wait for unkown gene error message to appear
+        await waitFor(() => {
+            expect(result.container.querySelector('div.p-inline-message-error')).not.toBeNull()
+
+            expect(result.container.querySelector('div.p-inline-message-error')).toBeVisible()
+        })
+
+        // test kown gene input
+        fireEvent.focusIn(geneInputElement!)
+        fireEvent.input(geneInputElement!, {target: {value: 'MOCK1'}})
+        fireEvent.focusOut(geneInputElement!)
 
         // Find transcripts and alleles loading spinner
         await waitFor(() => {
@@ -181,6 +188,13 @@ describe('AlignmentEntry', () => {
             expect(result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
 
             expect(result.container.querySelector('div#alleles > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
+        })
+
+        // Wait for unkown gene error message to disappear
+        await waitFor(() => {
+            expect(result.container.querySelector('div.p-inline-message-error')).not.toBeNull()
+
+            expect(result.container.querySelector('div.p-inline-message-error')).not.toBeVisible()
         })
 
         // Wait for transcripts loading spinner to disappear

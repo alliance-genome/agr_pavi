@@ -1,21 +1,24 @@
 import { GeneInfo, AlleleInfo } from "../types";
 
+const mockGenes = new Map<string, GeneInfo>()
+mockGenes.set('MOCK1', {
+    id: 'MOCK1',
+    symbol: 'MOCK1',
+    species: {
+        taxonId: 1
+    },
+    genomeLocations: [{
+        chromosome: "17",
+        start: 43044295,
+        end: 43170327,
+        assembly: "GRCh38",
+        strand: "-"
+    }]
+})
+
 export async function fetchGeneInfo (geneId: string): Promise<GeneInfo|undefined> {
     console.log('Mocking fetchGeneInfo for geneId:', geneId)
-    return Promise.resolve({
-        id: geneId,
-        symbol: 'MOCK1',
-        species: {
-            taxonId: 1
-        },
-        genomeLocations: [{
-            chromosome: "17",
-            start: 43044295,
-            end: 43170327,
-            assembly: "GRCh38",
-            strand: "-"
-        }]
-    })
+    return Promise.resolve(mockGenes.get(geneId))
 }
 
 export async function fetchAlleles (geneId: string): Promise<AlleleInfo[]> {
