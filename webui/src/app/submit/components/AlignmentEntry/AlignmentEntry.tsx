@@ -428,6 +428,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             <FloatLabel>
                 {/* TODO: Enable filtering on all text represented in label, not just the allele ID */}
                 <MultiSelect id="alleles" loading={alleleListLoading} ref={alleleMultiselectRef}
+                    appendTo={"self"}
                     display='chip' filter maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedAlleleIds} onChange={(e) => setSelectedAlleleIds(e.value)}
                     itemTemplate={alleleOptionTemplate} optionLabel='key'
@@ -446,6 +447,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             </FloatLabel>
             <FloatLabel>
                 <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
+                    appendTo={"self"}
                     display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
                     onFocus={ () => setTranscriptListFocused(true) }

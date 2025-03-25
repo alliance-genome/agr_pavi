@@ -67,7 +67,7 @@ class mockFeature {
     // eslint-disable-next-line no-dupe-class-members
     get(key: "refName" | "start" | "end" | "subfeatures" | string): any {
         if (key === 'name') {
-            return this.id
+            return this.uniqueId
         }
         else if (key === 'refName') {
             return this.refName
@@ -157,7 +157,7 @@ describe('AlignmentEntry', () => {
         expect(alleleInputElement).toHaveClass('p-multiselect') // Expect element to be multiselect box
     })
 
-    it('accepts gene input string and populates transcript and allele fields when done so', async() => {
+    it('accepts gene input string and correctly processes it to populate transcript and allele fields', async() => {
         const result = render(
             <AlignmentEntry index={0} agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
@@ -209,6 +209,44 @@ describe('AlignmentEntry', () => {
             expect(result.container.querySelector('div#alleles > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon:not(.p-icon-spin)')).not.toBeNull()
         })
 
-        // TODO: Add tests to check if transcript and allele fields are populated with mock data
+        // Open transcript selection pane
+        fireEvent.focus(result.container.querySelector('div#transcripts')!)
+        const transcriptsDropdownTrigger = result.container.querySelector('div#transcripts > div.p-multiselect-trigger')
+        expect(transcriptsDropdownTrigger).not.toBeNull()
+        fireEvent.click(transcriptsDropdownTrigger!)
+
+        // Find opened transcript selection pane
+        await waitFor(() => {
+            expect(result.container.querySelector('div.p-multiselect-panel')).not.toBeNull()
+        })
+
+        // Find transcript option element
+        const transcriptsSelectionPaneElement = result.container.querySelector('div.p-multiselect-panel')
+        expect(transcriptsSelectionPaneElement).not.toBe(null)
+        const transcriptsOptionElements = transcriptsSelectionPaneElement!.querySelectorAll('li.p-multiselect-item')
+        expect(transcriptsOptionElements).not.toBe(null)
+        expect(transcriptsOptionElements).toHaveLength(2)
+        expect(transcriptsOptionElements[0]).toContainHTML('<span>mock:transcript1</span>')
+        expect(transcriptsOptionElements[1]).toContainHTML('<span>mock:transcript2</span>')
+
+        // Open allele selection pane
+        fireEvent.focus(result.container.querySelector('div#alleles')!)
+        const allelesDropdownTrigger = result.container.querySelector('div#alleles > div.p-multiselect-trigger')
+        expect(allelesDropdownTrigger).not.toBeNull()
+        fireEvent.click(allelesDropdownTrigger!)
+
+        // Find opened allele selection pane
+        await waitFor(() => {
+            expect(result.container.querySelector('div.p-multiselect-panel')).not.toBeNull()
+        })
+
+        // Find allele option element
+        const allelesSelectionPaneElement = result.container.querySelector('div.p-multiselect-panel')
+        expect(allelesSelectionPaneElement).not.toBe(null)
+        const allelesOptionElements = allelesSelectionPaneElement!.querySelectorAll('li.p-multiselect-item')
+        expect(allelesOptionElements).not.toBe(null)
+        expect(allelesOptionElements).toHaveLength(2)
+        expect(allelesOptionElements[0]).toContainHTML('<p>ALLELE:MOCK1 - MOCK1</p><p>(2 variants)</p>')
+        expect(allelesOptionElements[1]).toContainHTML('<p>ALLELE:MOCK2 - MOCK2</p><p>(MOCK2.1)</p>')
     })
 })
