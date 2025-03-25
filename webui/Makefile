@@ -106,7 +106,7 @@ run-unit-tests: install-test-deps
 run-unit-tests-dev: install-test-deps
 	$(eval NPM_EXEC:=)
 	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../Makefile _vars-node-npm-exec))
-	${NPM_EXEC} run test:watch
+	${NPM_EXEC} run test:dev
 
 run-e2e-tests: cypress/test-resources/
 	if [ "${DEBUG}" = 1 ]; then export ELECTRON_ENABLE_LOGGING=1; fi; \
