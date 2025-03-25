@@ -83,4 +83,6 @@ describe('AlignmentEntry', () => {
         const newInputGroups = result.container.querySelectorAll('div.p-inputgroup')
         expect(newInputGroups).toHaveLength(0)
     })
+
+    //TODO: add tests for API payload generation
 })
