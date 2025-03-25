@@ -26,18 +26,18 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
         switch (action.type) {
             case 'ADD': {
                 console.log('inputPayloadReducer ADD action called.')
+                /* istanbul ignore else */
                 if ( prevState.get(entityIndex) === undefined ){
+                    /* istanbul ignore else */
                     if( Object.hasOwn(action.value, 'index') && Object.hasOwn(action.value, 'payloadPart') && Object.hasOwn(action.value, 'status') ){
                         console.log(`inputPayloadReducer: adding new value at index ${entityIndex} `)
                         newState.set(entityIndex, action.value as InputPayloadPart)
                     }
                     else{
-                        /* istanbul ignore next */
                         console.error('inputPayloadReducer: cannot add partial InputPayloadPart', action.value)
                     }
                 }
                 else {
-                    /* istanbul ignore next */
                     console.warn(`inputPayloadReducer: addition requested but index ${entityIndex} already has existing value.`)
                 }
 
@@ -45,12 +45,12 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
             }
             case 'DELETE': {
                 console.log('inputPayloadReducer DELETE action called.')
+                /* istanbul ignore else */
                 if ( prevState.get(entityIndex) !== undefined ){
                     console.log(`inputPayloadReducer: deleting element at index ${entityIndex} `)
                     newState.delete(entityIndex)
                 }
                 else {
-                    /* istanbul ignore next */
                     console.warn(`inputPayloadReducer: deletion requested but index ${entityIndex} does not exist.`)
                 }
 
@@ -58,6 +58,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
             }
             case 'UPDATE': {
                 const prevInputPayloadPart = prevState.get(entityIndex)
+                /* istanbul ignore else */
                 if ( prevInputPayloadPart !== undefined ){
                     const newInputPayloadPart: InputPayloadPart = {
                         ...prevInputPayloadPart,
@@ -66,7 +67,6 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
                     newState.set(entityIndex, newInputPayloadPart)
                 }
                 else{
-                    /* istanbul ignore next */
                     console.warn(`inputPayloadReducer: Update requested to non-existing inputPayload at index ${entityIndex}.`)
                 }
 

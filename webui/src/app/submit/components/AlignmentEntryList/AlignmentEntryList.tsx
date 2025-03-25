@@ -64,6 +64,7 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
         setAlignmentEntries((prevState) => {
             const newState = new Map(prevState)
 
+            /* istanbul ignore else */
             if( prevState.get(deleteIndex) ){
                 console.log(`Deleting alignmentEntry at index ${deleteIndex} from list.`)
                 newState.delete(deleteIndex)
