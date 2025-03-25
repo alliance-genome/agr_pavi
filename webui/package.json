@@ -9,6 +9,7 @@
         "lint": "next lint --max-warnings 0",
         "typecheck": "tsc --noEmit --strict",
         "test": "jest --silent",
+        "test:dev": "jest --silent=false",
         "test:watch": "jest --watch"
     },
     "engines": {

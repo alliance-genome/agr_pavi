@@ -21,7 +21,7 @@ const config = [
         }
     }),
     {
-        files: ["**/__tests__/**/*.[jt]s?(x)"],
+        files: ["**/__tests__/**/*.[jt]s?(x)", "**/__mocks__/**/*.[jt]s?(x)"],
 
         plugins: {
             pluginJest,

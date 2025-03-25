@@ -26,7 +26,9 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
         switch (action.type) {
             case 'ADD': {
                 console.log('inputPayloadReducer ADD action called.')
+                /* istanbul ignore else */
                 if ( prevState.get(entityIndex) === undefined ){
+                    /* istanbul ignore else */
                     if( Object.hasOwn(action.value, 'index') && Object.hasOwn(action.value, 'payloadPart') && Object.hasOwn(action.value, 'status') ){
                         console.log(`inputPayloadReducer: adding new value at index ${entityIndex} `)
                         newState.set(entityIndex, action.value as InputPayloadPart)
@@ -43,6 +45,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
             }
             case 'DELETE': {
                 console.log('inputPayloadReducer DELETE action called.')
+                /* istanbul ignore else */
                 if ( prevState.get(entityIndex) !== undefined ){
                     console.log(`inputPayloadReducer: deleting element at index ${entityIndex} `)
                     newState.delete(entityIndex)
@@ -55,6 +58,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
             }
             case 'UPDATE': {
                 const prevInputPayloadPart = prevState.get(entityIndex)
+                /* istanbul ignore else */
                 if ( prevInputPayloadPart !== undefined ){
                     const newInputPayloadPart: InputPayloadPart = {
                         ...prevInputPayloadPart,

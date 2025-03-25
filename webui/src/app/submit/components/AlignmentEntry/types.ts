@@ -5,6 +5,31 @@ export interface GeneInfo {
     readonly genomeLocations: Array<any>
 }
 
+export interface TranscriptInfo {
+    readonly id: string,
+    readonly name: string,
+    readonly exons: Array<{
+        refStart: number
+        refEnd: number
+    }>,
+    readonly cds_regions: Array<{
+        refStart: number
+        refEnd: number,
+        phase: 0 | 1 | 2
+    }>
+}
+
+export interface VariantInfo {
+    readonly id: string,
+    readonly displayName: string,
+}
+
+export interface AlleleInfo {
+    readonly id: string,
+    readonly displayName: string,
+    variants: Map<string, VariantInfo>
+}
+
 export type FeatureStrand = 1 | -1
 
 export enum AlignmentEntryStatus {

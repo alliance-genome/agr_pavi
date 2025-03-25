@@ -115,7 +115,8 @@
                 "end": 5113100,
                 "frame": 0
             }
-        ]
+        ],
+        "variant_ids": []
     },
     {
         "name": "apl-1_C42D8.8b.1",
@@ -233,7 +234,8 @@
                 "end": 5113100,
                 "frame": 0
             }
-        ]
+        ],
+        "variant_ids": []
     },
     {
         "name": "Appl_Appl-RA",
@@ -346,7 +348,8 @@
                 "end": 575578,
                 "frame": 0
             }
-        ]
+        ],
+        "variant_ids": []
     },
     {
         "name": "Appl_Appl-RB",
@@ -459,7 +462,8 @@
                 "end": 575578,
                 "frame": 0
             }
-        ]
+        ],
+        "variant_ids": []
     },
     {
         "name": "mgl-1_ZC506.4a.1",
@@ -649,6 +653,7 @@
                 "end": 9968629,
                 "frame": 1
             }
-        ]
+        ],
+        "variant_ids": []
     }
 ]

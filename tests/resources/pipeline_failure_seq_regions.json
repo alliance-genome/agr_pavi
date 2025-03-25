@@ -10,7 +10,8 @@
             "5778875..5779453"
         ],
         "cds_seq_regions": [],
-        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz"
+        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+        "variant_ids": []
     },
     {
         "name": "ERV29-S288C",
@@ -20,6 +21,7 @@
             "1061590..1060658"
         ],
         "cds_seq_regions": [],
-        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000146045.2_R64_genomic.fna.gz"
+        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000146045.2_R64_genomic.fna.gz",
+        "variant_ids": []
     }
 ]
