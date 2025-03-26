@@ -129,7 +129,7 @@ jest.mock('generic-sequence-panel',
 describe('AlignmentEntry', () => {
     it('renders a gene input element', () => {
         const result = render(
-            <AlignmentEntry index={0} agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
+            <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
         const geneInputElement = result.container.querySelector('#gene')
@@ -139,7 +139,7 @@ describe('AlignmentEntry', () => {
 
     it('renders transcript input element', () => {
         const result = render(
-            <AlignmentEntry index={0} agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
+            <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
         const transcriptInputElement = result.container.querySelector('#transcripts')
@@ -149,7 +149,7 @@ describe('AlignmentEntry', () => {
 
     it('renders allele input element', () => {
         const result = render(
-            <AlignmentEntry index={0} agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
+            <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
         const alleleInputElement = result.container.querySelector('#alleles')
@@ -159,7 +159,7 @@ describe('AlignmentEntry', () => {
 
     it('accepts gene input string and correctly processes it to populate transcript and allele fields', async() => {
         const result = render(
-            <AlignmentEntry index={0} agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
+            <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
         const geneInputElement = result.container.querySelector('input#gene')
