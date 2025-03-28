@@ -152,6 +152,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
     data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
+    # Parse exon_seq_regions and cds_seq_regions into respective SeqRegion objects
     exon_seq_region_objs: List[SeqRegion] = []
     for region in exon_seq_regions:
         exon_seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
@@ -163,6 +164,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
                                              frame=region['frame'],
                                              fasta_file_url=fasta_file_url))
 
+    # Build complete sequence region (using exons + cds) and fetch sequences
     fullRegion = TranslatedSeqRegion(exon_seq_regions=exon_seq_region_objs, cds_seq_regions=cds_seq_region_objs)
 
     fullRegion.fetch_seq(type='transcript', recursive_fetch=True)
@@ -173,6 +175,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
     click.echo('>' + name)
     if output_type == 'transcript':
         click.echo(seq_concat)
+    # If protein sequence is requested, translate the complete sequence region
     elif output_type == 'protein':
         protein_seq = fullRegion.translate()
         click.echo(protein_seq)
