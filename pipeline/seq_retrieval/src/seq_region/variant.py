@@ -14,9 +14,9 @@ class VariantTranscriptEffect(TypedDict):
     """Transcript level effects of a variant on a single transcript."""
     amino_acid_change: str
     codon_change: str
-    cds_start_position: str
-    cdna_start_position: str
-    protein_start_position: str
+    cds_start_position: int
+    cdna_start_position: int
+    protein_start_position: int
 
 
 class Variant():
