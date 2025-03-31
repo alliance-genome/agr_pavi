@@ -209,6 +209,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     console.log(`Fetching exon info for transcript ${transcript}...`)
                     // const f = new NCListFeature(transcript);
                     const feature: any = new NCListFeature(transcript).toJSON();
+                    console.debug('Transcript feature:', feature)
 
                     const { subfeatures = [] } = feature
 
