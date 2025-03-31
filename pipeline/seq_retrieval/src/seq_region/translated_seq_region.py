@@ -22,7 +22,7 @@ class TranslatedSeqRegion():
     """Multipart sequence region representing the exons of a translated sequence region"""
 
     cds_seq_region: MultiPartSeqRegion | None
-    """Multipart sequence region representing the exons of a translated sequence region"""
+    """Multipart sequence region representing the CDS regions of a translated sequence region"""
 
     codon_table: CodonTable.CodonTable = CodonTable.unambiguous_dna_by_name["Standard"]
     """Codon table to be used for translating cDNA to protein sequences."""

@@ -194,7 +194,9 @@ class MultiPartSeqRegion(SeqRegion):
             seq_regions.append(seq_region.sub_region(rel_start=max(1, rel_start - covered_length), rel_end=min(rel_end - covered_length, seq_region.seq_length)))
             covered_length += seq_region.seq_length
 
-        return MultiPartSeqRegion(seq_regions=seq_regions)
+        return MultiPartSeqRegion(seq_regions=seq_regions,
+                                  sequence_type=self.sequence_type,
+                                  transcript_id=self.transcript_id)
 
     def to_rel_position(self, seq_position: int) -> int:
         """
