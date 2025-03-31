@@ -172,6 +172,30 @@ class SeqRegion():
         else:
             return False
 
+    def sub_region(self, rel_start: int, rel_end: int) -> 'SeqRegion':
+        """
+        Return a subregion of the SeqRegion
+
+        Args:
+            rel_start: Relative start position (1-based) of the subregion
+            rel_end: Relative end position (1-based) of the subregion
+
+        Returns:
+            SeqRegion object representing the subregion
+        Raises:
+            ValueError: when rel_start or rel_end falls outside the SeqRegion boundaries
+        """
+        if rel_start < 1 or self.seq_length < rel_end:
+            raise ValueError(f'Relative start position {rel_start} or relative end position {rel_end} fall outside the boundaries of the SeqRegion {self} (len {self.seq_length}).')
+
+        return SeqRegion(seq_id=self.seq_id,
+                         start=self.start + rel_start - 1,
+                         end=self.start + rel_end - 1,
+                         strand=self.strand,
+                         fasta_file_url='file:' + self.fasta_file_path,
+                         frame=self.frame,
+                         seq=self.sequence[(rel_start - 1):rel_end] if self.sequence is not None else None)
+
 
 def fetch_faidx_files(fasta_file_url: str) -> str:
     """

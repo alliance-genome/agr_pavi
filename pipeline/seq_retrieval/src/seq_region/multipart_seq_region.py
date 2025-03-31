@@ -168,6 +168,34 @@ class MultiPartSeqRegion(SeqRegion):
 
         return seq
 
+    @override
+    def sub_region(self, rel_start: int, rel_end: int) -> 'MultiPartSeqRegion':
+        """
+        Return a subregion of the MultipartSeqRegion
+
+        Args:
+            rel_start: Relative start position (1-based) of the subregion
+            rel_end: Relative end position (1-based) of the subregion
+
+        Returns:
+            MultipartSeqRegion object representing the subregion
+        """
+        seq_regions: List[SeqRegion] = []
+
+        covered_length: int = 0
+        for seq_region in self.ordered_seqRegions:
+            if (covered_length + seq_region.seq_length) < rel_start:
+                covered_length += seq_region.seq_length
+                continue
+
+            if rel_end <= covered_length:
+                break
+
+            seq_regions.append(seq_region.sub_region(rel_start=max(1, rel_start - covered_length), rel_end=min(rel_end - covered_length, seq_region.seq_length)))
+            covered_length += seq_region.seq_length
+
+        return MultiPartSeqRegion(seq_regions=seq_regions)
+
     def to_rel_position(self, seq_position: int) -> int:
         """
         Convert absolute sequence position to relative position within the MultipartSeqRegion
