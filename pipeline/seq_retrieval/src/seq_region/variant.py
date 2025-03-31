@@ -90,7 +90,7 @@ def fetch_variant(variant_id: str) -> Variant:
     transcript_level_effects: dict[str, VariantTranscriptEffect] = {}
     for record in variant_data["transcriptLevelConsequence"]:
         hgvsC: str = record["hgvsCodingNomenclature"]
-        transcript_id: str = ":".join(hgvsC.split(":")[:-1])
+        transcript_curie: str = ":".join(hgvsC.split(":")[:-1])
         transcript_effect: VariantTranscriptEffect = {
             'amino_acid_change': record['aminoAcidChange'],
             'codon_change': record['codonChange'],
@@ -99,7 +99,7 @@ def fetch_variant(variant_id: str) -> Variant:
             'protein_start_position': record['proteinStartPosition'],
         }
 
-        transcript_level_effects[transcript_id] = transcript_effect
+        transcript_level_effects[transcript_curie] = transcript_effect
 
     return Variant(
         variant_id=variant_id,

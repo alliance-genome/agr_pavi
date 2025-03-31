@@ -146,6 +146,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     'end': e.refEnd,
                     'frame': e.phase
                 })),
+                transcript_curie: transcript.curie,
                 variant_ids: alleles_info.map((a) => (Array.from(a.variants.keys()))).flat()
             })
         });
@@ -238,6 +239,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
                     const transcriptInfo: TranscriptInfo = {
                         id: transcript.id(),
+                        curie: transcript.get('curie'),
                         name: transcript.get('name'),
                         exons: exons,
                         cds_regions: cds_regions

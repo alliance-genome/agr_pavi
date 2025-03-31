@@ -7,6 +7,7 @@ export interface GeneInfo {
 
 export interface TranscriptInfo {
     readonly id: string,
+    readonly curie: string,
     readonly name: string,
     readonly exons: Array<{
         refStart: number
