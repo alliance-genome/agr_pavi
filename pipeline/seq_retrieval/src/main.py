@@ -150,7 +150,7 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
                    + "(dicts formatted '{\"start\": 1234, \"end\": 5678, \"frame\": 0}' or strings formatted '`start`..`end`').")
 @click.option("--transcript_curie", type=click.STRING,
               help="The transcript curie of the transcript to retrieve sequences for.")
-@click.option("--variant_ids", type=click.UNPROCESSED, required=True, callback=process_variants_param,
+@click.option("--variant_ids", type=click.UNPROCESSED, default='[]', callback=process_variants_param,
               help="A JSON string list of variant IDs to embed into the transcript (and protein) sequence")
 @click.option("--fasta_file_url", type=click.STRING, required=True,
               help="""URL to (faidx-indexed) fasta file to retrieve sequences from.
