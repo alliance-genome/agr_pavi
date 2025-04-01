@@ -18,7 +18,7 @@ class MultiPartSeqRegion(SeqRegion):
     ordered_seqRegions: List[SeqRegion]
     """Ordered list of SeqRegions which constitute a single multi-part sequence region"""
 
-    sequence: str
+    sequence: Optional[str]
     """Sequence of the complete multi-part sequence region"""
 
     transcript_curie: Optional[str]
@@ -106,6 +106,7 @@ class MultiPartSeqRegion(SeqRegion):
 
         self.ordered_seqRegions = ordered_seq_regions
         self.frame = ordered_seq_regions[0].frame
+        self.sequence = None
 
     @override
     def __str__(self) -> str:  # pragma: no cover
@@ -126,12 +127,7 @@ class MultiPartSeqRegion(SeqRegion):
             Stores resulting sequence in `sequence` attribute.
         """
 
-        def get_fetch_sequence(region: SeqRegion) -> str:
-            if recursive_fetch:
-                region.fetch_seq()
-            return region.get_sequence()
-
-        complete_multipart_sequence = ''.join(map(lambda region: get_fetch_sequence(region), self.ordered_seqRegions))
+        complete_multipart_sequence = ''.join(map(lambda region: region.get_sequence(autofetch=recursive_fetch), self.ordered_seqRegions))
         self.set_sequence(sequence=complete_multipart_sequence)
 
     @override
@@ -156,16 +152,23 @@ class MultiPartSeqRegion(SeqRegion):
         self.sequence = sequence
 
     @override
-    def get_sequence(self, unmasked: bool = False) -> str:
+    def get_sequence(self, unmasked: bool = False, autofetch: bool = True) -> str:
         """
         Return `sequence` attribute as a string (optionally with modifications).
 
         Args:
-            unmasked: Flag to remove soft masking (lowercase letters) \
-                      and return unmasked sequence instead (uppercase). Default `False`.
+            unmasked:  Flag to remove soft masking (lowercase letters) \
+                       and return unmasked sequence instead (uppercase).\
+                       Default `False`.
+            autofetch: Flag to enable/disable automatic fetching of sequence \
+                       when not already available.
+                       Default `True` (enabled).
         Returns:
             The sequence of a seq region as a string (empty string if `None`).
         """
+
+        if self.sequence is None and autofetch:
+            self.fetch_seq(recursive_fetch=True)
 
         seq = str(self.sequence)
 

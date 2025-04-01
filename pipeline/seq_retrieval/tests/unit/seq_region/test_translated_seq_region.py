@@ -278,9 +278,6 @@ def test_translated_seq_region_class(WB_transcript1: TranscriptFixture) -> None:
 
     translatedSeqRegion = WB_transcript1['translatedSeqRegion']
 
-    ## Fetch transcript sequence
-    translatedSeqRegion.fetch_seq(type='transcript', recursive_fetch=True)
-
     # Assert successful transcript seq retrieval
     assert translatedSeqRegion.get_sequence(type='transcript') == WB_transcript1['transcriptSeq']
 
@@ -300,11 +297,7 @@ def test_incomplete_orf_translation() -> None:
                                       fasta_file_url=FASTA_FILE_URL)
     UTR_SEQ = 'CTCTTGGAAA'
 
-    five_p_utr.fetch_seq()
-
     incomplete_multipart_seq_region = TranslatedSeqRegion(exon_seq_regions=[five_p_utr])
-
-    incomplete_multipart_seq_region.fetch_seq(type='transcript')
 
     chained_utr_seq: str = incomplete_multipart_seq_region.get_sequence(type='transcript')
 
@@ -342,10 +335,6 @@ def test_cds_vs_non_cds_translation(WB_transcript2_no_cds: TranscriptFixture, WB
 
     no_CDS_translatedSeqRegion = WB_transcript2_no_cds['translatedSeqRegion']
     cds_translatedSeqRegion = WB_transcript2_with_cds['translatedSeqRegion']
-
-    ## Fetch transcript sequences
-    no_CDS_translatedSeqRegion.fetch_seq(type='transcript', recursive_fetch=True)
-    cds_translatedSeqRegion.fetch_seq(type='transcript', recursive_fetch=True)
 
     ## Translate
     no_cds_protein_seq = no_CDS_translatedSeqRegion.translate()

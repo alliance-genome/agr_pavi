@@ -206,7 +206,6 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
     # Build complete sequence region (using exons + cds) and fetch sequences
     fullRegion = TranslatedSeqRegion(exon_seq_regions=exon_seq_region_objs, cds_seq_regions=cds_seq_region_objs)
 
-    fullRegion.fetch_seq(type='transcript', recursive_fetch=True)
     seq_concat = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
 
     logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")

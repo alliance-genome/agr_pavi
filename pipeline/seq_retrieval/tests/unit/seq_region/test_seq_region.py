@@ -16,7 +16,6 @@ def test_seq_region_class_neg_strand() -> None:
 
     assert isinstance(exon_1, SeqRegion)
 
-    exon_1.fetch_seq()
     exon_1_seq: str = exon_1.get_sequence()
 
     assert isinstance(exon_1_seq, str)
@@ -31,7 +30,6 @@ def test_seq_region_class_pos_strand() -> None:
 
     assert isinstance(exon_1, SeqRegion)
 
-    exon_1.fetch_seq()
     exon_1_seq: str = exon_1.get_sequence()
 
     assert isinstance(exon_1_seq, str)

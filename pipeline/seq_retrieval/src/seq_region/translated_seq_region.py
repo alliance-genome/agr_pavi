@@ -115,7 +115,6 @@ class TranslatedSeqRegion():
                 self.exon_seq_region.fetch_seq(recursive_fetch=recursive_fetch)
             case 'coding':
                 if self.cds_seq_region:
-                    self.cds_seq_region.fetch_seq(recursive_fetch=True)
                     cds_full_sequence = self.cds_seq_region.get_sequence()
                     self.set_sequence(type='coding', sequence=cds_full_sequence[self.cds_seq_region.frame:])
                 else:
@@ -133,7 +132,7 @@ class TranslatedSeqRegion():
             case _:
                 raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.fetch_seq method.")
 
-    def get_sequence(self, type: Literal['transcript', 'coding', 'protein'], unmasked: bool = False) -> str:
+    def get_sequence(self, type: Literal['transcript', 'coding', 'protein'], unmasked: bool = False, autofetch: bool = True) -> str:
         """
         Return any of the object's sequences as a string (optionally with modifications).
 
@@ -153,7 +152,11 @@ class TranslatedSeqRegion():
             case 'transcript':
                 seq = self.exon_seq_region.get_sequence(unmasked=unmasked)
             case 'coding':
+                if self.coding_dna_sequence is None and autofetch:
+                    self.fetch_seq('coding', recursive_fetch=True)
+
                 seq = str(self.coding_dna_sequence) if self.coding_dna_sequence is not None else ''
+
                 if unmasked:
                     seq = seq.upper()
             case 'protein':
@@ -194,8 +197,6 @@ class TranslatedSeqRegion():
         Returns:
             Protein sequence corresponding to the sequence region's `sequence`. Returns `None` if no Open Reading Frame was found in the sequence.
         """
-        if not self.get_sequence('coding'):
-            self.fetch_seq('coding', recursive_fetch=True)
 
         coding_sequence = self.get_sequence('coding')
         if coding_sequence:

@@ -84,8 +84,7 @@ class SeqRegion():
         # Fetch the file(s)
         self.fasta_file_path = fetch_faidx_files(fasta_file_url)
 
-        if seq is not None:
-            self.sequence = seq
+        self.sequence = seq
 
     @override
     def __str__(self) -> str:  # pragma: no cover
@@ -136,16 +135,21 @@ class SeqRegion():
         else:
             self.sequence = sequence
 
-    def get_sequence(self, unmasked: bool = False) -> str:
+    def get_sequence(self, unmasked: bool = False, autofetch: bool = True) -> str:
         """
         Return the `sequence` attribute as a string (optionally with modifications).
 
         Args:
             unmasked: Flag to remove soft masking (lowercase letters) \
                       and return unmasked sequence instead (uppercase). Default `False`.
+            autofetch: Flag to enable/disable automatic fetching of sequence \
+                       when not already available. Default `True` (enabled).
         Returns:
             The sequence of a seq region as a string (empty string if `None`).
         """
+
+        if self.sequence is None and autofetch:
+            self.fetch_seq()
 
         seq = str(self.sequence)
         if unmasked:
