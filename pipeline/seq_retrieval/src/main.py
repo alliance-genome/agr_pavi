@@ -148,6 +148,8 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
 @click.option("--cds_seq_regions", type=click.UNPROCESSED, default=[], callback=process_seq_regions_param,
               help="A JSON list of CDS sequence regions to use for translation for output-type protein "
                    + "(dicts formatted '{\"start\": 1234, \"end\": 5678, \"frame\": 0}' or strings formatted '`start`..`end`').")
+@click.option("--transcript_curie", type=click.STRING,
+              help="The transcript curie of the transcript to retrieve sequences for.")
 @click.option("--variant_ids", type=click.UNPROCESSED, required=True, callback=process_variants_param,
               help="A JSON string list of variant IDs to embed into the transcript (and protein) sequence")
 @click.option("--fasta_file_url", type=click.STRING, required=True,
@@ -166,8 +168,8 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
               help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
-def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict], variant_ids: set[str],
-         fasta_file_url: str, output_type: str, name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
+def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict], transcript_curie: str | None,
+         variant_ids: set[str], fasta_file_url: str, output_type: str, name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
@@ -204,7 +206,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
                                              fasta_file_url=fasta_file_url))
 
     # Build complete sequence region (using exons + cds) and fetch sequences
-    fullRegion = TranslatedSeqRegion(exon_seq_regions=exon_seq_region_objs, cds_seq_regions=cds_seq_region_objs)
+    fullRegion = TranslatedSeqRegion(exon_seq_regions=exon_seq_region_objs, cds_seq_regions=cds_seq_region_objs, transcript_curie=transcript_curie)
 
     seq_concat = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
 

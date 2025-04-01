@@ -4,7 +4,7 @@ Module containing the translated MultiPartSeqRegion class.
 
 from Bio import Seq  # Bio.Seq biopython submodule
 from Bio.Data import CodonTable
-from typing import Any, Dict, List, Literal, override, Set
+from typing import Any, Dict, List, Literal, Optional, override, Set
 
 from seq_region import SeqRegion
 from seq_region import MultiPartSeqRegion
@@ -33,7 +33,10 @@ class TranslatedSeqRegion():
     protein_sequence: str | None = None
     """Protein sequence of the coding sequence (sub)regions (after translation)."""
 
-    def __init__(self, exon_seq_regions: List[SeqRegion], cds_seq_regions: List[SeqRegion] = []):
+    transcript_curie: Optional[str]
+    """The transcript curie associated with the TranslatedSeqRegion"""
+
+    def __init__(self, exon_seq_regions: List[SeqRegion], cds_seq_regions: List[SeqRegion] = [], transcript_curie: Optional[str] = None):
         """
         Initializes a MultiPartSeqRegion instance from multiple `SeqRegion`s.
 
@@ -56,6 +59,8 @@ class TranslatedSeqRegion():
         self.start: int = min(map(lambda seq_region: seq_region.start, exon_seq_regions))
         self.end: int = max(map(lambda seq_region: seq_region.end, exon_seq_regions))
         self.seq_length: int = sum(map(lambda seq_region: seq_region.seq_length, exon_seq_regions))  # TODO: re-evaluate (coding vs complete)
+
+        self.transcript_curie = transcript_curie
 
         # Ensure one strand
         strands: Set[str] = set(map(lambda seq_region: seq_region.strand, exon_seq_regions + cds_seq_regions))
@@ -81,7 +86,7 @@ class TranslatedSeqRegion():
         else:
             self.fasta_file_path = fasta_file_paths.pop()
 
-        self.exon_seq_region = MultiPartSeqRegion(exon_seq_regions)
+        self.exon_seq_region = MultiPartSeqRegion(exon_seq_regions, transcript_curie=transcript_curie)
 
         if len(cds_seq_regions) > 0:
             # Ensure all CDS seq regions define the frame property
@@ -90,7 +95,7 @@ class TranslatedSeqRegion():
                     raise ValueError(f"undefined frame property found in seq region {seq_region}."
                                      + " cds_seq_regions require frame property to be set for all seq regions.")
 
-            self.cds_seq_region = MultiPartSeqRegion(cds_seq_regions)
+            self.cds_seq_region = MultiPartSeqRegion(cds_seq_regions, transcript_curie=transcript_curie)
         else:
             self.cds_seq_region = None
 
