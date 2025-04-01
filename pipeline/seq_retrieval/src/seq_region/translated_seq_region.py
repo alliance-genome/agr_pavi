@@ -193,22 +193,34 @@ class TranslatedSeqRegion():
             case _:
                 raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.set_sequence method.")
 
-    def translate(self) -> str | None:
+    def translate(self, coding_sequence: Optional[str] = None) -> str | None:
         """
-        Translate the (c)DNA `sequence` of this sequence region to protein sequence.
+        Translate a coding (c)DNA sequence of this sequence region to protein sequence.
 
-        Stores the resulting protein sequence in the `protein_sequence` attribute and returns it.
+        Translates the `coding_sequence` input if provided, or the coding sequence of this TranslatedSeqRegion otherwise (`self.get_sequence('coding')`).
+        Stores the resulting protein sequence as attribute in this object if no `coding_sequence` input was provided.
 
         Returns:
             Protein sequence corresponding to the sequence region's `sequence`. Returns `None` if no Open Reading Frame was found in the sequence.
         """
 
-        coding_sequence = self.get_sequence('coding')
+        store_protein: bool = False
+
+        if coding_sequence is None:
+            if self.protein_sequence is not None:
+                return self.protein_sequence
+            else:
+                coding_sequence = self.get_sequence('coding')
+                store_protein = True
+
         if coding_sequence:
             # Translate to protein
-            self.protein_sequence = str(Seq.translate(sequence=coding_sequence, table=self.codon_table, cds=False, to_stop=True))  # type: ignore
+            protein_sequence = str(Seq.translate(sequence=coding_sequence, table=self.codon_table, cds=False, to_stop=True))  # type: ignore
 
-            return self.protein_sequence
+            if store_protein:
+                self.set_sequence('protein', protein_sequence)
+
+            return protein_sequence
         else:
             logger.warning('No coding sequence found, so no translation made.')
             return None
