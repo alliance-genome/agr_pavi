@@ -177,6 +177,23 @@ class MultiPartSeqRegion(SeqRegion):
 
         return seq
 
+    def overlaps_seq_region(self, seq_region: SeqRegion) -> bool:
+        """
+        Check for overlap of input seq_region with MultiPartSeqRegion.
+
+        Args:
+            seq_region: SeqRegion instance to check for overlap with self
+
+        Returns:
+            True if SeqRegion overlaps with this MultiPartSeqRegion instance, False otherwise.
+        """
+
+        for seq_region in self.ordered_seqRegions:
+            if seq_region.overlaps(seq_region):
+                return True
+
+        return False
+
     @override
     def sub_region(self, rel_start: int, rel_end: int) -> 'MultiPartSeqRegion':
         """
