@@ -27,7 +27,7 @@ class SeqRegion():
     frame: Optional[FRAME_TYPE]
     """Startposition of the first complete reading frame in the seq region."""
 
-    STRAND_TYPE = Literal['+', '-']
+    STRAND_TYPE = Optional[Literal['+', '-']]
     strand: STRAND_TYPE
     """The (genomic) strand of the sequence region"""
 
@@ -40,7 +40,7 @@ class SeqRegion():
     sequence: Optional[str]
     """the DNA sequence of a sequence region"""
 
-    def __init__(self, seq_id: str, start: int, end: int, strand: STRAND_TYPE, fasta_file_url: str, frame: Optional[FRAME_TYPE] = None, seq: Optional[str] = None):
+    def __init__(self, seq_id: str, start: int, end: int, fasta_file_url: str, strand: STRAND_TYPE = None, frame: Optional[FRAME_TYPE] = None, seq: Optional[str] = None):
         """
         Initializes a SeqRegion instance
 
@@ -71,7 +71,7 @@ class SeqRegion():
             else:
                 self.start = start
                 self.end = end
-        # If strand is +, throw error when end < start (likely user error)
+        # If strand is + (or undefined), throw error when end < start (likely user error)
         else:
             if end < start:
                 raise ValueError(f"Unexpected position order: end {end} < start {start}.")
@@ -88,7 +88,10 @@ class SeqRegion():
 
     @override
     def __str__(self) -> str:  # pragma: no cover
-        return f'{self.seq_id}:{self.start}-{self.end}:{self.strand}'
+        object_str = f'{self.seq_id}:{self.start}-{self.end}'
+        if self.strand is not None:
+            object_str += f':{self.strand}'
+        return object_str
 
     @override
     def __repr__(self) -> str:  # pragma: no cover
@@ -96,9 +99,10 @@ class SeqRegion():
 
     def fetch_seq(self) -> None:
         """
-        Fetch sequence found at `seq_id`:`start`-`end`:`strand`
+        Fetch sequence found at `seq_id`:`start`-`end`(:`strand`)
         by reading from faidx files at `fasta_file_path`.
 
+        Assumes `+` as strand if undefined.
         Stores resulting sequence in `sequence` attribute.
         """
         try:
@@ -168,7 +172,8 @@ class SeqRegion():
             True if SeqRegion overlaps with another SeqRegion instance, False otherwise.
         """
         if self.fasta_file_path != seq_region_2.fasta_file_path or \
-           self.seq_id != seq_region_2.seq_id or self.strand != seq_region_2.strand:
+           self.seq_id != seq_region_2.seq_id or \
+           (self.strand is not None and seq_region_2.strand is not None and self.strand != seq_region_2.strand):
             return False
 
         if max(self.start, seq_region_2.start) <= min(self.end, seq_region_2.end):

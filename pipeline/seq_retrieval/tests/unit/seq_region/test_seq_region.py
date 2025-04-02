@@ -43,13 +43,13 @@ def test_seq_region_overlap() -> None:
                                   fasta_file_url=FASTA_FILE_URL)
 
     # gk787530 - point mutation (overlap)
-    gk803418: SeqRegion = SeqRegion(seq_id='X', start=5109543, end=5109543, strand='+',
+    gk803418: SeqRegion = SeqRegion(seq_id='X', start=5109543, end=5109543,
                                     fasta_file_url=FASTA_FILE_URL)
 
     assert exon_1.overlaps(gk803418) is True
 
     # gk320952 - splice region variant (no overlap)
-    gk320952: SeqRegion = SeqRegion(seq_id='X', start=5110758, end=5110758, strand='+',
+    gk320952: SeqRegion = SeqRegion(seq_id='X', start=5110758, end=5110758,
                                     fasta_file_url=FASTA_FILE_URL)
 
     assert exon_1.overlaps(gk320952) is False

@@ -63,7 +63,7 @@ class TranslatedSeqRegion():
         self.transcript_curie = transcript_curie
 
         # Ensure one strand
-        strands: Set[str] = set(map(lambda seq_region: seq_region.strand, exon_seq_regions + cds_seq_regions))
+        strands: Set[str | None] = set([seq_region.strand for seq_region in (exon_seq_regions + cds_seq_regions)])
         if len(strands) > 1:
             raise ValueError(f"Multiple strands defined accross seq regions ({strands})."
                              + " All seqRegions in multiPartSeqRegion must have equal value for strand attribute.")
