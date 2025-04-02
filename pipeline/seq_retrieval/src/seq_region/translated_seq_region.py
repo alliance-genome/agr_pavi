@@ -6,8 +6,9 @@ from Bio import Seq  # Bio.Seq biopython submodule
 from Bio.Data import CodonTable
 from typing import Any, Dict, List, Literal, Optional, override, Set
 
-from seq_region import SeqRegion
-from seq_region import MultiPartSeqRegion
+from .seq_region import SeqRegion
+from .multipart_seq_region import MultiPartSeqRegion
+from .variant import Variant
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
@@ -21,14 +22,17 @@ class TranslatedSeqRegion():
     exon_seq_region: MultiPartSeqRegion
     """Multipart sequence region representing the exons of a translated sequence region"""
 
-    cds_seq_region: MultiPartSeqRegion | None
-    """Multipart sequence region representing the CDS regions of a translated sequence region"""
-
     codon_table: CodonTable.CodonTable = CodonTable.unambiguous_dna_by_name["Standard"]
     """Codon table to be used for translating cDNA to protein sequences."""
 
+    coding_seq_region: MultiPartSeqRegion | None
+    """Multipart sequence region representing the coding regions of a translated sequence region"""
+
     coding_dna_sequence: str | None = None
     """DNA sequence of the coding sequence (sub)regions"""
+
+    coding_sequence_source: Literal['orf', 'cds'] | None = None
+    """The source of the coding sequence of this multi-part sequence region (from CDS input or calculated from ORF)."""
 
     protein_sequence: str | None = None
     """Protein sequence of the coding sequence (sub)regions (after translation)."""
@@ -95,13 +99,14 @@ class TranslatedSeqRegion():
                     raise ValueError(f"undefined frame property found in seq region {seq_region}."
                                      + " cds_seq_regions require frame property to be set for all seq regions.")
 
-            self.cds_seq_region = MultiPartSeqRegion(cds_seq_regions, transcript_curie=transcript_curie)
+            self.coding_seq_region = MultiPartSeqRegion(cds_seq_regions, transcript_curie=transcript_curie)
+            self.coding_sequence_source = 'cds'
         else:
-            self.cds_seq_region = None
+            self.coding_seq_region = None
 
     @override
     def __str__(self) -> str:  # pragma: no cover
-        return self.exon_seq_region.__str__() + self.cds_seq_region.__str__()
+        return self.exon_seq_region.__str__() + self.coding_seq_region.__str__()
 
     def fetch_seq(self, type: Literal['transcript', 'coding'], recursive_fetch: bool = False) -> None:
         """
@@ -119,9 +124,12 @@ class TranslatedSeqRegion():
             case 'transcript':
                 self.exon_seq_region.fetch_seq(recursive_fetch=recursive_fetch)
             case 'coding':
-                if self.cds_seq_region:
-                    cds_full_sequence = self.cds_seq_region.get_sequence()
-                    self.set_sequence(type='coding', sequence=cds_full_sequence[self.cds_seq_region.frame:])
+                if self.coding_seq_region:
+                    coding_sequence = self.coding_seq_region.get_sequence()
+                    # Adjust coding sequence for reading frame if required
+                    if self.coding_seq_region.frame is not None:
+                        coding_sequence = coding_sequence[self.coding_seq_region.frame:]
+                    self.set_sequence(type='coding', sequence=coding_sequence)
                 else:
                     dna_sequence = self.exon_seq_region.get_sequence(unmasked=True)
 
@@ -129,7 +137,14 @@ class TranslatedSeqRegion():
                     orfs = find_orfs(dna_sequence, self.codon_table, return_type='longest')
 
                     if len(orfs) > 0:
+                        # Save resulting coding region as MultiPartSeqRegion in coding_seq_region attribute
                         orf = orfs.pop()
+
+                        self.coding_sequence_source = 'orf'
+
+                        self.coding_seq_region = self.exon_seq_region.sub_region(rel_start=orf['seq_start'], rel_end=orf['seq_end'])
+                        self.coding_seq_region.set_sequence(sequence=orf['sequence'])
+
                         self.set_sequence(type='coding', sequence=orf['sequence'])
                     else:
                         logger.warning('No open reading frames found.')
@@ -137,7 +152,7 @@ class TranslatedSeqRegion():
             case _:
                 raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.fetch_seq method.")
 
-    def get_sequence(self, type: Literal['transcript', 'coding', 'protein'], unmasked: bool = False, autofetch: bool = True) -> str:
+    def get_sequence(self, type: Literal['transcript', 'coding', 'protein'], unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True) -> str:
         """
         Return any of the object's sequences as a string (optionally with modifications).
 
@@ -148,6 +163,9 @@ class TranslatedSeqRegion():
                   'protein' to return only the coding sequence
             unmasked: Flag to remove soft masking (lowercase letters) \
                       and return unmasked sequence instead (uppercase). Default `False`.
+            variants: List of variants to apply to the sequence
+            autofetch: Flag to enable/disable automatic fetching of sequence \
+                       when not already available. Default `True` (enabled).
         Returns:
             The sequence of a translated seq region as a string (empty string if `None`).
         """
@@ -155,17 +173,36 @@ class TranslatedSeqRegion():
         seq: str
         match type:
             case 'transcript':
-                seq = self.exon_seq_region.get_sequence(unmasked=unmasked)
+                if len(variants) > 0:
+                    seq = self.exon_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
+                else:
+                    seq = self.exon_seq_region.get_sequence(unmasked=unmasked, autofetch=autofetch)
             case 'coding':
                 if self.coding_dna_sequence is None and autofetch:
                     self.fetch_seq('coding', recursive_fetch=True)
 
-                seq = str(self.coding_dna_sequence) if self.coding_dna_sequence is not None else ''
+                if len(variants) > 0:
+                    if self.coding_seq_region is None:
+                        raise ValueError('No coding sequence region found, so no variants can be applied to it.')
+
+                    seq = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
+                    # Adjust coding sequence for reading frame if required
+                    if self.coding_seq_region.frame is not None:
+                        seq = seq[self.coding_seq_region.frame:]
+                else:
+                    seq = str(self.coding_dna_sequence) if self.coding_dna_sequence is not None else ''
 
                 if unmasked:
                     seq = seq.upper()
             case 'protein':
-                seq = str(self.protein_sequence) if self.protein_sequence is not None else ''
+                if len(variants) > 0:
+                    raise NotImplementedError("Variant embedding in protein sequence retrieval is not implemented yet.")
+                else:
+                    if self.protein_sequence is None and autofetch:
+                        self.translate()
+
+                    seq = str(self.protein_sequence) if self.protein_sequence is not None else ''
+
             case _:
                 raise ValueError(f"type {type} not implemented yet in MultiPartSeqRegion.set_multipart_sequence method.")
 

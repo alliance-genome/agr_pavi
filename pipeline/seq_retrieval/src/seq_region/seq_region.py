@@ -1,12 +1,16 @@
 """
 Module containing the SeqRegion class and related functions.
 """
-from typing import Literal, Optional, override
+from typing import Dict, List, Literal, Optional, override
 
 from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
 
 from data_mover import data_file_mover
+from log_mgmt import get_logger
+from .variant import Variant
+
+logger = get_logger(name=__name__)
 
 
 class SeqRegion():
@@ -141,7 +145,7 @@ class SeqRegion():
 
     def get_sequence(self, unmasked: bool = False, autofetch: bool = True) -> str:
         """
-        Return the `sequence` attribute as a string (optionally with modifications).
+        Return the `sequence` attribute as a string.
 
         Args:
             unmasked: Flag to remove soft masking (lowercase letters) \
@@ -160,6 +164,57 @@ class SeqRegion():
             seq = seq.upper()
 
         return seq
+
+    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True) -> str:
+        """
+        Get an alternative `sequence` of the SeqRegion by applying a list of variants to it.
+
+        Replaces the ref sequence of the variants found in the sequence region with its alt sequence.
+
+        Args:
+            unmasked: Flag to remove soft masking (lowercase letters) \
+                      and return unmasked sequence instead (uppercase). Default `False`.
+            variants:  List of variants to apply to the sequence before returning.
+            autofetch: Flag to enable/disable automatic fetching of sequence \
+                       when not already available. Default `True` (enabled).
+        Returns:
+            The sequence of a seq region as a string (empty string if `None`).
+        """
+
+        if len(variants) < 1:
+            raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
+
+        positioned_variants: Dict[int, Variant] = {}  # Variants indexed by relative position in SeqRegion
+
+        for variant in variants:
+            # If variant is not in the SeqRegion boundaries, raise error
+            variant_seq_region = SeqRegion(seq_id=variant.genomic_seq_id, start=variant.genomic_start_pos, end=variant.genomic_end_pos,
+                                           fasta_file_url='file:' + self.fasta_file_path)
+            if self.overlaps(variant_seq_region) is not True:
+                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                                 + f'out of boundaries of SeqRegion {self}.')
+
+            # Calculate the variant's start position relative to the SeqRegion (from the absolute genomic start position)
+            rel_variant_start_pos = self.to_rel_position(variant.genomic_start_pos)
+            positioned_variants[rel_variant_start_pos] = variant
+
+        # Replace the reference sequence with the alternative sequence for each variant
+        sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch)
+        # Loop through variants in relative positional reverse order to avoid changes in indices due to indels
+        for rel_start, variant in sorted(positioned_variants.items(), reverse=True):
+            rel_end = rel_start + len(variant.genomic_ref_seq) - 1
+            variant_ref_seq: str
+            if self.strand == '-':
+                variant_ref_seq = str(Seq.reverse_complement(variant.genomic_ref_seq))
+            else:
+                variant_ref_seq = variant.genomic_ref_seq
+
+            if sequence[(rel_start - 1):(rel_end)] != variant_ref_seq:
+                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                                 + f'does not match the reference sequence of MultipartSeqRegion {self} at positions {rel_start}-{rel_end}.')
+            sequence = sequence[:(rel_start - 1)] + variant.genomic_alt_seq + sequence[rel_end:]
+
+        return sequence
 
     def overlaps(self, seq_region_2: "SeqRegion") -> bool:
         """
@@ -204,6 +259,31 @@ class SeqRegion():
                          fasta_file_url='file:' + self.fasta_file_path,
                          frame=self.frame,
                          seq=self.sequence[(rel_start - 1):rel_end] if self.sequence is not None else None)
+
+    def to_rel_position(self, seq_position: int) -> int:
+        """
+        Convert absolute sequence position to relative position within the SeqRegion
+
+        Args:
+            seq_position: absolute sequence position to be converted
+
+        Returns:
+            Relative position within the SeqRegion sequence (1-based)
+
+        Raises:
+            ValueError: when abs_position falls outside of the SeqRegion boundaries
+        """
+        if seq_position < self.start or self.end < seq_position:
+            raise ValueError(f'Seq position {seq_position} out of boundaries of SeqRegion {self}.')
+
+        rel_position: int
+
+        if self.strand == '-':
+            rel_position = self.end - seq_position + 1
+        else:
+            rel_position = seq_position - self.start + 1
+
+        return rel_position
 
 
 def fetch_faidx_files(fasta_file_url: str) -> str:
