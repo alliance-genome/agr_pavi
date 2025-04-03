@@ -4,7 +4,7 @@ Module containing the translated MultiPartSeqRegion class.
 
 from Bio import Seq  # Bio.Seq biopython submodule
 from Bio.Data import CodonTable
-from typing import Any, Dict, List, Literal, Optional, override, Set
+from typing import Dict, List, Literal, Optional, override, Set, TypedDict
 
 from .seq_region import SeqRegion
 from .multipart_seq_region import MultiPartSeqRegion
@@ -12,6 +12,17 @@ from .variant import Variant
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
+
+
+CODON_SIZE = 3
+
+
+class CalculatedOrf(TypedDict):
+    sequence: str
+    seq_start: int
+    seq_end: int
+    complete: bool
+    frameshift: int
 
 
 class TranslatedSeqRegion():
@@ -183,12 +194,44 @@ class TranslatedSeqRegion():
 
                 if len(variants) > 0:
                     if self.coding_seq_region is None:
-                        raise ValueError('No coding sequence region found, so no variants can be applied to it.')
+                        raise ValueError('No reference coding sequence region found, so no variants can be applied to it.')
+                    if self.coding_dna_sequence is None:
+                        raise ValueError('No reference coding sequence found, so no variants can be applied to it.')
 
-                    seq = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
-                    # Adjust coding sequence for reading frame if required
+                    ref_coding_seq = self.coding_dna_sequence
+                    alt_coding_seq = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
+
+                    # Adjust alt coding sequence to the (reference) reading frame if required
                     if self.coding_seq_region.frame is not None:
-                        seq = seq[self.coding_seq_region.frame:]
+                        alt_coding_seq = alt_coding_seq[self.coding_seq_region.frame:]
+
+                    ## Evaluate alternative coding sequence
+                    # If the reference start codon is different from the alternative start codon,
+                    # reject the alternative coding sequence and any further coding sequence searches
+                    ref_start_codon = ref_coding_seq[0:CODON_SIZE]
+                    alt_start_codon = alt_coding_seq[0:CODON_SIZE]
+
+                    if ref_start_codon != alt_start_codon:
+                        logger.info('Reference start codon is different from alternative start codon. '
+                                    'Alternative coding sequence rejected. No alternatives searched.')
+                        return ''
+
+                    # Check if stop codon in current coding region changed
+                    # * If an early stop was gained, accept alternative coding sequence
+                    # * If the reference stop codon was lost, extend the alternative coding sequence and search for new (longer) ORF using reference start codon
+                    new_orfs = find_orfs(dna_sequence=alt_coding_seq, codon_table=self.codon_table, force_start=1)
+
+                    if len(new_orfs) > 0:
+                        return new_orfs[0]['sequence']
+
+                    logger.info('Stop codon not found in alternative coding sequence. '
+                                'Alternative coding sequence rejected. Extending the alternative coding sequence and searching for new (longer) ORF using same reference start codon.')
+
+                    ref_coding_region_rel_start = self.exon_seq_region.to_rel_position(self.coding_seq_region.start) + (self.coding_seq_region.frame or 0)
+                    extended_coding_region = self.exon_seq_region.sub_region(rel_start=ref_coding_region_rel_start, rel_end=self.exon_seq_region.seq_length)
+
+                    return extended_coding_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
+
                 else:
                     seq = str(self.coding_dna_sequence) if self.coding_dna_sequence is not None else ''
 
@@ -196,7 +239,11 @@ class TranslatedSeqRegion():
                     seq = seq.upper()
             case 'protein':
                 if len(variants) > 0:
-                    raise NotImplementedError("Variant embedding in protein sequence retrieval is not implemented yet.")
+                    alt_coding_seq = self.get_sequence(type='coding', unmasked=unmasked, variants=variants, autofetch=autofetch)
+                    if alt_coding_seq == '':
+                        raise ValueError('No alternative coding sequence region found, so no translation possible.')
+
+                    seq = self.translate(coding_sequence=alt_coding_seq) or ''
                 else:
                     if self.protein_sequence is None and autofetch:
                         self.translate()
@@ -238,17 +285,15 @@ class TranslatedSeqRegion():
         Stores the resulting protein sequence as attribute in this object if no `coding_sequence` input was provided.
 
         Returns:
-            Protein sequence corresponding to the sequence region's `sequence`. Returns `None` if no Open Reading Frame was found in the sequence.
+            Protein sequence corresponding to the input `coding_sequence`, or to the region's coding sequence if undefined. \
+            `None` if no coding_sequence was provided or no open reading frame was found matching the input params.
         """
 
         store_protein: bool = False
 
         if coding_sequence is None:
-            if self.protein_sequence is not None:
-                return self.protein_sequence
-            else:
-                coding_sequence = self.get_sequence('coding')
-                store_protein = True
+            coding_sequence = self.get_sequence('coding')
+            store_protein = True
 
         if coding_sequence:
             # Translate to protein
@@ -263,7 +308,7 @@ class TranslatedSeqRegion():
             return None
 
 
-def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type: str = 'all') -> List[Dict[str, Any]]:
+def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, force_start: Optional[int] = None, return_type: str = 'all') -> List[CalculatedOrf]:
     """
     Find Open Reading Frames (ORFs) in a (spliced) DNA sequence.
 
@@ -274,7 +319,8 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type
     Args:
         dna_sequence: the DNA sequence to search open reading frames in
         codon_table: the codon table to define start and stop codons
-        return_type: 'all' to return all ORFs found, 'longest' to return the longest found.
+        force_start: the relative position of the start codon to use for ORF definition (1-based index)
+        return_type: 'all' to return all ORFs found, 'longest' to return the longest found. Irrelevant when force_start is not None (then only first/shortest ORF is returned)
 
     Returns:
         List of open reading frames found (in accordance to `return_type`).
@@ -285,32 +331,49 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, return_type
 
     # Remove any softmasking
     unmasked_dna_sequence = dna_sequence.upper()
+    force_start_offset = 0
+
+    if force_start is not None:
+        unmasked_dna_sequence = unmasked_dna_sequence[force_start - 1:]
+        force_start_offset = force_start - 1
 
     # Split the DNA sequence in codons (3-base blocks).
     # Frameshift the sequence by 0, 1 or 2 (skip first N bases) to obtain all possible codons.
-    CODON_SIZE = 3
     codons: Dict[int, List[str]] = dict()
     for frameshift in range(0, CODON_SIZE):
         codons[frameshift] = [unmasked_dna_sequence[i:i + CODON_SIZE] for i in range(frameshift, len(unmasked_dna_sequence), CODON_SIZE)]
 
     # Read through all codons accross all frameshifts and determine the ORFs
-    orfs: List[Dict[str, Any]] = []
+    orfs: List[CalculatedOrf] = []
     for frameshift in range(0, CODON_SIZE):
         reading_frame_opened = False
         index_opened: int = -1
 
+        # When using force_start, only use 0-frame codons
+        if force_start is not None and frameshift > 0:
+            break
+
         for i, codon in enumerate(codons[frameshift]):
+
+            # When using force_start, first codon should be start codon
+            if force_start is not None and i == 0 and codon not in codon_table.start_codons:
+                raise ValueError('find_orfs expects first codon to be a start codon when using force_start argument.')
 
             if codon in codon_table.stop_codons:
                 if reading_frame_opened:
-                    orf: Dict[str, Any] = {}
-                    orf['sequence'] = ''.join(codons[frameshift][index_opened:i + 1])
-                    orf['seq_start'] = frameshift + index_opened * CODON_SIZE + 1  # Relative (DNA) sequence start position (1-based)
-                    orf['seq_end'] = frameshift + (i + 1) * CODON_SIZE  # Relative (DNA) sequence end position (1-based)
-                    orf['complete'] = True
-                    orf['frameshift'] = frameshift
+                    orf: CalculatedOrf = {
+                        'sequence': ''.join(codons[frameshift][index_opened:i + 1]),
+                        'seq_start': frameshift + index_opened * CODON_SIZE + 1 + force_start_offset,  # Relative (DNA) sequence start position (1-based)
+                        'seq_end': frameshift + (i + 1) * CODON_SIZE + force_start_offset,  # Relative (DNA) sequence end position (1-based)
+                        'complete': True,
+                        'frameshift': frameshift
+                    }
 
                     orfs.append(orf)
+
+                # When using force_start, only return first ORF
+                if force_start is not None:
+                    break
 
                 reading_frame_opened = False
                 index_opened = -1

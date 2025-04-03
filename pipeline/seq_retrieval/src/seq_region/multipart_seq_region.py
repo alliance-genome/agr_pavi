@@ -6,6 +6,7 @@ from typing import Any, Dict, List, override, Optional, Set
 
 from .seq_region import SeqRegion
 from .variant import Variant
+
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
