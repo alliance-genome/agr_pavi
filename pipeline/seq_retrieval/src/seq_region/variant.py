@@ -61,6 +61,16 @@ class Variant():
                 return True
         return False
 
+    @override
+    def __str__(self) -> str:  # pragma: no cover
+        object_str = f'{self.variant_id} {self.genomic_seq_id}:{self.genomic_start_pos}-{self.genomic_end_pos} {self.genomic_ref_seq or '-'}/{self.genomic_alt_seq or '-'}'
+
+        return object_str
+
+    @override
+    def __repr__(self) -> str:  # pragma: no cover
+        return self.__str__()
+
     @classmethod
     def from_variant_id(cls, variant_id: str) -> 'Variant':
         """
