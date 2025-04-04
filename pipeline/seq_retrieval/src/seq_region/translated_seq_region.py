@@ -48,10 +48,7 @@ class TranslatedSeqRegion():
     protein_sequence: str | None = None
     """Protein sequence of the coding sequence (sub)regions (after translation)."""
 
-    transcript_curie: Optional[str]
-    """The transcript curie associated with the TranslatedSeqRegion"""
-
-    def __init__(self, exon_seq_regions: List[SeqRegion], cds_seq_regions: List[SeqRegion] = [], transcript_curie: Optional[str] = None):
+    def __init__(self, exon_seq_regions: List[SeqRegion], cds_seq_regions: List[SeqRegion] = []):
         """
         Initializes a MultiPartSeqRegion instance from multiple `SeqRegion`s.
 
@@ -74,8 +71,6 @@ class TranslatedSeqRegion():
         self.start: int = min(map(lambda seq_region: seq_region.start, exon_seq_regions))
         self.end: int = max(map(lambda seq_region: seq_region.end, exon_seq_regions))
         self.seq_length: int = sum(map(lambda seq_region: seq_region.seq_length, exon_seq_regions))  # TODO: re-evaluate (coding vs complete)
-
-        self.transcript_curie = transcript_curie
 
         # Ensure one strand
         strands: Set[str | None] = set([seq_region.strand for seq_region in (exon_seq_regions + cds_seq_regions)])
@@ -101,7 +96,7 @@ class TranslatedSeqRegion():
         else:
             self.fasta_file_path = fasta_file_paths.pop()
 
-        self.exon_seq_region = MultiPartSeqRegion(exon_seq_regions, transcript_curie=transcript_curie)
+        self.exon_seq_region = MultiPartSeqRegion(exon_seq_regions)
 
         if len(cds_seq_regions) > 0:
             # Ensure all CDS seq regions define the frame property
@@ -110,7 +105,7 @@ class TranslatedSeqRegion():
                     raise ValueError(f"undefined frame property found in seq region {seq_region}."
                                      + " cds_seq_regions require frame property to be set for all seq regions.")
 
-            self.coding_seq_region = MultiPartSeqRegion(cds_seq_regions, transcript_curie=transcript_curie)
+            self.coding_seq_region = MultiPartSeqRegion(cds_seq_regions)
             self.coding_sequence_source = 'cds'
         else:
             self.coding_seq_region = None

@@ -146,7 +146,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     'end': e.refEnd,
                     'frame': e.phase
                 })),
-                transcript_curie: transcript.curie,
                 variant_ids: alleles_info.map((a) => (Array.from(a.variants.keys()))).flat()
             })
         });

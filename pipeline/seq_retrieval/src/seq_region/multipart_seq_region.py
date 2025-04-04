@@ -25,10 +25,7 @@ class MultiPartSeqRegion(SeqRegion):
     sequence: Optional[str]
     """Sequence of the complete multi-part sequence region"""
 
-    transcript_curie: Optional[str]
-    """The transcript curie associated with the MultipartSeqRegion"""
-
-    def __init__(self, seq_regions: List[SeqRegion], transcript_curie: Optional[str] = None):
+    def __init__(self, seq_regions: List[SeqRegion]):
         """
         Initializes a MultiPartSeqRegion instance from multiple `SeqRegion`s.
 
@@ -40,7 +37,6 @@ class MultiPartSeqRegion(SeqRegion):
             seq_regions:      List of SeqRegion objects that constitute this multi-part sequence region.\
                               All SeqRegions must have identical seq_id, strand and fasta_file_path properties \
                               to form a valid MultipartSeqRegion.
-            transcript_curie: The transcript curie of the transcript this multi-part sequence region represents.
 
         Raises:
             ValueError: if `seq_regions` have distinct `seq_id`, `strand` or `fasta_file_path` properties.
@@ -49,8 +45,6 @@ class MultiPartSeqRegion(SeqRegion):
         self.start = min(map(lambda seq_region: seq_region.start, seq_regions))
         self.end = max(map(lambda seq_region: seq_region.end, seq_regions))
         self.seq_length = sum(map(lambda seq_region: seq_region.seq_length, seq_regions))
-
-        self.transcript_curie = transcript_curie
 
         # Ensure one strand
         strands: Set[SeqRegion.STRAND_TYPE] = set(map(lambda seq_region: seq_region.strand, seq_regions))
@@ -276,7 +270,7 @@ class MultiPartSeqRegion(SeqRegion):
             seq_regions.append(seq_region.sub_region(rel_start=max(1, rel_start - covered_length), rel_end=min(rel_end - covered_length, seq_region.seq_length)))
             covered_length += seq_region.seq_length
 
-        return MultiPartSeqRegion(seq_regions=seq_regions, transcript_curie=self.transcript_curie)
+        return MultiPartSeqRegion(seq_regions=seq_regions)
 
     @override
     def to_rel_position(self, seq_position: int) -> int:

@@ -32,7 +32,7 @@ def multipart_WB_transcript1() -> MultiPartSeqRegion:
 
     seq_region_list = [exon_1, exon_2, exon_3, exon_4]
 
-    return MultiPartSeqRegion(seq_region_list, transcript_curie='WB:C54H2.5.1')
+    return MultiPartSeqRegion(seq_region_list)
 
 
 def test_multipart_seq_region_class(multipart_WB_transcript1: MultiPartSeqRegion) -> None:

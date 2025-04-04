@@ -24,7 +24,7 @@ process sequence_retrieval {
         main.py --output_type protein \
             --name ${request_map.name} --seq_id ${request_map.seq_id} --seq_strand ${request_map.seq_strand} \
             --fasta_file_url ${request_map.fasta_file_url} --exon_seq_regions '${encoded_exon_regions}' --cds_seq_regions '${encoded_cds_regions}' \
-            --transcript_curie '${request_map.transcript_curie}' --variant_ids '${variant_ids}' \
+            --variant_ids '${variant_ids}' \
             > ${request_map.name}-protein.fa
         """
 }

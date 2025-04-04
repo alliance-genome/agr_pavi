@@ -20,7 +20,6 @@ export interface JobSumbissionPayloadRecord {
         frame: 0 | 1 | 2
     }>,
     fasta_file_url: string,
-    transcript_curie: string,
     variant_ids: string[]
 }
 
