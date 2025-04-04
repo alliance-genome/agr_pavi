@@ -2,6 +2,8 @@
 Module containing the MultiPartSeqRegion class.
 """
 
+from Bio import Seq
+
 from typing import Any, Dict, List, override, Optional, Set
 
 from .seq_region import SeqRegion
@@ -208,10 +210,22 @@ class MultiPartSeqRegion(SeqRegion):
         # Loop through variants in reverse order to avoid changes in indices due to indels
         for rel_start, variant in sorted(positioned_variants.items(), reverse=True):
             rel_end = rel_start + len(variant.genomic_ref_seq) - 1
-            if alt_sequence[(rel_start - 1):(rel_end)] != variant.genomic_ref_seq:
-                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
-                                 + f'does not match the reference sequence of MultipartSeqRegion {self} at positions {rel_start}-{rel_end}.')
-            alt_sequence = alt_sequence[:(rel_start - 1)] + variant.genomic_alt_seq + alt_sequence[rel_end:]
+
+            variant_ref_seq = variant.genomic_ref_seq
+            variant_alt_seq = variant.genomic_alt_seq
+            # Reverse complement the variant sequences for negative strand seq regions
+            if self.strand == '-':
+                variant_ref_seq = Seq.reverse_complement(variant_ref_seq)
+                variant_alt_seq = Seq.reverse_complement(variant_alt_seq)
+
+            seq_region_variant_seq = alt_sequence[(rel_start - 1):(rel_end)]
+
+            if seq_region_variant_seq != variant_ref_seq:
+                logger.error(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                             + f'does not match the reference sequence of MultipartSeqRegion {self} at positions {rel_start}-{rel_end}. '
+                             + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
+                raise ValueError('Unexpected variant reference sequence mismatch.')
+            alt_sequence = alt_sequence[:(rel_start - 1)] + variant_alt_seq + alt_sequence[rel_end:]
 
         return alt_sequence
 
