@@ -205,16 +205,22 @@ class SeqRegion():
         # Loop through variants in relative positional reverse order to avoid changes in indices due to indels
         for rel_start, variant in sorted(positioned_variants.items(), reverse=True):
             rel_end = rel_start + len(variant.genomic_ref_seq) - 1
-            variant_ref_seq: str
-            if self.strand == '-':
-                variant_ref_seq = str(Seq.reverse_complement(variant.genomic_ref_seq))
-            else:
-                variant_ref_seq = variant.genomic_ref_seq
 
-            if sequence[(rel_start - 1):(rel_end)] != variant_ref_seq:
-                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
-                                 + f'does not match the reference sequence of MultipartSeqRegion {self} at positions {rel_start}-{rel_end}.')
-            sequence = sequence[:(rel_start - 1)] + variant.genomic_alt_seq + sequence[rel_end:]
+            variant_ref_seq = variant.genomic_ref_seq
+            variant_alt_seq = variant.genomic_alt_seq
+
+            if self.strand == '-':
+                variant_ref_seq = str(Seq.reverse_complement(variant_ref_seq))
+                variant_alt_seq = str(Seq.reverse_complement(variant_alt_seq))
+
+            seq_region_variant_seq = sequence[(rel_start - 1):(rel_end)]
+
+            if seq_region_variant_seq != variant_ref_seq:
+                logger.error(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                             + f'does not match the reference sequence of SeqRegion {self} at positions {rel_start}-{rel_end}.'
+                             + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
+                raise ValueError('Unexpected variant reference sequence mismatch.')
+            sequence = sequence[:(rel_start - 1)] + variant_alt_seq + sequence[rel_end:]
 
         return sequence
 
