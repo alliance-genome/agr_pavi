@@ -205,22 +205,51 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
                                              frame=region['frame'],
                                              fasta_file_url=fasta_file_url))
 
-    # Build complete sequence region (using exons + cds) and fetch sequences
+    # Build complete sequence region (using exons + cds)
     fullRegion = TranslatedSeqRegion(exon_seq_regions=exon_seq_region_objs, cds_seq_regions=cds_seq_region_objs, transcript_curie=transcript_curie)
-
-    seq_concat = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
 
     logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")
 
-    click.echo('>' + name)
+    # Retrieve relevant sequence(s)
+    ref_seq: str | None = None
+    alt_seq: str | None = None
+
     if output_type == 'transcript':
-        click.echo(seq_concat)
-    # If protein sequence is requested, translate the complete sequence region
+        ref_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
+
+        if variant_info:
+            # Generate additional sequence for full region with variants embedded
+            alt_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
+
     elif output_type == 'protein':
-        protein_seq = fullRegion.translate()
-        click.echo(protein_seq)
+        ref_seq = fullRegion.get_sequence(type='protein')
+
+        if ref_seq == '':
+            logger.error(f'No ORF found for TranslatedSeqRegion {fullRegion}')
+
+        if variant_info:
+            # Generate additional sequence for full region with variants embedded
+            alt_seq = fullRegion.get_sequence(type='protein', variants=list(variant_info.values()))
+
+            if alt_seq == '':
+                logger.error(f'No ORF found for TranslatedSeqRegion {fullRegion} with variants embedded ({variant_ids})')
     else:
-        raise NotImplementedError(f"Reporting on results of output_type {output_type} is currently not implemented.")
+        raise NotImplementedError(f"Output_type {output_type} is currently not implemented.")
+
+    # Print output
+    ref_name: str = name
+    alt_name: str
+
+    if variant_info:
+        ref_name = name + '_ref'
+        alt_name = name + '_alt'
+
+    click.echo('>' + ref_name)
+    click.echo(ref_seq)
+
+    if variant_info:
+        click.echo('>' + alt_name)
+        click.echo(alt_seq)
 
 
 if __name__ == '__main__':
