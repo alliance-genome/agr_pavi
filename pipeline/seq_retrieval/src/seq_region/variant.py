@@ -4,7 +4,7 @@ Module containing the Variant class and related functions.
 
 import requests
 
-from typing import Optional
+from typing import List, Optional
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
@@ -79,3 +79,38 @@ class Variant():
             genomic_ref_seq=variant_data.get("genomicReferenceSequence"),
             genomic_alt_seq=variant_data.get("genomicVariantSequence"),
         )
+
+    def overlaps(self, other: 'Variant') -> bool:
+        """
+        Checks if this variant overlaps with another variant.
+
+        Args:
+            other: Another Variant object.
+
+        Returns:
+            True if the variants overlap, False otherwise.
+        """
+        overlaps = False
+
+        if self.genomic_seq_id == other.genomic_seq_id and \
+           self.genomic_end_pos >= other.genomic_start_pos and \
+           self.genomic_start_pos <= other.genomic_end_pos:
+            overlaps = True
+
+        return overlaps
+
+
+def variants_overlap(variants: List[Variant]) -> bool:
+    """
+    Checks if any two Variants in a list overlap.
+    Args:
+        variants: List of Variant objects.
+    Returns:
+        True if any two variants overlap, False otherwise.
+    """
+    sorted_variants = sorted(variants, key=lambda x: (x.genomic_seq_id, x.genomic_start_pos))
+    for i in range(len(sorted_variants)):
+        if variants[i].overlaps(variants[i + 1]):
+            return True
+
+    return False

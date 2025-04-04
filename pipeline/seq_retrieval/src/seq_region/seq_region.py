@@ -8,7 +8,7 @@ import pysam
 
 from data_mover import data_file_mover
 from log_mgmt import get_logger
-from .variant import Variant
+from .variant import Variant, variants_overlap
 
 logger = get_logger(name=__name__)
 
@@ -183,6 +183,8 @@ class SeqRegion():
 
         if len(variants) < 1:
             raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
+        elif len(variants) > 1 and variants_overlap(variants):
+            raise ValueError('variants_alt_sequence method does not support overlapping variants.')
 
         positioned_variants: Dict[int, Variant] = {}  # Variants indexed by relative position in SeqRegion
 

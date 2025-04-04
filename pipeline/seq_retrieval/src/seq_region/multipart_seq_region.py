@@ -7,7 +7,7 @@ from Bio import Seq
 from typing import Any, Dict, List, override, Optional, Set
 
 from .seq_region import SeqRegion
-from .variant import Variant
+from .variant import Variant, variants_overlap
 
 from log_mgmt import get_logger
 
@@ -174,17 +174,21 @@ class MultiPartSeqRegion(SeqRegion):
             The MultiPartSeqRegion's sequence as a string (empty string if `None`) with provided variants embedded.
 
         Raises:
-            ValueError: when position of any of the variants falls outside the MultipartSeqRegion boundaries.
-            ValueError: when variants list contains no elements.
+            ValueError:
+             * when position of any of the variants falls outside the MultipartSeqRegion boundaries.
+             * when variants list contains no elements.
+             * when any two variants overlap.
         """
+
+        if len(variants) < 1:
+            raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
+        elif len(variants) > 1 and variants_overlap(variants):
+            raise ValueError('variants_alt_sequence method does not support overlapping variants.')
 
         if self.sequence is None and autofetch:
             self.fetch_seq(recursive_fetch=True)
 
         ref_sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch)
-
-        if len(variants) < 1:
-            raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
 
         positioned_variants: Dict[int, Variant] = {}  # Variants indexed by relative position in MultipartSeqRegion
 
