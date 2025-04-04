@@ -52,32 +52,30 @@ class Variant():
         self.genomic_ref_seq = genomic_ref_seq or ""
         self.genomic_alt_seq = genomic_alt_seq or ""
 
+    @classmethod
+    def from_variant_id(cls, variant_id: str) -> 'Variant':
+        """
+        Fetches variant information from the public web API \
+        and returns it as a Variant object.
 
-def fetch_variant(variant_id: str) -> Variant:
-    """
-    Fetch variant info from public web API.
+        Args:
+            variant_id: string representing the (AGR) variant ID.
 
-    Fetches variant information from the public web API
-    and returns it as a Variant object.
+        Returns:
+            a Variant object containing the variant information.
+        """
 
-    Args:
-        variant_id: string representing the (AGR) variant ID.
+        # Fetch variant information from the public web API.
+        url = f"https://www.alliancegenome.org/api/variant/{variant_id}"
+        response = requests.get(url)
+        response.raise_for_status()
+        variant_data = response.json()
 
-    Returns:
-        a Variant object containing the variant information.
-    """
-
-    # Fetch variant information from the public web API.
-    url = f"https://www.alliancegenome.org/api/variant/{variant_id}"
-    response = requests.get(url)
-    response.raise_for_status()
-    variant_data = response.json()
-
-    return Variant(
-        variant_id=variant_id,
-        seq_id=variant_data["location"]["chromosome"],
-        start=variant_data["location"]["start"],
-        end=variant_data["location"]["end"],
-        genomic_ref_seq=variant_data.get("genomicReferenceSequence"),
-        genomic_alt_seq=variant_data.get("genomicVariantSequence"),
-    )
+        return cls(
+            variant_id=variant_id,
+            seq_id=variant_data["location"]["chromosome"],
+            start=variant_data["location"]["start"],
+            end=variant_data["location"]["end"],
+            genomic_ref_seq=variant_data.get("genomicReferenceSequence"),
+            genomic_alt_seq=variant_data.get("genomicVariantSequence"),
+        )

@@ -11,7 +11,7 @@ import re
 from typing import get_args, List, TypedDict, Optional
 
 import data_mover.data_file_mover as data_file_mover
-from seq_region import SeqRegion, TranslatedSeqRegion, Variant, fetch_variant
+from seq_region import SeqRegion, TranslatedSeqRegion, Variant
 from log_mgmt import set_log_level, get_logger
 
 logger = get_logger(name=__name__)
@@ -190,7 +190,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
     variant_info: dict[str, Variant] = {}
     for variant_id in variant_ids:
         logger.debug(f"Fetching variant info for {variant_id}...")
-        variant_info[variant_id] = fetch_variant(variant_id)
+        variant_info[variant_id] = Variant.from_variant_id(variant_id)
         logger.debug(f"Variant info for {variant_id} fetched: {variant_info[variant_id]}")
 
     # Parse exon_seq_regions and cds_seq_regions into respective SeqRegion objects
