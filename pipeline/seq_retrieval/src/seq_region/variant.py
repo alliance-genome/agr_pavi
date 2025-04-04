@@ -4,7 +4,7 @@ Module containing the Variant class and related functions.
 
 import requests
 
-from typing import List, Optional
+from typing import List, Optional, override
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
@@ -51,6 +51,15 @@ class Variant():
         self.seq_length = end - start + 1
         self.genomic_ref_seq = genomic_ref_seq or ""
         self.genomic_alt_seq = genomic_alt_seq or ""
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, self.__class__):
+            if self.variant_id == other.variant_id and self.genomic_seq_id == other.genomic_seq_id \
+               and self.genomic_start_pos == other.genomic_start_pos and self.genomic_end_pos == other.genomic_end_pos \
+               and self.genomic_ref_seq == other.genomic_ref_seq and self.genomic_alt_seq == other.genomic_alt_seq:
+                return True
+        return False
 
     @classmethod
     def from_variant_id(cls, variant_id: str) -> 'Variant':
