@@ -5,7 +5,7 @@ Unit testing for data_file_mover module
 from pathlib import Path
 import os.path
 
-from data_mover.data_file_mover import is_accessible_url, download_from_url, find_local_file, fetch_file
+from src.data_mover.data_file_mover import is_accessible_url, download_from_url, find_local_file, fetch_file
 
 
 FASTA_URL = 'https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000146045.2_R64_genomic.fna.gz'

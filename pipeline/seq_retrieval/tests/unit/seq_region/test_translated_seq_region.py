@@ -4,8 +4,8 @@ Unit testing for TranslatedSeqRegion class and related functions
 
 from Bio.Data import CodonTable
 
-from seq_region import SeqRegion, TranslatedSeqRegion
-from seq_region.translated_seq_region import find_orfs
+from src.seq_region import SeqRegion, TranslatedSeqRegion
+from src.seq_region.translated_seq_region import find_orfs
 
 import pytest
 
