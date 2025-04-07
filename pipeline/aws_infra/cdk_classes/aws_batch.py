@@ -105,8 +105,12 @@ class PaviExecutionEnvironment:
                 scope, 'pipeline-log-group',
                 log_group_name=shared_logs_group)
 
+        ce_name = 'pavi_pipeline_ecs'
+        if env_suffix:
+            ce_name += f'_{env_suffix}'
         self.compute_environment = aws_batch.ManagedEc2EcsComputeEnvironment(
             scope=scope, id='pavi-pipeline-compute-environment-ecs',
+            compute_environment_name=ce_name,
             vpc=vpc, vpc_subnets=subnets,
             instance_role=instance_role,  # type: ignore
             spot=False,

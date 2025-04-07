@@ -46,5 +46,5 @@ class SharedInfraStack(Stack):
 
         cdk_tags.of(slack_channel_config).add("Product", "PAVI")
         cdk_tags.of(slack_channel_config).add("CreatedBy", "PAVI")
-        cdk_tags.of(health_notifications_topic).add("DeploymentEnvironment", "shared")
-        cdk_tags.of(health_notifications_topic).add("AppComponent", "monitoring")
+        cdk_tags.of(slack_channel_config).add("DeploymentEnvironment", "shared")
+        cdk_tags.of(slack_channel_config).add("AppComponent", "monitoring")
