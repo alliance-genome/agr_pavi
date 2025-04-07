@@ -10,9 +10,9 @@ attrs==25.3.0 \
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.230 \
-    --hash=sha256:9e2281ce1ffe2cdb8d433bd26d3b2c5767eac282871064ab66de9a2ecc987fec \
-    --hash=sha256:e41bf095ca74af9924e9b2e3244091ba3298f40b938b2397634f551d6ec8a099
+aws-cdk-asset-awscli-v1==2.2.231 \
+    --hash=sha256:06d6b1d9e52272c315b944320f7039b47c6a6058f063fa33ab0ec06fea17bfbe \
+    --hash=sha256:859d99e0fcdc2f6ada44090ad9f921743da3ca3a6d9f39ab06836d4c8e0fbc23
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0 \
     --hash=sha256:1f292c0631f86708ba4ee328b3a2b229f7e46ea1c79fbde567ee9eb119c2b0e2 \
