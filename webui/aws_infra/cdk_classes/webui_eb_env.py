@@ -43,7 +43,8 @@ class WebUiEbEnvironmentCdkStack(Stack):
                 iam.ManagedPolicy.from_managed_policy_name(self, "iam-ecr-read-policy", "ReadOnlyAccessECR")])
 
         cdk_tags.of(self.eb_ec2_role).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(self.eb_ec2_role).add("Managed_by", "PAVI")  # type: ignore
+        cdk_tags.of(self.eb_ec2_role).add("CreatedBy", "PAVI")  # type: ignore
+        cdk_tags.of(self.eb_ec2_role).add("AppComponent", "webUI")  # type: ignore
 
         # Create EB environment to run the application
         # Environment-defined settings are defined here,

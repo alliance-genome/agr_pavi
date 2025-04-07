@@ -52,7 +52,7 @@ class EBApplicationCdkStack(Stack):
             ))
 
         cdk_tags.of(self.eb_application).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(self.eb_application).add("Managed_by", "PAVI")  # type: ignore
+        cdk_tags.of(self.eb_application).add("CreatedBy", "PAVI")  # type: ignore
 
 
 class EbEnvironmentCdkConstructs:
@@ -89,7 +89,7 @@ def defineEbEnvironmentCdkConstructs(
         stack, 'eb-instance-profile',
         role=eb_ec2_role)  # type: ignore
     cdk_tags.of(eb_instance_profile).add("Product", "PAVI")  # type: ignore
-    cdk_tags.of(eb_instance_profile).add("Managed_by", "PAVI")  # type: ignore
+    cdk_tags.of(eb_instance_profile).add("CreatedBy", "PAVI")  # type: ignore
 
     eb_app_name = str(eb_app_stack.eb_application.application_name)
     app_version_label = getenv('PAVI_DEPLOY_VERSION_LABEL')
@@ -143,7 +143,7 @@ def defineEbEnvironmentCdkConstructs(
         version_label=app_version_label,
         option_settings=optionSettingProperties)
     cdk_tags.of(eb_env).add("Product", "PAVI")  # type: ignore
-    cdk_tags.of(eb_env).add("Managed_by", "PAVI")  # type: ignore
+    cdk_tags.of(eb_env).add("CreatedBy", "PAVI")  # type: ignore
 
     # Add Alarm on environment health
     env_health_metric: cw.IMetric = cw.Metric(

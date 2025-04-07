@@ -42,7 +42,8 @@ class ApiEbEnvironmentCdkStack(Stack):
                 pipeline_execution_policy])
 
         cdk_tags.of(self.eb_ec2_role).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(self.eb_ec2_role).add("Managed_by", "PAVI")  # type: ignore
+        cdk_tags.of(self.eb_ec2_role).add("CreatedBy", "PAVI")  # type: ignore
+        cdk_tags.of(self.eb_ec2_role).add("AppComponent", "API")  # type: ignore
 
         # Create EB environment to run the application
         # Environment-defined settings are defined here,

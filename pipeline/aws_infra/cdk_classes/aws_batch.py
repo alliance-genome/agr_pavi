@@ -55,7 +55,8 @@ class PaviExecutionEnvironment:
                 versioned=False
             )
             cdk_tags.of(self.nf_output_bucket).add("Product", "PAVI")  # type: ignore
-            cdk_tags.of(self.nf_output_bucket).add("Managed_by", "PAVI")  # type: ignore
+            cdk_tags.of(self.nf_output_bucket).add("CreatedBy", "PAVI")  # type: ignore
+            cdk_tags.of(self.nf_output_bucket).add("AppComponent", "pipeline")  # type: ignore
         else:
             self.nf_output_bucket = s3.Bucket.from_bucket_name(
                 scope=scope, id='pavi-pipeline-nf-workdir-bucket',
@@ -90,7 +91,8 @@ class PaviExecutionEnvironment:
                                      'nf-s3-bucket-access-policy': s3_workdir_bucket_policy_doc
                                  })
         cdk_tags.of(instance_role).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(instance_role).add("Managed_by", "PAVI")  # type: ignore
+        cdk_tags.of(instance_role).add("CreatedBy", "PAVI")  # type: ignore
+        cdk_tags.of(instance_role).add("AppComponent", "pipeline")  # type: ignore
 
         if not shared_logs_group:
             self.batch_log_group = cwl.LogGroup(
@@ -119,7 +121,8 @@ class PaviExecutionEnvironment:
         self.compute_environment.apply_removal_policy(RemovalPolicy.DESTROY)
 
         cdk_tags.of(self.compute_environment).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(self.compute_environment).add("Managed_by", "PAVI")  # type: ignore
+        cdk_tags.of(self.compute_environment).add("CreatedBy", "PAVI")  # type: ignore
+        cdk_tags.of(self.compute_environment).add("AppComponent", "pipeline")  # type: ignore
 
         self.compute_environment.tags.set_tag('Name', 'PAVI pipeline execution worker', priority=None, apply_to_launched_instances=True)
 
@@ -135,7 +138,8 @@ class PaviExecutionEnvironment:
         self.job_queue.add_compute_environment(self.compute_environment, order=1)  # type: ignore
 
         cdk_tags.of(self.job_queue).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(self.job_queue).add("Managed_by", "PAVI")  # type: ignore
+        cdk_tags.of(self.job_queue).add("CreatedBy", "PAVI")  # type: ignore
+        cdk_tags.of(self.job_queue).add("AppComponent", "pipeline")  # type: ignore
 
         # Create the IAM policy to grant access to execute the nextflow pipeline using above AWS execution environment
         nf_aws_execution_statements = s3_bucket_access_statements.copy()
@@ -171,6 +175,7 @@ class PaviExecutionEnvironment:
                                                     description='Grant required access to PAVI execution environment to run nextflow pipelines using it.',
                                                     statements=nf_aws_execution_statements)
         cdk_tags.of(nf_aws_execution_policy).add("Product", "PAVI")  # type: ignore
-        cdk_tags.of(nf_aws_execution_policy).add("Managed_by", "PAVI")  # type: ignore
+        cdk_tags.of(nf_aws_execution_policy).add("CreatedBy", "PAVI")  # type: ignore
+        cdk_tags.of(nf_aws_execution_policy).add("AppComponent", "pipeline")  # type: ignore
 
         self.nf_aws_execution_policy = nf_aws_execution_policy

@@ -30,7 +30,9 @@ class SharedInfraStack(Stack):
             fifo=False)
 
         cdk_tags.of(health_notifications_topic).add("Product", "PAVI")
-        cdk_tags.of(health_notifications_topic).add("Managed_by", "PAVI")
+        cdk_tags.of(health_notifications_topic).add("CreatedBy", "PAVI")
+        cdk_tags.of(health_notifications_topic).add("DeploymentEnvironment", "shared")
+        cdk_tags.of(health_notifications_topic).add("AppComponent", "monitoring")
 
         # AWS Chatbot Slack communication config
         slack_channel_config = chatbot.SlackChannelConfiguration(
@@ -43,4 +45,6 @@ class SharedInfraStack(Stack):
         )
 
         cdk_tags.of(slack_channel_config).add("Product", "PAVI")
-        cdk_tags.of(slack_channel_config).add("Managed_by", "PAVI")
+        cdk_tags.of(slack_channel_config).add("CreatedBy", "PAVI")
+        cdk_tags.of(health_notifications_topic).add("DeploymentEnvironment", "shared")
+        cdk_tags.of(health_notifications_topic).add("AppComponent", "monitoring")
