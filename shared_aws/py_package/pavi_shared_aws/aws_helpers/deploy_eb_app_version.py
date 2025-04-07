@@ -49,7 +49,7 @@ def main(eb_app_name: str, version_label: str) -> None:
             eb_app_name=eb_app_name, version_label=version_label,
             source_bundle=source_bundle,
             tags=[{'Key': 'Product', 'Value': 'PAVI'},
-                  {'Key': 'Managed_by', 'Value': 'PAVI'}])
+                  {'Key': 'CreatedBy', 'Value': 'PAVI'}])
     else:
         print(f'Application version with label "{version_label}" already exists.')
 

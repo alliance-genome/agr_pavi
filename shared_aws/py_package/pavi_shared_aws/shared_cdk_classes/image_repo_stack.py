@@ -36,6 +36,6 @@ class ImageRepoCdkStack(Stack):
                 component_name=component_name, env_suffix=env_suffix
             )
             cdk_tags.of(self.ecr_repo).add("Product", "PAVI")
-            cdk_tags.of(self.ecr_repo).add("Managed_by", "PAVI")
+            cdk_tags.of(self.ecr_repo).add("CreatedBy", "PAVI")
         else:
             self.ecr_repo = ecr.Repository.from_repository_name(self, id=ecr_repo_construct_id, repository_name=shared_image_repo)
