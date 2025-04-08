@@ -2,7 +2,7 @@
 Unit testing for Variant class and related functions
 """
 
-from src.seq_region import Variant, variants_overlap
+from seq_region import Variant, variants_overlap
 
 import json
 import responses  # requests mocking library

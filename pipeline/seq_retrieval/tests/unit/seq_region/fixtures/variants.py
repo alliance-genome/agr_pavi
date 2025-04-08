@@ -4,7 +4,7 @@ Variant fixtures for unit testing
 
 import pytest
 
-from src.seq_region import Variant
+from seq_region import Variant
 
 
 @pytest.fixture

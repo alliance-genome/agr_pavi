@@ -2,7 +2,7 @@
 Unit testing for SeqRegion class and related functions
 """
 
-from src.seq_region import SeqRegion
+from seq_region import SeqRegion
 
 
 FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
