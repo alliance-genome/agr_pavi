@@ -128,8 +128,8 @@ def variants_overlap(variants: List[Variant]) -> bool:
         True if any two variants overlap, False otherwise.
     """
     sorted_variants = sorted(variants, key=lambda x: (x.genomic_seq_id, x.genomic_start_pos))
-    for i in range(len(sorted_variants)):
-        if variants[i].overlaps(variants[i + 1]):
+    for i in range((len(sorted_variants) - 1)):
+        if sorted_variants[i].overlaps(sorted_variants[i + 1]):
             return True
 
     return False
