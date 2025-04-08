@@ -43,7 +43,8 @@ class CdkInfraStack(Stack):
         else:
             self.seq_retrieval_ecr_repo = ecr.Repository.from_repository_name(self, id='PAVI-pipeline-seq-retrieval-repo', repository_name=shared_seq_retrieval_image_repo)
             cdk_tags.of(self.seq_retrieval_ecr_repo).add("Product", "PAVI")
-            cdk_tags.of(self.seq_retrieval_ecr_repo).add("Managed_by", "PAVI")
+            cdk_tags.of(self.seq_retrieval_ecr_repo).add("CreatedBy", "PAVI")  # type: ignore
+            cdk_tags.of(self.seq_retrieval_ecr_repo).add("AppComponent", "pipeline")  # type: ignore
 
         # Import or create shared_alignment_image_repo
         if not shared_alignment_image_repo:
@@ -52,6 +53,7 @@ class CdkInfraStack(Stack):
         else:
             self.alignment_ecr_repo = ecr.Repository.from_repository_name(self, id='PAVI-pipeline-alignment-repo', repository_name=shared_alignment_image_repo)
             cdk_tags.of(self.alignment_ecr_repo).add("Product", "PAVI")
-            cdk_tags.of(self.alignment_ecr_repo).add("Managed_by", "PAVI")
+            cdk_tags.of(self.alignment_ecr_repo).add("CreatedBy", "PAVI")  # type: ignore
+            cdk_tags.of(self.alignment_ecr_repo).add("AppComponent", "pipeline")  # type: ignore
 
         self.execution_environment = PaviExecutionEnvironment(self, env_suffix=env_suffix, shared_logs_group=shared_logs_group, shared_work_dir_bucket=shared_work_dir_bucket)

@@ -58,13 +58,12 @@ class mockFeature {
 
     // eslint-disable-next-line no-unused-vars
     get(key: "start" | "end"): number;
-    // eslint-disable-next-line no-unused-vars, no-dupe-class-members
+    // eslint-disable-next-line no-unused-vars
     get(key: "refName"): string;
-    // eslint-disable-next-line no-unused-vars, no-dupe-class-members
+    // eslint-disable-next-line no-unused-vars
     get(key: "subfeatures"): Feature[];
-    // eslint-disable-next-line no-unused-vars, no-dupe-class-members
+    // eslint-disable-next-line no-unused-vars
     get(key: string): any;
-    // eslint-disable-next-line no-dupe-class-members
     get(key: "refName" | "start" | "end" | "subfeatures" | string): any {
         if (key === 'name') {
             return this.uniqueId
