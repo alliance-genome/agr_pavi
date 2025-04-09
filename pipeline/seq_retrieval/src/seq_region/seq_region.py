@@ -260,9 +260,19 @@ class SeqRegion():
         if rel_start < 1 or self.seq_length < rel_end:
             raise ValueError(f'Relative start position {rel_start} or relative end position {rel_end} fall outside the boundaries of the SeqRegion {self} (len {self.seq_length}).')
 
+        new_start: int
+        new_end: int
+
+        if self.strand == '-':
+            new_end = self.end - (rel_start - 1)
+            new_start = self.end - (rel_end - 1)
+        else:
+            new_start = self.start + (rel_start - 1)
+            new_end = self.start + (rel_end - 1)
+
         return SeqRegion(seq_id=self.seq_id,
-                         start=self.start + rel_start - 1,
-                         end=self.start + rel_end - 1,
+                         start=new_start,
+                         end=new_end,
                          strand=self.strand,
                          fasta_file_url='file:' + self.fasta_file_path,
                          frame=self.frame,
