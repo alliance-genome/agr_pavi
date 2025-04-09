@@ -65,3 +65,29 @@ def test_seq_region_overlap() -> None:
 
     assert exon_8.overlaps(opp_strand_exon) is False
     assert exon_8.overlaps(same_strand_exon) is True
+
+
+def test_seq_region_sub_region_pos_strand() -> None:
+    # WBGene00016599 Transcript:C42D8.1.1 Exon 1 (mRNA start)
+    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5109506, end=5109644, strand='+',
+                                  fasta_file_url=FASTA_FILE_URL)
+
+    sub_region: SeqRegion = exon_1.sub_region(rel_start=1, rel_end=10)
+
+    assert isinstance(sub_region, SeqRegion)
+    assert sub_region.start == 5109506
+    assert sub_region.end == 5109515
+    assert sub_region.get_sequence() == 'aacCATGTCG'
+
+
+def test_seq_region_sub_region_neg_strand() -> None:
+    # WBGene00000149 Transcript:C42D8.8b.1 Exon 1 (mRNA start)
+    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5116799, end=5116864, strand='-',
+                                  fasta_file_url=FASTA_FILE_URL)
+
+    sub_region: SeqRegion = exon_1.sub_region(rel_start=10, rel_end=19)
+
+    assert isinstance(sub_region, SeqRegion)
+    assert sub_region.start == 5116846
+    assert sub_region.end == 5116855
+    assert sub_region.get_sequence() == 'GGTAAACTAA'
