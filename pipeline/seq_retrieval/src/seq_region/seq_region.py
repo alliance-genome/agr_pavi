@@ -262,6 +262,10 @@ class SeqRegion():
 
         new_start: int
         new_end: int
+        new_frame: Optional[SeqRegion.FRAME_TYPE] = None
+
+        if self.frame is not None:
+            new_frame = ((rel_start - 1) - self.frame) % 3
 
         if self.strand == '-':
             new_end = self.end - (rel_start - 1)
@@ -275,7 +279,7 @@ class SeqRegion():
                          end=new_end,
                          strand=self.strand,
                          fasta_file_url='file:' + self.fasta_file_path,
-                         frame=self.frame,
+                         frame=new_frame,
                          seq=self.sequence[(rel_start - 1):rel_end] if self.sequence is not None else None)
 
     def to_rel_position(self, seq_position: int) -> int:

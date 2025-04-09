@@ -68,26 +68,28 @@ def test_seq_region_overlap() -> None:
 
 
 def test_seq_region_sub_region_pos_strand() -> None:
-    # WBGene00016599 Transcript:C42D8.1.1 Exon 1 (mRNA start)
-    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5109506, end=5109644, strand='+',
+    # WBGene00016599 Transcript:C42D8.1.1 Exon 2
+    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5110473, end=5110556, frame=0, strand='+',
                                   fasta_file_url=FASTA_FILE_URL)
 
     sub_region: SeqRegion = exon_1.sub_region(rel_start=1, rel_end=10)
 
     assert isinstance(sub_region, SeqRegion)
-    assert sub_region.start == 5109506
-    assert sub_region.end == 5109515
-    assert sub_region.get_sequence() == 'aacCATGTCG'
+    assert sub_region.start == 5110473
+    assert sub_region.end == 5110482
+    assert sub_region.frame == 0
+    assert sub_region.get_sequence() == 'gtttcagTGG'
 
 
 def test_seq_region_sub_region_neg_strand() -> None:
     # WBGene00000149 Transcript:C42D8.8b.1 Exon 1 (mRNA start)
-    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5116799, end=5116864, strand='-',
+    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5116799, end=5116864, frame=0, strand='-',
                                   fasta_file_url=FASTA_FILE_URL)
 
-    sub_region: SeqRegion = exon_1.sub_region(rel_start=10, rel_end=19)
+    sub_region: SeqRegion = exon_1.sub_region(rel_start=11, rel_end=20)
 
     assert isinstance(sub_region, SeqRegion)
-    assert sub_region.start == 5116846
-    assert sub_region.end == 5116855
-    assert sub_region.get_sequence() == 'GGTAAACTAA'
+    assert sub_region.start == 5116845
+    assert sub_region.end == 5116854
+    assert sub_region.frame == 1
+    assert sub_region.get_sequence() == 'GTAAACTAAT'
