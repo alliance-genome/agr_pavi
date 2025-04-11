@@ -272,11 +272,11 @@ class MultiPartSeqRegion(SeqRegion):
                 covered_length += seq_region.seq_length
                 continue
 
-            if rel_end <= covered_length:
-                break
-
             seq_regions.append(seq_region.sub_region(rel_start=max(1, rel_start - covered_length), rel_end=min(rel_end - covered_length, seq_region.seq_length)))
             covered_length += seq_region.seq_length
+
+            if rel_end <= covered_length:
+                break
 
         return MultiPartSeqRegion(seq_regions=seq_regions)
 
