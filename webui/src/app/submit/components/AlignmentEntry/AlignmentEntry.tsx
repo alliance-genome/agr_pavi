@@ -88,6 +88,12 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const processGeneEntry = async(geneId: string) => {
+        if(geneId === gene?.id){
+            // Prevent processing the same gene twice
+            console.log(`Gene field value unchanged, skipping processing for ${geneId}.`)
+            return
+        }
+
         updateInputPayloadPart({
                 status: AlignmentEntryStatus.PROCESSING,
                 payloadPart: undefined
