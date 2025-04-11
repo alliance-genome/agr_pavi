@@ -256,6 +256,14 @@ class MultiPartSeqRegion(SeqRegion):
         Returns:
             MultipartSeqRegion object representing the subregion
         """
+
+        if rel_end < rel_start:
+            raise ValueError(f'Relative start position {rel_start} should be smaller than relative end position {rel_end}.')
+        if rel_start < 1:
+            raise ValueError(f'Relative start position {rel_start} falls outside the boundaries of the MultipartSeqRegion {self} (len {self.seq_length}).')
+        if self.seq_length < rel_end:
+            raise ValueError(f'Relative end position {rel_end} fall outside the boundaries of the MultipartSeqRegion {self} (len {self.seq_length}).')
+
         seq_regions: List[SeqRegion] = []
 
         covered_length: int = 0
