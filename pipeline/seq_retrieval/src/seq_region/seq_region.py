@@ -265,7 +265,7 @@ class SeqRegion():
         new_frame: Optional[SeqRegion.FRAME_TYPE] = None
 
         if self.frame is not None:
-            new_frame = ((rel_start - 1) - self.frame) % 3
+            new_frame = (self.frame - (rel_start - 1)) % 3
 
         if self.strand == '-':
             new_end = self.end - (rel_start - 1)

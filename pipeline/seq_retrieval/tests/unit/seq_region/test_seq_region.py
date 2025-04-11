@@ -91,5 +91,5 @@ def test_seq_region_sub_region_neg_strand() -> None:
     assert isinstance(sub_region, SeqRegion)
     assert sub_region.start == 5116845
     assert sub_region.end == 5116854
-    assert sub_region.frame == 1
+    assert sub_region.frame == 2
     assert sub_region.get_sequence() == 'GTAAACTAAT'
