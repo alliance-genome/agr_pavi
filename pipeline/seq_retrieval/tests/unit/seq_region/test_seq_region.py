@@ -93,3 +93,15 @@ def test_seq_region_sub_region_neg_strand() -> None:
     assert sub_region.end == 5116854
     assert sub_region.frame == 2
     assert sub_region.get_sequence() == 'GTAAACTAAT'
+
+    sub_region_frame1: SeqRegion = exon_1.sub_region(rel_start=12, rel_end=20)
+    assert sub_region_frame1.start == 5116845
+    assert sub_region_frame1.end == 5116853
+    assert sub_region_frame1.frame == 1
+    assert sub_region_frame1.get_sequence() == 'TAAACTAAT'
+
+    sub_region_frame0: SeqRegion = exon_1.sub_region(rel_start=13, rel_end=20)
+    assert sub_region_frame0.start == 5116845
+    assert sub_region_frame0.end == 5116852
+    assert sub_region_frame0.frame == 0
+    assert sub_region_frame0.get_sequence() == 'AAACTAAT'

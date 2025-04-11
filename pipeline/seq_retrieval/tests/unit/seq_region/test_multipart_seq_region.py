@@ -81,3 +81,95 @@ def test_sub_region_pos_strand(wb_cdna_c42d8_1_1: MultiPartSeqRegion) -> None:
     assert sub_region.get_sequence() == wb_cdna_c42d8_1_1.get_sequence()[149:250]
     assert sub_region.start == 5110483
     assert sub_region.end == 5110636
+
+
+def test_sub_region_w_frame_neg_strand(wb_cds_c54h2_5_1: MultiPartSeqRegion) -> None:
+
+    # Test subregion extraction within a single seqRegions (exon)
+    sub_region = wb_cds_c54h2_5_1.sub_region(rel_start=2, rel_end=51)
+    assert isinstance(sub_region, MultiPartSeqRegion)
+    assert sub_region.seq_length == 50
+    assert sub_region.get_sequence() == wb_cds_c54h2_5_1.get_sequence()[1:51]
+    assert sub_region.end == wb_cds_c54h2_5_1.end - (2 - 1)
+    assert sub_region.start == sub_region.end - (50 - 1)
+    assert sub_region.frame == 2
+    assert sub_region.strand == '-'
+
+    # Test subregion extraction accross multiple seqRegions (exons)
+    sub_region = wb_cds_c54h2_5_1.sub_region(rel_start=350, rel_end=450)
+    assert isinstance(sub_region, MultiPartSeqRegion)
+    assert sub_region.seq_length == 101
+    assert sub_region.get_sequence() == wb_cds_c54h2_5_1.get_sequence()[349:450]
+    assert sub_region.start == 5780159
+    assert sub_region.end == 5780305
+    assert sub_region.frame == 2
+    assert sub_region.strand == '-'
+    assert sub_region.get_sequence() == 'TTCTCTGGGACTTGAAGTTCTTGGCCAGaaacattgCCGTTGGTGGAGGACTTTTGCTCCTTCTTGCCGAGACACAGGAAGAGAAGGCTTCCCTGTTCGCC'
+
+    # Test subregion extraction at frame 1
+    sub_region = wb_cds_c54h2_5_1.sub_region(rel_start=351, rel_end=450)
+    assert isinstance(sub_region, MultiPartSeqRegion)
+    assert sub_region.seq_length == 100
+    assert sub_region.get_sequence() == wb_cds_c54h2_5_1.get_sequence()[350:450]
+    assert sub_region.start == 5780159
+    assert sub_region.end == 5780304
+    assert sub_region.frame == 1
+    assert sub_region.strand == '-'
+    assert sub_region.get_sequence() == 'TCTCTGGGACTTGAAGTTCTTGGCCAGaaacattgCCGTTGGTGGAGGACTTTTGCTCCTTCTTGCCGAGACACAGGAAGAGAAGGCTTCCCTGTTCGCC'
+
+    # Test subregion extraction at frame 0
+    sub_region = wb_cds_c54h2_5_1.sub_region(rel_start=352, rel_end=450)
+    assert isinstance(sub_region, MultiPartSeqRegion)
+    assert sub_region.seq_length == 99
+    assert sub_region.get_sequence() == wb_cds_c54h2_5_1.get_sequence()[351:450]
+    assert sub_region.start == 5780159
+    assert sub_region.end == 5780303
+    assert sub_region.frame == 0
+    assert sub_region.strand == '-'
+    assert sub_region.get_sequence() == 'CTCTGGGACTTGAAGTTCTTGGCCAGaaacattgCCGTTGGTGGAGGACTTTTGCTCCTTCTTGCCGAGACACAGGAAGAGAAGGCTTCCCTGTTCGCC'
+
+
+def test_sub_region_w_frame_pos_strand(wb_cds_c42d8_1_1: MultiPartSeqRegion) -> None:
+    # Test subregion extraction within a single seqRegions (exon)
+    sub_region = wb_cds_c42d8_1_1.sub_region(rel_start=1, rel_end=50)
+    assert isinstance(sub_region, MultiPartSeqRegion)
+    assert sub_region.seq_length == 50
+    assert sub_region.get_sequence() == wb_cds_c42d8_1_1.get_sequence()[0:50]
+    assert sub_region.start == 5109510
+    assert sub_region.end == sub_region.start + 50 - 1
+    assert sub_region.frame == 0
+    assert sub_region.strand == '+'
+    assert sub_region.get_sequence() == 'ATGTCGATGTATGGCAAAGACAAGGCGTATATCGAGAATGAGACAAAGTT'
+
+    # Test subregion extraction accross multiple seqRegions (exons)
+    sub_region = wb_cds_c42d8_1_1.sub_region(rel_start=100, rel_end=149)
+    assert isinstance(sub_region, MultiPartSeqRegion)
+    assert sub_region.seq_length == 50
+    assert sub_region.get_sequence() == wb_cds_c42d8_1_1.get_sequence()[99:149]
+    assert sub_region.start == 5109609
+    assert sub_region.end == 5110486
+    assert sub_region.frame == 0
+    assert sub_region.strand == '+'
+    assert sub_region.get_sequence() == 'TATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAGgtttcagTGGTAGA'
+
+    # Test subregion extraction at frame 2
+    sub_region = wb_cds_c42d8_1_1.sub_region(rel_start=101, rel_end=149)
+    assert isinstance(sub_region, MultiPartSeqRegion)
+    assert sub_region.seq_length == 49
+    assert sub_region.get_sequence() == wb_cds_c42d8_1_1.get_sequence()[100:149]
+    assert sub_region.start == 5109610
+    assert sub_region.end == 5110486
+    assert sub_region.frame == 2
+    assert sub_region.strand == '+'
+    assert sub_region.get_sequence() == 'ATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAGgtttcagTGGTAGA'
+
+    # Test subregion extraction at frame 1
+    sub_region = wb_cds_c42d8_1_1.sub_region(rel_start=102, rel_end=149)
+    assert isinstance(sub_region, MultiPartSeqRegion)
+    assert sub_region.seq_length == 48
+    assert sub_region.get_sequence() == wb_cds_c42d8_1_1.get_sequence()[101:149]
+    assert sub_region.start == 5109611
+    assert sub_region.end == 5110486
+    assert sub_region.frame == 1
+    assert sub_region.strand == '+'
+    assert sub_region.get_sequence() == 'TCGAGAAGGCCCAATTTTGAAACCAGATGTAGAGgtttcagTGGTAGA'
