@@ -456,7 +456,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             <FloatLabel>
                 <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
                     appendTo={"self"}
-                    display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
+                    display='chip' filter maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
                     onFocus={ () => setTranscriptListFocused(true) }
                     onBlur={ () => setTranscriptListFocused(false) }
