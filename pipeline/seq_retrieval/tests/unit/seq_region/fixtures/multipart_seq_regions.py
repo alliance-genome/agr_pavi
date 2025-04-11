@@ -12,8 +12,7 @@ FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.
 
 @pytest.fixture
 def wb_cdna_c54h2_5_1() -> MultiPartSeqRegion:
-    ## Test Class initiation
-    # WBGene00000149 Transcript:C54H2.5.1
+    # WBGene00004788 Transcript:C54H2.5.1
     # Exon 1 (mRNA start)
     exon_1: SeqRegion = SeqRegion(seq_id='X', start=5780644, end=5780722, strand='-',
                                   fasta_file_url=FASTA_FILE_URL)
