@@ -95,6 +95,8 @@ class SeqRegion():
         object_str = f'{self.seq_id}:{self.start}-{self.end}'
         if self.strand is not None:
             object_str += f':{self.strand}'
+        if self.frame is not None:
+            object_str += f' (frame:{self.frame})'
         return object_str
 
     @override
