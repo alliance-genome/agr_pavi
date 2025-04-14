@@ -1,8 +1,8 @@
 import pytest
 
-from typing import List, TypedDict
+from typing import TypedDict
 
-from seq_region import SeqRegion, TranslatedSeqRegion
+from seq_region import TranslatedSeqRegion
 
 
 FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
@@ -21,26 +21,8 @@ class TranscriptFixture(TypedDict):
 
 
 @pytest.fixture
-def WB_transcript1() -> TranscriptFixture:
+def WB_transcript1(wb_c54h2_5_1_exons) -> TranscriptFixture:
     # WBGene00000149 Transcript:C54H2.5.1
-    # Exon 1 (mRNA start)
-    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5780644, end=5780722, strand='-',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 2
-    exon_2: SeqRegion = SeqRegion(seq_id='X', start=5780278, end=5780585, strand='-',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 3
-    exon_3: SeqRegion = SeqRegion(seq_id='X', start=5779920, end=5780231, strand='-',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 4
-    exon_4: SeqRegion = SeqRegion(seq_id='X', start=5778875, end=5779453, strand='-',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    seq_region_list = [exon_1, exon_2, exon_3, exon_4]
-
     TRANSCRIPT_SEQ = ''.join('''
         CTCTTGGAAAATGAACCAGTTCCGGGCTCCAGGTGGTCAGAACGAAATGCTGGCGAAAGCAGAAGACGCCGCTGAAGAT
         TTCTTCCGCAAAACAAGGACCTACCTACCCCACATTGCTCGCCTCTGCCTCGTCTCCACATTCCTTGAAGATGGAATCC
@@ -67,68 +49,14 @@ def WB_transcript1() -> TranscriptFixture:
         RFYRDFMKYDFFQTMSVIGGLLLVIAYGPGGVSVDDYKKRW'''.split())
 
     return {
-        'translatedSeqRegion': TranslatedSeqRegion(exon_seq_regions=seq_region_list),
+        'translatedSeqRegion': TranslatedSeqRegion(exon_seq_regions=wb_c54h2_5_1_exons),
         'transcriptSeq': TRANSCRIPT_SEQ,
         'proteinSeq': PROTEIN_SEQ
     }
 
 
 @pytest.fixture
-def WB_transcript2_exons() -> List[SeqRegion]:
-    # WBGene00003232 Transcript:ZC506.4a.1
-    return [
-        SeqRegion(seq_id='X', start=9975783, end=9976017, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9973922, end=9974005, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9973799, end=9973834, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9973090, end=9973196, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972951, end=9973032, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972797, end=9972906, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972486, end=9972674, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972331, end=9972440, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972101, end=9972215, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9971651, end=9972022, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9971183, end=9971279, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9970990, end=9971137, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9970778, end=9970941, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9970619, end=9970720, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9970339, end=9970577, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9969791, end=9970049, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9969676, end=9969748, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9969386, end=9969633, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9969191, end=9969336, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9968517, end=9968788, strand='-', fasta_file_url=FASTA_FILE_URL),
-    ]
-
-
-@pytest.fixture
-def WB_transcript2_CDSs() -> List[SeqRegion]:
-    # WBGene00003232 Transcript:ZC506.4a.1
-    return [
-        SeqRegion(seq_id='X', start=9975783, end=9975791, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9973922, end=9974005, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9973799, end=9973834, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9973090, end=9973196, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972951, end=9973032, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972797, end=9972906, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972486, end=9972674, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972331, end=9972440, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9972101, end=9972215, frame=2, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9971651, end=9972022, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9971183, end=9971279, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9970990, end=9971137, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9970778, end=9970941, frame=2, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9970619, end=9970720, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9970339, end=9970577, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9969791, end=9970049, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9969676, end=9969748, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9969386, end=9969633, frame=2, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9969191, end=9969336, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
-        SeqRegion(seq_id='X', start=9968629, end=9968788, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
-    ]
-
-
-@pytest.fixture
-def WB_transcript2_no_cds(WB_transcript2_exons: List[SeqRegion]) -> TranscriptFixture:
+def WB_transcript2_no_cds(wb_zc506_4a_1_exons) -> TranscriptFixture:
     # WBGene00003232 Transcript:ZC506.4a.1
     TRANSCRIPT_SEQ = ''.join('''
         aaacgacacatatgaatgtatatagggaacaagagtttccatactcatagtgctcattagaatagcacggatcgtgtttc
@@ -195,14 +123,14 @@ def WB_transcript2_no_cds(WB_transcript2_exons: List[SeqRegion]) -> TranscriptFi
         STSSAHDTFL'''.split())
 
     return {
-        'translatedSeqRegion': TranslatedSeqRegion(exon_seq_regions=WB_transcript2_exons),
+        'translatedSeqRegion': TranslatedSeqRegion(exon_seq_regions=wb_zc506_4a_1_exons),
         'transcriptSeq': TRANSCRIPT_SEQ,
         'proteinSeq': PROTEIN_SEQ
     }
 
 
 @pytest.fixture
-def WB_transcript2_with_cds(WB_transcript2_exons: List[SeqRegion], WB_transcript2_CDSs: List[SeqRegion]) -> TranscriptFixture:
+def WB_transcript2_with_cds(wb_zc506_4a_1_exons, wb_wb_zc506_4a_1_cds_regions) -> TranscriptFixture:
     # WBGene00003232 Transcript:ZC506.4a.1
     TRANSCRIPT_SEQ = ''.join('''
         aaacgacacatatgaatgtatatagggaacaagagtttccatactcatagtgctcattagaatagcacggatcgtgtttc
@@ -261,7 +189,7 @@ def WB_transcript2_with_cds(WB_transcript2_exons: List[SeqRegion], WB_transcript
         KHKNVRKQEGESMLNKSSRSLGNCSSRLCANSIDEPNQYTALLTDSTRRRSSRKTSQPTSTSSAHDTFL'''.split())
 
     return {
-        'translatedSeqRegion': TranslatedSeqRegion(exon_seq_regions=WB_transcript2_exons, cds_seq_regions=WB_transcript2_CDSs),
+        'translatedSeqRegion': TranslatedSeqRegion(exon_seq_regions=wb_zc506_4a_1_exons, cds_seq_regions=wb_wb_zc506_4a_1_cds_regions),
         'transcriptSeq': TRANSCRIPT_SEQ,
         'proteinSeq': PROTEIN_SEQ
     }

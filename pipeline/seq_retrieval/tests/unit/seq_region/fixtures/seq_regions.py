@@ -123,3 +123,57 @@ def wb_c42d8_1_1_cds_regions() -> List[SeqRegion]:
         SeqRegion(seq_id='X', start=5112256, end=5112330, strand='+',
                   frame=0, fasta_file_url=FASTA_FILE_URL)
     ]
+
+
+@pytest.fixture
+def wb_zc506_4a_1_exons() -> List[SeqRegion]:
+    # WBGene00003232 Transcript:ZC506.4a.1
+    return [
+        SeqRegion(seq_id='X', start=9975783, end=9976017, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9973922, end=9974005, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9973799, end=9973834, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9973090, end=9973196, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972951, end=9973032, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972797, end=9972906, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972486, end=9972674, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972331, end=9972440, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972101, end=9972215, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9971651, end=9972022, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9971183, end=9971279, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9970990, end=9971137, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9970778, end=9970941, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9970619, end=9970720, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9970339, end=9970577, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9969791, end=9970049, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9969676, end=9969748, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9969386, end=9969633, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9969191, end=9969336, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9968517, end=9968788, strand='-', fasta_file_url=FASTA_FILE_URL),
+    ]
+
+
+@pytest.fixture
+def wb_wb_zc506_4a_1_cds_regions() -> List[SeqRegion]:
+    # WBGene00003232 Transcript:ZC506.4a.1
+    return [
+        SeqRegion(seq_id='X', start=9975783, end=9975791, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9973922, end=9974005, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9973799, end=9973834, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9973090, end=9973196, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972951, end=9973032, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972797, end=9972906, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972486, end=9972674, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972331, end=9972440, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9972101, end=9972215, frame=2, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9971651, end=9972022, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9971183, end=9971279, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9970990, end=9971137, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9970778, end=9970941, frame=2, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9970619, end=9970720, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9970339, end=9970577, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9969791, end=9970049, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9969676, end=9969748, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9969386, end=9969633, frame=2, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9969191, end=9969336, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=9968629, end=9968788, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
+    ]
