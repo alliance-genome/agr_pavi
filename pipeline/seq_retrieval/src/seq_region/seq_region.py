@@ -145,7 +145,7 @@ class SeqRegion():
         else:
             self.sequence = sequence
 
-    def get_sequence(self, unmasked: bool = False, autofetch: bool = True) -> str:
+    def get_sequence(self, unmasked: bool = False, autofetch: bool = True, inframe_only: bool = False) -> str:
         """
         Return the `sequence` attribute as a string.
 
@@ -154,6 +154,8 @@ class SeqRegion():
                       and return unmasked sequence instead (uppercase). Default `False`.
             autofetch: Flag to enable/disable automatic fetching of sequence \
                        when not already available. Default `True` (enabled).
+            inframe_only: Flag to return only complete in-frame codons (start==frame, len(seq) % 3 == 0).\
+                          Default `False`.
         Returns:
             The sequence of a seq region as a string (empty string if `None`).
         """
@@ -165,9 +167,43 @@ class SeqRegion():
         if unmasked:
             seq = seq.upper()
 
+        if inframe_only:
+            seq = self.inframe_sequence(seq)
+
         return seq
 
-    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True) -> str:
+    def inframe_sequence(self, sequence: Optional[str] = None) -> str:
+        """
+        Return the sequence of the SeqRegion within complete reading frames.
+
+        Skips the first n bases of the sequence where n is `self.frame` if `frame` is set.
+        Trims the end of the resultingsequence to a length that matches complete codons (a multiple of 3).
+
+        Args:
+            sequence: optional DNA sequence of the sequence region to convert, otherwise uses `self.sequence`
+
+        Returns:
+            The in-frame sequence of a seq region as a string (empty string if `None`).
+        """
+        seq: str
+        if sequence is None:
+            seq = str(self.sequence)
+        else:
+            seq = str(sequence)
+
+        length: int = 0
+        if seq != "":
+            start = self.frame or 0
+            length = (len(seq) - self.frame) // 3 * 3  # Floor the length to full codons
+
+        if length > 0:
+            seq = seq[start:start + length]
+        else:
+            seq = ""
+
+        return seq
+
+    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True, inframe_only: bool = False) -> str:
         """
         Get an alternative `sequence` of the SeqRegion by applying a list of variants to it.
 
@@ -179,6 +215,8 @@ class SeqRegion():
             variants:  List of variants to apply to the sequence before returning.
             autofetch: Flag to enable/disable automatic fetching of sequence \
                        when not already available. Default `True` (enabled).
+            inframe_only: Flag to return only complete in-frame codons (start==frame, len(seq) % 3 == 0).\
+                          Default `False`.
         Returns:
             The sequence of a seq region as a string (empty string if `None`).
         """
@@ -203,7 +241,7 @@ class SeqRegion():
             positioned_variants[rel_variant_start_pos] = variant
 
         # Replace the reference sequence with the alternative sequence for each variant
-        sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch)
+        sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch, inframe_only=False)
         # Loop through variants in relative positional reverse order to avoid changes in indices due to indels
         for rel_start, variant in sorted(positioned_variants.items(), reverse=True):
             rel_end = rel_start + len(variant.genomic_ref_seq) - 1
@@ -223,6 +261,9 @@ class SeqRegion():
                              + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
                 raise ValueError('Unexpected variant reference sequence mismatch.')
             sequence = sequence[:(rel_start - 1)] + variant_alt_seq + sequence[rel_end:]
+
+        if inframe_only:
+            sequence = self.get_inframe_sequence(sequence)
 
         return sequence
 

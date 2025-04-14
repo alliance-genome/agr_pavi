@@ -131,10 +131,7 @@ class TranslatedSeqRegion():
                 self.exon_seq_region.fetch_seq(recursive_fetch=recursive_fetch)
             case 'coding':
                 if self.coding_seq_region:
-                    coding_sequence = self.coding_seq_region.get_sequence()
-                    # Adjust coding sequence for reading frame if required
-                    if self.coding_seq_region.frame is not None:
-                        coding_sequence = coding_sequence[self.coding_seq_region.frame:]
+                    coding_sequence = self.coding_seq_region.get_sequence(inframe_only=True)
                     self.set_sequence(type='coding', sequence=coding_sequence)
                 else:
                     dna_sequence = self.exon_seq_region.get_sequence(unmasked=True)
@@ -194,11 +191,7 @@ class TranslatedSeqRegion():
                         raise ValueError('No reference coding sequence found, so no variants can be applied to it.')
 
                     ref_coding_seq = self.coding_dna_sequence
-                    alt_coding_seq = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
-
-                    # Adjust alt coding sequence to the (reference) reading frame if required
-                    if self.coding_seq_region.frame is not None:
-                        alt_coding_seq = alt_coding_seq[self.coding_seq_region.frame:]
+                    alt_coding_seq = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)
 
                     ## Evaluate alternative coding sequence
                     # If the reference start codon is different from the alternative start codon,

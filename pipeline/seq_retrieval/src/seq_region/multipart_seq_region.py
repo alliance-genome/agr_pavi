@@ -150,19 +150,21 @@ class MultiPartSeqRegion(SeqRegion):
         self.sequence = sequence
 
     @override
-    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True) -> str:
+    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True, inframe_only: bool = False) -> str:
         """
         Get an alternative sequence of the MultipartSeqRegion by applying a list of variants to it.
 
         Replaces the ref sequence of the variants found in the sequence region with its alt sequence.
 
         Args:
-            unmasked:  Flag to remove soft masking (lowercase letters) \
-                       and return unmasked sequence instead (uppercase).\
-                       Default `False`.
-            variants:  List of variants to apply to the sequence before returning.
-            autofetch: Flag to enable/disable automatic fetching of sequence \
-                       when not already available. Default `True` (enabled).
+            unmasked:     Flag to remove soft masking (lowercase letters) \
+                          and return unmasked sequence instead (uppercase).\
+                          Default `False`.
+            variants:     List of variants to apply to the sequence before returning.
+            autofetch:    Flag to enable/disable automatic fetching of sequence \
+                          when not already available. Default `True` (enabled).
+            inframe_only: Flag to return only complete in-frame codons (start==frame, len(seq) % 3 == 0).\
+                          Default `False`.
 
         Returns:
             The MultiPartSeqRegion's sequence as a string (empty string if `None`) with provided variants embedded.
@@ -182,7 +184,7 @@ class MultiPartSeqRegion(SeqRegion):
         if self.sequence is None and autofetch:
             self.fetch_seq(recursive_fetch=True)
 
-        ref_sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch)
+        ref_sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch, inframe_only=False)
 
         positioned_variants: Dict[int, Variant] = {}  # Variants indexed by relative position in MultipartSeqRegion
 
@@ -224,6 +226,9 @@ class MultiPartSeqRegion(SeqRegion):
                              + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
                 raise ValueError('Unexpected variant reference sequence mismatch.')
             alt_sequence = alt_sequence[:(rel_start - 1)] + variant_alt_seq + alt_sequence[rel_end:]
+
+        if inframe_only:
+            alt_sequence = self.inframe_sequence(alt_sequence)
 
         return alt_sequence
 
