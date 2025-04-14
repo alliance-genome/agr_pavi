@@ -102,3 +102,48 @@ def test_seq_region_sub_region_neg_strand() -> None:
     assert sub_region_frame0.end == 5116852
     assert sub_region_frame0.frame == 0
     assert sub_region_frame0.get_sequence() == 'AAACTAAT'
+
+
+def test_seq_region_inframe_sequence(wb_c42d8_1_1_cds_regions) -> None:
+    cds_region: SeqRegion = wb_c42d8_1_1_cds_regions[0]
+    assert cds_region.frame == 0
+
+    complete_sequence = cds_region.get_sequence(inframe_only=False)
+    frame0_inframe_sequence = cds_region.inframe_sequence()
+
+    assert frame0_inframe_sequence == complete_sequence
+    assert frame0_inframe_sequence != ""
+    assert len(frame0_inframe_sequence) % 3 == 0  # Complete codons
+
+    # Frame 1 testing
+    frame1_subregion: SeqRegion = cds_region.sub_region(rel_start=3, rel_end=cds_region.seq_length)
+    assert frame1_subregion.frame == 1
+
+    frame1_inframe_sequence = frame1_subregion.inframe_sequence()
+
+    assert frame1_inframe_sequence != frame1_subregion.get_sequence(inframe_only=False)
+    assert frame1_inframe_sequence == frame1_subregion.get_sequence(inframe_only=True)
+    assert len(frame1_inframe_sequence) % 3 == 0  # Complete codons
+    assert frame1_inframe_sequence == complete_sequence[3:cds_region.seq_length]
+
+    # Frame 2 testing
+    frame2_subregion: SeqRegion = cds_region.sub_region(rel_start=2, rel_end=cds_region.seq_length)
+    assert frame2_subregion.frame == 2
+
+    frame2_inframe_sequence = frame2_subregion.inframe_sequence()
+
+    assert frame2_inframe_sequence != frame2_subregion.get_sequence(inframe_only=False)
+    assert frame2_inframe_sequence == frame2_subregion.get_sequence(inframe_only=True)
+    assert len(frame2_inframe_sequence) % 3 == 0  # Complete codons
+    assert frame2_inframe_sequence == complete_sequence[3:cds_region.seq_length]
+
+    # Frame 4 testing (frame 2 in next codon)
+    frame4_subregion: SeqRegion = cds_region.sub_region(rel_start=5, rel_end=cds_region.seq_length)
+    assert frame4_subregion.frame == 2
+
+    frame4_inframe_sequence = frame4_subregion.inframe_sequence()
+
+    assert frame4_inframe_sequence != frame4_subregion.get_sequence(inframe_only=False)
+    assert frame4_inframe_sequence == frame4_subregion.get_sequence(inframe_only=True)
+    assert len(frame4_inframe_sequence) % 3 == 0  # Complete codons
+    assert frame4_inframe_sequence == complete_sequence[6:cds_region.seq_length]
