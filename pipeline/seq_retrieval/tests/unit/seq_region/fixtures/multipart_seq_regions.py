@@ -2,137 +2,30 @@
 MultipartSeqRegion fixtures for unit testing
 """
 
-from seq_region import SeqRegion, MultiPartSeqRegion
+from seq_region import MultiPartSeqRegion
 
 import pytest
 
 
-FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
-
-
 @pytest.fixture
-def wb_cdna_c54h2_5_1() -> MultiPartSeqRegion:
+def wb_cdna_c54h2_5_1(wb_c54h2_5_1_exons) -> MultiPartSeqRegion:
     # WBGene00004788 Transcript:C54H2.5.1
-    # Exon 1 (mRNA start)
-    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5780644, end=5780722, strand='-',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 2
-    exon_2: SeqRegion = SeqRegion(seq_id='X', start=5780278, end=5780585, strand='-',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 3
-    exon_3: SeqRegion = SeqRegion(seq_id='X', start=5779920, end=5780231, strand='-',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 4
-    exon_4: SeqRegion = SeqRegion(seq_id='X', start=5778875, end=5779453, strand='-',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    seq_region_list = [exon_1, exon_2, exon_3, exon_4]
-
-    return MultiPartSeqRegion(seq_region_list)
+    return MultiPartSeqRegion(wb_c54h2_5_1_exons)
 
 
 @pytest.fixture
-def wb_cds_c54h2_5_1() -> MultiPartSeqRegion:
+def wb_cds_c54h2_5_1(wb_c54h2_5_1_cds_regions) -> MultiPartSeqRegion:
     # WBGene00004788 Transcript:C54H2.5.1
-    # CDS 1 (coding region start)
-    cds_1: SeqRegion = SeqRegion(seq_id='X', start=5780644, end=5780712, frame=0, strand='-',
-                                 fasta_file_url=FASTA_FILE_URL)
-
-    # CDS 2
-    cds_2: SeqRegion = SeqRegion(seq_id='X', start=5780278, end=5780585, frame=0, strand='-',
-                                 fasta_file_url=FASTA_FILE_URL)
-
-    # CDS 3
-    cds_3: SeqRegion = SeqRegion(seq_id='X', start=5779920, end=5780231, frame=1, strand='-',
-                                 fasta_file_url=FASTA_FILE_URL)
-
-    # CDS 4
-    cds_4: SeqRegion = SeqRegion(seq_id='X', start=5779309, end=5779453, frame=1, strand='-',
-                                 fasta_file_url=FASTA_FILE_URL)
-
-    seq_region_list = [cds_1, cds_2, cds_3, cds_4]
-
-    return MultiPartSeqRegion(seq_region_list)
+    return MultiPartSeqRegion(wb_c54h2_5_1_cds_regions)
 
 
 @pytest.fixture
-def wb_cdna_c42d8_1_1() -> MultiPartSeqRegion:
+def wb_cdna_c42d8_1_1(wb_c42d8_1_1_exons) -> MultiPartSeqRegion:
     # WB:WBGene00016599 Transcript:C42D8.1.1
-    # Exon 1 (mRNA start)
-    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5109506, end=5109644, strand='+',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 2
-    exon_2: SeqRegion = SeqRegion(seq_id='X', start=5110473, end=5110556, strand='+',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 3
-    exon_3: SeqRegion = SeqRegion(seq_id='X', start=5110610, end=5110708, strand='+',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 4
-    exon_4: SeqRegion = SeqRegion(seq_id='X', start=5110762, end=5110869, strand='+',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 5
-    exon_5: SeqRegion = SeqRegion(seq_id='X', start=5111054, end=5111200, strand='+',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 6
-    exon_6: SeqRegion = SeqRegion(seq_id='X', start=5111250, end=5111309, strand='+',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 7
-    exon_7: SeqRegion = SeqRegion(seq_id='X', start=5111423, end=5111473, strand='+',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 8
-    exon_8: SeqRegion = SeqRegion(seq_id='X', start=5112256, end=5112426, strand='+',
-                                  fasta_file_url=FASTA_FILE_URL)
-
-    seq_region_list = [exon_1, exon_2, exon_3, exon_4, exon_5, exon_6, exon_7, exon_8]
-
-    return MultiPartSeqRegion(seq_region_list)
+    return MultiPartSeqRegion(wb_c42d8_1_1_exons)
 
 
 @pytest.fixture
-def wb_cds_c42d8_1_1() -> MultiPartSeqRegion:
+def wb_cds_c42d8_1_1(wb_c42d8_1_1_cds_regions) -> MultiPartSeqRegion:
     # WB:WBGene00016599 Transcript:C42D8.1.1
-    # CDS 1 (CDS start)
-    exon_1: SeqRegion = SeqRegion(seq_id='X', start=5109510, end=5109644, strand='+',
-                                  frame=0, fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 2
-    exon_2: SeqRegion = SeqRegion(seq_id='X', start=5110473, end=5110556, strand='+',
-                                  frame=0, fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 3
-    exon_3: SeqRegion = SeqRegion(seq_id='X', start=5110610, end=5110708, strand='+',
-                                  frame=0, fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 4
-    exon_4: SeqRegion = SeqRegion(seq_id='X', start=5110762, end=5110869, strand='+',
-                                  frame=0, fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 5
-    exon_5: SeqRegion = SeqRegion(seq_id='X', start=5111054, end=5111200, strand='+',
-                                  frame=0, fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 6
-    exon_6: SeqRegion = SeqRegion(seq_id='X', start=5111250, end=5111309, strand='+',
-                                  frame=0, fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 7
-    exon_7: SeqRegion = SeqRegion(seq_id='X', start=5111423, end=5111473, strand='+',
-                                  frame=0, fasta_file_url=FASTA_FILE_URL)
-
-    # Exon 8
-    exon_8: SeqRegion = SeqRegion(seq_id='X', start=5112256, end=5112330, strand='+',
-                                  frame=0, fasta_file_url=FASTA_FILE_URL)
-
-    seq_region_list = [exon_1, exon_2, exon_3, exon_4, exon_5, exon_6, exon_7, exon_8]
-
-    return MultiPartSeqRegion(seq_region_list)
+    return MultiPartSeqRegion(wb_c42d8_1_1_cds_regions)
