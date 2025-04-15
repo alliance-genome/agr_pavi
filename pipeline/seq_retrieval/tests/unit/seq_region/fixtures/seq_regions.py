@@ -153,7 +153,7 @@ def wb_zc506_4a_1_exons() -> List[SeqRegion]:
 
 
 @pytest.fixture
-def wb_wb_zc506_4a_1_cds_regions() -> List[SeqRegion]:
+def wb_zc506_4a_1_cds_regions() -> List[SeqRegion]:
     # WBGene00003232 Transcript:ZC506.4a.1
     return [
         SeqRegion(seq_id='X', start=9975783, end=9975791, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),

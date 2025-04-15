@@ -130,7 +130,7 @@ def WB_transcript2_no_cds(wb_zc506_4a_1_exons) -> TranscriptFixture:
 
 
 @pytest.fixture
-def WB_transcript2_with_cds(wb_zc506_4a_1_exons, wb_wb_zc506_4a_1_cds_regions) -> TranscriptFixture:
+def WB_transcript2_with_cds(wb_zc506_4a_1_exons, wb_zc506_4a_1_cds_regions) -> TranscriptFixture:
     # WBGene00003232 Transcript:ZC506.4a.1
     TRANSCRIPT_SEQ = ''.join('''
         aaacgacacatatgaatgtatatagggaacaagagtttccatactcatagtgctcattagaatagcacggatcgtgtttc
@@ -189,7 +189,7 @@ def WB_transcript2_with_cds(wb_zc506_4a_1_exons, wb_wb_zc506_4a_1_cds_regions) -
         KHKNVRKQEGESMLNKSSRSLGNCSSRLCANSIDEPNQYTALLTDSTRRRSSRKTSQPTSTSSAHDTFL'''.split())
 
     return {
-        'translatedSeqRegion': TranslatedSeqRegion(exon_seq_regions=wb_zc506_4a_1_exons, cds_seq_regions=wb_wb_zc506_4a_1_cds_regions),
+        'translatedSeqRegion': TranslatedSeqRegion(exon_seq_regions=wb_zc506_4a_1_exons, cds_seq_regions=wb_zc506_4a_1_cds_regions),
         'transcriptSeq': TRANSCRIPT_SEQ,
         'proteinSeq': PROTEIN_SEQ
     }
