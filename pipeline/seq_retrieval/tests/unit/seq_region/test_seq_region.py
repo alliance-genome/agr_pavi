@@ -2,6 +2,8 @@
 Unit testing for SeqRegion class and related functions
 """
 
+from Bio import Seq
+
 from seq_region import SeqRegion
 
 
@@ -172,3 +174,16 @@ def test_get_alt_sequence_deletion(wb_variant_kx29, wb_f59f5_2a_1_exon10) -> Non
     assert ref_sequence[44:45] == wb_variant_kx29.genomic_ref_seq
     # Sequence after variant must be identical
     assert ref_sequence[45:] == alt_sequence[44:]
+
+
+def test_get_alt_sequence_insertion(wb_variant_ce338, c14f11_3_1_exon7) -> None:
+    # Variant insertion at negative strand
+    ref_sequence = c14f11_3_1_exon7.get_sequence()
+    alt_sequence = c14f11_3_1_exon7.get_alt_sequence(variants=[wb_variant_ce338])
+
+    # Sequence before variant must be identical
+    assert ref_sequence[0:96] == alt_sequence[0:96]
+    # Sequence at variant position must match expected alt sequence
+    assert alt_sequence[96:97] == Seq.reverse_complement(wb_variant_ce338.genomic_alt_seq)
+    # Sequence after variant must be identical
+    assert ref_sequence[96:] == alt_sequence[97:]

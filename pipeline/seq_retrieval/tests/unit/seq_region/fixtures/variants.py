@@ -43,3 +43,11 @@ def wb_variant_kx29() -> Variant:
     return Variant(variant_id='NC_003284.9:g.10536447_10536447del',
                    seq_id='X', start=10536447, end=10536447,
                    genomic_ref_seq='G')
+
+
+@pytest.fixture
+def wb_variant_ce338() -> Variant:
+    # WB:WBVar00054047 - ce338 - NC_003284.9:g.6228001_6228002insA - insertion
+    return Variant(variant_id='NC_003284.9:g.6228001_6228002insA',
+                   seq_id='X', start=6228001, end=6228002,
+                   genomic_alt_seq='A')
