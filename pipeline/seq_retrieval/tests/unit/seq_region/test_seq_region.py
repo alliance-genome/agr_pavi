@@ -150,6 +150,17 @@ def test_seq_region_inframe_sequence(wb_c42d8_1_1_cds_regions) -> None:
     assert len(frame4_inframe_sequence) % 3 == 0  # Complete codons
     assert frame4_inframe_sequence == complete_sequence[6:cds_region.seq_length]
 
+    # Sequence without complete codons
+    incomplete_frames_subregion: SeqRegion = cds_region.sub_region(rel_start=2, rel_end=4)
+    assert incomplete_frames_subregion.frame == 2
+
+    incomplete_frames_inframe_sequence = incomplete_frames_subregion.inframe_sequence()
+
+    assert incomplete_frames_inframe_sequence != incomplete_frames_subregion.get_sequence(inframe_only=False)
+    assert incomplete_frames_inframe_sequence == incomplete_frames_subregion.get_sequence(inframe_only=True)
+    assert len(incomplete_frames_inframe_sequence) % 3 == 0  # Complete codons
+    assert incomplete_frames_inframe_sequence == ""
+
 
 def test_get_alt_sequence_mutation(wb_variant_gk803418, wb_c42d8_1_1_cds_regions) -> None:
     ref_sequence = wb_c42d8_1_1_cds_regions[0].get_sequence()

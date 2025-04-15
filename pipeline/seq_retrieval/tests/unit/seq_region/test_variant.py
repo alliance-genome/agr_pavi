@@ -57,6 +57,16 @@ def test_variant_initiation_errors() -> None:
                 genomic_alt_seq='A')
 
 
+def test_variant_comparison(wb_variant_yn32, wb_variant_yn30) -> None:
+    """
+    Test Variant class __eq__() method.
+    """
+    variant = Variant(variant_id='NC_003284.9:g.5114224C>T', seq_id='X', start=5114224, end=5114224,
+                      genomic_ref_seq='C', genomic_alt_seq='T')
+    assert wb_variant_yn32 == variant
+    assert wb_variant_yn32 != wb_variant_yn30
+
+
 def test_variant_overlaps(wb_variant_yn32, wb_variant_yn30, wb_variant_yn10, wb_variant_e1178) -> None:
     """
     Test Variant.overlaps() method.
