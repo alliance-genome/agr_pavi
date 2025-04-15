@@ -111,10 +111,21 @@ class Variant():
         """
         overlaps = False
 
+        # Both variants must be on the same seq_id (chromosome or contig) to overlap
+        # and have at least partially overlapping start and end positions
         if self.genomic_seq_id == other.genomic_seq_id and \
-           self.genomic_end_pos >= other.genomic_start_pos and \
-           self.genomic_start_pos <= other.genomic_end_pos:
-            overlaps = True
+           self.genomic_end_pos >= other.genomic_start_pos and self.genomic_start_pos <= other.genomic_end_pos:
+
+            # For insertions, the complete insertion site must fall within the other variant
+            if self.genomic_ref_seq == "":
+                if self.genomic_start_pos >= other.genomic_start_pos and self.genomic_end_pos <= other.genomic_end_pos:
+                    overlaps = True
+            elif other.genomic_ref_seq == "":
+                if other.genomic_start_pos >= self.genomic_start_pos and other.genomic_end_pos <= self.genomic_end_pos:
+                    overlaps = True
+            # For all other variants, partial overlap is sufficient
+            else:
+                overlaps = True
 
         return overlaps
 

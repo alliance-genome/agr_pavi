@@ -31,16 +31,43 @@ def test_variant_from_id_initiation(wb_variant_yn10: Variant) -> None:
     assert variant == wb_variant_yn10
 
 
-def test_variant_overlaps(wb_variant_yn32: Variant, wb_variant_yn30: Variant, wb_variant_yn10: Variant) -> None:
+def test_variant_overlaps(wb_variant_yn32, wb_variant_yn30, wb_variant_yn10, wb_variant_e1178) -> None:
     """
     Test Variant.overlaps() method.
     """
+    # Non-overlapping variants
     assert wb_variant_yn32.overlaps(wb_variant_yn30) is False
     assert wb_variant_yn30.overlaps(wb_variant_yn32) is False
+    # Overlapping variants
     assert wb_variant_yn32.overlaps(wb_variant_yn10) is True
     assert wb_variant_yn10.overlaps(wb_variant_yn32) is True
+    # Non-overlapping variants
     assert wb_variant_yn30.overlaps(wb_variant_yn10) is False
     assert wb_variant_yn10.overlaps(wb_variant_yn30) is False
+
+    # Hypothetical insertion variants overlapping yn10 (5113285-5115215)
+    yn10_start_overlap_insertion = Variant(variant_id='insert_overlap_start_yn10', seq_id='X', start=5113285, end=5113286,
+                                           genomic_ref_seq='', genomic_alt_seq='A')
+    yn10_end_overlap_insertion = Variant(variant_id='insert_overlap_end_yn10', seq_id='X', start=5115214, end=5115215,
+                                         genomic_ref_seq='', genomic_alt_seq='A')
+    assert yn10_start_overlap_insertion.overlaps(wb_variant_yn10) is True
+    assert wb_variant_yn10.overlaps(yn10_start_overlap_insertion) is True
+    assert yn10_end_overlap_insertion.overlaps(wb_variant_yn10) is True
+    assert wb_variant_yn10.overlaps(yn10_end_overlap_insertion) is True
+
+    # Hypothetical insertion variants not overlapping yn10 at edges (5113285-5115215)
+    yn10_start_no_overlap_insertion = Variant(variant_id='insert_no_overlap_start_yn10', seq_id='X', start=5113284, end=5113285,
+                                              genomic_ref_seq='', genomic_alt_seq='A')
+    yn10_end_no_overlap_insertion = Variant(variant_id='insert_no_overlap_end_yn10', seq_id='X', start=5115215, end=5115216,
+                                            genomic_ref_seq='', genomic_alt_seq='A')
+    assert yn10_start_no_overlap_insertion.overlaps(wb_variant_yn10) is False
+    assert wb_variant_yn10.overlaps(yn10_start_no_overlap_insertion) is False
+    assert yn10_end_no_overlap_insertion.overlaps(wb_variant_yn10) is False
+    assert wb_variant_yn10.overlaps(yn10_end_no_overlap_insertion) is False
+
+    # Non-overlapping insertion variant (wb_variant_e1178)
+    assert wb_variant_yn10.overlaps(wb_variant_e1178) is False
+    assert wb_variant_e1178.overlaps(wb_variant_yn10) is False
 
 
 def test_variants_overlap(wb_variant_yn10: Variant, wb_variant_yn30: Variant, wb_variant_yn32: Variant) -> None:
