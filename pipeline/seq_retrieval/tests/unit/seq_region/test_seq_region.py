@@ -40,7 +40,7 @@ def test_seq_region_overlap(wb_c42d8_1_1_exons) -> None:
     # WBGene00016599 Transcript:C42D8.1.1 Exon 1 (mRNA start)
     exon_1: SeqRegion = wb_c42d8_1_1_exons[0]
 
-    # gk787530 - point mutation (overlap)
+    # WBVar01145173 - gk787530 - NC_003284.9:g.5109543G>A - point mutation (overlap)
     gk803418: SeqRegion = SeqRegion(seq_id='X', start=5109543, end=5109543,
                                     fasta_file_url=FASTA_FILE_URL)
 
