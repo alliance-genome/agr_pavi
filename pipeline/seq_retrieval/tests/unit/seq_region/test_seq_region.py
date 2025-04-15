@@ -147,3 +147,16 @@ def test_seq_region_inframe_sequence(wb_c42d8_1_1_cds_regions) -> None:
     assert frame4_inframe_sequence == frame4_subregion.get_sequence(inframe_only=True)
     assert len(frame4_inframe_sequence) % 3 == 0  # Complete codons
     assert frame4_inframe_sequence == complete_sequence[6:cds_region.seq_length]
+
+
+def test_get_alt_sequence_mutation(wb_variant_gk803418, wb_c42d8_1_1_cds_regions) -> None:
+    ref_sequence = wb_c42d8_1_1_cds_regions[0].get_sequence()
+    alt_sequence = wb_c42d8_1_1_cds_regions[0].get_alt_sequence(variants=[wb_variant_gk803418])
+
+    # Sequence before variant must be identical
+    assert ref_sequence[0:33] == alt_sequence[0:33]
+    # Sequence at variant position must match expected ref/alt sequence
+    assert ref_sequence[33:34] == wb_variant_gk803418.genomic_ref_seq
+    assert alt_sequence[33:34] == wb_variant_gk803418.genomic_alt_seq
+    # Sequence after variant must be identical
+    assert ref_sequence[34:] == alt_sequence[34:]
