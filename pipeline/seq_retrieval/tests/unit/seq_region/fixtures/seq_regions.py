@@ -177,3 +177,9 @@ def wb_wb_zc506_4a_1_cds_regions() -> List[SeqRegion]:
         SeqRegion(seq_id='X', start=9969191, end=9969336, frame=0, strand='-', fasta_file_url=FASTA_FILE_URL),
         SeqRegion(seq_id='X', start=9968629, end=9968788, frame=1, strand='-', fasta_file_url=FASTA_FILE_URL),
     ]
+
+
+@pytest.fixture
+def wb_f59f5_2a_1_exon10() -> SeqRegion:
+    # WB:WBGene00010341 - Transcript:F59F5.2a.1 - exon 10
+    return SeqRegion(seq_id='X', start=10536403, end=10536586, strand='+', fasta_file_url=FASTA_FILE_URL)

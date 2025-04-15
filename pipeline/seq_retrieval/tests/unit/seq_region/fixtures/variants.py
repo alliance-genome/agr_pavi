@@ -35,3 +35,11 @@ def wb_variant_gk803418() -> Variant:
     return Variant(variant_id='NC_003284.9:g.5109543G>A',
                    seq_id='X', start=5109543, end=5109543,
                    genomic_ref_seq='G', genomic_alt_seq='A')
+
+
+@pytest.fixture
+def wb_variant_kx29() -> Variant:
+    # WB:WBVar00088371 - kx29 - NC_003284.9:g.10536447_10536447del - deletion
+    return Variant(variant_id='NC_003284.9:g.10536447_10536447del',
+                   seq_id='X', start=10536447, end=10536447,
+                   genomic_ref_seq='G')
