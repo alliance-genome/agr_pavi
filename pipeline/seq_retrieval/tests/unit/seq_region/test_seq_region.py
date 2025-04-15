@@ -170,7 +170,7 @@ def test_get_alt_sequence_deletion(wb_variant_kx29, wb_f59f5_2a_1_exon10) -> Non
 
     # Sequence before variant must be identical
     assert ref_sequence[0:44] == alt_sequence[0:44]
-    # Sequence at variant position must match expected ref/alt sequence
+    # Sequence at variant position must match expected ref sequence
     assert ref_sequence[44:45] == wb_variant_kx29.genomic_ref_seq
     # Sequence after variant must be identical
     assert ref_sequence[45:] == alt_sequence[44:]
