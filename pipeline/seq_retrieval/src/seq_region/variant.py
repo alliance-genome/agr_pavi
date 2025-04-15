@@ -40,10 +40,22 @@ class Variant():
         Args:
             variant_id: ID of the variant.
             seq_id: ID of the sequence region.
-            start: Start position of the variant.
-            end: End position of the variant.
+            start: Start position of the variant (<= end).
+            end: End position of the variant (>= start).
             strand: Strand of the sequence region (e.g., '+' or '-').
         """
+        # Ensure start <= end
+        if start > end:
+            raise ValueError(f'Invalid variant positions: start position ({start}) > end position ({end}).')
+
+        # Ensure one of genomic_ref_seq or genomic_alt_seq is provided
+        if not genomic_ref_seq and not genomic_alt_seq:
+            raise ValueError('Variant must have at least one of genomic_ref_seq or genomic_alt_seq provided.')
+
+        # For insertions, ensure start and end position indicate insertion site boundaries (2 bp)
+        if not genomic_ref_seq and end - 1 != start:
+            raise ValueError('Insertions must have start and end positions that indicate insertion site boundaries (2 flanking bases).')
+
         self.variant_id = variant_id
         self.genomic_seq_id = seq_id
         self.genomic_start_pos = start

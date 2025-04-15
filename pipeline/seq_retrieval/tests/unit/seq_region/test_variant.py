@@ -5,6 +5,7 @@ Unit testing for Variant class and related functions
 from seq_region import Variant, variants_overlap
 
 import json
+import pytest
 import responses  # requests mocking library
 from typing import Any
 
@@ -29,6 +30,31 @@ def test_variant_from_id_initiation(wb_variant_yn10: Variant) -> None:
     variant = Variant.from_variant_id(VARIANT_ID)
     assert isinstance(variant, Variant)
     assert variant == wb_variant_yn10
+
+
+def test_variant_initiation_errors() -> None:
+    """
+    Test Variant class initiation errors.
+    """
+    # start > end
+    with pytest.raises(ValueError):
+        Variant(variant_id='NC_003284.9:g.5109543G>A',
+                seq_id='X', start=5109544, end=5109543,
+                genomic_ref_seq='G', genomic_alt_seq='A')
+    # No genomic_ref_seq and genomic_alt_seq
+    with pytest.raises(ValueError):
+        Variant(variant_id='NC_003284.9:g.5109543G>A',
+                seq_id='X', start=5109543, end=5109543)
+    # Empty genomic_ref_seq and genomic_alt_seq
+    with pytest.raises(ValueError):
+        Variant(variant_id='NC_003284.9:g.5109543G>A',
+                seq_id='X', start=5109543, end=5109543,
+                genomic_ref_seq='', genomic_alt_seq='')
+    # Insertion with invalid positions
+    with pytest.raises(ValueError):
+        Variant(variant_id='NC_003284.9:g.6228001_6228002insA',
+                seq_id='X', start=6228001, end=6228001,
+                genomic_alt_seq='A')
 
 
 def test_variant_overlaps(wb_variant_yn32, wb_variant_yn30, wb_variant_yn10, wb_variant_e1178) -> None:
