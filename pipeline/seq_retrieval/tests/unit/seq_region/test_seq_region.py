@@ -3,6 +3,7 @@ Unit testing for SeqRegion class and related functions
 """
 
 from Bio import Seq
+import pytest
 
 from seq_region import SeqRegion
 
@@ -198,3 +199,20 @@ def test_get_alt_sequence_insertion(wb_variant_ce338, c14f11_3_1_exon7) -> None:
     assert alt_sequence[96:97] == Seq.reverse_complement(wb_variant_ce338.genomic_alt_seq)
     # Sequence after variant must be identical
     assert ref_sequence[96:] == alt_sequence[97:]
+
+
+def test_get_alt_sequence_input_errors(wb_variant_yn32, wb_variant_yn30, wb_variant_yn10, wb_c42d8_8b_1_exons) -> None:
+    """
+    Test Variant get_alt_sequence input argument errors.
+    """
+    # no variants provided
+    with pytest.raises(ValueError):
+        wb_c42d8_8b_1_exons[7].get_alt_sequence(variants=[])
+
+    # overlapping variants provided
+    with pytest.raises(ValueError):
+        wb_c42d8_8b_1_exons[7].get_alt_sequence(variants=[wb_variant_yn32, wb_variant_yn10])
+
+    # variant position outside of sequence region
+    with pytest.raises(ValueError):
+        wb_c42d8_8b_1_exons[7].get_alt_sequence(variants=[wb_variant_yn30])
