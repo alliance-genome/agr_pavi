@@ -33,7 +33,7 @@ class Variant():
     genomic_alt_seq: str
     """Genomic alternative sequence of the variant"""
 
-    def __init__(self, variant_id: str, seq_id: str, start: int, end: int, genomic_ref_seq: Optional[str], genomic_alt_seq: Optional[str]):
+    def __init__(self, variant_id: str, seq_id: str, start: int, end: int, genomic_ref_seq: Optional[str] = None, genomic_alt_seq: Optional[str] = None):
         """
         Initializes a Variant instance.
 
