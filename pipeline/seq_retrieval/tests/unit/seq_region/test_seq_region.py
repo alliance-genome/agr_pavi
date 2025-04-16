@@ -5,7 +5,7 @@ Unit testing for SeqRegion class and related functions
 from Bio import Seq
 import pytest
 
-from seq_region import SeqRegion
+from seq_region import SeqRegion, Variant
 
 
 FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
@@ -222,3 +222,48 @@ def test_get_alt_sequence_input_errors(wb_variant_yn32, wb_variant_yn30, wb_vari
     # variant position outside of sequence region
     with pytest.raises(ValueError):
         wb_c42d8_8b_1_exons[7].get_alt_sequence(variants=[wb_variant_yn30])
+
+
+def test_get_alt_sequence_multiple_variants_neg_strand(c14f11_3_1_exon5) -> None:
+    """
+    Test Variant get_alt_sequence variant embedding on neg strand with multiple variants
+    """
+    # c14f11_3_1_exon5 start=6227974, end=6228097
+    insert_start = Variant(variant_id='custom_cf14f11-3-1-exon5_start_insertion_variant', genomic_ref_seq='', genomic_alt_seq='G',
+                           seq_id='X', start=6228096, end=6228097)
+    insert_end = Variant(variant_id='custom_cf14f11-3-1-exon5_end_insertion_variant', genomic_ref_seq='', genomic_alt_seq='AAA',
+                         seq_id='X', start=6227974, end=6227975)
+    mutation = Variant(variant_id='custom_cf14f11-3-1-exon5_mutation_variant', genomic_ref_seq='A', genomic_alt_seq='C',
+                       seq_id='X', start=6228027, end=6228027)
+
+    # Variant insertion at negative strand
+    ref_sequence = c14f11_3_1_exon5.get_sequence()
+    alt1_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[insert_start, mutation])
+    alt2_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[insert_end, mutation])
+    alt3_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[insert_start, insert_end, mutation])
+
+    assert ref_sequence  == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
+    assert alt1_sequence == 'ACTTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTGTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'
+    assert alt2_sequence == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTGTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCTTTA'
+    assert alt3_sequence == 'ACTTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTGTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCTTTA'
+
+
+def test_get_alt_sequence_multiple_variants_pos_strand(wb_f59f5_2a_1_exon10) -> None:
+    # wb_f59f5_2a_1_exon10 start=10536403, end=10536586
+    insert_start = Variant(variant_id='custom_f59f5-2a-1-exon10_start_insertion_variant', genomic_ref_seq='', genomic_alt_seq='T',
+                           seq_id='X', start=10536403, end=10536404)
+    delete_end = Variant(variant_id='custom_f59f5-2a-1-exon10_end_deletion_variant', genomic_ref_seq='AG', genomic_alt_seq='',
+                         seq_id='X', start=10536585, end=10536586)
+    mutation = Variant(variant_id='custom_f59f5-2a-1-exon10_mutation_variant', genomic_ref_seq='T', genomic_alt_seq='A',
+                       seq_id='X', start=10536533, end=10536533)
+
+    # Variant insertion at negative strand
+    ref_sequence = wb_f59f5_2a_1_exon10.get_sequence()
+    alt1_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[insert_start, mutation])
+    alt2_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[delete_end, mutation])
+    alt3_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[insert_start, delete_end, mutation])
+
+    assert ref_sequence  == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E221
+    assert alt1_sequence == 'ATCGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'
+    assert alt2_sequence == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAAT'
+    assert alt3_sequence == 'ATCGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAAT'
