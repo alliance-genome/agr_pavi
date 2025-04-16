@@ -236,15 +236,21 @@ class SeqRegion():
                 raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
                                  + f'out of boundaries of SeqRegion {self}.')
 
-            # Calculate the variant's start position relative to the SeqRegion (from the absolute genomic start position)
-            rel_variant_start_pos = self.to_rel_position(variant.genomic_start_pos)
+            # Calculate the variant's start position relative to the SeqRegion
+            genomic_start: int
+            if self.strand == "-":
+                genomic_start = variant.genomic_end_pos
+            else:
+                genomic_start = variant.genomic_start_pos
+
+            rel_variant_start_pos = self.to_rel_position(genomic_start)
             positioned_variants[rel_variant_start_pos] = variant
 
         # Replace the reference sequence with the alternative sequence for each variant
         sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch, inframe_only=False)
         # Loop through variants in relative positional reverse order to avoid changes in indices due to indels
         for rel_start, variant in sorted(positioned_variants.items(), reverse=True):
-            rel_end = rel_start + len(variant.genomic_ref_seq) - 1
+            rel_end = rel_start + (variant.genomic_end_pos - variant.genomic_start_pos)
 
             variant_ref_seq = variant.genomic_ref_seq
             variant_alt_seq = variant.genomic_alt_seq
@@ -253,14 +259,19 @@ class SeqRegion():
                 variant_ref_seq = str(Seq.reverse_complement(variant_ref_seq))
                 variant_alt_seq = str(Seq.reverse_complement(variant_alt_seq))
 
-            seq_region_variant_seq = sequence[(rel_start - 1):(rel_end)]
+            if not variant.genomic_ref_seq:
+                # Insertions
+                sequence = sequence[:rel_start] + variant_alt_seq + sequence[(rel_end - 1):]
+            else:
+                # All other variants
+                seq_region_variant_seq = sequence[(rel_start - 1):(rel_end)]
 
-            if seq_region_variant_seq != variant_ref_seq:
-                logger.error(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
-                             + f'does not match the reference sequence of SeqRegion {self} at positions {rel_start}-{rel_end}.'
-                             + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
-                raise ValueError('Unexpected variant reference sequence mismatch.')
-            sequence = sequence[:(rel_start - 1)] + variant_alt_seq + sequence[rel_end:]
+                if seq_region_variant_seq.upper() != variant_ref_seq.upper():
+                    logger.error(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                                 + f'does not match the reference sequence of SeqRegion {self} at positions {rel_start}-{rel_end}.'
+                                 + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
+                    raise ValueError('Unexpected variant reference sequence mismatch.')
+                sequence = sequence[:(rel_start - 1)] + variant_alt_seq + sequence[rel_end:]
 
         if inframe_only:
             sequence = self.get_inframe_sequence(sequence)
