@@ -186,8 +186,8 @@ def wb_f59f5_2a_1_exon10() -> SeqRegion:
 
 
 @pytest.fixture
-def c14f11_3_1_exon7() -> SeqRegion:
-    # WB:WBGene00001803 - Transcript:C14F11.3.1 - exon 7
+def c14f11_3_1_exon5() -> SeqRegion:
+    # WB:WBGene00001803 - Transcript:C14F11.3.1 - exon 5
     return SeqRegion(seq_id='X', start=6227974, end=6228097, strand='-', fasta_file_url=FASTA_FILE_URL)
 
 
