@@ -193,12 +193,18 @@ def test_get_alt_sequence_insertion(wb_variant_ce338, c14f11_3_1_exon5) -> None:
     ref_sequence = c14f11_3_1_exon5.get_sequence()
     alt_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[wb_variant_ce338])
 
+    assert len(alt_sequence) == len(ref_sequence) + 1
+
     # Sequence before variant must be identical
     assert ref_sequence[0:96] == alt_sequence[0:96]
     # Sequence at variant position must match expected alt sequence
     assert alt_sequence[96:97] == Seq.reverse_complement(wb_variant_ce338.genomic_alt_seq)
     # Sequence after variant must be identical
     assert ref_sequence[96:] == alt_sequence[97:]
+
+    # Complete sequence comparison (belts and braces)
+    assert ref_sequence == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'
+    assert alt_sequence == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGTGCTCTTACCATGGCGGCCACCTACGCCA'
 
 
 def test_get_alt_sequence_input_errors(wb_variant_yn32, wb_variant_yn30, wb_variant_yn10, wb_c42d8_8b_1_exons) -> None:
