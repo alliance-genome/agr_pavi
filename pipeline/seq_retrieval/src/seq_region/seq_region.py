@@ -1,7 +1,7 @@
 """
 Module containing the SeqRegion class and related functions.
 """
-from typing import Dict, List, Literal, Optional, override
+from typing import cast, Dict, List, Literal, Optional, override
 
 from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
@@ -319,7 +319,7 @@ class SeqRegion():
         new_frame: Optional[SeqRegion.FRAME_TYPE] = None
 
         if self.frame is not None:
-            new_frame = (self.frame - (rel_start - 1)) % 3
+            new_frame = cast(SeqRegion.FRAME_TYPE, (self.frame - (rel_start - 1)) % 3)
 
         if self.strand == '-':
             new_end = self.end - (rel_start - 1)
