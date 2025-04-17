@@ -275,7 +275,7 @@ class SeqRegion():
                 sequence = sequence[:(rel_start - 1)] + variant_alt_seq + sequence[rel_end:]
 
         if inframe_only:
-            sequence = self.get_inframe_sequence(sequence)
+            sequence = self.inframe_sequence(sequence)
 
         return sequence
 
