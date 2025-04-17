@@ -191,10 +191,11 @@ class SeqRegion():
         else:
             seq = str(sequence)
 
+        start: int = 0
         length: int = 0
         if seq != "":
             start = self.frame or 0
-            length = (len(seq) - self.frame) // 3 * 3  # Floor the length to full codons
+            length = (len(seq) - start) // 3 * 3  # Floor the length to full codons
 
         if length > 0:
             seq = seq[start:start + length]
