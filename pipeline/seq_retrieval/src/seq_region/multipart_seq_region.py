@@ -2,9 +2,13 @@
 Module containing the MultiPartSeqRegion class.
 """
 
-from typing import Any, Dict, List, override, Set
+from Bio import Seq
 
-from seq_region import SeqRegion
+from typing import Any, Dict, List, override, Optional, Set
+
+from .seq_region import SeqRegion
+from .variant import Variant, variants_overlap
+
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
@@ -18,7 +22,7 @@ class MultiPartSeqRegion(SeqRegion):
     ordered_seqRegions: List[SeqRegion]
     """Ordered list of SeqRegions which constitute a single multi-part sequence region"""
 
-    sequence: str
+    sequence: Optional[str]
     """Sequence of the complete multi-part sequence region"""
 
     def __init__(self, seq_regions: List[SeqRegion]):
@@ -30,9 +34,9 @@ class MultiPartSeqRegion(SeqRegion):
          * Descending order when MultiPartSeqRegion.strand is negative strand
 
         Args:
-            seq_regions: list of SeqRegion objects that constitute this multi-part sequence region.\
-                         All SeqRegions must have identical seq_id, strand and fasta_file_path properties \
-                         to form a valid MultipartSeqRegion.
+            seq_regions:      List of SeqRegion objects that constitute this multi-part sequence region.\
+                              All SeqRegions must have identical seq_id, strand and fasta_file_path properties \
+                              to form a valid MultipartSeqRegion.
 
         Raises:
             ValueError: if `seq_regions` have distinct `seq_id`, `strand` or `fasta_file_path` properties.
@@ -100,13 +104,14 @@ class MultiPartSeqRegion(SeqRegion):
 
         self.ordered_seqRegions = ordered_seq_regions
         self.frame = ordered_seq_regions[0].frame
+        self.sequence = None
 
     @override
     def __str__(self) -> str:  # pragma: no cover
         return self.ordered_seqRegions.__str__()
 
     @override
-    def fetch_seq(self, recursive_fetch: bool = False) -> None:
+    def fetch_seq(self, recursive_fetch: bool = True) -> None:
         """
         Fetch genetic (DNA) sequence for MultiPartSeqRegion by chaining \
         consisting SeqRegions' sequenes together into one continuous sequence.
@@ -120,12 +125,7 @@ class MultiPartSeqRegion(SeqRegion):
             Stores resulting sequence in `sequence` attribute.
         """
 
-        def get_fetch_sequence(region: SeqRegion) -> str:
-            if recursive_fetch:
-                region.fetch_seq()
-            return region.get_sequence()
-
-        complete_multipart_sequence = ''.join(map(lambda region: get_fetch_sequence(region), self.ordered_seqRegions))
+        complete_multipart_sequence = ''.join(map(lambda region: region.get_sequence(autofetch=recursive_fetch), self.ordered_seqRegions))
         self.set_sequence(sequence=complete_multipart_sequence)
 
     @override
@@ -150,24 +150,142 @@ class MultiPartSeqRegion(SeqRegion):
         self.sequence = sequence
 
     @override
-    def get_sequence(self, unmasked: bool = False) -> str:
+    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True, inframe_only: bool = False) -> str:
         """
-        Return `sequence` attribute as a string (optionally with modifications).
+        Get an alternative sequence of the MultipartSeqRegion by applying a list of variants to it.
+
+        Replaces the ref sequence of the variants found in the sequence region with its alt sequence.
 
         Args:
-            unmasked: Flag to remove soft masking (lowercase letters) \
-                      and return unmasked sequence instead (uppercase). Default `False`.
+            unmasked:     Flag to remove soft masking (lowercase letters) \
+                          and return unmasked sequence instead (uppercase).\
+                          Default `False`.
+            variants:     List of variants to apply to the sequence before returning.
+            autofetch:    Flag to enable/disable automatic fetching of sequence \
+                          when not already available. Default `True` (enabled).
+            inframe_only: Flag to return only complete in-frame codons (start==frame, len(seq) % 3 == 0).\
+                          Default `False`.
+
         Returns:
-            The sequence of a seq region as a string (empty string if `None`).
+            The MultiPartSeqRegion's sequence as a string (empty string if `None`) with provided variants embedded.
+
+        Raises:
+            ValueError:
+             * when position of any of the variants falls outside the MultipartSeqRegion boundaries.
+             * when variants list contains no elements.
+             * when any two variants overlap.
         """
 
-        seq = str(self.sequence)
+        if len(variants) < 1:
+            raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
+        elif len(variants) > 1 and variants_overlap(variants):
+            raise ValueError('variants_alt_sequence method does not support overlapping variants.')
 
-        if unmasked:
-            seq = seq.upper()
+        if self.sequence is None and autofetch:
+            self.fetch_seq(recursive_fetch=True)
 
-        return seq
+        ref_sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch, inframe_only=False)
 
+        positioned_variants: Dict[int, Variant] = {}  # Variants indexed by relative position in MultipartSeqRegion
+
+        for variant in variants:
+            # If variant is not in the MultipartSeqRegion boundaries, raise error
+            if variant.genomic_seq_id != self.seq_id or variant.genomic_start_pos < self.start or self.end < variant.genomic_end_pos:
+                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                                 + f'out of boundaries of MultipartSeqRegion {self}.')
+
+            # Determine the variant start position relative to the MultipartSeqRegion
+            # by calculating relative start position from the absolute genomic start position
+            rel_variant_start_pos: int
+            try:
+                rel_variant_start_pos = self.to_rel_position(variant.genomic_start_pos)
+            except ValueError:
+                logger.debug(f'Variant {variant.variant_id} ignored because no overlap found with seqRegion parts.')
+                continue
+            else:
+                positioned_variants[rel_variant_start_pos] = variant
+
+        # Replace the reference sequence with the alternative sequence for each variant
+        alt_sequence: str = ref_sequence
+        # Loop through variants in reverse order to avoid changes in indices due to indels
+        for rel_start, variant in sorted(positioned_variants.items(), reverse=True):
+            rel_end = rel_start + len(variant.genomic_ref_seq) - 1
+
+            variant_ref_seq = variant.genomic_ref_seq
+            variant_alt_seq = variant.genomic_alt_seq
+            # Reverse complement the variant sequences for negative strand seq regions
+            if self.strand == '-':
+                variant_ref_seq = Seq.reverse_complement(variant_ref_seq)
+                variant_alt_seq = Seq.reverse_complement(variant_alt_seq)
+
+            seq_region_variant_seq = alt_sequence[(rel_start - 1):(rel_end)]
+
+            if seq_region_variant_seq != variant_ref_seq:
+                logger.error(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                             + f'does not match the reference sequence of MultipartSeqRegion {self} at positions {rel_start}-{rel_end}. '
+                             + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
+                raise ValueError('Unexpected variant reference sequence mismatch.')
+            alt_sequence = alt_sequence[:(rel_start - 1)] + variant_alt_seq + alt_sequence[rel_end:]
+
+        if inframe_only:
+            alt_sequence = self.inframe_sequence(alt_sequence)
+
+        return alt_sequence
+
+    def overlaps_seq_region(self, seq_region: SeqRegion) -> bool:
+        """
+        Check for overlap of input seq_region with MultiPartSeqRegion.
+
+        Args:
+            seq_region: SeqRegion instance to check for overlap with self
+
+        Returns:
+            True if SeqRegion overlaps with this MultiPartSeqRegion instance, False otherwise.
+        """
+
+        for seq_region in self.ordered_seqRegions:
+            if seq_region.overlaps(seq_region):
+                return True
+
+        return False
+
+    @override
+    def sub_region(self, rel_start: int, rel_end: int) -> 'MultiPartSeqRegion':
+        """
+        Return a subregion of the MultipartSeqRegion
+
+        Args:
+            rel_start: Relative start position (1-based) of the subregion
+            rel_end: Relative end position (1-based) of the subregion
+
+        Returns:
+            MultipartSeqRegion object representing the subregion
+        """
+
+        if rel_end < rel_start:
+            raise ValueError(f'Relative start position {rel_start} should be smaller than relative end position {rel_end}.')
+        if rel_start < 1:
+            raise ValueError(f'Relative start position {rel_start} falls outside the boundaries of the MultipartSeqRegion {self} (len {self.seq_length}).')
+        if self.seq_length < rel_end:
+            raise ValueError(f'Relative end position {rel_end} fall outside the boundaries of the MultipartSeqRegion {self} (len {self.seq_length}).')
+
+        seq_regions: List[SeqRegion] = []
+
+        covered_length: int = 0
+        for seq_region in self.ordered_seqRegions:
+            if (covered_length + seq_region.seq_length) < rel_start:
+                covered_length += seq_region.seq_length
+                continue
+
+            seq_regions.append(seq_region.sub_region(rel_start=max(1, rel_start - covered_length), rel_end=min(rel_end - covered_length, seq_region.seq_length)))
+            covered_length += seq_region.seq_length
+
+            if rel_end <= covered_length:
+                break
+
+        return MultiPartSeqRegion(seq_regions=seq_regions)
+
+    @override
     def to_rel_position(self, seq_position: int) -> int:
         """
         Convert absolute sequence position to relative position within the MultipartSeqRegion
@@ -191,10 +309,7 @@ class MultiPartSeqRegion(SeqRegion):
             if region.start <= seq_position and seq_position <= region.end:
                 rel_position = sum(map(lambda seq_region: seq_region.seq_length, self.ordered_seqRegions[0:i]))
 
-                if self.strand == '+':
-                    rel_position += seq_position - region.start + 1
-                else:
-                    rel_position += region.end - seq_position + 1
+                rel_position += region.to_rel_position(seq_position)
 
                 break
 

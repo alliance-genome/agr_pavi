@@ -111,7 +111,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
     const maxLabelLength = alignmentData.reduce((maxLength, alignment) => {
         return Math.max(maxLength, alignment.name.length);
     }, 0);
-    const labelWidth = maxLabelLength * 8;
+    const labelWidth = maxLabelLength * 9;
     const seqLength = alignmentData.reduce((maxLength, alignment) => {
         return Math.max(maxLength, alignment.sequence.length);
     }, 0);
