@@ -267,3 +267,105 @@ def test_get_alt_sequence_multiple_variants_pos_strand(wb_f59f5_2a_1_exon10) -> 
     assert alt1_sequence == 'ATCGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'
     assert alt2_sequence == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAAT'
     assert alt3_sequence == 'ATCGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAAT'
+
+
+def test_get_alt_sequence_boundary_overlapping_deletion_pos_strand(wb_f59f5_2a_1_exon10) -> None:
+    # Variant overspans complete seq region
+    overspanning_deletion = Variant(variant_id='custom_f59f5-2a-1-exon10_overspanning_deletion', genomic_ref_seq='cagACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAggtaa',
+                                    seq_id='X', start=10536400, end=10536590)
+    # Variant partially overlaps on seq region start
+    start_overlap_deletion = Variant(variant_id='custom_f59f5-2a-1-exon10_start_overlap_deletion', genomic_ref_seq='cagACGATGAC',
+                                     seq_id='X', start=10536400, end=10536410)
+    # Variant partially overlaps on seq region end
+    end_overlap_deletion = Variant(variant_id='custom_f59f5-2a-1-exon10_end_overlap_deletion', genomic_ref_seq='GGAATAggtaa',
+                                   seq_id='X', start=10536580, end=10536590)
+
+    ref_sequence = wb_f59f5_2a_1_exon10.get_sequence()
+    overspan_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[overspanning_deletion])
+    start_overlap_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[start_overlap_deletion])
+    end_overlap_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[end_overlap_deletion])
+
+    assert ref_sequence           == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E221
+    assert overspan_sequence      == ''  # noqa: E221
+    assert start_overlap_sequence ==         'TCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E222
+    assert end_overlap_sequence   == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTA'  # noqa: E221
+
+
+def test_get_alt_sequence_boundary_overlapping_deletion_neg_strand(c14f11_3_1_exon5) -> None:
+    # c14f11_3_1_exon5 start=6227974, end=6228097
+    # Variant overspans complete seq region
+    overspanning_deletion = Variant(variant_id='custom_c14f11-3-1-exon5_overspanning_deletion', genomic_ref_seq='TTACTGGCGTAGGTGGCCGCCATGGTAAGAGCCAAAAGTCCACTGAAAACAGCCAAAAAAGTGTTGATCATAAATTGACGACGCTCGGCTTGTTTGGTACGAACATTCAACGAAAACTGGCACAAAATCTA',
+                                    seq_id='X', start=6227970, end=6228100)
+    # Variant partially overlaps on seq region start
+    start_overlap_deletion = Variant(variant_id='custom_c14f11-3-1-exon5_start_overlap_deletion', genomic_ref_seq='CACAAAATCTAAATATTGATT',
+                                     seq_id='X', start=6228090, end=6228110)
+    # Variant partially overlaps on seq region end
+    end_overlap_deletion = Variant(variant_id='custom_c14f11-3-1-exon5_end_overlap_deletion', genomic_ref_seq='TTACTGGCGTA',
+                                   seq_id='X', start=6227970, end=6227980)
+
+    ref_sequence = c14f11_3_1_exon5.get_sequence()
+    overspan_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[overspanning_deletion])
+    start_overlap_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[start_overlap_deletion])
+    end_overlap_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[end_overlap_deletion])
+
+    assert ref_sequence           == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
+    assert overspan_sequence      == ''  # noqa: E221
+    assert start_overlap_sequence ==         'CCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E222
+    assert end_overlap_sequence   == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACC'  # noqa: E221
+
+
+def test_get_alt_sequence_boundary_overlapping_mutation_pos_strand(wb_f59f5_2a_1_exon10) -> None:
+    # Variant overspans complete seq region
+    overspanning_mutation = Variant(variant_id='custom_f59f5-2a-1-exon10_overspanning_mutation',
+                                    genomic_ref_seq='cagACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAggtaa',
+                                    genomic_alt_seq='AAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGG',
+                                    seq_id='X', start=10536400, end=10536590)
+    # Variant partially overlaps on seq region start
+    start_overlap_mutation = Variant(variant_id='custom_f59f5-2a-1-exon10_start_overlap_mutation',
+                                     genomic_ref_seq='cagACGATGAC',
+                                     genomic_alt_seq='AAAGGGGAAAG',
+                                     seq_id='X', start=10536400, end=10536410)
+    # Variant partially overlaps on seq region end
+    end_overlap_mutation = Variant(variant_id='custom_f59f5-2a-1-exon10_end_overlap_mutation',
+                                   genomic_ref_seq='GGAATAggtaa',
+                                   genomic_alt_seq='AAAGGGAAAGG',
+                                   seq_id='X', start=10536580, end=10536590)
+
+    ref_sequence = wb_f59f5_2a_1_exon10.get_sequence()
+    overspan_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[overspanning_mutation])
+    start_overlap_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[start_overlap_mutation])
+    end_overlap_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[end_overlap_mutation])
+
+    assert ref_sequence           == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E221
+    assert overspan_sequence      == 'GGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGA'  # noqa: E221
+    assert start_overlap_sequence == 'GGGGAAAGTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E222
+    assert end_overlap_sequence   == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAAAAGGGA'  # noqa: E221
+
+
+def test_get_alt_sequence_boundary_overlapping_mutation_neg_strand(c14f11_3_1_exon5) -> None:
+    # c14f11_3_1_exon5 start=6227974, end=6228097
+    # Variant overspans complete seq region
+    overspanning_mutation = Variant(variant_id='custom_c14f11-3-1-exon5_overspanning_mutation',
+                                    genomic_ref_seq='TTACTGGCGTAGGTGGCCGCCATGGTAAGAGCCAAAAGTCCACTGAAAACAGCCAAAAAAGTGTTGATCATAAATTGACGACGCTCGGCTTGTTTGGTACGAACATTCAACGAAAACTGGCACAAAATCTA',
+                                    genomic_alt_seq='GGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCGGGCCG',
+                                    seq_id='X', start=6227970, end=6228100)
+    # Variant partially overlaps on seq region start
+    start_overlap_mutation = Variant(variant_id='custom_c14f11-3-1-exon5_start_overlap_mutation',
+                                     genomic_ref_seq='CACAAAATCTAAATATTGATT',
+                                     genomic_alt_seq='GGGCCGGGCCGGGCCGGGCCG',
+                                     seq_id='X', start=6228090, end=6228110)
+    # Variant partially overlaps on seq region end
+    end_overlap_mutation = Variant(variant_id='custom_c14f11-3-1-exon5_end_overlap_mutation',
+                                   genomic_ref_seq='TTACTGGCGTA',
+                                   genomic_alt_seq='GGGCCGGGCCG',
+                                   seq_id='X', start=6227970, end=6227980)
+
+    ref_sequence = c14f11_3_1_exon5.get_sequence()
+    overspan_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[overspanning_mutation])
+    start_overlap_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[start_overlap_mutation])
+    end_overlap_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[end_overlap_mutation])
+
+    assert ref_sequence           == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
+    assert overspan_sequence      == 'CCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCG'  # noqa: E221
+    assert start_overlap_sequence == 'CCCGGCCCCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E222
+    assert end_overlap_sequence   == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCCGGCCCG'  # noqa: E221
