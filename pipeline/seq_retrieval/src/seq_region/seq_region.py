@@ -306,7 +306,7 @@ class SeqRegion():
                 seq_region_variant_seq = sequence[(rel_start - 1):(rel_end)]
 
                 if seq_region_variant_seq.upper() != variant_ref_seq.upper():
-                    logger.error(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                    logger.error(f'Variant ({positioned_variant["variant"]}) '
                                  + f'does not match the reference sequence of SeqRegion {self} at positions {rel_start}-{rel_end}.'
                                  + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
                     raise ValueError('Unexpected variant reference sequence mismatch.')
