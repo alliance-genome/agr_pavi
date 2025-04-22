@@ -50,9 +50,9 @@ constructs==10.4.2 \
     --hash=sha256:1f0f59b004edebfde0f826340698b8c34611f57848139b7954904c61645f13c1 \
     --hash=sha256:ce54724360fffe10bab27d8a081844eb81f5ace7d7c62c84b719c49f164d5307
     # via aws-cdk-lib
-flake8==7.1.2 \
-    --hash=sha256:1cbc62e65536f65e6d754dfe6f1bada7f5cf392d6f5db3c2b85892466c3e7c1a \
-    --hash=sha256:c586ffd0b41540951ae41af572e6790dbd49fc12b3aa2541685d253d9bd504bd
+flake8==7.2.0 \
+    --hash=sha256:93b92ba5bdb60754a6da14fa3b93a9361fd00a59632ada61fd7b130436c40343 \
+    --hash=sha256:fa558ae3f6f7dbf2b4f22663e5343b6b6023620461f8d4ff2019ef4b5ee70426
     # via
     #   api-aws_infra (pyproject.toml)
     #   flake8-unused-arguments
@@ -146,13 +146,13 @@ publication==0.0.3 \
     #   aws-cdk-lib
     #   constructs
     #   jsii
-pycodestyle==2.12.1 \
-    --hash=sha256:46f0fb92069a7c28ab7bb558f05bfc0110dac69a0cd23c61ea0040283a9d78b3 \
-    --hash=sha256:6838eae08bbce4f6accd5d5572075c63626a15ee3e6f842df996bf62f6d73521
+pycodestyle==2.13.0 \
+    --hash=sha256:35863c5974a271c7a726ed228a14a4f6daf49df369d8c50cd9a6f58a5e143ba9 \
+    --hash=sha256:c8415bf09abe81d9c7f872502a6eee881fbe85d8763dd5b9924bb0a01d67efae
     # via flake8
-pyflakes==3.2.0 \
-    --hash=sha256:1c61603ff154621fb2a9172037d84dca3500def8c8b630657d1701f026f8af3f \
-    --hash=sha256:84b5be138a2dfbb40689ca07e2152deb896a65c3a3e24c251c5c62489568074a
+pyflakes==3.3.2 \
+    --hash=sha256:5039c8339cbb1944045f4ee5466908906180f13cc99cc9949348d10f82a5c32a \
+    --hash=sha256:6dfd61d87b97fba5dcfaaf781171ac16be16453be6d816147989e7f6e6a9576b
     # via flake8
 pytest==8.3.5 \
     --hash=sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820 \
