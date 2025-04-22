@@ -81,7 +81,6 @@ def fetch_file(url: str, dest_dir: str = _DEFAULT_DIR, reuse_local_cache: Option
         `NotImplementedError`: if the requested URL has a scheme that is currently not supported.
     """
 
-    global _stored_files
     local_path: str
 
     if reuse_local_cache is None:

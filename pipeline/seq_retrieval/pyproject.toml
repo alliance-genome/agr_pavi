@@ -17,7 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "flake8==7.1.*",
+    "flake8==7.2.*",
     "flake8-unused-arguments==0.0.*",
     "mypy==1.15.*",
     "responses==0.25.*",
