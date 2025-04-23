@@ -29,7 +29,7 @@ def test_multipart_seq_region_class(wb_cdna_c54h2_5_1: MultiPartSeqRegion) -> No
     assert chained_seq == EXON_1_SEQ + EXON_2_SEQ + EXON_3_SEQ + EXON_4_SEQ
 
 
-def test_rel_position(wb_cdna_c54h2_5_1: MultiPartSeqRegion) -> None:
+def test_rel_position_neg_strand(wb_cdna_c54h2_5_1: MultiPartSeqRegion) -> None:
 
     # Report position within exon
     assert wb_cdna_c54h2_5_1.to_rel_position(5780722) == 1
@@ -43,6 +43,23 @@ def test_rel_position(wb_cdna_c54h2_5_1: MultiPartSeqRegion) -> None:
         wb_cdna_c54h2_5_1.to_rel_position(5780723)
     with pytest.raises(ValueError):
         wb_cdna_c54h2_5_1.to_rel_position(5778874)
+
+
+def test_rel_position_pos_strand(wb_cds_c42d8_1_1: MultiPartSeqRegion) -> None:
+
+    # Report position within exon
+    assert wb_cds_c42d8_1_1.to_rel_position(5109510) == 1
+    assert wb_cds_c42d8_1_1.to_rel_position(5111135) == 508
+    assert wb_cds_c42d8_1_1.to_rel_position(5112330) == 759
+    # Raise error within intron
+    with pytest.raises(ValueError):
+        wb_cds_c42d8_1_1.to_rel_position(5109650)
+
+    # Raise error out of boundaries
+    with pytest.raises(ValueError):
+        wb_cds_c42d8_1_1.to_rel_position(5109509)
+    with pytest.raises(ValueError):
+        wb_cds_c42d8_1_1.to_rel_position(5112331)
 
 
 def test_sub_region_neg_strand(wb_cdna_c54h2_5_1: MultiPartSeqRegion) -> None:
