@@ -4,6 +4,7 @@ Unit testing for MultiPartSeqRegion class and related functions
 
 from seq_region import MultiPartSeqRegion
 
+from Bio import Seq
 import pytest
 
 
@@ -204,3 +205,17 @@ def test_get_alt_sequence_single_exon_mutation_pos_strand(wb_variant_gk803418, w
     assert alt_sequence[507:508] == wb_variant_gk803418.genomic_alt_seq
     # Sequence after variant must be identical
     assert ref_sequence[508:] == alt_sequence[508:]
+
+
+def test_get_alt_sequence_single_exon_mutation_neg_strand(wb_cds_c42d8_8b_1, wb_variant_yn32) -> None:
+
+    ref_sequence = wb_cds_c42d8_8b_1.get_sequence()
+    alt_sequence = wb_cds_c42d8_8b_1.get_alt_sequence(variants=[wb_variant_yn32])
+
+    # Sequence before variant must be identical
+    assert ref_sequence[0:1128] == alt_sequence[0:1128]
+    # Sequence at variant position must match revcomp of expected ref/alt sequence
+    assert ref_sequence[1128:1129] == Seq.reverse_complement(wb_variant_yn32.genomic_ref_seq)
+    assert alt_sequence[1128:1129] == Seq.reverse_complement(wb_variant_yn32.genomic_alt_seq)
+    # Sequence after variant must be identical
+    assert ref_sequence[1129:] == alt_sequence[1129:]

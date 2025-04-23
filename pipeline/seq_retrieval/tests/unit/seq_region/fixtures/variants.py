@@ -9,7 +9,7 @@ from seq_region import Variant
 
 @pytest.fixture
 def wb_variant_yn32() -> Variant:
-    # NC_003284.9:g.5114224C>T - yn32
+    # NC_003284.9:g.5114224C>T - WB:C42D8.8b.1:c.1129G>A - yn32
     return Variant(variant_id='NC_003284.9:g.5114224C>T', seq_id='X', start=5114224, end=5114224,
                    genomic_ref_seq='C', genomic_alt_seq='T')
 

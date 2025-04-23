@@ -208,3 +208,9 @@ def wb_c42d8_8b_1_exons() -> List[SeqRegion]:
         SeqRegion(seq_id='X', start=5113469, end=5113591, strand='-', fasta_file_url=FASTA_FILE_URL),
         SeqRegion(seq_id='X', start=5113100, end=5113420, strand='-', fasta_file_url=FASTA_FILE_URL)
     ]
+
+
+@pytest.fixture
+def wb_c42d8_8b_1_cds_regions(wb_c42d8_8b_1_exons) -> List[SeqRegion]:
+    # WB:WBGene00000149 - Transcript:C42D8.8b.1
+    return wb_c42d8_8b_1_exons
