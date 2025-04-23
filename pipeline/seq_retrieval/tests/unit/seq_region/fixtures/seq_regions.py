@@ -211,6 +211,6 @@ def wb_c42d8_8b_1_exons() -> List[SeqRegion]:
 
 
 @pytest.fixture
-def wb_c42d8_8b_1_cds_regions(wb_c42d8_8b_1_exons) -> List[SeqRegion]:
+def wb_c42d8_8b_1_cds_regions(wb_c42d8_8b_1_exons: List[SeqRegion]) -> List[SeqRegion]:
     # WB:WBGene00000149 - Transcript:C42D8.8b.1
     return wb_c42d8_8b_1_exons
