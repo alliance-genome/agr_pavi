@@ -30,7 +30,7 @@ def wb_variant_yn10() -> Variant:
 
 
 @pytest.fixture
-def wb_variant_gk803418() -> Variant:
+def wb_variant_gk787530() -> Variant:
     # WBVar01145173 - gk787530 - NC_003284.9:g.5109543G>A - point mutation
     return Variant(variant_id='NC_003284.9:g.5109543G>A',
                    seq_id='X', start=5109543, end=5109543,

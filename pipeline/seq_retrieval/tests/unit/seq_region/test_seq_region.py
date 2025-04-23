@@ -44,10 +44,10 @@ def test_seq_region_overlap(wb_c42d8_1_1_exons) -> None:
     exon_1: SeqRegion = wb_c42d8_1_1_exons[0]
 
     # WBVar01145173 - gk787530 - NC_003284.9:g.5109543G>A - point mutation (overlap)
-    gk803418: SeqRegion = SeqRegion(seq_id='X', start=5109543, end=5109543,
+    gk787530: SeqRegion = SeqRegion(seq_id='X', start=5109543, end=5109543,
                                     fasta_file_url=FASTA_FILE_URL)
 
-    assert exon_1.overlaps(gk803418) is True
+    assert exon_1.overlaps(gk787530) is True
 
     # gk320952 - splice region variant (no overlap)
     gk320952: SeqRegion = SeqRegion(seq_id='X', start=5110758, end=5110758,
@@ -163,15 +163,15 @@ def test_seq_region_inframe_sequence(wb_c42d8_1_1_cds_regions) -> None:
     assert incomplete_frames_inframe_sequence == ""
 
 
-def test_get_alt_sequence_mutation(wb_variant_gk803418, wb_c42d8_1_1_cds_regions) -> None:
+def test_get_alt_sequence_mutation(wb_variant_gk787530, wb_c42d8_1_1_cds_regions) -> None:
     ref_sequence = wb_c42d8_1_1_cds_regions[0].get_sequence()
-    alt_sequence = wb_c42d8_1_1_cds_regions[0].get_alt_sequence(variants=[wb_variant_gk803418])
+    alt_sequence = wb_c42d8_1_1_cds_regions[0].get_alt_sequence(variants=[wb_variant_gk787530])
 
     # Sequence before variant must be identical
     assert ref_sequence[0:33] == alt_sequence[0:33]
     # Sequence at variant position must match expected ref/alt sequence
-    assert ref_sequence[33:34] == wb_variant_gk803418.genomic_ref_seq
-    assert alt_sequence[33:34] == wb_variant_gk803418.genomic_alt_seq
+    assert ref_sequence[33:34] == wb_variant_gk787530.genomic_ref_seq
+    assert alt_sequence[33:34] == wb_variant_gk787530.genomic_alt_seq
     # Sequence after variant must be identical
     assert ref_sequence[34:] == alt_sequence[34:]
 
@@ -371,9 +371,9 @@ def test_get_alt_sequence_boundary_overlapping_mutation_neg_strand(c14f11_3_1_ex
     assert end_overlap_sequence   == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCCGGCCCG'  # noqa: E221
 
 
-def test_get_alt_sequence_inframe_only(wb_variant_gk803418, wb_c42d8_1_1_cds_regions) -> None:
+def test_get_alt_sequence_inframe_only(wb_variant_gk787530, wb_c42d8_1_1_cds_regions) -> None:
     ref_sequence = wb_c42d8_1_1_cds_regions[0].get_sequence()
-    alt_sequence = wb_c42d8_1_1_cds_regions[0].get_alt_sequence(variants=[wb_variant_gk803418])
+    alt_sequence = wb_c42d8_1_1_cds_regions[0].get_alt_sequence(variants=[wb_variant_gk787530])
 
     # Phase 0 alt sequence
     assert ref_sequence == 'ATGTCGATGTATGGCAAAGACAAGGCGTATATCGAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
@@ -381,8 +381,8 @@ def test_get_alt_sequence_inframe_only(wb_variant_gk803418, wb_c42d8_1_1_cds_reg
 
     phase_2_region = wb_c42d8_1_1_cds_regions[0].sub_region(rel_start=2, rel_end=wb_c42d8_1_1_cds_regions[0].seq_length)
     phase_2_ref_sequence = phase_2_region.get_sequence()
-    phase_2_alt_sequence = phase_2_region.get_alt_sequence(variants=[wb_variant_gk803418])
-    phase_2_alt_inframe_sequence = phase_2_region.get_alt_sequence(variants=[wb_variant_gk803418], inframe_only=True)
+    phase_2_alt_sequence = phase_2_region.get_alt_sequence(variants=[wb_variant_gk787530])
+    phase_2_alt_inframe_sequence = phase_2_region.get_alt_sequence(variants=[wb_variant_gk787530], inframe_only=True)
 
     # Phase 2 alt sequence
     assert phase_2_ref_sequence == 'TGTCGATGTATGGCAAAGACAAGGCGTATATCGAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
