@@ -173,3 +173,17 @@ def test_sub_region_w_frame_pos_strand(wb_cds_c42d8_1_1: MultiPartSeqRegion) -> 
     assert sub_region.frame == 1
     assert sub_region.strand == '+'
     assert sub_region.get_sequence() == 'TCGAGAAGGCCCAATTTTGAAACCAGATGTAGAGgtttcagTGGTAGA'
+
+
+def test_get_alt_sequence_single_exon_mutation_pos_strand(wb_variant_gk803418, wb_cds_c42d8_1_1) -> None:
+
+    ref_sequence = wb_cds_c42d8_1_1.get_sequence()
+    alt_sequence = wb_cds_c42d8_1_1.get_alt_sequence(variants=[wb_variant_gk803418])
+
+    # Sequence before variant must be identical
+    assert ref_sequence[0:507] == alt_sequence[0:507]
+    # Sequence at variant position must match expected ref/alt sequence
+    assert ref_sequence[507:508] == wb_variant_gk803418.genomic_ref_seq
+    assert alt_sequence[507:508] == wb_variant_gk803418.genomic_alt_seq
+    # Sequence after variant must be identical
+    assert ref_sequence[508:] == alt_sequence[508:]

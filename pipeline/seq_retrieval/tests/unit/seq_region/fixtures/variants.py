@@ -60,3 +60,12 @@ def wb_variant_e1178() -> Variant:
                    seq_id='X', start=10517603, end=10517604,
                    genomic_ref_seq='',
                    genomic_alt_seq='C')
+
+
+@pytest.fixture
+def wb_variant_gk803418() -> Variant:
+    # WBVar01145193 - gk803418 - NC_003284.9:g.5111135G>A - mutation
+    return Variant(variant_id='NC_003284.9:g.6228001_6228002insA',
+                   seq_id='X', start=5111135, end=5111135,
+                   genomic_ref_seq='G',
+                   genomic_alt_seq='A')
