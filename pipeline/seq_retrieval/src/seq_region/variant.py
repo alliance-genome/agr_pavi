@@ -4,8 +4,12 @@ Module containing the Variant class and related functions.
 
 import requests
 
-from typing import List, Optional, override
+from typing import List, Optional, override, TYPE_CHECKING
 from log_mgmt import get_logger
+
+# Only import on type-checking to prevent circular dependency at runtime
+if TYPE_CHECKING:
+    from .seq_region import SeqRegion
 
 logger = get_logger(name=__name__)
 
@@ -111,29 +115,45 @@ class Variant():
             genomic_alt_seq=variant_data.get("genomicVariantSequence"),
         )
 
-    def overlaps(self, other: 'Variant') -> bool:
+    def overlaps(self, other: 'Variant|SeqRegion') -> bool:
         """
-        Checks if this variant overlaps with another variant.
+        Checks if this variant overlaps with another sequence object.
 
         Args:
-            other: Another Variant object.
+            other: Another sequence object to compare to. Variant or SeqRegion.
 
         Returns:
-            True if the variants overlap, False otherwise.
+            True if the sequence objects overlap with the variant (`self`), False otherwise.
         """
+        from seq_region import SeqRegion  # Imported here to prevent circular dependency
         overlaps = False
+
+        other_start: int
+        other_end: int
+        other_seq_id: str
+
+        if isinstance(other, Variant):
+            other_seq_id = other.genomic_seq_id
+            other_start = other.genomic_start_pos
+            other_end = other.genomic_end_pos
+        elif isinstance(other, SeqRegion):
+            other_seq_id = other.seq_id
+            other_start = other.start
+            other_end = other.end
+        else:
+            raise NotImplementedError(f'Overlap detection of variant with class "{other.__class__}" not implemented.')
 
         # Both variants must be on the same seq_id (chromosome or contig) to overlap
         # and have at least partially overlapping start and end positions
-        if self.genomic_seq_id == other.genomic_seq_id and \
-           self.genomic_end_pos >= other.genomic_start_pos and self.genomic_start_pos <= other.genomic_end_pos:
+        if self.genomic_seq_id == other_seq_id and \
+           self.genomic_end_pos >= other_start and self.genomic_start_pos <= other_end:
 
             # For insertions, the complete insertion site must fall within the other variant
             if self.genomic_ref_seq == "":
-                if self.genomic_start_pos >= other.genomic_start_pos and self.genomic_end_pos <= other.genomic_end_pos:
+                if self.genomic_start_pos >= other_start and self.genomic_end_pos <= other_end:
                     overlaps = True
-            elif other.genomic_ref_seq == "":
-                if other.genomic_start_pos >= self.genomic_start_pos and other.genomic_end_pos <= self.genomic_end_pos:
+            elif isinstance(other, Variant) and other.genomic_ref_seq == "":
+                if other_start >= self.genomic_start_pos and other_end <= self.genomic_end_pos:
                     overlaps = True
             # For all other variants, partial overlap is sufficient
             else:

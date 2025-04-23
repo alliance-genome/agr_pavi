@@ -1,14 +1,16 @@
 """
 Module containing the SeqRegion class and related functions.
 """
-from typing import cast, Dict, List, Literal, Optional, override, TypedDict
+from typing import cast, Dict, List, Literal, Optional, override, TypedDict, TYPE_CHECKING
 
 from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
 
 from data_mover import data_file_mover
 from log_mgmt import get_logger
-from .variant import Variant, variants_overlap
+
+if TYPE_CHECKING:
+    from .variant import Variant
 
 logger = get_logger(name=__name__)
 
@@ -103,13 +105,16 @@ class SeqRegion():
     def __repr__(self) -> str:  # pragma: no cover
         return self.__str__()
 
-    def fetch_seq(self) -> None:
+    def fetch_seq(self) -> str:
         """
         Fetch sequence found at `seq_id`:`start`-`end`(:`strand`)
         by reading from faidx files at `fasta_file_path`.
 
         Assumes `+` as strand if undefined.
         Stores resulting sequence in `sequence` attribute.
+
+        Returns:
+            Return the fetched sequence as a string
         """
         try:
             fasta_file = pysam.FastaFile(self.fasta_file_path)
@@ -125,6 +130,8 @@ class SeqRegion():
                 seq = str(Seq.reverse_complement(seq))
 
         self.set_sequence(seq)
+
+        return seq
 
     def set_sequence(self, sequence: str) -> None:
         """
@@ -204,7 +211,7 @@ class SeqRegion():
 
         return seq
 
-    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True, inframe_only: bool = False) -> str:
+    def get_alt_sequence(self, unmasked: bool = False, variants: List['Variant'] = [], autofetch: bool = True, inframe_only: bool = False) -> str:
         """
         Get an alternative `sequence` of the SeqRegion by applying a list of variants to it.
 
@@ -221,6 +228,7 @@ class SeqRegion():
         Returns:
             The sequence of a seq region as a string (empty string if `None`).
         """
+        from .variant import variants_overlap  # Imported here to prevent circular dependency
 
         if len(variants) < 1:
             raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
@@ -229,7 +237,7 @@ class SeqRegion():
 
         # Position all variants relative to the SeqRegion
         class PositionedVariant(TypedDict):
-            variant: Variant
+            variant: 'Variant'
             """The Variant object"""
             boundary_start: int
             boundary_end: int

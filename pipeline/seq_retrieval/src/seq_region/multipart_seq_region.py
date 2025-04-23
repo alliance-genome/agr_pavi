@@ -2,8 +2,6 @@
 Module containing the MultiPartSeqRegion class.
 """
 
-from Bio import Seq
-
 from typing import Any, Dict, List, override, Optional, Set
 
 from .seq_region import SeqRegion
@@ -111,22 +109,81 @@ class MultiPartSeqRegion(SeqRegion):
         return self.ordered_seqRegions.__str__()
 
     @override
-    def fetch_seq(self, recursive_fetch: bool = True) -> None:
+    def fetch_seq(self, recursive_fetch: bool = True) -> str:
         """
         Fetch genetic (DNA) sequence for MultiPartSeqRegion by chaining \
         consisting SeqRegions' sequenes together into one continuous sequence.
 
         Chains seqRegions in the order defined in the `ordered_seqRegions` attribute.
+        Stores resulting sequence in `sequence` attribute.
 
         Args:
             recursive_fetch: if True, fetch sequence for each SeqRegion part of the MultiPartSeqRegion first, before chaining the results.
 
         Returns:
-            Stores resulting sequence in `sequence` attribute.
+            The fetched sequence as a string.
         """
 
-        complete_multipart_sequence = ''.join(map(lambda region: region.get_sequence(autofetch=recursive_fetch), self.ordered_seqRegions))
-        self.set_sequence(sequence=complete_multipart_sequence)
+        seq = self.fetch_alt_seq(recursive_fetch=recursive_fetch, variants=[])
+        self.set_sequence(sequence=seq)
+
+        return seq
+
+    def fetch_alt_seq(self, recursive_fetch: bool = True, variants: List[Variant] = []) -> str:
+        """
+        Fetch alternative genetic (DNA) sequence for MultiPartSeqRegion, \
+        by applying the relevant variants to each of the consisting SeqRegions, \
+        and chaining the resulting sequences together into one continuous sequence.
+
+        Chains seqRegions in the order defined in the `ordered_seqRegions` attribute.
+
+        Args:
+            recursive_fetch: if True, fetch sequence for each SeqRegion part of the MultiPartSeqRegion first, before chaining the results.
+            variants:        Optional list of variants to apply to the sequence before returning.
+
+        Returns:
+            The fetched sequence as a string.
+        """
+
+        # Index variants to relative position in `self` (MultiPartSeqRegion)
+        positioned_variants: Dict[int, Variant] = {}  # Variants indexed by relative position in MultipartSeqRegion
+
+        for variant in variants:
+            # If variant is not in the MultipartSeqRegion boundaries, raise error
+            if variant.genomic_seq_id != self.seq_id or self.end < variant.genomic_start_pos or variant.genomic_end_pos < self.start:
+                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                                 + f'out of boundaries of MultipartSeqRegion {self}.')
+
+            # Determine the variant start position relative to the MultipartSeqRegion
+            # by calculating relative start position from the absolute genomic start position
+            rel_variant_start_pos: int
+            try:
+                rel_variant_start_pos = self.to_rel_position(variant.genomic_start_pos)
+            except ValueError:
+                logger.debug(f'Variant {variant.variant_id} ignored because no overlap found with seqRegion parts.')
+                continue
+            else:
+                positioned_variants[rel_variant_start_pos] = variant
+
+        complete_multipart_sequence = ''
+        # Simultaneously loop through self.ordered_seqRegions and positioned_variants,
+        # determining all overlapping variants for each seqRegion and applying them
+        positioned_variant_idxs = list(positioned_variants.keys())
+        positioned_variant_idxs.sort()
+        i = 0
+        for region in self.ordered_seqRegions:
+            region_variants: List[Variant] = []
+
+            while i < len(positioned_variant_idxs) and positioned_variants[positioned_variant_idxs[i]].overlaps(region):
+                region_variants.append(positioned_variants[positioned_variant_idxs[i]])
+                i += 1
+
+            if len(region_variants) > 0:
+                complete_multipart_sequence += region.get_alt_sequence(autofetch=recursive_fetch, variants=region_variants)
+            else:
+                complete_multipart_sequence += region.get_sequence(autofetch=recursive_fetch)
+
+        return complete_multipart_sequence
 
     @override
     def set_sequence(self, sequence: str) -> None:
@@ -184,51 +241,13 @@ class MultiPartSeqRegion(SeqRegion):
         if self.sequence is None and autofetch:
             self.fetch_seq(recursive_fetch=True)
 
-        ref_sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch, inframe_only=False)
-
-        positioned_variants: Dict[int, Variant] = {}  # Variants indexed by relative position in MultipartSeqRegion
-
-        for variant in variants:
-            # If variant is not in the MultipartSeqRegion boundaries, raise error
-            if variant.genomic_seq_id != self.seq_id or variant.genomic_start_pos < self.start or self.end < variant.genomic_end_pos:
-                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
-                                 + f'out of boundaries of MultipartSeqRegion {self}.')
-
-            # Determine the variant start position relative to the MultipartSeqRegion
-            # by calculating relative start position from the absolute genomic start position
-            rel_variant_start_pos: int
-            try:
-                rel_variant_start_pos = self.to_rel_position(variant.genomic_start_pos)
-            except ValueError:
-                logger.debug(f'Variant {variant.variant_id} ignored because no overlap found with seqRegion parts.')
-                continue
-            else:
-                positioned_variants[rel_variant_start_pos] = variant
-
-        # Replace the reference sequence with the alternative sequence for each variant
-        alt_sequence: str = ref_sequence
-        # Loop through variants in reverse order to avoid changes in indices due to indels
-        for rel_start, variant in sorted(positioned_variants.items(), reverse=True):
-            rel_end = rel_start + len(variant.genomic_ref_seq) - 1
-
-            variant_ref_seq = variant.genomic_ref_seq
-            variant_alt_seq = variant.genomic_alt_seq
-            # Reverse complement the variant sequences for negative strand seq regions
-            if self.strand == '-':
-                variant_ref_seq = Seq.reverse_complement(variant_ref_seq)
-                variant_alt_seq = Seq.reverse_complement(variant_alt_seq)
-
-            seq_region_variant_seq = alt_sequence[(rel_start - 1):(rel_end)]
-
-            if seq_region_variant_seq != variant_ref_seq:
-                logger.error(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
-                             + f'does not match the reference sequence of MultipartSeqRegion {self} at positions {rel_start}-{rel_end}. '
-                             + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
-                raise ValueError('Unexpected variant reference sequence mismatch.')
-            alt_sequence = alt_sequence[:(rel_start - 1)] + variant_alt_seq + alt_sequence[rel_end:]
+        alt_sequence = self.fetch_alt_seq(variants=variants)
 
         if inframe_only:
             alt_sequence = self.inframe_sequence(alt_sequence)
+
+        if unmasked:
+            alt_sequence = alt_sequence.upper()
 
         return alt_sequence
 
