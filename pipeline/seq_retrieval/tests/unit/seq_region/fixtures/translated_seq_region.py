@@ -56,7 +56,7 @@ def WB_transcript1(wb_c54h2_5_1_exons) -> TranscriptFixture:
 
 
 @pytest.fixture
-def WB_transcript2_no_cds(wb_zc506_4a_1_exons) -> TranscriptFixture:
+def wb_transcript_zc506_4a_1_no_cds(wb_zc506_4a_1_exons) -> TranscriptFixture:
     # WBGene00003232 Transcript:ZC506.4a.1
     TRANSCRIPT_SEQ = ''.join('''
         aaacgacacatatgaatgtatatagggaacaagagtttccatactcatagtgctcattagaatagcacggatcgtgtttc
@@ -130,7 +130,7 @@ def WB_transcript2_no_cds(wb_zc506_4a_1_exons) -> TranscriptFixture:
 
 
 @pytest.fixture
-def WB_transcript2_with_cds(wb_zc506_4a_1_exons, wb_zc506_4a_1_cds_regions) -> TranscriptFixture:
+def wb_transcript_zc506_4a_1_with_cds(wb_zc506_4a_1_exons, wb_zc506_4a_1_cds_regions) -> TranscriptFixture:
     # WBGene00003232 Transcript:ZC506.4a.1
     TRANSCRIPT_SEQ = ''.join('''
         aaacgacacatatgaatgtatatagggaacaagagtttccatactcatagtgctcattagaatagcacggatcgtgtttc

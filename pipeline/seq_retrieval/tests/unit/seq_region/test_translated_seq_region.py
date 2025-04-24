@@ -70,10 +70,10 @@ def test_orf_detection() -> None:
     assert orf['seq_end'] == 66
 
 
-def test_cds_vs_non_cds_translation(WB_transcript2_no_cds: TranscriptFixture, WB_transcript2_with_cds: TranscriptFixture) -> None:
+def test_cds_vs_non_cds_translation(wb_transcript_zc506_4a_1_no_cds: TranscriptFixture, wb_transcript_zc506_4a_1_with_cds: TranscriptFixture) -> None:
 
-    no_CDS_translatedSeqRegion = WB_transcript2_no_cds['translatedSeqRegion']
-    cds_translatedSeqRegion = WB_transcript2_with_cds['translatedSeqRegion']
+    no_CDS_translatedSeqRegion = wb_transcript_zc506_4a_1_no_cds['translatedSeqRegion']
+    cds_translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
 
     ## Translate
     no_cds_protein_seq = no_CDS_translatedSeqRegion.translate()
@@ -84,8 +84,8 @@ def test_cds_vs_non_cds_translation(WB_transcript2_no_cds: TranscriptFixture, WB
     assert isinstance(cds_protein_seq, str)
 
     # Assert proteins match expected result and not each other
-    assert no_cds_protein_seq == WB_transcript2_no_cds['proteinSeq']
-    assert cds_protein_seq == WB_transcript2_with_cds['proteinSeq']
+    assert no_cds_protein_seq == wb_transcript_zc506_4a_1_no_cds['proteinSeq']
+    assert cds_protein_seq == wb_transcript_zc506_4a_1_with_cds['proteinSeq']
     # If protein sequence with and without use of CDS is identical,
     # then this test case is pointless (and needs replacement)
     assert no_cds_protein_seq != cds_protein_seq
