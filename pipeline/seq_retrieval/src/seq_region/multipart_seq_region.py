@@ -159,7 +159,7 @@ class MultiPartSeqRegion(SeqRegion):
             reverse: bool
 
         sort_kwargs: SortArgs
-        if self.strand == "-":
+        if self.strand == '-':
             sort_kwargs = dict(key=lambda variant: variant.genomic_end_pos, reverse=True)
         else:
             sort_kwargs = dict(key=lambda variant: variant.genomic_start_pos, reverse=False)
@@ -176,28 +176,29 @@ class MultiPartSeqRegion(SeqRegion):
                                  + f'out of boundaries of MultipartSeqRegion {self}.')
 
             # Determine the overlapping SeqRegion parts
-            for i, region in enumerate(self.ordered_seqRegions, start=last_seq_region_overlap_idx or 0):
+            for region_idx in range(last_seq_region_overlap_idx or 0, len(self.ordered_seqRegions)):
+                region = self.ordered_seqRegions[region_idx]
 
                 # Initiate empty list for each SeqRegion part
-                if i not in overlapping_variants:
-                    overlapping_variants[i] = []
+                if region_idx not in overlapping_variants:
+                    overlapping_variants[region_idx] = []
 
                 # Store the respective overlaps
                 if variant.overlaps(region):
-                    overlapping_variants[i].append(variant)
-                    last_seq_region_overlap_idx = i
-                    last_variant_overlap_idx = i
+                    overlapping_variants[region_idx].append(variant)
+                    last_seq_region_overlap_idx = region_idx
+                    last_variant_overlap_idx = region_idx
                 # Stop search for this variant if no more overlaps expected to be found
                 elif last_variant_overlap_idx is not None:
                     break
 
         complete_multipart_sequence = ''
         # Loop through self.ordered_seqRegions and apply overlapping variants for each seqRegion as required
-        for i, region in enumerate(self.ordered_seqRegions):
-            if i in overlapping_variants:
-                region_variants: List[Variant] = overlapping_variants[i]
-            else:
-                region_variants = []
+        for region_idx, region in enumerate(self.ordered_seqRegions):
+            region_variants: List[Variant] = []
+
+            if region_idx in overlapping_variants:
+                region_variants = overlapping_variants[region_idx]
 
             if len(region_variants) > 0:
                 complete_multipart_sequence += region.get_alt_sequence(autofetch=recursive_fetch, variants=region_variants)
