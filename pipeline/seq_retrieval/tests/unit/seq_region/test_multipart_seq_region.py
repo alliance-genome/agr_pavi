@@ -343,3 +343,5 @@ def test_get_alt_sequence_unmasked(wb_cds_c42d8_1_1, wb_variant_gk803418) -> Non
     assert ref_sequence != alt_sequence
     assert alt_sequence != alt_unmasked_sequence
     assert alt_sequence.upper() == alt_unmasked_sequence
+
+# TODO: add testing for expected Errors (input validation)
