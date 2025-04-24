@@ -2,7 +2,7 @@
 Module containing the MultiPartSeqRegion class.
 """
 
-from typing import Any, Dict, List, override, Optional, Set
+from typing import Any, Callable, Dict, List, override, Optional, Set, TypedDict
 
 from .seq_region import SeqRegion
 from .variant import Variant, variants_overlap
@@ -143,40 +143,61 @@ class MultiPartSeqRegion(SeqRegion):
 
         Returns:
             The fetched sequence as a string.
+
+        Raises:
+            ValueError:
+             * When any variant in variants list is outside the MultipartSeqRegion boundaries.
+             * when any two variants in variants list overlap.
         """
 
-        # Index variants to relative position in `self` (MultiPartSeqRegion)
-        positioned_variants: Dict[int, Variant] = {}  # Variants indexed by relative position in MultipartSeqRegion
+        if len(variants) > 1 and variants_overlap(variants):
+            raise ValueError('fetch_alt_seq method does not support overlapping variants.')
 
-        for variant in variants:
+        # Sort variants to relative position in `self` (MultiPartSeqRegion) (ascending)
+        class SortArgs(TypedDict):
+            key: Callable[[Variant], int]
+            reverse: bool
+
+        sort_kwargs: SortArgs
+        if self.strand == "-":
+            sort_kwargs = dict(key=lambda variant: variant.genomic_end_pos, reverse=True)
+        else:
+            sort_kwargs = dict(key=lambda variant: variant.genomic_start_pos, reverse=False)
+
+        overlapping_variants: Dict[int, List[Variant]] = {}  # Key: idx of SeqRegion part in `ordered_seqRegions`, Value: list of overlapping variants
+
+        last_seq_region_overlap_idx: int | None = None  # `ordered_seqRegions` index of last SeqRegion part with overlapping variants
+
+        for variant in sorted(variants, **sort_kwargs):
+            last_variant_overlap_idx: int | None = None  # `ordered_seqRegions` index of last SeqRegion part overlapping this variant
             # If variant is not in the MultipartSeqRegion boundaries, raise error
             if variant.genomic_seq_id != self.seq_id or self.end < variant.genomic_start_pos or variant.genomic_end_pos < self.start:
                 raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
                                  + f'out of boundaries of MultipartSeqRegion {self}.')
 
-            # Determine the variant start position relative to the MultipartSeqRegion
-            # by calculating relative start position from the absolute genomic start position
-            rel_variant_start_pos: int
-            try:
-                rel_variant_start_pos = self.to_rel_position(variant.genomic_start_pos)
-            except ValueError:
-                logger.debug(f'Variant {variant.variant_id} ignored because no overlap found with seqRegion parts.')
-                continue
-            else:
-                positioned_variants[rel_variant_start_pos] = variant
+            # Determine the overlapping SeqRegion parts
+            for i, region in enumerate(self.ordered_seqRegions, start=last_seq_region_overlap_idx or 0):
+
+                # Initiate empty list for each SeqRegion part
+                if i not in overlapping_variants:
+                    overlapping_variants[i] = []
+
+                # Store the respective overlaps
+                if variant.overlaps(region):
+                    overlapping_variants[i].append(variant)
+                    last_seq_region_overlap_idx = i
+                    last_variant_overlap_idx = i
+                # Stop search for this variant if no more overlaps expected to be found
+                elif last_variant_overlap_idx is not None:
+                    break
 
         complete_multipart_sequence = ''
-        # Simultaneously loop through self.ordered_seqRegions and positioned_variants,
-        # determining all overlapping variants for each seqRegion and applying them
-        positioned_variant_idxs = list(positioned_variants.keys())
-        positioned_variant_idxs.sort()
-        i = 0
-        for region in self.ordered_seqRegions:
-            region_variants: List[Variant] = []
-
-            while i < len(positioned_variant_idxs) and positioned_variants[positioned_variant_idxs[i]].overlaps(region):
-                region_variants.append(positioned_variants[positioned_variant_idxs[i]])
-                i += 1
+        # Loop through self.ordered_seqRegions and apply overlapping variants for each seqRegion as required
+        for i, region in enumerate(self.ordered_seqRegions):
+            if i in overlapping_variants:
+                region_variants: List[Variant] = overlapping_variants[i]
+            else:
+                region_variants = []
 
             if len(region_variants) > 0:
                 complete_multipart_sequence += region.get_alt_sequence(autofetch=recursive_fetch, variants=region_variants)
@@ -234,9 +255,9 @@ class MultiPartSeqRegion(SeqRegion):
         """
 
         if len(variants) < 1:
-            raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
+            raise ValueError('get_alt_sequence method requires at least one variant to be provided.')
         elif len(variants) > 1 and variants_overlap(variants):
-            raise ValueError('variants_alt_sequence method does not support overlapping variants.')
+            raise ValueError('get_alt_sequence method does not support overlapping variants.')
 
         if self.sequence is None and autofetch:
             self.fetch_seq(recursive_fetch=True)
