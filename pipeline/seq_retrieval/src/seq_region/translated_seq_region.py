@@ -349,10 +349,12 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, force_start
 
             if codon in codon_table.stop_codons:
                 if reading_frame_opened:
+                    seq_start = frameshift + index_opened * CODON_SIZE + 1 + force_start_offset  # Relative (DNA) sequence start position (1-based)
+                    seq_end = frameshift + (i + 1) * CODON_SIZE + force_start_offset  # Relative (DNA) sequence end position (1-based)
                     orf: CalculatedOrf = {
-                        'sequence': ''.join(codons[frameshift][index_opened:i + 1]),
-                        'seq_start': frameshift + index_opened * CODON_SIZE + 1 + force_start_offset,  # Relative (DNA) sequence start position (1-based)
-                        'seq_end': frameshift + (i + 1) * CODON_SIZE + force_start_offset,  # Relative (DNA) sequence end position (1-based)
+                        'sequence': dna_sequence[seq_start - 1:seq_end],
+                        'seq_start': seq_start,
+                        'seq_end': seq_end,
                         'complete': True,
                         'frameshift': frameshift
                     }
