@@ -7,7 +7,7 @@ from Bio.Data import CodonTable
 from seq_region import SeqRegion, TranslatedSeqRegion
 from seq_region.translated_seq_region import find_orfs
 
-from .fixtures.translated_seq_region import TranscriptFixture
+from .fixtures.translated_seq_regions import TranscriptFixture
 
 
 FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
