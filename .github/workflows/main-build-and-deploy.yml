@@ -54,7 +54,7 @@ jobs:
       latest_commit_sha:
     steps:
       - name: create token for committing and pushing as agr-github-actions app
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         id: app-token
         with:
           app-id: ${{ secrets.GH_ACTIONS_APP_ID }}
