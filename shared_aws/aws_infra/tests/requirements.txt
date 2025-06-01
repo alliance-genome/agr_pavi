@@ -74,9 +74,9 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jsii==1.111.0 \
-    --hash=sha256:3084e31173e73d2eefee678c8ee31aa49428830509043057a421a4c0dde94434 \
-    --hash=sha256:db523ab9b6575c84d6ed8779cdbdc739abd48a7cb0723b66beb84c1a9dc31c7c
+jsii==1.112.0 \
+    --hash=sha256:6510c223074d9b206fd0570849a791e4d9ecfff7ffe68428de73870cea9f55a1 \
+    --hash=sha256:6b7d19f361c2565b76828ecbe8cbed8b8d6028a82aa98a46b206a4ee5083157e
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6
