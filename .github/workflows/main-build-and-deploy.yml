@@ -74,7 +74,7 @@ jobs:
           echo "latest_commit_sha=$(git log -1 --format=%H)" >> "$GITHUB_ENV"
       - name: Download updated dependencies lock files bundle
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        uses: dawidd6/action-download-artifact@v9
+        uses: dawidd6/action-download-artifact@v11
         with:
           name: deps_lock_files_bundle
           pr: ${{ github.event.pull_request.number }}
