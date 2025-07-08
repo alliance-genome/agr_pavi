@@ -134,7 +134,7 @@ pathspec==0.12.1 \
     --hash=sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712
     # via mypy
 pavi-shared-aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl \
-    --hash=sha256:791cc8327ab68b0dc9293a828ffb4f9393c977c5e7ddac1d477ac76a6ee1035e
+    --hash=sha256:65920d1f0013f7557725d6411b058e4cf3ce2ce97ce436e571967bbf9f9e309d
     # via pipeline-aws_infra (pyproject.toml)
 pluggy==1.6.0 \
     --hash=sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3 \
