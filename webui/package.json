@@ -19,7 +19,7 @@
         "@jbrowse/core": "~2.18.0",
         "@lit/react": "^1.0.7",
         "@nightingale-elements/nightingale-manager": "^5.0.0",
-        "@nightingale-elements/nightingale-msa": "^5.0.0",
+        "@nightingale-elements/nightingale-msa": "^5.6.0",
         "@nightingale-elements/nightingale-navigation": "^5.0.0",
         "clustal-js": "^2.0.6",
         "generic-sequence-panel": "^1.6.0",
