@@ -25,5 +25,5 @@ test = [
 ]
 
 [build-system]
-requires = ["setuptools == 80.1.0"]
+requires = ["setuptools == 80.9.0"]
 build-backend = "setuptools.build_meta"
