@@ -90,7 +90,7 @@ jobs:
       - name: commit dependency lock file changes
         id: deps-lock-commit
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           branch: ${{ github.base_ref }}
           commit_user_name: ${{ steps.app-token.outputs.app-slug }}[bot]
@@ -99,8 +99,6 @@ jobs:
           commit_message: Auto-updated deps lock files [skip actions]
           file_pattern: '*requirements.txt *package-lock.json'
           disable_globbing: true
-          skip_checkout: true
-          skip_fetch: true
       - name: Store commit sha in env variable (if updated)
         if: steps.deps-lock-commit.outputs.commit_hash
         run: |
