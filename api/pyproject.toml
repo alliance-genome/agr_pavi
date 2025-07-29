@@ -9,7 +9,7 @@ authors = [
 
 requires-python = "==3.12.*"
 dependencies = [
-    "fastapi[standard]==0.115.*",
+    "fastapi[standard-no-fastapi-cloud-cli]==0.116.*",
     "smart-open[s3]==7.1.*"
 ]
 
@@ -17,7 +17,7 @@ dependencies = [
 test = [
     "flake8==7.2.*",
     "flake8-unused-arguments==0.0.*",
-    "mypy==1.15.*",
+    "mypy==1.16.*",
     "pytest==8.3.*",
     "pytest-cov==6.1.*",
     "httpx==0.28.*"
