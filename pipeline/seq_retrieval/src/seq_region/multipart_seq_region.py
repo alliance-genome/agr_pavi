@@ -170,10 +170,10 @@ class MultiPartSeqRegion(SeqRegion):
 
         for variant in sorted(variants, **sort_kwargs):
             last_variant_overlap_idx: int | None = None  # `ordered_seqRegions` index of last SeqRegion part overlapping this variant
-            # If variant is not in the MultipartSeqRegion boundaries, raise error
+            # If variant is not in the MultipartSeqRegion boundaries, warn and skip
             if variant.genomic_seq_id != self.seq_id or self.end < variant.genomic_start_pos or variant.genomic_end_pos < self.start:
-                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
-                                 + f'out of boundaries of MultipartSeqRegion {self}.')
+                logger.warning(f'Variant ({variant}) out of boundaries of MultipartSeqRegion ({self}).')
+                continue
 
             # Determine the overlapping SeqRegion parts
             for region_idx in range(last_seq_region_overlap_idx or 0, len(self.ordered_seqRegions)):
