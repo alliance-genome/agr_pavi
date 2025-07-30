@@ -2,7 +2,13 @@
 Unit testing for TranslatedSeqRegion class and related functions
 """
 
+import logging
 from Bio.Data import CodonTable
+
+from log_mgmt import get_logger, set_log_level
+
+logger = get_logger(name=__name__)
+set_log_level(logging.DEBUG)
 
 from seq_region import SeqRegion, TranslatedSeqRegion
 from seq_region.translated_seq_region import find_orfs

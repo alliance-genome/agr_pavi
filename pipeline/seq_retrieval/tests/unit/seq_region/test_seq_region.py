@@ -3,9 +3,14 @@ Unit testing for SeqRegion class and related functions
 """
 
 from Bio import Seq
+import logging
 import pytest
 
 from seq_region import SeqRegion, Variant
+from log_mgmt import get_logger, set_log_level
+
+logger = get_logger(name=__name__)
+set_log_level(logging.DEBUG)
 
 
 FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'

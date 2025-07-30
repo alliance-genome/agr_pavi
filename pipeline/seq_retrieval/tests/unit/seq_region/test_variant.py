@@ -2,12 +2,17 @@
 Unit testing for Variant class and related functions
 """
 
-from seq_region import Variant, variants_overlap
-
 import json
+import logging
 import pytest
 import responses  # requests mocking library
 from typing import Any
+
+from seq_region import Variant, variants_overlap
+from log_mgmt import get_logger, set_log_level
+
+logger = get_logger(name=__name__)
+set_log_level(logging.DEBUG)
 
 
 def test_variant_from_id_initiation(wb_variant_yn10: Variant) -> None:

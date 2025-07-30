@@ -2,10 +2,15 @@
 Unit testing for MultiPartSeqRegion class and related functions
 """
 
-from seq_region import MultiPartSeqRegion, Variant
-
 from Bio import Seq
+import logging
 import pytest
+
+from seq_region import MultiPartSeqRegion, Variant
+from log_mgmt import get_logger, set_log_level
+
+logger = get_logger(name=__name__)
+set_log_level(logging.DEBUG)
 
 
 def test_multipart_seq_region_class(wb_cdna_c54h2_5_1: MultiPartSeqRegion) -> None:
