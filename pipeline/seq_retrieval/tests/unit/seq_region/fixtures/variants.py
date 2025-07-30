@@ -91,3 +91,10 @@ def wb_variant_mgl_1_transcript_start_codon() -> Variant:
     # NC_003284.9:g.9975791T>A - WB:ZC506.4a.1:c.1A>T (start position, mock variant) - gene mgl-1 WB:WBGene00003232
     return Variant(variant_id='NC_003284.9:g.9975791T>A', seq_id='X', start=9975791, end=9975791,
                    genomic_ref_seq='T', genomic_alt_seq='A')
+
+
+@pytest.fixture
+def wb_variant_mgl_1_transcript_stop_loss() -> Variant:
+    # NC_003284.9:g.9968631A>T - WB:ZC506.4a.1:c.2848T>A (start of last codon, mock variant) - gene mgl-1 WB:WBGene00003232
+    return Variant(variant_id='NC_003284.9:g.9968631A>T', seq_id='X', start=9968631, end=9968631,
+                   genomic_ref_seq='A', genomic_alt_seq='T')

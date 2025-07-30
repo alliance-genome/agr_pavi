@@ -134,3 +134,15 @@ def test_coding_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
     assert alt_coding_seq != ref_coding_seq
     assert alt_coding_seq == ''
+
+
+def test_coding_seq_retrieval_w_stop_loss_recovery(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_stop_loss) -> None:
+    # Translation on stop-codon loss is expected to continue until the next stop codon in the same ORF
+    translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
+    # ATGA > AAGA
+    alt_coding_seq = translatedSeqRegion.get_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss])
+
+    assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
+    assert alt_coding_seq != ref_coding_seq
+    assert alt_coding_seq == ref_coding_seq[:-3] + 'AGA' + 'ATGATATCCATTAATTTATTGTGCATATGTATCAATATACCTGATAACGAAAATTGTTTATCGATAATTCTTTCTTTTGATACGGAATGA'

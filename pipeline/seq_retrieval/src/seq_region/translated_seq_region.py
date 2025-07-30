@@ -205,20 +205,46 @@ class TranslatedSeqRegion():
                         return ''
 
                     # Check if stop codon in current coding region changed
-                    # * If an early stop was gained, accept alternative coding sequence
+                    # * If an early stop was gained or previous stop maintained, accept alternative coding sequence
                     # * If the reference stop codon was lost, extend the alternative coding sequence and search for new (longer) ORF using reference start codon
                     new_orfs = find_orfs(dna_sequence=alt_coding_seq, codon_table=self.codon_table, force_start=1)
 
                     if len(new_orfs) > 0:
+                        # An early stop was gained or previous stop maintained,
+                        # accepting the alternative coding sequence
                         return new_orfs[0]['sequence']
 
+                    # Reference stop codon was lost,
+                    # extend the alternative coding sequence and search for new (longer) ORF using reference start codon
                     logger.info('Stop codon not found in alternative coding sequence. '
                                 'Alternative coding sequence rejected. Extending the alternative coding sequence and searching for new (longer) ORF using same reference start codon.')
 
-                    ref_coding_region_rel_start = self.exon_seq_region.to_rel_position(self.coding_seq_region.start) + (self.coding_seq_region.frame or 0)
+                    logger.debug('Exon seq region: %s', self.exon_seq_region)
+                    logger.debug('Original coding seq region: %s', self.coding_seq_region)
+
+                    frame_offset = self.coding_seq_region.frame or 0
+
+                    ref_coding_region_rel_start: int
+                    if self.strand == '-':
+                        ref_coding_region_rel_start = self.exon_seq_region.to_rel_position(self.coding_seq_region.end) + frame_offset
+                    else:
+                        ref_coding_region_rel_start = self.exon_seq_region.to_rel_position(self.coding_seq_region.start) + frame_offset
+
                     extended_coding_region = self.exon_seq_region.sub_region(rel_start=ref_coding_region_rel_start, rel_end=self.exon_seq_region.seq_length)
 
-                    return extended_coding_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
+                    logger.debug('Extended coding seq region: %s', extended_coding_region)
+
+                    extended_region_alt_seq = extended_coding_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)
+                    extended_region_alt_orfs = find_orfs(dna_sequence=extended_region_alt_seq, codon_table=self.codon_table, force_start=1)
+
+                    # If an extended ORF was found, accept alternative coding sequence of it
+                    if len(extended_region_alt_orfs) > 0:
+                        return extended_region_alt_orfs[0]['sequence']
+
+                    # If no extended ORF was found, reject alternative coding sequence
+                    logger.info('Stop codon lost and no alternative found in extended alternative coding sequence. '
+                                'Alternative coding sequence rejected.')
+                    return ''
 
                 else:
                     seq = str(self.coding_dna_sequence) if self.coding_dna_sequence is not None else ''
