@@ -159,4 +159,14 @@ def test_coding_seq_retrieval_w_stop_loss_no_recovery(wb_transcript_zc506_4a_1_w
     assert alt_coding_seq != ref_coding_seq
     assert alt_coding_seq == ''
 
-# TODO: test for variant causing gain of stop codon
+
+def test_coding_seq_retrieval_w_stop_gain(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_stop_gain) -> None:
+    # Translation on stop-codon loss is expected to continue until the next stop codon in the same ORF
+    translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
+    # TCAA > TCA
+    alt_coding_seq = translatedSeqRegion.get_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_gain])
+
+    assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
+    assert alt_coding_seq != ref_coding_seq
+    assert alt_coding_seq == ref_coding_seq[:21] + ref_coding_seq[22:25]
