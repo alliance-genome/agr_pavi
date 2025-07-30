@@ -59,7 +59,7 @@ run-unit-tests: .venv/ install-test-deps
 	.venv/bin/python -m pytest --cov
 
 run-unit-tests-dev: .venv/ install-test-deps
-	.venv/bin/python -m pytest --cov --cov-report html -v
+	.venv/bin/python -m pytest --cov --cov-report html -v --capture=tee-sys
 
 run-code-checks: run-type-checks run-style-checks run-unit-tests
 
