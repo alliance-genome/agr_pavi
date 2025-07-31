@@ -112,3 +112,10 @@ def wb_variant_mgl_1_transcript_stop_gain() -> Variant:
     # NC_003284.9:g.9973993Adel - WB:ZC506.4a.1:c.22Adel (early stop gain, mock variant) - gene mgl-1 WB:WBGene00003232
     return Variant(variant_id='NC_003284.9:g.9973993Adel', seq_id='X', start=9973993, end=9973993,
                    genomic_ref_seq='T', genomic_alt_seq='')
+
+
+@pytest.fixture
+def wb_variant_c42d8_1_1_transcript_stop_loss() -> Variant:
+    # NC_003284.9:g.5112328T>A - WB:C42D8.1.1:c.2848T>A (start of last codon, mock variant) - gene C42D8.1 WB:WBGene00016599
+    return Variant(variant_id='NC_003284.9:g.9968631A>T', seq_id='X', start=5112328, end=5112328,
+                   genomic_ref_seq='T', genomic_alt_seq='A')
