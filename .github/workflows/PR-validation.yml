@@ -940,7 +940,7 @@ jobs:
           aws-region: us-east-1
       - name: Run container integration test (AWS execution)
         run: |
-          make run-integration-test-container TAG_NAME=${{needs.container-build-context.outputs.tagname}}
+          make run-integration-test-container API_PIPELINE_IMAGE_TAG=${{needs.container-build-context.outputs.tagname}}
   api-aws-infra-code-checks:
     name: api/aws_infra code checks
     needs:

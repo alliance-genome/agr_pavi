@@ -47,11 +47,16 @@
 	],
 	"settings": {
 		"python.analysis.autoImportCompletions": false,
-		"python.analysis.typeCheckingMode": "basic",
+		"python.analysis.typeCheckingMode": "off",
 		"python.analysis.supportRestructuredText": true,
 		"explorer.excludeGitIgnore": true,
 		"typescript.tsdk": "webUI/node_modules/typescript/lib",
 		"restructuredtext.experimental": true,
-		"makefile.configureOnOpen": false
+		"makefile.configureOnOpen": false,
+		"python.linting.enabled": true,
+		"python.linting.mypyEnabled": true,
+		"python.linting.mypyArgs": [
+			"--warn-unused-config"
+		]
 	}
 }

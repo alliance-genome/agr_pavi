@@ -16,3 +16,4 @@ exclude_lines =
 
     # Exclude all functions labeled with "pragma: no cover"
     pragma: no cover
+fail_under = 85

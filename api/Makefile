@@ -95,10 +95,10 @@ run-style-checks: .venv/ install-test-deps
 	.venv/bin/flake8 ./
 
 run-tests: .venv/ install-test-deps nextflow.sh protein-msa.nf nextflow.config
-	.venv/bin/python -m pytest --cov --cov-fail-under=80
+	.venv/bin/python -m pytest --cov
 
 run-tests-dev: .venv/ install-test-deps nextflow.sh protein-msa.nf nextflow.config
-	.venv/bin/python -m pytest --cov --cov-fail-under=80 --cov-report html -v
+	.venv/bin/python -m pytest --cov --cov-report html -v
 
 run-integration-test-container: .venv/ install-test-deps
 	$(MAKE) --no-print-directory run-container-dev
