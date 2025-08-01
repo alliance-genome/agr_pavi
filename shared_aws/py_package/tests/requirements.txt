@@ -56,9 +56,9 @@ constructs==10.4.2 \
     --hash=sha256:1f0f59b004edebfde0f826340698b8c34611f57848139b7954904c61645f13c1 \
     --hash=sha256:ce54724360fffe10bab27d8a081844eb81f5ace7d7c62c84b719c49f164d5307
     # via aws-cdk-lib
-flake8==7.2.0 \
-    --hash=sha256:93b92ba5bdb60754a6da14fa3b93a9361fd00a59632ada61fd7b130436c40343 \
-    --hash=sha256:fa558ae3f6f7dbf2b4f22663e5343b6b6023620461f8d4ff2019ef4b5ee70426
+flake8==7.3.0 \
+    --hash=sha256:b9696257b9ce8beb888cdbe31cf885c90d31928fe202be0889a7cdafad32f01e \
+    --hash=sha256:fe044858146b9fc69b551a4b490d69cf960fcb78ad1edcb84e7fbb1b4a8e3872
     # via
     #   flake8-unused-arguments
     #   pavi_shared_aws (pyproject.toml)
