@@ -425,9 +425,9 @@ pysam==0.23.3 \
     --hash=sha256:ecf7cbc3d15c84cbc14a6c00af0f866b8f5e6b8ea3d2a496f18ad87adf55bcc5 \
     --hash=sha256:fd35287d2f8d243d6e54746e8cd5df3eb6239b016e51e20bbca1a2b6ef5899df
     # via seq-retrieval (pyproject.toml)
-pytest==8.3.5 \
-    --hash=sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820 \
-    --hash=sha256:f4efe70cc14e511565ac476b57c279e12a855b11f48f212af1080ef2263d3845
+pytest==8.4.1 \
+    --hash=sha256:539c70ba6fcead8e78eebbf1115e8b589e7565830d7d006a8723f19ac8a0afb7 \
+    --hash=sha256:7c67fd69174877359ed9371ec3af8a3d2b04741818c51e5e99cc1742251fa93c
     # via
     #   pytest-cov
     #   seq-retrieval (pyproject.toml)

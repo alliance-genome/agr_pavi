@@ -20,6 +20,6 @@ test = [
     "flake8==7.2.*",
     "flake8-unused-arguments==0.0.*",
     "mypy==1.16.*",
-    "pytest==8.3.*",
+    "pytest==8.4.*",
     "pytest-cov==6.1.*"
 ]
