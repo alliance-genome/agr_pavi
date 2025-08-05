@@ -75,31 +75,47 @@ describe('submit form behaviour', () => {
             cy.get('.p-inputgroup').eq(i).find('#transcripts').find('input').focus()
             cy.get('.p-multiselect-panel', {timeout: 5000}).as('openTranscriptsSelectBox').should('be.visible')
 
+            // The transcript list should be filterable (select panel should contain filter box)
+            cy.get('@openTranscriptsSelectBox').find('input.p-multiselect-filter').as('openTranscriptsFilterBox')
+
             // A list of transcript should be available
             cy.get('@openTranscriptsSelectBox').find('li.p-multiselect-item').as('openTranscriptsList')
             cy.get('@openTranscriptsList').should('have.length.at.least', 1)
 
-            // And the relevant transcripts should be selectable
-            formInput[i].transcripts.forEach((transcript) => {
+            // And the relevant transcripts should be findable (through filter) and selectable
+            formInput[i].transcripts.forEach((transcript: string) => {
+                // Filter for transcript, ensure only one entry is found, click it
+                cy.get('@openTranscriptsFilterBox').clear()
+                cy.get('@openTranscriptsFilterBox').type(transcript)
+                cy.get('@openTranscriptsList').should('have.length', 1)
                 cy.get('@openTranscriptsList').contains(transcript).click()
             })
             cy.get('@openTranscriptsSelectBox').find('button.p-multiselect-close').click()
 
             // Only validate allele field when formInput contains alleles for this entry
             if (formInput[i].alleles && formInput[i].alleles!.length > 0) {
-                // Once the alleles list loaded in the background, multiselect icon should
-                // stop spinning and become clickable
-                cy.get('.p-inputgroup').eq(i).find('#alleles').find('.p-multiselect-trigger').find('svg').not('.p-icon-spin', {timeout: 10000}).click()
+                // Once the alleles list loaded in the background,
+                // multiselect icon should stop spinning and become clickable
+                cy.get('.p-inputgroup').eq(i).find('#alleles').find('.p-multiselect-trigger').find('svg')
+                  .not('.p-icon-spin', {timeout: 10000}).as('openAllelesPanelTrigger')
 
-                // and allele selection panel should apear
+                // The allele selection panel should apear after clicking the trigger
+                cy.get('@openAllelesPanelTrigger').click()
                 cy.get('.p-multiselect-panel').as('openAllelesSelectBox').should('be.visible')
+
+                // The select panel should contain a filter box
+                cy.get('@openAllelesSelectBox').find('input.p-multiselect-filter').as('openAllelesFilterBox')
 
                 // A list of alleles should be available
                 cy.get('@openAllelesSelectBox').find('li.p-multiselect-item').as('openAllelesList')
                 cy.get('@openAllelesList').should('have.length.at.least', 1)
 
-                // And the relevant alleles should be selectable
-                formInput[i].alleles?.forEach((allele) => {
+                // And the relevant alleles should be findable (through filter) and selectable
+                formInput[i].alleles?.forEach((allele: string) => {
+                    // Filter for allele, ensure only one entry is found, click it
+                    cy.get('@openAllelesFilterBox').clear()
+                    cy.get('@openAllelesFilterBox').type(allele)
+                    cy.get('@openTranscriptsList').should('have.length', 1)
                     cy.get('@openAllelesList').contains(allele).click()
                 })
                 cy.get('@openAllelesSelectBox').find('button.p-multiselect-close').click()
