@@ -50,9 +50,9 @@ constructs==10.4.2 \
     --hash=sha256:1f0f59b004edebfde0f826340698b8c34611f57848139b7954904c61645f13c1 \
     --hash=sha256:ce54724360fffe10bab27d8a081844eb81f5ace7d7c62c84b719c49f164d5307
     # via aws-cdk-lib
-flake8==7.2.0 \
-    --hash=sha256:93b92ba5bdb60754a6da14fa3b93a9361fd00a59632ada61fd7b130436c40343 \
-    --hash=sha256:fa558ae3f6f7dbf2b4f22663e5343b6b6023620461f8d4ff2019ef4b5ee70426
+flake8==7.3.0 \
+    --hash=sha256:b9696257b9ce8beb888cdbe31cf885c90d31928fe202be0889a7cdafad32f01e \
+    --hash=sha256:fe044858146b9fc69b551a4b490d69cf960fcb78ad1edcb84e7fbb1b4a8e3872
     # via
     #   api-aws_infra (pyproject.toml)
     #   flake8-unused-arguments
@@ -134,7 +134,7 @@ pathspec==0.12.1 \
     --hash=sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712
     # via mypy
 pavi-shared-aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl \
-    --hash=sha256:65920d1f0013f7557725d6411b058e4cf3ce2ce97ce436e571967bbf9f9e309d
+    --hash=sha256:119f8b8a982efe185aace8d0d4d2b518d509f6438cbf5c2acc28709fdffd4c89
     # via api-aws_infra (pyproject.toml)
 pluggy==1.6.0 \
     --hash=sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3 \
@@ -150,13 +150,13 @@ publication==0.0.3 \
     #   aws-cdk-lib
     #   constructs
     #   jsii
-pycodestyle==2.13.0 \
-    --hash=sha256:35863c5974a271c7a726ed228a14a4f6daf49df369d8c50cd9a6f58a5e143ba9 \
-    --hash=sha256:c8415bf09abe81d9c7f872502a6eee881fbe85d8763dd5b9924bb0a01d67efae
+pycodestyle==2.14.0 \
+    --hash=sha256:c4b5b517d278089ff9d0abdec919cd97262a3367449ea1c8b49b91529167b783 \
+    --hash=sha256:dd6bf7cb4ee77f8e016f9c8e74a35ddd9f67e1d5fd4184d86c3b98e07099f42d
     # via flake8
-pyflakes==3.3.2 \
-    --hash=sha256:5039c8339cbb1944045f4ee5466908906180f13cc99cc9949348d10f82a5c32a \
-    --hash=sha256:6dfd61d87b97fba5dcfaaf781171ac16be16453be6d816147989e7f6e6a9576b
+pyflakes==3.4.0 \
+    --hash=sha256:b24f96fafb7d2ab0ec5075b7350b3d2d2218eab42003821c06344973d3ea2f58 \
+    --hash=sha256:f742a7dbd0d9cb9ea41e9a24a918996e8170c799fa528688d40dd582c8265f4f
     # via flake8
 pytest==8.3.5 \
     --hash=sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820 \
