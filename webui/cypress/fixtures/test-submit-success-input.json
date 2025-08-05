@@ -10,7 +10,15 @@
     {
         "gene": "WB:WBGene00000149",
         "transcripts": [
-            "C42D8.8a.1",
+            "C42D8.8a.1"
+        ],
+        "alleles": [
+            "WB:WBVar00275431"
+        ]
+    },
+    {
+        "gene": "WB:WBGene00000149",
+        "transcripts": [
             "C42D8.8b.1"
         ]
     },

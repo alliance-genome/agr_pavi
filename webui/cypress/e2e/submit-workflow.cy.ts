@@ -71,7 +71,7 @@ describe('submit form behaviour', () => {
             cy.get('@geneInputField').focus()
             cy.get('@geneInputField').type(formInput[i].gene)
 
-            // Once the transcript list loaded, from should enable selecting the relevant transcripts.
+            // Once the transcript list loaded, form should enable selecting the relevant transcripts.
             cy.get('.p-inputgroup').eq(i).find('#transcripts').find('input').focus()
             cy.get('.p-multiselect-panel', {timeout: 5000}).as('openTranscriptsSelectBox').should('be.visible')
 
@@ -84,6 +84,26 @@ describe('submit form behaviour', () => {
                 cy.get('@openTranscriptsList').contains(transcript).click()
             })
             cy.get('@openTranscriptsSelectBox').find('button.p-multiselect-close').click()
+
+            // Only validate allele field when formInput contains alleles for this entry
+            if (formInput[i].alleles && formInput[i].alleles!.length > 0) {
+                // Once the alleles list loaded in the background, multiselect icon should
+                // stop spinning and become clickable
+                cy.get('.p-inputgroup').eq(i).find('#alleles').find('.p-multiselect-trigger').find('svg').not('.p-icon-spin', {timeout: 10000}).click()
+
+                // and allele selection panel should apear
+                cy.get('.p-multiselect-panel').as('openAllelesSelectBox').should('be.visible')
+
+                // A list of alleles should be available
+                cy.get('@openAllelesSelectBox').find('li.p-multiselect-item').as('openAllelesList')
+                cy.get('@openAllelesList').should('have.length.at.least', 1)
+
+                // And the relevant alleles should be selectable
+                formInput[i].alleles?.forEach((allele) => {
+                    cy.get('@openAllelesList').contains(allele).click()
+                })
+                cy.get('@openAllelesSelectBox').find('button.p-multiselect-close').click()
+            }
 
             cy.focused().blur()
 
@@ -163,10 +183,11 @@ describe('submit form behaviour', () => {
         cy.get('@nightingaleSequenceLabels').should('be.visible')
         cy.get('@nightingaleSequenceLabels').shadow().find('ul > li').as('NightingaleLabels')
 
-        cy.get('@NightingaleLabels').should('have.length', 5)
+        cy.get('@NightingaleLabels').should('have.length', 6)
         cy.get('@NightingaleLabels').contains('Appl_Appl-RA')
         cy.get('@NightingaleLabels').contains('Appl_Appl-RB')
-        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_ref')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_alt')
         cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1')
         cy.get('@NightingaleLabels').contains('mgl-1_ZC506.4a.1')
 
