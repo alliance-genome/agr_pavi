@@ -88,6 +88,12 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const processGeneEntry = async(geneId: string) => {
+        if(geneId === gene?.id){
+            // Prevent processing the same gene twice
+            console.log(`Gene field value unchanged, skipping processing for ${geneId}.`)
+            return
+        }
+
         updateInputPayloadPart({
                 status: AlignmentEntryStatus.PROCESSING,
                 payloadPart: undefined
@@ -208,6 +214,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     console.log(`Fetching exon info for transcript ${transcript}...`)
                     // const f = new NCListFeature(transcript);
                     const feature: any = new NCListFeature(transcript).toJSON();
+                    console.debug('Transcript feature:', feature)
 
                     const { subfeatures = [] } = feature
 
@@ -238,6 +245,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
                     const transcriptInfo: TranscriptInfo = {
                         id: transcript.id(),
+                        curie: transcript.get('curie'),
                         name: transcript.get('name'),
                         exons: exons,
                         cds_regions: cds_regions
@@ -448,7 +456,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             <FloatLabel>
                 <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
                     appendTo={"self"}
-                    display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
+                    display='chip' filter maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
                     onFocus={ () => setTranscriptListFocused(true) }
                     onBlur={ () => setTranscriptListFocused(false) }

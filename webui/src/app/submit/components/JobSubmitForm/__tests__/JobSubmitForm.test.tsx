@@ -25,7 +25,7 @@ jest.mock("next/navigation", () => ({
 describe('AlignmentEntry', () => {
     it('renders a data-entry form', () => {
         const result = render(
-            <JobSubmitForm agrjBrowseDataRelease='8.0.0' />
+            <JobSubmitForm agrjBrowseDataRelease='0.0.0' />
         )
 
         const inputGroup = result.container.querySelector('div.p-inputgroup')
@@ -36,7 +36,7 @@ describe('AlignmentEntry', () => {
 
     it('renders a submit button that is disabled by default', () => {
         const result = render(
-            <JobSubmitForm agrjBrowseDataRelease='8.0.0' />
+            <JobSubmitForm agrjBrowseDataRelease='0.0.0' />
         )
 
         const submitBtn = result.container.querySelector('button[aria-label="Submit"]')
@@ -46,7 +46,7 @@ describe('AlignmentEntry', () => {
 
     it('add record button is functional', () => {
         const result = render(
-            <JobSubmitForm agrjBrowseDataRelease='8.0.0' />
+            <JobSubmitForm agrjBrowseDataRelease='0.0.0' />
         )
 
         // Expect exactly one input group to be found
@@ -66,7 +66,7 @@ describe('AlignmentEntry', () => {
 
     it('remove record button is functional', () => {
         const result = render(
-            <JobSubmitForm agrjBrowseDataRelease='8.0.0' />
+            <JobSubmitForm agrjBrowseDataRelease='0.0.0' />
         )
 
         // Expect exactly one input group to be found

@@ -1,12 +1,18 @@
 """
 Module containing the SeqRegion class and related functions.
 """
-from typing import Literal, Optional, override
+from typing import cast, Dict, List, Literal, Optional, override, TypedDict, TYPE_CHECKING
 
 from Bio import Seq  # Bio.Seq biopython submodule
 import pysam
 
 from data_mover import data_file_mover
+from log_mgmt import get_logger
+
+if TYPE_CHECKING:
+    from .variant import Variant
+
+logger = get_logger(name=__name__)
 
 
 class SeqRegion():
@@ -27,7 +33,7 @@ class SeqRegion():
     frame: Optional[FRAME_TYPE]
     """Startposition of the first complete reading frame in the seq region."""
 
-    STRAND_TYPE = Literal['+', '-']
+    STRAND_TYPE = Optional[Literal['+', '-']]
     strand: STRAND_TYPE
     """The (genomic) strand of the sequence region"""
 
@@ -40,7 +46,7 @@ class SeqRegion():
     sequence: Optional[str]
     """the DNA sequence of a sequence region"""
 
-    def __init__(self, seq_id: str, start: int, end: int, strand: STRAND_TYPE, fasta_file_url: str, frame: Optional[FRAME_TYPE] = None, seq: Optional[str] = None):
+    def __init__(self, seq_id: str, start: int, end: int, fasta_file_url: str, strand: STRAND_TYPE = None, frame: Optional[FRAME_TYPE] = None, seq: Optional[str] = None):
         """
         Initializes a SeqRegion instance
 
@@ -71,7 +77,7 @@ class SeqRegion():
             else:
                 self.start = start
                 self.end = end
-        # If strand is +, throw error when end < start (likely user error)
+        # If strand is + (or undefined), throw error when end < start (likely user error)
         else:
             if end < start:
                 raise ValueError(f"Unexpected position order: end {end} < start {start}.")
@@ -84,23 +90,31 @@ class SeqRegion():
         # Fetch the file(s)
         self.fasta_file_path = fetch_faidx_files(fasta_file_url)
 
-        if seq is not None:
-            self.sequence = seq
+        self.sequence = seq
 
     @override
     def __str__(self) -> str:  # pragma: no cover
-        return f'{self.seq_id}:{self.start}-{self.end}:{self.strand}'
+        object_str = f'{self.seq_id}:{self.start}-{self.end}'
+        if self.strand is not None:
+            object_str += f':{self.strand}'
+        if self.frame is not None:
+            object_str += f' (frame:{self.frame})'
+        return object_str
 
     @override
     def __repr__(self) -> str:  # pragma: no cover
         return self.__str__()
 
-    def fetch_seq(self) -> None:
+    def fetch_seq(self) -> str:
         """
-        Fetch sequence found at `seq_id`:`start`-`end`:`strand`
+        Fetch sequence found at `seq_id`:`start`-`end`(:`strand`)
         by reading from faidx files at `fasta_file_path`.
 
+        Assumes `+` as strand if undefined.
         Stores resulting sequence in `sequence` attribute.
+
+        Returns:
+            Return the fetched sequence as a string
         """
         try:
             fasta_file = pysam.FastaFile(self.fasta_file_path)
@@ -116,6 +130,8 @@ class SeqRegion():
                 seq = str(Seq.reverse_complement(seq))
 
         self.set_sequence(seq)
+
+        return seq
 
     def set_sequence(self, sequence: str) -> None:
         """
@@ -136,22 +152,178 @@ class SeqRegion():
         else:
             self.sequence = sequence
 
-    def get_sequence(self, unmasked: bool = False) -> str:
+    def get_sequence(self, unmasked: bool = False, autofetch: bool = True, inframe_only: bool = False) -> str:
         """
-        Return the `sequence` attribute as a string (optionally with modifications).
+        Return the `sequence` attribute as a string.
 
         Args:
             unmasked: Flag to remove soft masking (lowercase letters) \
                       and return unmasked sequence instead (uppercase). Default `False`.
+            autofetch: Flag to enable/disable automatic fetching of sequence \
+                       when not already available. Default `True` (enabled).
+            inframe_only: Flag to return only complete in-frame codons (start==frame, len(seq) % 3 == 0).\
+                          Default `False`.
         Returns:
             The sequence of a seq region as a string (empty string if `None`).
         """
+
+        if self.sequence is None and autofetch:
+            self.fetch_seq()
 
         seq = str(self.sequence)
         if unmasked:
             seq = seq.upper()
 
+        if inframe_only:
+            seq = self.inframe_sequence(seq)
+
         return seq
+
+    def inframe_sequence(self, sequence: Optional[str] = None) -> str:
+        """
+        Return the sequence of the SeqRegion within complete reading frames.
+
+        Skips the first n bases of the sequence where n is `self.frame` if `frame` is set.
+        Trims the end of the resultingsequence to a length that matches complete codons (a multiple of 3).
+
+        Args:
+            sequence: optional DNA sequence of the sequence region to convert, otherwise uses `self.sequence`
+
+        Returns:
+            The in-frame sequence of a seq region as a string (empty string if `None`).
+        """
+        seq: str
+        if sequence is None:
+            seq = str(self.sequence)
+        else:
+            seq = str(sequence)
+
+        start: int = 0
+        length: int = 0
+        if seq != "":
+            start = self.frame or 0
+            length = (len(seq) - start) // 3 * 3  # Floor the length to full codons
+
+        if length > 0:
+            seq = seq[start:start + length]
+        else:
+            seq = ""
+
+        return seq
+
+    def get_alt_sequence(self, unmasked: bool = False, variants: List['Variant'] = [], autofetch: bool = True, inframe_only: bool = False) -> str:
+        """
+        Get an alternative `sequence` of the SeqRegion by applying a list of variants to it.
+
+        Replaces the ref sequence of the variants found in the sequence region with its alt sequence.
+
+        Args:
+            unmasked: Flag to remove soft masking (lowercase letters) \
+                      and return unmasked sequence instead (uppercase). Default `False`.
+            variants:  List of variants to apply to the sequence before returning.
+            autofetch: Flag to enable/disable automatic fetching of sequence \
+                       when not already available. Default `True` (enabled).
+            inframe_only: Flag to return only complete in-frame codons (start==frame, len(seq) % 3 == 0).\
+                          Default `False`.
+        Returns:
+            The sequence of a seq region as a string (empty string if `None`).
+        """
+        from .variant import variants_overlap  # Imported here to prevent circular dependency
+
+        if len(variants) < 1:
+            raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
+        elif len(variants) > 1 and variants_overlap(variants):
+            raise ValueError('variants_alt_sequence method does not support overlapping variants.')
+
+        # Position all variants relative to the SeqRegion
+        class PositionedVariant(TypedDict):
+            variant: 'Variant'
+            """The Variant object"""
+            boundary_start: int
+            boundary_end: int
+            boundary_start_overhang: int
+            """The number of bases the variant is overhanging the start of the SeqRegion (outside of the SeqRegion boundary)"""
+            boundary_end_overhang: int
+            """The number of bases the variant is overhanging the end of the SeqRegion (outside of the SeqRegion boundary)"""
+
+        positioned_variants: Dict[int, PositionedVariant] = {}  # Variants indexed by relative position in SeqRegion
+
+        for variant in variants:
+            # If variant is not in the SeqRegion boundaries, raise error
+            variant_seq_region = SeqRegion(seq_id=variant.genomic_seq_id, start=variant.genomic_start_pos, end=variant.genomic_end_pos,
+                                           fasta_file_url='file:' + self.fasta_file_path)
+            if self.overlaps(variant_seq_region) is not True:
+                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                                 + f'out of boundaries of SeqRegion {self}.')
+
+            # Calculate the variant's start position relative to the SeqRegion
+            start_overhang: int = 0
+            end_overhang: int = 0
+            boundary_start: int
+            boundary_end: int
+            if self.strand == "-":
+                boundary_start = min(variant.genomic_end_pos, self.end)
+                start_overhang = variant.genomic_end_pos - boundary_start
+                boundary_end = max(variant.genomic_start_pos, self.start)
+                end_overhang = boundary_end - variant.genomic_start_pos
+            else:
+                boundary_start = max(variant.genomic_start_pos, self.start)
+                start_overhang = boundary_start - variant.genomic_start_pos
+                boundary_end = min(variant.genomic_end_pos, self.end)
+                end_overhang = variant.genomic_end_pos - boundary_end
+
+            if (start_overhang > 0 or end_overhang > 0) and variant.genomic_alt_seq != '' \
+               and len(variant.genomic_ref_seq) != len(variant.genomic_alt_seq):
+                logger.error('Embedding of partially overlapping indels not supported. '
+                             + f'Variant {variant} only partially overlaps SeqRegion {self}.')
+                raise NotImplementedError('Embedding of partially overlapping indels not supported.')
+
+            rel_variant_start_pos = self.to_rel_position(boundary_start)
+            positioned_variants[rel_variant_start_pos] = {
+                'variant': variant,
+                'boundary_start': boundary_start,
+                'boundary_end': boundary_end,
+                'boundary_start_overhang': start_overhang,
+                'boundary_end_overhang': end_overhang
+            }
+
+        # Replace the reference sequence with the alternative sequence for each variant
+        sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch, inframe_only=False)
+        # Loop through variants in relative positional reverse order to avoid changes in indices due to indels
+        for rel_start, positioned_variant in sorted(positioned_variants.items(), reverse=True):
+            rel_end = rel_start + abs(positioned_variant['boundary_end'] - positioned_variant['boundary_start'])
+
+            variant_ref_seq = positioned_variant['variant'].genomic_ref_seq
+            variant_alt_seq = positioned_variant['variant'].genomic_alt_seq
+
+            if self.strand == '-':
+                variant_ref_seq = str(Seq.reverse_complement(variant_ref_seq))
+                variant_alt_seq = str(Seq.reverse_complement(variant_alt_seq))
+
+            # Remove overhangs (partial overlapping variants)
+            variant_ref_seq = variant_ref_seq[positioned_variant['boundary_start_overhang']:len(variant_ref_seq) - positioned_variant['boundary_end_overhang']]
+            if variant_alt_seq:
+                variant_alt_seq = variant_alt_seq[positioned_variant['boundary_start_overhang']:len(variant_alt_seq) - positioned_variant['boundary_end_overhang']]
+
+            # Replace variant sequence
+            if not positioned_variant['variant'].genomic_ref_seq:
+                # Insertions
+                sequence = sequence[:rel_start] + variant_alt_seq + sequence[(rel_end - 1):]
+            else:
+                # All other variants
+                seq_region_variant_seq = sequence[(rel_start - 1):(rel_end)]
+
+                if seq_region_variant_seq.upper() != variant_ref_seq.upper():
+                    logger.error(f'Variant ({positioned_variant["variant"]}) '
+                                 + f'does not match the reference sequence of SeqRegion {self} at positions {rel_start}-{rel_end}.'
+                                 + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
+                    raise ValueError('Unexpected variant reference sequence mismatch.')
+                sequence = sequence[:(rel_start - 1)] + variant_alt_seq + sequence[rel_end:]
+
+        if inframe_only:
+            sequence = self.inframe_sequence(sequence)
+
+        return sequence
 
     def overlaps(self, seq_region_2: "SeqRegion") -> bool:
         """
@@ -164,13 +336,77 @@ class SeqRegion():
             True if SeqRegion overlaps with another SeqRegion instance, False otherwise.
         """
         if self.fasta_file_path != seq_region_2.fasta_file_path or \
-           self.seq_id != seq_region_2.seq_id or self.strand != seq_region_2.strand:
+           self.seq_id != seq_region_2.seq_id or \
+           (self.strand is not None and seq_region_2.strand is not None and self.strand != seq_region_2.strand):
             return False
 
         if max(self.start, seq_region_2.start) <= min(self.end, seq_region_2.end):
             return True
         else:
             return False
+
+    def sub_region(self, rel_start: int, rel_end: int) -> 'SeqRegion':
+        """
+        Return a subregion of the SeqRegion
+
+        Args:
+            rel_start: Relative start position (1-based) of the subregion
+            rel_end: Relative end position (1-based) of the subregion
+
+        Returns:
+            SeqRegion object representing the subregion
+        Raises:
+            ValueError: when rel_start or rel_end falls outside the SeqRegion boundaries
+        """
+        if rel_start < 1 or self.seq_length < rel_end:
+            raise ValueError(f'Relative start position {rel_start} or relative end position {rel_end} fall outside the boundaries of the SeqRegion {self} (len {self.seq_length}).')
+
+        new_start: int
+        new_end: int
+        new_frame: Optional[SeqRegion.FRAME_TYPE] = None
+
+        if self.frame is not None:
+            new_frame = cast(SeqRegion.FRAME_TYPE, (self.frame - (rel_start - 1)) % 3)
+
+        if self.strand == '-':
+            new_end = self.end - (rel_start - 1)
+            new_start = self.end - (rel_end - 1)
+        else:
+            new_start = self.start + (rel_start - 1)
+            new_end = self.start + (rel_end - 1)
+
+        return SeqRegion(seq_id=self.seq_id,
+                         start=new_start,
+                         end=new_end,
+                         strand=self.strand,
+                         fasta_file_url='file:' + self.fasta_file_path,
+                         frame=new_frame,
+                         seq=self.sequence[(rel_start - 1):rel_end] if self.sequence is not None else None)
+
+    def to_rel_position(self, seq_position: int) -> int:
+        """
+        Convert absolute sequence position to relative position within the SeqRegion
+
+        Args:
+            seq_position: absolute sequence position to be converted
+
+        Returns:
+            Relative position within the SeqRegion sequence (1-based)
+
+        Raises:
+            ValueError: when abs_position falls outside of the SeqRegion boundaries
+        """
+        if seq_position < self.start or self.end < seq_position:
+            raise ValueError(f'Seq position {seq_position} out of boundaries of SeqRegion {self}.')
+
+        rel_position: int
+
+        if self.strand == '-':
+            rel_position = self.end - seq_position + 1
+        else:
+            rel_position = seq_position - self.start + 1
+
+        return rel_position
 
 
 def fetch_faidx_files(fasta_file_url: str) -> str:

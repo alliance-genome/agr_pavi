@@ -16,7 +16,7 @@ jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib
 describe('AlignmentEntryList', () => {
     it('renders one input record by default', () => {
         const result = render(
-            <AlignmentEntryList agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
+            <AlignmentEntryList agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
         const inputGroups = result.container.querySelectorAll('div.p-inputgroup')
@@ -25,7 +25,7 @@ describe('AlignmentEntryList', () => {
 
     it('renders a functional button to remove individual records', () => {
         const result = render(
-            <AlignmentEntryList agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
+            <AlignmentEntryList agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
         const inputGroupsBefore = result.container.querySelectorAll('div.p-inputgroup')
@@ -44,7 +44,7 @@ describe('AlignmentEntryList', () => {
 
     it('renders a functional add-record button', () => {
         const result = render(
-            <AlignmentEntryList agrjBrowseDataRelease='8.0.0' dispatchInputPayloadPart={jest.fn()} />
+            <AlignmentEntryList agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
         const addRecordBtn = result.container.querySelector('button#add-record')

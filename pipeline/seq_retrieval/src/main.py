@@ -11,7 +11,7 @@ import re
 from typing import get_args, List, TypedDict, Optional
 
 import data_mover.data_file_mover as data_file_mover
-from seq_region import SeqRegion, TranslatedSeqRegion
+from seq_region import SeqRegion, TranslatedSeqRegion, Variant
 from log_mgmt import set_log_level, get_logger
 
 logger = get_logger(name=__name__)
@@ -107,6 +107,36 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
         return seq_regions
 
 
+def process_variants_param(ctx: click.Context, param: click.Parameter, value: str) -> set[str]:  # noqa: U100
+    """
+    Parse the value of click input parameter variants and validate it's structure.
+
+    Value is expected to be a JSON-formatted list of variant IDs to retrieve.
+    Variant IDs must be defined as strings.
+
+    Returns:
+        Set of strings representing variant IDs
+
+    Raises:
+        click.BadParameter: If value could not be parsed as JSON or had an invalid structure or values.
+    """
+    variants: set[str] = set()
+    try:
+        variants_input = json.loads(value)
+    except Exception:
+        raise click.BadParameter("Must be a valid JSON-formatted string.")
+    else:
+        if not isinstance(variants_input, list):
+            raise click.BadParameter("Must be a valid list (JSON-array) of variant IDs to retrieve.")
+        for index, variant in enumerate(variants_input):
+            if not isinstance(variant, str):
+                raise click.BadParameter(f"Variant {variant} is not a valid string. All variants in variants list must be valid strings.")
+            else:
+                variants.add(variant)
+
+        return variants
+
+
 @click.command(context_settings={'show_default': True})
 @click.option("--seq_id", type=click.STRING, required=True,
               help="The sequence ID to retrieve sequences for.")
@@ -118,6 +148,8 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
 @click.option("--cds_seq_regions", type=click.UNPROCESSED, default=[], callback=process_seq_regions_param,
               help="A JSON list of CDS sequence regions to use for translation for output-type protein "
                    + "(dicts formatted '{\"start\": 1234, \"end\": 5678, \"frame\": 0}' or strings formatted '`start`..`end`').")
+@click.option("--variant_ids", type=click.UNPROCESSED, default='[]', callback=process_variants_param,
+              help="A JSON string list of variant IDs to embed into the transcript (and protein) sequence")
 @click.option("--fasta_file_url", type=click.STRING, required=True,
               help="""URL to (faidx-indexed) fasta file to retrieve sequences from.
                    Assumes additional index files can be found at `<fasta_file_url>.fai`,
@@ -134,8 +166,8 @@ def process_seq_regions_param(ctx: click.Context, param: click.Parameter, value:
               help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
-def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict], fasta_file_url: str, output_type: str,
-         name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
+def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict],
+         variant_ids: set[str], fasta_file_url: str, output_type: str, name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
@@ -152,6 +184,14 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
     data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
+    # Fetch variant info for all variant IDs through the public web API
+    variant_info: dict[str, Variant] = {}
+    for variant_id in variant_ids:
+        logger.debug(f"Fetching variant info for {variant_id}...")
+        variant_info[variant_id] = Variant.from_variant_id(variant_id)
+        logger.debug(f"Variant info for {variant_id} fetched: {variant_info[variant_id]}")
+
+    # Parse exon_seq_regions and cds_seq_regions into respective SeqRegion objects
     exon_seq_region_objs: List[SeqRegion] = []
     for region in exon_seq_regions:
         exon_seq_region_objs.append(SeqRegion(seq_id=seq_id, start=region['start'], end=region['end'], strand=seq_strand,
@@ -163,21 +203,51 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
                                              frame=region['frame'],
                                              fasta_file_url=fasta_file_url))
 
+    # Build complete sequence region (using exons + cds)
     fullRegion = TranslatedSeqRegion(exon_seq_regions=exon_seq_region_objs, cds_seq_regions=cds_seq_region_objs)
-
-    fullRegion.fetch_seq(type='transcript', recursive_fetch=True)
-    seq_concat = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
 
     logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")
 
-    click.echo('>' + name)
+    # Retrieve relevant sequence(s)
+    ref_seq: str | None = None
+    alt_seq: str | None = None
+
     if output_type == 'transcript':
-        click.echo(seq_concat)
+        ref_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
+
+        if variant_info:
+            # Generate additional sequence for full region with variants embedded
+            alt_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
+
     elif output_type == 'protein':
-        protein_seq = fullRegion.translate()
-        click.echo(protein_seq)
+        ref_seq = fullRegion.get_sequence(type='protein')
+
+        if ref_seq == '':
+            logger.error(f'No ORF found for TranslatedSeqRegion {fullRegion}')
+
+        if variant_info:
+            # Generate additional sequence for full region with variants embedded
+            alt_seq = fullRegion.get_sequence(type='protein', variants=list(variant_info.values()))
+
+            if alt_seq == '':
+                logger.error(f'No ORF found for TranslatedSeqRegion {fullRegion} with variants embedded ({variant_ids})')
     else:
-        raise NotImplementedError(f"Reporting on results of output_type {output_type} is currently not implemented.")
+        raise NotImplementedError(f"Output_type {output_type} is currently not implemented.")
+
+    # Print output
+    ref_name: str = name
+    alt_name: str
+
+    if variant_info:
+        ref_name = name + '_ref'
+        alt_name = name + '_alt'
+
+    click.echo('>' + ref_name)
+    click.echo(ref_seq)
+
+    if variant_info:
+        click.echo('>' + alt_name)
+        click.echo(alt_seq)
 
 
 if __name__ == '__main__':
