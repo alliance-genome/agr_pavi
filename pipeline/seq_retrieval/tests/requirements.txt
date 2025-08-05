@@ -230,9 +230,9 @@ coverage[toml]==7.10.2 \
     --hash=sha256:fd17f427f041f6b116dc90b4049c6f3e1230524407d00daa2d8c7915037b5947 \
     --hash=sha256:fe024d40ac31eb8d5aae70215b41dafa264676caa4404ae155f77d2fa95c37bb
     # via pytest-cov
-flake8==7.2.0 \
-    --hash=sha256:93b92ba5bdb60754a6da14fa3b93a9361fd00a59632ada61fd7b130436c40343 \
-    --hash=sha256:fa558ae3f6f7dbf2b4f22663e5343b6b6023620461f8d4ff2019ef4b5ee70426
+flake8==7.3.0 \
+    --hash=sha256:b9696257b9ce8beb888cdbe31cf885c90d31928fe202be0889a7cdafad32f01e \
+    --hash=sha256:fe044858146b9fc69b551a4b490d69cf960fcb78ad1edcb84e7fbb1b4a8e3872
     # via
     #   flake8-unused-arguments
     #   seq-retrieval (pyproject.toml)
