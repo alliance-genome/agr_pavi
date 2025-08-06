@@ -203,7 +203,7 @@ describe('submit form behaviour', () => {
         cy.get('@NightingaleLabels').contains('Appl_Appl-RA')
         cy.get('@NightingaleLabels').contains('Appl_Appl-RB')
         cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_ref')
-        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_alt')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_yn32')
         cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1')
         cy.get('@NightingaleLabels').contains('mgl-1_ZC506.4a.1')
 
