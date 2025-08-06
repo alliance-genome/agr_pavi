@@ -22,5 +22,5 @@ test = [
     "mypy==1.17.*",
     "responses==0.25.*",
     "pytest==8.4.*",
-    "pytest-cov==6.1.*"
+    "pytest-cov==6.2.*"
 ]
