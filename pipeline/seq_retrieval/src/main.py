@@ -150,6 +150,8 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
                    + "(dicts formatted '{\"start\": 1234, \"end\": 5678, \"frame\": 0}' or strings formatted '`start`..`end`').")
 @click.option("--variant_ids", type=click.UNPROCESSED, default='[]', callback=process_variants_param,
               help="A JSON string list of variant IDs to embed into the transcript (and protein) sequence")
+@click.option("--alt_seq_name_suffix", type=click.STRING, default='_alt',
+              help="Suffix to use for naming the alt sequence embedding the variants.")
 @click.option("--fasta_file_url", type=click.STRING, required=True,
               help="""URL to (faidx-indexed) fasta file to retrieve sequences from.
                    Assumes additional index files can be found at `<fasta_file_url>.fai`,
@@ -167,7 +169,7 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
 def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict],
-         variant_ids: set[str], fasta_file_url: str, output_type: str, name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
+         variant_ids: set[str], alt_seq_name_suffix: str, fasta_file_url: str, output_type: str, name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
@@ -240,7 +242,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
     if variant_info:
         ref_name = name + '_ref'
-        alt_name = name + '_alt'
+        alt_name = name + alt_seq_name_suffix
 
     click.echo('>' + ref_name)
     click.echo(ref_seq)
