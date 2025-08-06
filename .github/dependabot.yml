@@ -204,6 +204,10 @@ updates:
           - "react-dom"
           - "@types/react"
           - "@types/react-dom"
+      nightingale-deps-version-upgrades:
+        applies-to: version-updates
+        patterns:
+          - "@nightingale-elements/*"
     ignore:
       - dependency-name: "@types/node"  # Ignored because minor/patch upgrade are enabled through wildcard version specifier in manifest, while major upgrades require node upgrade (simultaneously), which dependabot does not support.
     # Below version upgrades are ignored because auto-updates on every PR should handle them
