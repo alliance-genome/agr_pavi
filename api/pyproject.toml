@@ -19,6 +19,6 @@ test = [
     "flake8-unused-arguments==0.0.*",
     "mypy==1.17.*",
     "pytest==8.4.*",
-    "pytest-cov==6.1.*",
+    "pytest-cov==6.2.*",
     "httpx==0.28.*"
 ]
