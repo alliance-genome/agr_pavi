@@ -1,6 +1,6 @@
 # Note: Building this container requires the repository root directory as build context directory (../)
 # as files from other components (workflow) must be included in the API container image
-FROM python:3.12-slim-bullseye
+FROM python:3.12-slim-bookworm
 
 WORKDIR /usr/src/app
 

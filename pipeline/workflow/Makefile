@@ -1,6 +1,6 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-NEXTFLOW_VERSION=24.10.9
+NEXTFLOW_VERSION=25.04.6
 TAG_NAME?=main
 
 .PHONY: build-% clean registry-docker-login run-%
