@@ -37,6 +37,7 @@ RUN --mount=type=secret,id=AWS_PROFILE,env=AWS_PROFILE \
 
 # Set Nextflow to offline mode
 ENV NXF_OFFLINE='true'
+ENV NXF_SYNTAX_PARSER=v2
 
 # Start the API server application
 CMD [ "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8080"]
