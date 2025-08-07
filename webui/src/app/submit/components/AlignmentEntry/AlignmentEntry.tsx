@@ -138,6 +138,29 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         const portion: JobSumbissionPayloadRecord[] = []
 
         transcripts_info.forEach(transcript => {
+            let alt_seq_name_suffix: string = '_alt'
+            if(alleles_info.length > 0){
+                let identifiable_suffix: string = ''
+                for ( const allele of alleles_info ) {
+                    if (allele.id !== allele.displayName) {
+                        if (allele.displayName.length < allele.id.length) {
+                            identifiable_suffix += `_${allele.displayName}`
+                        }
+                        else {
+                            identifiable_suffix += `_${allele.id}`
+                        }
+                    }
+                    else{
+                        identifiable_suffix = ''
+                        break
+                    }
+                }
+                // Prevent identifiable suffixes that are too long
+                if(identifiable_suffix && identifiable_suffix.length < 30){
+                    alt_seq_name_suffix = identifiable_suffix
+                }
+            }
+
             portion.push({
                 name: `${gene_info.symbol}_${transcript.name}`,
                 fasta_file_url: fastaFileUrl!,
@@ -152,7 +175,8 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     'end': e.refEnd,
                     'frame': e.phase
                 })),
-                variant_ids: alleles_info.map((a) => (Array.from(a.variants.keys()))).flat()
+                variant_ids: alleles_info.map((a) => (Array.from(a.variants.keys()))).flat(),
+                alt_seq_name_suffix: alt_seq_name_suffix
             })
         });
 

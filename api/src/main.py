@@ -5,7 +5,7 @@ from os import getenv
 from pydantic import BaseModel
 from smart_open import open  # type: ignore
 
-from typing import Any
+from typing import Any, Optional
 
 import json
 import subprocess
@@ -30,6 +30,7 @@ class Pipeline_seq_region(BaseModel):
     cds_seq_regions: list[str | dict[str, str | int]]
     fasta_file_url: str
     variant_ids: list[str]
+    alt_seq_name_suffix: Optional[str] = None
 
 
 class Pipeline_job(BaseModel):
