@@ -9,7 +9,7 @@ jobs:
     name: Cancel all incomplete PR-validations for closed PR (further validation on closed PRs are irrelevant)
     permissions:
       actions: write
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     concurrency:
       group: PR validation-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -21,7 +21,7 @@ jobs:
   on-merge:
     name: Skip on unmerged
     if: github.event.pull_request.merged == true
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Confirm execution
       shell: bash
@@ -31,7 +31,7 @@ jobs:
     name: Skip on 'no-deploy' PRs
     needs: on-merge
     if: '!contains(github.event.pull_request.labels.*.name, ''no-deploy'')'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Confirm execution
       shell: bash
@@ -42,7 +42,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-commit-deps-lock-updates
       cancel-in-progress: true
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - on-merge
     permissions:
@@ -110,7 +110,7 @@ jobs:
           echo "git-describe=$(git describe --tags)" >> $GITHUB_OUTPUT
   build-pavi-shared-aws-module:
     name: Build pavi_shared_aws package
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     concurrency:
       group: ${{ github.workflow }}-build-pavi-shared-aws-module
       cancel-in-progress: true
@@ -148,7 +148,7 @@ jobs:
       - build-pavi-shared-aws-module
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: shared_aws/aws_infra
@@ -192,7 +192,7 @@ jobs:
       - deploy-shared-aws-infra
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: pipeline/aws_infra
@@ -235,7 +235,7 @@ jobs:
       - build-pavi-shared-aws-module
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: api/aws_infra
@@ -278,7 +278,7 @@ jobs:
       - build-pavi-shared-aws-module
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: webui/aws_infra
@@ -317,7 +317,7 @@ jobs:
     needs: [on-deploy, pipeline-deploy-aws-infra, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
@@ -356,7 +356,7 @@ jobs:
     needs: [on-deploy, pipeline-deploy-aws-infra, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
@@ -395,7 +395,7 @@ jobs:
     needs: [on-deploy, api-deploy-image-repo, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
@@ -448,7 +448,7 @@ jobs:
     needs: [on-deploy, webui-deploy-image-repo, commit-deps-lock-updates]
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
@@ -503,7 +503,7 @@ jobs:
       - deploy-shared-aws-infra
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
