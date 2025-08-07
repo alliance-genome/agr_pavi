@@ -16,6 +16,7 @@ COPY api/src/ ./
 RUN apt install -y default-jre
 COPY pipeline/workflow/Makefile workflow_makefile
 RUN make -f workflow_makefile nextflow.sh
+COPY pipeline/workflow/tests/integration/test.config tests/integration/test.config
 COPY pipeline/workflow/nextflow.config nextflow.config
 COPY pipeline/workflow/protein-msa.nf protein-msa.nf
 
