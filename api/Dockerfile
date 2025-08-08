@@ -1,22 +1,62 @@
 # Note: building this image requires Valid AWS credentials to be defined and mounted as secrets
-FROM python:3.12-slim-bookworm
+FROM ubuntu:24.04 AS base-image
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt upgrade -y
+
+
+FROM base-image AS install-python
+RUN apt install -y bash curl git build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+
+# Install python through pyenv
+RUN curl -fsSL https://pyenv.run | bash
+ENV HOME="/root"
+ENV PYENV_ROOT="${HOME}/.pyenv"
+ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+
+ENV PYTHON_VERSION=3.12
+RUN pyenv install ${PYTHON_VERSION}
+RUN pyenv global ${PYTHON_VERSION}
+
+WORKDIR /usr/src/app/
+COPY requirements.txt ./
+RUN python -m venv .venv/
+RUN .venv/bin/pip install --no-cache-dir -r requirements.txt
+
+
+FROM base-image AS application-deps-collection
 
 WORKDIR /usr/src/app
 
-RUN apt update && apt upgrade -y
 RUN apt install -y make curl
-
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./
 
-# Nextflow requirements, executable and configs
-RUN apt install -y default-jre
+# Nextflow runtime requirements, executable and configs
 COPY pipeline_workflow/Makefile workflow_makefile
 RUN make -f workflow_makefile nextflow.sh
 COPY pipeline_workflow/nextflow.config nextflow.config
 COPY pipeline_workflow/protein-msa.nf protein-msa.nf
+
+
+FROM base-image AS application-image
+
+# Setup python
+COPY --from=install-python /root/.pyenv /root/.pyenv
+ENV HOME="/root"
+ENV PYENV_ROOT="${HOME}/.pyenv"
+ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+
+# Setup application files
+WORKDIR /usr/src/app
+COPY --from=application-deps-collection /usr/src/app ./
+
+# Setup python venv environment
+COPY --from=install-python /usr/src/app/.venv /usr/src/app/.venv
+ENV PATH="/usr/src/app/.venv/bin:${PATH}"
+
+# Nextflow runtime requirements
+RUN apt install -y default-jre
 
 # Expose necessary ports
 EXPOSE 8080
