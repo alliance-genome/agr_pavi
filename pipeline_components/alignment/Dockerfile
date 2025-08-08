@@ -1,11 +1,7 @@
-FROM biocontainers/clustalo:v1.2.4-2-deb_cv1
-USER root
+FROM ubuntu:24.04
 
-#Fix buster-backports repository errors (no packages of it used)
-RUN rm /etc/apt/sources.list.d/backports.list
-# Patch to handle debian buster deprecation and repository archival
-RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
-RUN sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list
+RUN apt update && apt upgrade -y && apt install -y clustalo
+
 #Install AWS CLI required for nextflow AWS batch execution
 RUN apt update && \
     apt install -y curl procps unzip
