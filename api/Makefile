@@ -27,8 +27,8 @@ clean:
 	@rm -rf work/
 
 container-image:
-	cd ../ && export AWS_PROFILE=${AWS_PROFILE} && \
-	docker build ${ADDITIONAL_BUILD_ARGS} -f api/Dockerfile -t ${CONTAINER_NAME} \
+	export AWS_PROFILE=${AWS_PROFILE} && \
+	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} \
 	  --secret id=AWS_PROFILE --secret id=AWS_SHARED_CREDENTIALS_FILE,src=${HOME}/.aws/credentials \
 	  --secret id=AWS_CONFIG_FILE,src=${HOME}/.aws/config \
 	  .
@@ -51,13 +51,13 @@ stop-container-dev:
 	  docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.api
 
 nextflow.sh:
-	make -f ../pipeline/workflow/Makefile nextflow.sh
+	make -f ./pipeline_workflow/Makefile nextflow.sh
 
 protein-msa.nf:
-	ln -s ../pipeline/workflow/protein-msa.nf protein-msa.nf
+	ln -s ./pipeline_workflow/protein-msa.nf protein-msa.nf
 
 nextflow.config:
-	ln -s ../pipeline/workflow/nextflow.config nextflow.config
+	ln -s ./pipeline_workflow/nextflow.config nextflow.config
 
 run-server-dev: install-deps nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \

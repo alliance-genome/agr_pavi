@@ -42,14 +42,14 @@ endif
 update-install-shared-aws:
 	make -C shared_aws/py_package/ clean build install
 	make -C shared_aws/aws_infra/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only install-deps-update-dev
-	make -C pipeline/aws_infra/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only install-deps-update-dev
+	make -C pipeline_components/aws_infra/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only install-deps-update-dev
 	make -C api/aws_infra/ update-deps-lock-shared-aws-only update-test-deps-lock-shared-aws-only install-deps-update-dev
 	make -C webui/aws_infra/ update-deps-lock-shared-aws-only install-deps-update-dev
 
 # Reminder: below validate- deploy- and destroy- targets requires AWS env variables (such as AWS_PROFILE) to be exported for successful execution
 
 validate-dev:
-	make -C pipeline/aws_infra/ validate deploy
+	make -C pipeline_components/aws_infra/ validate deploy
 	make -C api/aws_infra validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" \
 	                                                                            PAVI_IMAGE_TAG="${PAVI_CONTAINER_IMAGE_TAG}" \
 																				VALIDATE_ENV_STACK_NAME=PaviApiEbDevStack
@@ -59,9 +59,9 @@ validate-dev:
 																				  VALIDATE_ENV_STACK_NAME=PaviWebUiEbDevStack
 
 deploy-dev:
-	make -C pipeline/aws_infra/ validate deploy
-	make -C pipeline/seq_retrieval/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
-	make -C pipeline/alignment/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
+	make -C pipeline_components/aws_infra/ validate deploy
+	make -C pipeline_components/seq_retrieval/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
+	make -C pipeline_components/alignment/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
 	make -C api/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
 	make -C webui/ container-image push-container-image TAG_NAME=${PAVI_DEPLOY_VERSION_LABEL}
 	make -C api/aws_infra deploy-application PAVI_DEPLOY_VERSION_LABEL="${PAVI_DEPLOY_VERSION_LABEL}" ADD_CDK_ARGS="--require-approval any-change"
@@ -80,13 +80,13 @@ destroy-dev:
 	make -C api/aws_infra destroy-environment EB_ENV_CDK_STACK_NAME=PaviApiEbDevStack
 
 update-deps-locks-all:
-	$(MAKE) -C pipeline/seq_retrieval/ update-deps-locks-all
+	$(MAKE) -C pipeline_components/seq_retrieval/ update-deps-locks-all
 	$(MAKE) -C api/ update-deps-locks-all
 	$(MAKE) -C webui/ update-deps-locks-all
 	$(MAKE) -C shared_aws/py_package/ update-deps-locks-all
 	$(MAKE) -C shared_aws/py_package/ clean build install
 	$(MAKE) -C shared_aws/aws_infra/ update-deps-locks-all
-	$(MAKE) -C pipeline/aws_infra/ update-deps-locks-all
+	$(MAKE) -C pipeline_components/aws_infra/ update-deps-locks-all
 	$(MAKE) -C api/aws_infra/ update-deps-locks-all
 	$(MAKE) -C webui/aws_infra/ update-deps-locks-all
 

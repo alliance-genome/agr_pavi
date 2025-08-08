@@ -1,5 +1,6 @@
 {
     "files.exclude": {
-        "aws_infra": true
+        "aws_infra": true,
+        "pipeline_workflow": true
     }
 }
