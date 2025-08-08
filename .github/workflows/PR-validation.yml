@@ -822,8 +822,7 @@ jobs:
         env:
           DOCKER_BUILD_SUMMARY: false
         with:
-          context: ./
-          file: api/Dockerfile
+          context: ./api/
           push: false
           secrets: |
             AWS_PROFILE=default
