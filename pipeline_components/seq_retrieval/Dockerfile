@@ -3,6 +3,7 @@ FROM ubuntu:24.04 AS base-image
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt upgrade -y
 
+
 FROM base-image AS install-python
 RUN apt install -y bash curl git build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
@@ -16,6 +17,12 @@ ENV PYTHON_VERSION=3.12
 RUN pyenv install ${PYTHON_VERSION}
 RUN pyenv global ${PYTHON_VERSION}
 
+WORKDIR /root/
+COPY requirements.txt ./
+RUN python -m venv .venv/
+RUN .venv/bin/pip install --no-cache-dir -r requirements.txt
+
+
 FROM base-image AS application-image
 
 COPY --from=install-python /root/.pyenv /root/.pyenv
@@ -25,8 +32,8 @@ ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
 
 WORKDIR /usr/src/app
 
-RUN apt update && apt install -y build-essential zlib1g-dev libbz2-dev xz-utils \
-                                     bash curl procps unzip # Nextflow requirements
+# Nextflow requirements
+RUN apt install -y bash curl procps unzip
 
 #Install AWS CLI required for nextflow AWS batch execution
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
@@ -34,8 +41,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     ./aws/install && \
     rm -rf ./aws/
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY --from=install-python /root/.venv /usr/src/app/.venv
 
 COPY src/ ./
 RUN chmod a+x main.py
