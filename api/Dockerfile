@@ -1,3 +1,4 @@
+# Note: building this image requires Valid AWS credentials to be defined and mounted as secrets
 FROM python:3.12-slim-bookworm
 
 WORKDIR /usr/src/app
