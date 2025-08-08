@@ -14,10 +14,10 @@ COPY api/src/ ./
 
 # Nextflow requirements, executable and configs
 RUN apt install -y default-jre
-COPY pipeline/workflow/Makefile workflow_makefile
+COPY api/pipeline_workflow/Makefile workflow_makefile
 RUN make -f workflow_makefile nextflow.sh
-COPY pipeline/workflow/nextflow.config nextflow.config
-COPY pipeline/workflow/protein-msa.nf protein-msa.nf
+COPY api/pipeline_workflow/nextflow.config nextflow.config
+COPY api/pipeline_workflow/protein-msa.nf protein-msa.nf
 
 # Expose necessary ports
 EXPOSE 8080

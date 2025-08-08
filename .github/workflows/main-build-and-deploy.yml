@@ -195,7 +195,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: pipeline/aws_infra
+        working-directory: pipeline_components/aws_infra
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -204,11 +204,11 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version-file: "pipeline/aws_infra/.nvmrc"
+        node-version-file: "pipeline_components/aws_infra/.nvmrc"
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version-file: "pipeline/aws_infra/pyproject.toml"
+        python-version-file: "pipeline_components/aws_infra/pyproject.toml"
     - name: Download shared AWS package
       uses: actions/download-artifact@v5
       with:
@@ -326,7 +326,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
         sparse-checkout: |
-          pipeline/seq_retrieval/
+          pipeline_components/seq_retrieval/
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
@@ -343,7 +343,7 @@ jobs:
       env:
           DOCKER_BUILD_SUMMARY: false
       with:
-        context: ./pipeline/seq_retrieval/
+        context: ./pipeline_components/seq_retrieval/
         push: true
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{ env.tagname }}
@@ -365,7 +365,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
         sparse-checkout: |
-          pipeline/alignment/
+          pipeline_components/alignment/
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
@@ -382,7 +382,7 @@ jobs:
       env:
           DOCKER_BUILD_SUMMARY: false
       with:
-        context: ./pipeline/alignment/
+        context: ./pipeline_components/alignment/
         push: true
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{ env.tagname }}

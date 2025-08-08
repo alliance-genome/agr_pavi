@@ -46,12 +46,12 @@ jobs:
       run: |
         echo "tagname=PR-${{ github.event.pull_request.number }}-validation" >> $GITHUB_OUTPUT
   pipeline-seq-retrieval-update-dependency-lock-files:
-    name: pipeline/seq_retrieval update and upload dependency lock file
+    name: pipeline_components/seq_retrieval update and upload dependency lock file
     runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
-        working-directory: ./pipeline/seq_retrieval/
+        working-directory: ./pipeline_components/seq_retrieval/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -59,10 +59,10 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             Makefile
-            pipeline/seq_retrieval/
+            pipeline_components/seq_retrieval/
       - uses: actions/setup-python@v5
         with:
-          python-version-file: "pipeline/seq_retrieval/pyproject.toml"
+          python-version-file: "pipeline_components/seq_retrieval/pyproject.toml"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         shell: bash
@@ -72,13 +72,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pipeline_seq_retrieval_deps_lock
-          path: pipeline/seq_retrieval/requirements.txt
+          path: pipeline_components/seq_retrieval/requirements.txt
           if-no-files-found: error
       - name: Upload updated (test) lock file as artifact
         uses: actions/upload-artifact@v4
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
-          path: pipeline/seq_retrieval/tests/requirements.txt
+          path: pipeline_components/seq_retrieval/tests/requirements.txt
           if-no-files-found: error
   api-update-dependency-lock-files:
     name: api update and upload dependency lock file
@@ -351,14 +351,14 @@ jobs:
     - name: Validate production CDK stack code
       run: make validate-stack
   pipeline-aws-infra-update-dependency-lock-files:
-    name: pipeline/aws_infra update and upload dependency lock file
+    name: pipeline_components/aws_infra update and upload dependency lock file
     needs:
       - shared-aws-py-package-build
     runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
-        working-directory: ./pipeline/aws_infra/
+        working-directory: ./pipeline_components/aws_infra/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -366,10 +366,10 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             Makefile
-            pipeline/aws_infra/
+            pipeline_components/aws_infra/
       - uses: actions/setup-python@v5
         with:
-          python-version-file: "pipeline/aws_infra/pyproject.toml"
+          python-version-file: "pipeline_components/aws_infra/pyproject.toml"
       - name: Download shared AWS package
         uses: actions/download-artifact@v5
         with:
@@ -387,7 +387,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pipeline_aws_infra_deps_locks_bundle
-          path: pipeline/aws_infra/pipeline-aws-infra-deps-locks.tar.gz
+          path: pipeline_components/aws_infra/pipeline-aws-infra-deps-locks.tar.gz
           if-no-files-found: error
   api-aws-infra-update-dependency-lock-files:
     name: api/aws_infra update and upload dependency lock file
@@ -468,7 +468,7 @@ jobs:
           path: webui/aws_infra/webui-aws-infra-deps-locks.tar.gz
           if-no-files-found: error
   pipeline-seq-retrieval-container-image-build:
-    name: pipeline/seq_retrieval container-image build
+    name: pipeline_components/seq_retrieval container-image build
     needs:
       - container-build-context
       - pipeline-seq-retrieval-update-dependency-lock-files
@@ -481,12 +481,12 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            pipeline/seq_retrieval/
+            pipeline_components/seq_retrieval/
       - name: Download updated seq_retrieval (main) dependencies lock file
         uses: actions/download-artifact@v5
         with:
           name: pipeline_seq_retrieval_deps_lock
-          path: pipeline/seq_retrieval
+          path: pipeline_components/seq_retrieval
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       # This step will configure environment variables to be used by all steps
@@ -505,7 +505,7 @@ jobs:
         env:
           DOCKER_BUILD_SUMMARY: false
         with:
-          context: ./pipeline/seq_retrieval/
+          context: ./pipeline_components/seq_retrieval/
           push: false
           tags: agr_pavi/pipeline_seq_retrieval:latest
           outputs: type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
@@ -520,14 +520,14 @@ jobs:
           docker tag agr_pavi/pipeline_seq_retrieval:latest ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{needs.container-build-context.outputs.tagname}}
           docker push ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_seq_retrieval:${{needs.container-build-context.outputs.tagname}}
   pipeline-seq-retrieval-code-checks:
-    name: pipeline/seq_retrieval code checks
+    name: pipeline_components/seq_retrieval code checks
     needs:
       - pipeline-seq-retrieval-update-dependency-lock-files
     runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
-        working-directory: ./pipeline/seq_retrieval/
+        working-directory: ./pipeline_components/seq_retrieval/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -535,20 +535,20 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             Makefile
-            pipeline/seq_retrieval/
+            pipeline_components/seq_retrieval/
       - name: Download updated seq_retrieval (main) dependencies lock file
         uses: actions/download-artifact@v5
         with:
           name: pipeline_seq_retrieval_deps_lock
-          path: pipeline/seq_retrieval
+          path: pipeline_components/seq_retrieval
       - name: Download updated seq_retrieval (test) dependencies lock file
         uses: actions/download-artifact@v5
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
-          path: pipeline/seq_retrieval/tests
+          path: pipeline_components/seq_retrieval/tests
       - uses: actions/setup-python@v5
         with:
-          python-version-file: "pipeline/seq_retrieval/pyproject.toml"
+          python-version-file: "pipeline_components/seq_retrieval/pyproject.toml"
       - name: Code typing test
         run: |
           make run-type-checks
@@ -559,7 +559,7 @@ jobs:
         run: |
           make run-unit-tests
   pipeline-alignment-container-image-build:
-    name: pipeline/alignment container-image build
+    name: pipeline_components/alignment container-image build
     needs:
       - container-build-context
     permissions:
@@ -571,7 +571,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            pipeline/alignment/
+            pipeline_components/alignment/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       # This step will configure environment variables to be used by all steps
@@ -590,7 +590,7 @@ jobs:
         env:
           DOCKER_BUILD_SUMMARY: false
         with:
-          context: ./pipeline/alignment/
+          context: ./pipeline_components/alignment/
           push: false
           tags: agr_pavi/pipeline_alignment:latest
           outputs: type=docker,dest=/tmp/pavi_alignment_docker_image.tar
@@ -605,14 +605,14 @@ jobs:
           docker tag agr_pavi/pipeline_alignment:latest ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{needs.container-build-context.outputs.tagname}}
           docker push ${{ steps.login-ecr.outputs.registry }}/agr_pavi/pipeline_alignment:${{needs.container-build-context.outputs.tagname}}
   pipeline-alignment-unit-testing:
-    name: pipeline/alignment unit testing
+    name: pipeline_components/alignment unit testing
     needs:
       - pipeline-alignment-container-image-build
     runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
-        working-directory: ./pipeline/alignment/
+        working-directory: ./pipeline_components/alignment/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -620,7 +620,7 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             Makefile
-            pipeline/alignment/
+            pipeline_components/alignment/
       - name: Download alignment image artifact (from previous job)
         uses: actions/download-artifact@v5
         with:
@@ -633,7 +633,7 @@ jobs:
         run: |
           make run-unit-tests
   pipeline-workflow-integration-testing:
-    name: pipeline/workflow integration testing
+    name: api/pipeline_workflow integration testing
     needs:
       - container-build-context
       - pipeline-seq-retrieval-container-image-build
@@ -644,7 +644,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./pipeline/workflow/
+        working-directory: ./api/pipeline_workflow/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -652,7 +652,7 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             Makefile
-            pipeline/workflow/
+            api/pipeline_workflow/
             tests/resources/
       - name: Download seq_retrieval image artifact (from previous job)
         uses: actions/download-artifact@v5
@@ -685,7 +685,7 @@ jobs:
         run: |
           make run-integration-test-aws TAG_NAME=${{needs.container-build-context.outputs.tagname}}
   pipeline-aws-infra-code-checks:
-    name: pipeline/aws_infra code checks
+    name: pipeline_components/aws_infra code checks
     needs:
       - pipeline-aws-infra-update-dependency-lock-files
       - shared-aws-py-package-build
@@ -694,7 +694,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: ./pipeline/aws_infra
+        working-directory: ./pipeline_components/aws_infra
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -702,14 +702,14 @@ jobs:
         fetch-depth: 0
         sparse-checkout: |
           Makefile
-          pipeline/aws_infra/
-    - name: Download updated pipeline/aws_infra dependencies lock files bundle
+          pipeline_components/aws_infra/
+    - name: Download updated pipeline_components/aws_infra dependencies lock files bundle
       uses: actions/download-artifact@v5
       with:
         name: pipeline_aws_infra_deps_locks_bundle
-        path: pipeline/aws_infra
+        path: pipeline_components/aws_infra
     - name: Unpack the bundle
-      working-directory: pipeline/aws_infra/
+      working-directory: pipeline_components/aws_infra/
       run: |
         tar -xzv -f pipeline-aws-infra-deps-locks.tar.gz
     - name: Download shared AWS package
@@ -720,7 +720,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version-file: "pipeline/aws_infra/pyproject.toml"
+        python-version-file: "pipeline_components/aws_infra/pyproject.toml"
     - name: Code typing test
       run: |
         make run-type-checks
@@ -732,7 +732,7 @@ jobs:
     - name: Setup node.js (CDK CLI requirement)
       uses: actions/setup-node@v4
       with:
-        node-version-file: "pipeline/aws_infra/.nvmrc"
+        node-version-file: "pipeline_components/aws_infra/.nvmrc"
     - name: AWS credentials configuration
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -1285,12 +1285,12 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: pipeline_seq_retrieval_deps_lock
-          path: pipeline/seq_retrieval
+          path: pipeline_components/seq_retrieval
       - name: Download updated seq_retrieval (test) dependencies lock file
         uses: actions/download-artifact@v5
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
-          path: pipeline/seq_retrieval/tests
+          path: pipeline_components/seq_retrieval/tests
       - name: Download updated api (main) dependencies lock file
         uses: actions/download-artifact@v5
         with:
@@ -1301,13 +1301,13 @@ jobs:
         with:
           name: api_tests_deps_lock
           path: api/tests
-      - name: Download updated pipeline/aws_infra dependencies lock files bundle
+      - name: Download updated pipeline_components/aws_infra dependencies lock files bundle
         uses: actions/download-artifact@v5
         with:
           name: pipeline_aws_infra_deps_locks_bundle
-          path: pipeline/aws_infra
+          path: pipeline_components/aws_infra
       - name: Unpack the bundle
-        working-directory: pipeline/aws_infra/
+        working-directory: pipeline_components/aws_infra/
         run: |
           tar -xzv -f pipeline-aws-infra-deps-locks.tar.gz
       - name: Download updated shared_aws py-package prod dependencies lock file

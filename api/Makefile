@@ -51,13 +51,13 @@ stop-container-dev:
 	  docker compose -f docker-compose-dev.yml --env-file dev.env down agr.pavi.dev-local.api
 
 nextflow.sh:
-	make -f ../pipeline/workflow/Makefile nextflow.sh
+	make -f ../api/pipeline_workflow/Makefile nextflow.sh
 
 protein-msa.nf:
-	ln -s ../pipeline/workflow/protein-msa.nf protein-msa.nf
+	ln -s ../api/pipeline_workflow/protein-msa.nf protein-msa.nf
 
 nextflow.config:
-	ln -s ../pipeline/workflow/nextflow.config nextflow.config
+	ln -s ../api/pipeline_workflow/nextflow.config nextflow.config
 
 run-server-dev: install-deps nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
