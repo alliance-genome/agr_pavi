@@ -24,6 +24,21 @@ RUN python -m venv .venv/
 RUN .venv/bin/pip install --no-cache-dir -r requirements.txt
 
 
+FROM base-image AS application-deps-collection
+
+WORKDIR /usr/src/app
+
+RUN apt install -y make curl
+
+COPY src/ ./
+
+# Nextflow runtime requirements, executable and configs
+COPY pipeline_workflow/Makefile workflow_makefile
+RUN make -f workflow_makefile nextflow.sh
+COPY pipeline_workflow/nextflow.config nextflow.config
+COPY pipeline_workflow/protein-msa.nf protein-msa.nf
+
+
 FROM base-image AS application-image
 
 COPY --from=install-python /root/.pyenv /root/.pyenv
@@ -32,23 +47,13 @@ ENV PYENV_ROOT="${HOME}/.pyenv"
 ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
 
 WORKDIR /usr/src/app
-
-#TODO: void need to install make and curl in application image
-# by using separate stage for fetching all required dependencies
-# and then copy them into the application image
-RUN apt install -y make curl
+COPY --from=application-deps-collection /usr/src/app ./
 
 COPY --from=install-python /root/.venv /usr/src/app/.venv
 ENV PATH="/usr/src/app/.venv/bin:${PATH}"
 
-COPY src/ ./
-
-# Nextflow runtime requirements, executable and configs
+# Nextflow runtime requirements
 RUN apt install -y default-jre
-COPY pipeline_workflow/Makefile workflow_makefile
-RUN make -f workflow_makefile nextflow.sh
-COPY pipeline_workflow/nextflow.config nextflow.config
-COPY pipeline_workflow/protein-msa.nf protein-msa.nf
 
 # Expose necessary ports
 EXPOSE 8080
