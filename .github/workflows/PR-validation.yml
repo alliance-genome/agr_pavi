@@ -13,7 +13,7 @@ jobs:
     if: github.event.pull_request.state == 'closed'
     permissions:
       actions: write
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Cancelling this PR validation run.
       uses: actions/github-script@v7
@@ -36,7 +36,7 @@ jobs:
           }
   container-build-context:
     name: define container image build context variables
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       tagname: ${{ steps.store_tagname.outputs.tagname }}
     steps:
@@ -47,7 +47,7 @@ jobs:
         echo "tagname=PR-${{ github.event.pull_request.number }}-validation" >> $GITHUB_OUTPUT
   pipeline-seq-retrieval-update-dependency-lock-files:
     name: pipeline/seq_retrieval update and upload dependency lock file
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -82,7 +82,7 @@ jobs:
           if-no-files-found: error
   api-update-dependency-lock-files:
     name: api update and upload dependency lock file
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -117,7 +117,7 @@ jobs:
           if-no-files-found: error
   webui-update-dependency-lock-files:
     name: webui update and upload dependency lock file
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -146,7 +146,7 @@ jobs:
           if-no-files-found: error
   shared-aws-py-package-update-dependency-lock-files:
     name: shared_aws py-package update and upload dependency lock file
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -183,7 +183,7 @@ jobs:
     name: shared_aws py-package code checks
     needs:
       - shared-aws-py-package-update-dependency-lock-files
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./shared_aws/py_package/
@@ -221,7 +221,7 @@ jobs:
     name: shared_aws python package build
     needs:
       - shared-aws-py-package-code-checks
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./shared_aws/py_package/
@@ -259,7 +259,7 @@ jobs:
     name: shared_aws aws_infra update and upload dependency lock file
     needs:
       - shared-aws-py-package-build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -301,7 +301,7 @@ jobs:
       - shared-aws-py-package-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./shared_aws/aws_infra/
@@ -354,7 +354,7 @@ jobs:
     name: pipeline/aws_infra update and upload dependency lock file
     needs:
       - shared-aws-py-package-build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -393,7 +393,7 @@ jobs:
     name: api/aws_infra update and upload dependency lock file
     needs:
       - shared-aws-py-package-build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -432,7 +432,7 @@ jobs:
     name: webui/aws_infra update and upload dependency lock file
     needs:
       - shared-aws-py-package-build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -474,7 +474,7 @@ jobs:
       - pipeline-seq-retrieval-update-dependency-lock-files
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -523,7 +523,7 @@ jobs:
     name: pipeline/seq_retrieval code checks
     needs:
       - pipeline-seq-retrieval-update-dependency-lock-files
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -564,7 +564,7 @@ jobs:
       - container-build-context
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -608,7 +608,7 @@ jobs:
     name: pipeline/alignment unit testing
     needs:
       - pipeline-alignment-container-image-build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -640,7 +640,7 @@ jobs:
       - pipeline-alignment-container-image-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -691,7 +691,7 @@ jobs:
       - shared-aws-py-package-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./pipeline/aws_infra
@@ -745,7 +745,7 @@ jobs:
     name: API code checks
     needs:
       - api-update-dependency-lock-files
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -783,7 +783,7 @@ jobs:
       - api-update-dependency-lock-files
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -843,7 +843,7 @@ jobs:
       - api-update-dependency-lock-files
       - pipeline-seq-retrieval-container-image-build
       - pipeline-alignment-container-image-build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -895,7 +895,7 @@ jobs:
       - api-update-dependency-lock-files
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -948,7 +948,7 @@ jobs:
       - shared-aws-py-package-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./api/aws_infra
@@ -1003,7 +1003,7 @@ jobs:
       - shared-aws-py-package-build
     permissions:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./webui/aws_infra
@@ -1055,7 +1055,7 @@ jobs:
     name: webUI code checks
     needs:
       - webui-update-dependency-lock-files
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -1088,7 +1088,7 @@ jobs:
     name: webUI container-image build
     needs:
       - webui-update-dependency-lock-files
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -1129,7 +1129,7 @@ jobs:
     name: cypress E2E testing container-image build
     needs:
       - webui-update-dependency-lock-files
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -1178,7 +1178,7 @@ jobs:
       - cypress-testing-container-image-build
     permissions:
       id-token: write # Required for OIDC authentication to AWS (to perform AWS actions / access AGR AWS resources)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       # Configure environment variables used for AWS interaction,
       # required for API container interactions with pipeline resources
@@ -1262,7 +1262,7 @@ jobs:
           make stop-container-dev
   stage-deps-lock-updates:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       pull-requests: write
     # Always stage updated lock files, even on failure,
@@ -1416,7 +1416,7 @@ jobs:
           cat diff-files.txt | xargs -I {} gh pr comment ${{ github.event.pull_request._links.html.href }} --body-file diff-files/{}.md
   report-no-deps-lock-updates-label:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       pull-requests: write
     steps:

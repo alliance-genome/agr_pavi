@@ -1,6 +1,6 @@
 # Note: Building this container requires the repository root directory as build context directory (../)
 # as files from other components (workflow) must be included in the API container image
-FROM python:3.12-slim-bullseye
+FROM python:3.12-slim-bookworm
 
 WORKDIR /usr/src/app
 
@@ -37,6 +37,7 @@ RUN --mount=type=secret,id=AWS_PROFILE,env=AWS_PROFILE \
 
 # Set Nextflow to offline mode
 ENV NXF_OFFLINE='true'
+ENV NXF_SYNTAX_PARSER=v2
 
 # Start the API server application
 CMD [ "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8080"]
