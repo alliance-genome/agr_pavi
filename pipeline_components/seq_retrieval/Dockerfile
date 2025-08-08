@@ -17,7 +17,7 @@ ENV PYTHON_VERSION=3.12
 RUN pyenv install ${PYTHON_VERSION}
 RUN pyenv global ${PYTHON_VERSION}
 
-WORKDIR /root/
+WORKDIR /usr/src/app/
 COPY requirements.txt ./
 RUN python -m venv .venv/
 RUN .venv/bin/pip install --no-cache-dir -r requirements.txt
@@ -41,7 +41,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     ./aws/install && \
     rm -rf ./aws/
 
-COPY --from=install-python /root/.venv /usr/src/app/.venv
+COPY --from=install-python /usr/src/app/.venv /usr/src/app/.venv
 
 COPY src/ ./
 RUN chmod a+x main.py

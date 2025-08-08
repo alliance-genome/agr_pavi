@@ -18,7 +18,7 @@ ENV PYTHON_VERSION=3.12
 RUN pyenv install ${PYTHON_VERSION}
 RUN pyenv global ${PYTHON_VERSION}
 
-WORKDIR /root/
+WORKDIR /usr/src/app/
 COPY requirements.txt ./
 RUN python -m venv .venv/
 RUN .venv/bin/pip install --no-cache-dir -r requirements.txt
@@ -41,15 +41,18 @@ COPY pipeline_workflow/protein-msa.nf protein-msa.nf
 
 FROM base-image AS application-image
 
+# Setup python
 COPY --from=install-python /root/.pyenv /root/.pyenv
 ENV HOME="/root"
 ENV PYENV_ROOT="${HOME}/.pyenv"
 ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
 
+# Setup application files
 WORKDIR /usr/src/app
 COPY --from=application-deps-collection /usr/src/app ./
 
-COPY --from=install-python /root/.venv /usr/src/app/.venv
+# Setup python venv environment
+COPY --from=install-python /usr/src/app/.venv /usr/src/app/.venv
 ENV PATH="/usr/src/app/.venv/bin:${PATH}"
 
 # Nextflow runtime requirements
