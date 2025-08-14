@@ -20,5 +20,6 @@ test = [
     "mypy==1.17.*",
     "pytest==8.4.*",
     "pytest-cov==6.2.*",
+    "pytest-mock==3.14.*",
     "httpx==0.28.*"
 ]

@@ -1,11 +1,12 @@
 from fastapi.testclient import TestClient
 
 from src.main import app
-from uuid import UUID
+from uuid import uuid1, UUID
 
 client = TestClient(app, follow_redirects=False)
 
 NOT_FOUND_UUID: UUID = UUID('00000000-0000-0000-0000-000000000000')
+mock_uuid: UUID = uuid1()
 
 
 # Health endpoint is used by ELB health checks.
@@ -33,3 +34,13 @@ def test_result_not_found() -> None:
     response = client.get(f'/api/pipeline-job/{NOT_FOUND_UUID}/result/alignment')
 
     assert response.status_code == 404
+
+
+def test_result_alignment(mocker) -> None:
+    def mock_alignment_open(uri=None, **kwargs):  # noqa: U100
+        return open('../tests/resources/submit-workflow-success-output.aln', **kwargs)
+    mocker.patch('src.main.open', side_effect=mock_alignment_open)
+    response = client.get(f'/api/pipeline-job/{mock_uuid}/result/alignment')
+
+    assert response.status_code == 200
+    assert response.text == mock_alignment_open().read()
