@@ -48,12 +48,12 @@ def test_success_pipeline_workflow() -> None:
 
     # Collect and compare pipeline result
     try:
-        response = client.get(f'/api/pipeline-job/{job_uuid}/alignment-result')
+        response = client.get(f'/api/pipeline-job/{job_uuid}/result/alignment')
     except ReadTimeout as e:
-        logger.error(f'Reading alignment-result for {job_uuid} exceeded timeout.')
+        logger.error(f'Reading alignment result for {job_uuid} exceeded timeout.')
         raise e
     except Exception as e:
-        logger.error(f'Exception caught while reading alignment-result for {job_uuid}.')
+        logger.error(f'Exception caught while reading alignment result for {job_uuid}.')
         raise e
 
     assert response.status_code == 200, f'Result retrieval for {job_uuid} did not return success.'
@@ -108,12 +108,12 @@ def test_fail_pipeline_workflow() -> None:
 
     # Pipeline results should not be found
     try:
-        response = client.get(f'/api/pipeline-job/{job_uuid}/alignment-result')
+        response = client.get(f'/api/pipeline-job/{job_uuid}/result/alignment')
     except ReadTimeout as e:
-        logger.error(f'Reading alignment-result for {job_uuid} exceeded timeout.')
+        logger.error(f'Reading result/alignment for {job_uuid} exceeded timeout.')
         raise e
     except Exception as e:
-        logger.error(f'Exception caught while reading alignment-result for {job_uuid}.')
+        logger.error(f'Exception caught while reading result/alignment for {job_uuid}.')
         raise e
 
     assert response.status_code == 404, f'Result retrieval for {job_uuid} did not return not-found.'

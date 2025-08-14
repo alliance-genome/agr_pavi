@@ -30,6 +30,6 @@ def test_job_not_found() -> None:
 
 
 def test_result_not_found() -> None:
-    response = client.get(f'/api/pipeline-job/{NOT_FOUND_UUID}/alignment-result')
+    response = client.get(f'/api/pipeline-job/{NOT_FOUND_UUID}/result/alignment')
 
     assert response.status_code == 404
