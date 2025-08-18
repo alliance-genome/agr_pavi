@@ -25,9 +25,17 @@ class CalculatedOrf(TypedDict):
     frameshift: int
 
 
-class InvalidOrfException(Exception):
+class InvalidatedOrfException(Exception):
     """
     Exception raised when an ORF in a sequence region becomes invalid (due to altering the sequence).
+    """
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class InvalidatedTranslationException(Exception):
+    """
+    Exception raised when the translation of a sequence region was invalidated (due to altering the sequence).
     """
     def __init__(self, message: str):
         super().__init__(message)
@@ -253,7 +261,7 @@ class TranslatedSeqRegion():
                     err_msg = 'Reference start codon is different from alternative start codon. '\
                               'Alternative coding sequence rejected. No alternatives searched.'
                     logger.info(err_msg)
-                    raise InvalidOrfException(err_msg)
+                    raise InvalidatedOrfException(err_msg)
 
                 # Check if stop codon in current coding region changed
                 # * If an early stop was gained or previous stop maintained, accept alternative coding sequence
@@ -294,7 +302,7 @@ class TranslatedSeqRegion():
                         err_msg = 'Stop codon lost and no alternative found in extended alternative coding sequence. '\
                                   'Alternative coding sequence rejected.'
                         logger.info(err_msg)
-                        raise InvalidOrfException(err_msg)
+                        raise InvalidatedOrfException(err_msg)
 
                     # Otherwise, accept alternative ORF sequence of extended region
                     seq = extended_region_alt_orfs[0]['sequence']
@@ -304,7 +312,11 @@ class TranslatedSeqRegion():
 
             case 'protein':
                 if len(variants) > 0:
-                    alt_coding_seq = self.get_alt_sequence(type='coding', unmasked=unmasked, variants=variants, autofetch=autofetch)
+                    try:
+                        alt_coding_seq = self.get_alt_sequence(type='coding', unmasked=unmasked, variants=variants, autofetch=autofetch)
+                    except InvalidatedOrfException:
+                        raise InvalidatedTranslationException('Translation invalidated due to variants invalidating the ORF.')
+
                     if alt_coding_seq == '':
                         raise ValueError('No alternative coding sequence region found, so no translation possible.')
 

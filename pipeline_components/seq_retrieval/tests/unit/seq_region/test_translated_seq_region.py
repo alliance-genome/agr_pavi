@@ -6,7 +6,7 @@ import logging
 import pytest
 from Bio.Data import CodonTable
 
-from seq_region import SeqRegion, TranslatedSeqRegion, InvalidOrfException
+from seq_region import SeqRegion, TranslatedSeqRegion, InvalidatedOrfException, InvalidatedTranslationException
 from seq_region.translated_seq_region import find_orfs
 
 from .fixtures.translated_seq_regions import TranscriptFixture
@@ -131,12 +131,23 @@ def test_protein_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_
     assert alt_protein_seq == 'MVPKPPSIIRHMFSVLALAIQILANVNVVAQTTEAVDLAPPPKVRQIRIPGDILIGGVFPVHSKSLNGDEPCGEIAETRGVHRVEAMLYALDQINSQNDFLRGYKLGALILDSCSNPAYALNQSLDFVRDMIGSSEASDYVCLDGSDPNLKKQSQKKNVAAVVGGSYSSVSVQLANLLRLFRIAQVSPASTNADLSDKNRFEYFARTVPSDDYQAMAMVEIAVKFKWSYVSLVYSADEYGELGADAFKKETRKKGICIALEERIQNKKESFTESINNLVQKLQPEKNVGATVVVLFVGTEYIPDILRYTAERMKLTSGAKKRIIWLASESWDRNNDKYTAGDNRLAAQGAIVLMLASQKVPSFEEYFMSLHPGTEAFERNKWLRELWQVKYKCEFDTPPGSTASRCEDIKQSTEGFNADDKVQFVIDAVYAIAHGLQSMKQAICPDDAIENHWISRYSKQPEICHAMQNIDGSDFYQNYLLKVNFTDIVGKRFRFSPQGDGPASYTILTYKPKSMDKKRRMTDDESSPSDYVEIGHWSENNLTIYEKNLWWDPDHTPVSVCSLPCKIGFRKQLIKDEQCCWACSKCEDYEYLINETHCVGCEQGWWPTKDRKGCFDLSLSQLKYMRWRSMYSLVPTILAVFGIIATLFVIVVYVIYNETPVVKASGRELSYILLISMIMCYCMTFVLLSKPSAIVCAIKRTGIGFAFSCLYSAMFVKTNRIFRIFSTRSAQRPRFISPISQVVMTAMLAGVQLIGSLIWLSVVPPGWRHHYPTRDQVVLTCNVPDHHFLYSLAYDGFLIVLCTTYAVKTRKVPENFNETKFIGFSMYTTCVVWLSWIFFFFGTGSDFQIQTSSLCISISMSANVALACIFSPKLWIILFEKHKNVRKQEGESMLNKSSRSLGNCSSRLCANSIDEPNQYTALLTDSTRRRSSRKTSQPTSTSSAHDTFL'
 
 
+def test_protein_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_start_codon) -> None:
+    # Translation through alternative ORFs is currently not supported, so variants in start codon are not supported
+    translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein')
+    # ATGGTA > TTGGTA
+    with pytest.raises(InvalidatedTranslationException):
+        translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript_start_codon])
+
+    assert ref_protein_seq == wb_transcript_zc506_4a_1_with_cds['proteinSeq']
+
+
 def test_coding_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_start_codon) -> None:
     # Translation through alternative ORFs is currently not supported, so variants in start codon are not supported
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGGTA > TTGGTA
-    with pytest.raises(InvalidOrfException):
+    with pytest.raises(InvalidatedOrfException):
         translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_start_codon])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
@@ -171,7 +182,7 @@ def test_coding_seq_retrieval_w_stop_loss_no_recovery(wb_transcript_zc506_4a_1_w
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGA > AAGA
-    with pytest.raises(InvalidOrfException):
+    with pytest.raises(InvalidatedOrfException):
         translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
