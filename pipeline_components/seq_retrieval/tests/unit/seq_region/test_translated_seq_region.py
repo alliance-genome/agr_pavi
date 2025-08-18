@@ -3,9 +3,10 @@ Unit testing for TranslatedSeqRegion class and related functions
 """
 
 import logging
+import pytest
 from Bio.Data import CodonTable
 
-from seq_region import SeqRegion, TranslatedSeqRegion
+from seq_region import SeqRegion, TranslatedSeqRegion, InvalidOrfException
 from seq_region.translated_seq_region import find_orfs
 
 from .fixtures.translated_seq_regions import TranscriptFixture
@@ -101,7 +102,7 @@ def test_transcript_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, 
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_transcript_seq = translatedSeqRegion.get_sequence(type='transcript', unmasked=False)
     # AAAAAAGAAG > AAAAAAGAAA
-    alt_transcript_seq = translatedSeqRegion.get_sequence(type='transcript', variants=[wb_variant_mgl_1_transcript])
+    alt_transcript_seq = translatedSeqRegion.get_alt_sequence(type='transcript', variants=[wb_variant_mgl_1_transcript])
 
     assert ref_transcript_seq == wb_transcript_zc506_4a_1_with_cds['transcriptSeq']
     assert alt_transcript_seq != ref_transcript_seq
@@ -112,7 +113,7 @@ def test_coding_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_v
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # AAAAAAGAAG > AAAAAAGAAA
-    alt_coding_seq = translatedSeqRegion.get_sequence(type='coding', variants=[wb_variant_mgl_1_transcript])
+    alt_coding_seq = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
     assert alt_coding_seq != ref_coding_seq
@@ -123,7 +124,7 @@ def test_protein_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_protein_seq = translatedSeqRegion.get_sequence(type='protein', unmasked=False)
     # KEAR > KETR
-    alt_protein_seq = translatedSeqRegion.get_sequence(type='protein', variants=[wb_variant_mgl_1_transcript])
+    alt_protein_seq = translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript])
 
     assert ref_protein_seq == wb_transcript_zc506_4a_1_with_cds['proteinSeq']
     assert alt_protein_seq != ref_protein_seq
@@ -135,11 +136,10 @@ def test_coding_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGGTA > TTGGTA
-    alt_coding_seq = translatedSeqRegion.get_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_start_codon])
+    with pytest.raises(InvalidOrfException):
+        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_start_codon])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
-    assert alt_coding_seq != ref_coding_seq
-    assert alt_coding_seq == ''
 
 
 def test_coding_seq_retrieval_w_stop_loss_recovery_neg_strand(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_stop_loss) -> None:
@@ -147,7 +147,7 @@ def test_coding_seq_retrieval_w_stop_loss_recovery_neg_strand(wb_transcript_zc50
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGA > AAGA
-    alt_coding_seq = translatedSeqRegion.get_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss])
+    alt_coding_seq = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
     assert alt_coding_seq != ref_coding_seq
@@ -159,7 +159,7 @@ def test_coding_seq_retrieval_w_stop_loss_recovery_pos_strand(wb_transcript_c42d
     translatedSeqRegion = wb_transcript_c42d8_1_1_with_cds['translatedSeqRegion']
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # CTAA > CAAA
-    alt_coding_seq = translatedSeqRegion.get_sequence(type='coding', variants=[wb_variant_c42d8_1_1_transcript_stop_loss])
+    alt_coding_seq = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_c42d8_1_1_transcript_stop_loss])
 
     assert ref_coding_seq == wb_transcript_c42d8_1_1_with_cds['codingSeq']
     assert alt_coding_seq != ref_coding_seq
@@ -171,11 +171,10 @@ def test_coding_seq_retrieval_w_stop_loss_no_recovery(wb_transcript_zc506_4a_1_w
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGA > AAGA
-    alt_coding_seq = translatedSeqRegion.get_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss])
+    with pytest.raises(InvalidOrfException):
+        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
-    assert alt_coding_seq != ref_coding_seq
-    assert alt_coding_seq == ''
 
 
 def test_coding_seq_retrieval_w_stop_gain(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_stop_gain) -> None:
@@ -183,7 +182,7 @@ def test_coding_seq_retrieval_w_stop_gain(wb_transcript_zc506_4a_1_with_cds, wb_
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # TCAA > TCA
-    alt_coding_seq = translatedSeqRegion.get_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_gain])
+    alt_coding_seq = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_gain])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
     assert alt_coding_seq != ref_coding_seq

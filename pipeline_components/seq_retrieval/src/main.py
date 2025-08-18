@@ -11,7 +11,7 @@ import re
 from typing import get_args, List, TypedDict, Optional
 
 import data_mover.data_file_mover as data_file_mover
-from seq_region import SeqRegion, TranslatedSeqRegion, Variant
+from seq_region import InvalidOrfException, SeqRegion, TranslatedSeqRegion, Variant
 from log_mgmt import set_log_level, get_logger
 
 logger = get_logger(name=__name__)
@@ -219,7 +219,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
         if variant_info:
             # Generate additional sequence for full region with variants embedded
-            alt_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
+            alt_seq = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
 
     elif output_type == 'protein':
         ref_seq = fullRegion.get_sequence(type='protein')
@@ -229,7 +229,10 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
         if variant_info:
             # Generate additional sequence for full region with variants embedded
-            alt_seq = fullRegion.get_sequence(type='protein', variants=list(variant_info.values()))
+            try:
+                alt_seq = fullRegion.get_alt_sequence(type='protein', variants=list(variant_info.values()))
+            except InvalidOrfException:
+                logger.error(f'Embedding variants ({variant_ids}) into TranslatedSeqRegion {fullRegion} invalidated the ORF.')
 
             if alt_seq == '':
                 logger.error(f'No ORF found for TranslatedSeqRegion {fullRegion} with variants embedded ({variant_ids})')
