@@ -360,22 +360,21 @@ class SeqRegion():
                 variant_type = 'substitution'
             elif len(positioned_variant['overlap_alt_seq']) == 0:
                 variant_type = 'deletion'
-            elif len(positioned_variant['overlap_ref_seq']) == 0:
-                variant_type = 'insertion'
-            else:
-                variant_type = 'indel'
 
-            if variant_type == 'deletion':
                 # Relative position of deletions in the alternative sequence
                 # should be marking the flanking bases (-1 start, +1 end)
                 alt_rel_start -= 1
                 alt_rel_end += 1
-            elif variant_type == 'insertion':
+            elif len(positioned_variant['overlap_ref_seq']) == 0:
+                variant_type = 'insertion'
+
                 # Relative position of insertions in the alternative sequence
                 # should only mark the inserted bases (reference positions indicate
                 # insertion site flanking bases, so +1 start, -1 end)
                 alt_rel_start += 1
                 alt_rel_end -= 1
+            else:
+                variant_type = 'indel'
 
             alt_seq_len_diff = len(positioned_variant['overlap_alt_seq']) - len(positioned_variant['overlap_ref_seq'])
 
