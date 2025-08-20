@@ -4,7 +4,7 @@ Module containing the MultiPartSeqRegion class.
 
 from typing import Any, Callable, Dict, List, override, Optional, Set, TypedDict
 
-from .seq_region import SeqRegion
+from .seq_region import SeqRegion, AltSeqInfo
 from .variant import Variant, variants_overlap
 
 from log_mgmt import get_logger
@@ -201,7 +201,7 @@ class MultiPartSeqRegion(SeqRegion):
                 region_variants = overlapping_variants[region_idx]
 
             if len(region_variants) > 0:
-                complete_multipart_sequence += region.get_alt_sequence(autofetch=recursive_fetch, variants=region_variants)
+                complete_multipart_sequence += region.get_alt_sequence(autofetch=recursive_fetch, variants=region_variants)['sequence']
             else:
                 complete_multipart_sequence += region.get_sequence(autofetch=recursive_fetch)
 
@@ -229,7 +229,7 @@ class MultiPartSeqRegion(SeqRegion):
         self.sequence = sequence
 
     @override
-    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True, inframe_only: bool = False) -> str:
+    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True, inframe_only: bool = False) -> AltSeqInfo:
         """
         Get an alternative sequence of the MultipartSeqRegion by applying a list of variants to it.
 
@@ -271,7 +271,10 @@ class MultiPartSeqRegion(SeqRegion):
         if unmasked:
             alt_sequence = alt_sequence.upper()
 
-        return alt_sequence
+        return {
+            'sequence': alt_sequence,
+            'embedded_variants': []  # TODO: Add embedded variants
+        }
 
     @override
     def sub_region(self, rel_start: int, rel_end: int) -> 'MultiPartSeqRegion':

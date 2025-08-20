@@ -170,46 +170,82 @@ def test_seq_region_inframe_sequence(wb_c42d8_1_1_cds_regions) -> None:
 
 def test_get_alt_sequence_mutation(wb_variant_gk787530, wb_c42d8_1_1_cds_regions) -> None:
     ref_sequence = wb_c42d8_1_1_cds_regions[0].get_sequence()
-    alt_sequence = wb_c42d8_1_1_cds_regions[0].get_alt_sequence(variants=[wb_variant_gk787530])
+    alt_sequence_info = wb_c42d8_1_1_cds_regions[0].get_alt_sequence(variants=[wb_variant_gk787530])
+    gk787530_ref_start = 33  # 0-based index of the start of the variant in the ref sequence
+    gk787530_ref_end = 33  # 0-based index of the end of the variant in the ref sequence
 
     # Sequence before variant must be identical
-    assert ref_sequence[0:33] == alt_sequence[0:33]
+    assert ref_sequence[0:gk787530_ref_start] == alt_sequence_info['sequence'][0:gk787530_ref_start]
     # Sequence at variant position must match expected ref/alt sequence
-    assert ref_sequence[33:34] == wb_variant_gk787530.genomic_ref_seq
-    assert alt_sequence[33:34] == wb_variant_gk787530.genomic_alt_seq
+    assert ref_sequence[gk787530_ref_start:gk787530_ref_end + 1] == wb_variant_gk787530.genomic_ref_seq
+    assert alt_sequence_info['sequence'][gk787530_ref_start:gk787530_ref_end + 1] == wb_variant_gk787530.genomic_alt_seq
     # Sequence after variant must be identical
-    assert ref_sequence[34:] == alt_sequence[34:]
+    assert ref_sequence[gk787530_ref_end + 1:] == alt_sequence_info['sequence'][gk787530_ref_end + 1:]
+    # Alt sequence variant should have one embedded variant
+    assert len(alt_sequence_info['embedded_variants']) == 1
+    embedded_variant = alt_sequence_info['embedded_variants'][0]
+    # Alt sequence variant should be positioned correctly
+    # note: AltSeqEmbeddedVariant stores 1-based relative positions
+    assert embedded_variant['rel_start'] == gk787530_ref_start + 1
+    assert embedded_variant['rel_end'] == gk787530_ref_end + 1
+    assert embedded_variant['type'] == 'substitution'
 
 
 def test_get_alt_sequence_deletion(wb_variant_kx29, wb_f59f5_2a_1_exon10) -> None:
+    kx29_ref_start = 44  # 0-based index of the start of the variant in the ref sequence
+    kx29_ref_end = 44  # 0-based index of the end of the variant in the ref sequence
+    kx29_alt_end = kx29_ref_end - len(wb_variant_kx29.genomic_ref_seq)  # 0-based index of the end of the variant in the ref sequence
+
     ref_sequence = wb_f59f5_2a_1_exon10.get_sequence()
-    alt_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[wb_variant_kx29])
+    alt_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[wb_variant_kx29])
 
     # Sequence before variant must be identical
-    assert ref_sequence[0:44] == alt_sequence[0:44]
+    assert ref_sequence[0:kx29_ref_start] == alt_sequence_info['sequence'][0:kx29_ref_start]
     # Sequence at variant position must match expected ref sequence
-    assert ref_sequence[44:45] == wb_variant_kx29.genomic_ref_seq
+    assert ref_sequence[kx29_ref_start:kx29_ref_end + 1] == wb_variant_kx29.genomic_ref_seq
     # Sequence after variant must be identical
-    assert ref_sequence[45:] == alt_sequence[44:]
+    assert ref_sequence[kx29_ref_end + 1:] == alt_sequence_info['sequence'][kx29_alt_end + 1:]
+    # Alt sequence variant should have one embedded variant
+    assert len(alt_sequence_info['embedded_variants']) == 1
+    embedded_variant = alt_sequence_info['embedded_variants'][0]
+    # Alt sequence variant should be positioned correctly
+    # note: AltSeqEmbeddedVariant stores 1-based relative positions
+    assert embedded_variant['rel_start'] == (kx29_ref_start - 1) + 1  # Deletions are positioned by their flanking bases (-1 start)
+    assert embedded_variant['rel_end'] == (kx29_alt_end + 1) + 1    # Deletions are positioned by their flanking bases (+1 end)
+    assert embedded_variant['type'] == 'deletion'
 
 
 def test_get_alt_sequence_insertion(wb_variant_ce338, c14f11_3_1_exon5) -> None:
+    ce338_ref_start = 95  # 0-based index of the start of the variant in the ref sequence (flanking base before insertion)
+    ce338_ref_end = 96  # 0-based index of the end of the variant in the ref sequence (flanking base after insertion)
+    ce338_alt_start = ce338_ref_start + 1  # 0-based index of the end of the variant in the alt sequence (first base of insertion)
+    ce338_alt_end = ce338_ref_end - 1 + len(wb_variant_ce338.genomic_alt_seq)  # 0-based index of the end of the variant in the alt sequence (last base of insertion)
+
     # Variant insertion at negative strand
     ref_sequence = c14f11_3_1_exon5.get_sequence()
-    alt_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[wb_variant_ce338])
+    alt_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[wb_variant_ce338])
 
-    assert len(alt_sequence) == len(ref_sequence) + 1
+    assert len(alt_sequence_info['sequence']) == len(ref_sequence) + 1
 
     # Sequence before variant must be identical
-    assert ref_sequence[0:96] == alt_sequence[0:96]
+    assert ref_sequence[0:ce338_ref_start + 1] == alt_sequence_info['sequence'][0:ce338_alt_start]
     # Sequence at variant position must match expected alt sequence
-    assert alt_sequence[96:97] == Seq.reverse_complement(wb_variant_ce338.genomic_alt_seq)
+    assert alt_sequence_info['sequence'][ce338_alt_start:ce338_alt_end + 1] == Seq.reverse_complement(wb_variant_ce338.genomic_alt_seq)
     # Sequence after variant must be identical
-    assert ref_sequence[96:] == alt_sequence[97:]
+    assert ref_sequence[ce338_ref_end:] == alt_sequence_info['sequence'][ce338_alt_end + 1:]
 
     # Complete sequence comparison (belts and braces)
-    assert ref_sequence == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'
-    assert alt_sequence == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGTGCTCTTACCATGGCGGCCACCTACGCCA'
+    assert ref_sequence                  == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
+    assert alt_sequence_info['sequence'] == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGTGCTCTTACCATGGCGGCCACCTACGCCA'
+
+    # Alt sequence variant should have one embedded variant
+    assert len(alt_sequence_info['embedded_variants']) == 1
+    embedded_variant = alt_sequence_info['embedded_variants'][0]
+    # Alt sequence variant should be positioned correctly
+    # note: AltSeqEmbeddedVariant stores 1-based relative positions
+    assert embedded_variant['rel_start'] == ce338_alt_start + 1  # Insertions are positioned by their bases inserted
+    assert embedded_variant['rel_end'] == ce338_alt_end + 1  # Insertions are positioned by their bases inserted
+    assert embedded_variant['type'] == 'insertion'
 
 
 def test_get_alt_sequence_input_errors(wb_variant_yn32, wb_variant_yn30, wb_variant_yn10, wb_c42d8_8b_1_exons) -> None:
@@ -243,14 +279,51 @@ def test_get_alt_sequence_multiple_variants_neg_strand(c14f11_3_1_exon5) -> None
 
     # Variant insertion at negative strand
     ref_sequence = c14f11_3_1_exon5.get_sequence()
-    alt1_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[insert_start, mutation])
-    alt2_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[insert_end, mutation])
-    alt3_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[insert_start, insert_end, mutation])
+    alt1_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[insert_start, mutation])
+    alt2_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[insert_end, mutation])
+    alt3_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[insert_start, insert_end, mutation])
 
-    assert ref_sequence  == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
-    assert alt1_sequence == 'ACTTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTGTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'
-    assert alt2_sequence == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTGTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCTTTA'
-    assert alt3_sequence == 'ACTTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTGTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCTTTA'
+    assert ref_sequence                   == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
+    assert alt1_sequence_info['sequence'] == 'ACTTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTGTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'
+    assert alt2_sequence_info['sequence'] == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTGTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCTTTA'
+    assert alt3_sequence_info['sequence'] == 'ACTTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTGTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCTTTA'
+
+    # Alt 1 sequence should have two embedded variants
+    assert len(alt1_sequence_info['embedded_variants']) == 2
+    # Alt 1 variant 1 should be positioned correctly
+    assert alt1_sequence_info['embedded_variants'][0]['rel_start'] == 2
+    assert alt1_sequence_info['embedded_variants'][0]['rel_end'] == 2
+    assert alt1_sequence_info['embedded_variants'][0]['type'] == 'insertion'
+    # Alt 1 variant 2 should be positioned correctly
+    assert alt1_sequence_info['embedded_variants'][1]['rel_start'] == 72
+    assert alt1_sequence_info['embedded_variants'][1]['rel_end'] == 72
+    assert alt1_sequence_info['embedded_variants'][1]['type'] == 'substitution'
+
+    # Alt 2 sequence should have two embedded variants
+    assert len(alt2_sequence_info['embedded_variants']) == 2
+    # Alt 2 variant 1 should be positioned correctly
+    assert alt2_sequence_info['embedded_variants'][0]['rel_start'] == 71
+    assert alt2_sequence_info['embedded_variants'][0]['rel_end'] == 71
+    assert alt2_sequence_info['embedded_variants'][0]['type'] == 'substitution'
+    # Alt 2 variant 2 should be positioned correctly
+    assert alt2_sequence_info['embedded_variants'][1]['rel_start'] == 124
+    assert alt2_sequence_info['embedded_variants'][1]['rel_end'] == 126
+    assert alt2_sequence_info['embedded_variants'][1]['type'] == 'insertion'
+
+    # Alt 3 sequence should have three embedded variants
+    assert len(alt3_sequence_info['embedded_variants']) == 3
+    # Alt 3 variant 1 should be positioned correctly
+    assert alt3_sequence_info['embedded_variants'][0]['rel_start'] == 2
+    assert alt3_sequence_info['embedded_variants'][0]['rel_end'] == 2
+    assert alt3_sequence_info['embedded_variants'][0]['type'] == 'insertion'
+    # Alt 3 variant 2 should be positioned correctly
+    assert alt3_sequence_info['embedded_variants'][1]['rel_start'] == 72
+    assert alt3_sequence_info['embedded_variants'][1]['rel_end'] == 72
+    assert alt3_sequence_info['embedded_variants'][1]['type'] == 'substitution'
+    # Alt 3 variant 3 should be positioned correctly
+    assert alt3_sequence_info['embedded_variants'][2]['rel_start'] == 125
+    assert alt3_sequence_info['embedded_variants'][2]['rel_end'] == 127
+    assert alt3_sequence_info['embedded_variants'][2]['type'] == 'insertion'
 
 
 def test_get_alt_sequence_multiple_variants_pos_strand(wb_f59f5_2a_1_exon10) -> None:
@@ -264,14 +337,51 @@ def test_get_alt_sequence_multiple_variants_pos_strand(wb_f59f5_2a_1_exon10) -> 
 
     # Variant insertion at negative strand
     ref_sequence = wb_f59f5_2a_1_exon10.get_sequence()
-    alt1_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[insert_start, mutation])
-    alt2_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[delete_end, mutation])
-    alt3_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[insert_start, delete_end, mutation])
+    alt1_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[insert_start, mutation])
+    alt2_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[delete_end, mutation])
+    alt3_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[insert_start, delete_end, mutation])
 
-    assert ref_sequence  == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E221
-    assert alt1_sequence == 'ATCGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'
-    assert alt2_sequence == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAAT'
-    assert alt3_sequence == 'ATCGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAAT'
+    assert ref_sequence                   == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E221
+    assert alt1_sequence_info['sequence'] == 'ATCGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'
+    assert alt2_sequence_info['sequence'] == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAAT'
+    assert alt3_sequence_info['sequence'] == 'ATCGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTAggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAAT'
+
+    # Alt 1 seq should have two embedded variants
+    assert len(alt1_sequence_info['embedded_variants']) == 2
+    # Alt 1 variant 1 should be positioned correctly
+    assert alt1_sequence_info['embedded_variants'][0]['rel_start'] == 2
+    assert alt1_sequence_info['embedded_variants'][0]['rel_end'] == 2
+    assert alt1_sequence_info['embedded_variants'][0]['type'] == 'insertion'
+    # Alt 1 variant 2 should be positioned correctly
+    assert alt1_sequence_info['embedded_variants'][1]['rel_start'] == 132
+    assert alt1_sequence_info['embedded_variants'][1]['rel_end'] == 132
+    assert alt1_sequence_info['embedded_variants'][1]['type'] == 'substitution'
+
+    # Alt 2 seq should have two embedded variants
+    assert len(alt2_sequence_info['embedded_variants']) == 2
+    # Alt 2 variant 1 should be positioned correctly
+    assert alt2_sequence_info['embedded_variants'][0]['rel_start'] == 131
+    assert alt2_sequence_info['embedded_variants'][0]['rel_end'] == 131
+    assert alt2_sequence_info['embedded_variants'][0]['type'] == 'substitution'
+    # Alt 2 variant 2 should be positioned correctly
+    assert alt2_sequence_info['embedded_variants'][1]['rel_start'] == 182
+    assert alt2_sequence_info['embedded_variants'][1]['rel_end'] == 183
+    assert alt2_sequence_info['embedded_variants'][1]['type'] == 'deletion'
+
+    # Alt 3 seq should have three embedded variants
+    assert len(alt3_sequence_info['embedded_variants']) == 3
+    # Alt 3 variant 1 should be positioned correctly
+    assert alt3_sequence_info['embedded_variants'][0]['rel_start'] == 2
+    assert alt3_sequence_info['embedded_variants'][0]['rel_end'] == 2
+    assert alt3_sequence_info['embedded_variants'][0]['type'] == 'insertion'
+    # Alt 3 variant 2 should be positioned correctly
+    assert alt3_sequence_info['embedded_variants'][1]['rel_start'] == 132
+    assert alt3_sequence_info['embedded_variants'][1]['rel_end'] == 132
+    assert alt3_sequence_info['embedded_variants'][1]['type'] == 'substitution'
+    # Alt 3 variant 3 should be positioned correctly
+    assert alt3_sequence_info['embedded_variants'][2]['rel_start'] == 183
+    assert alt3_sequence_info['embedded_variants'][2]['rel_end'] == 184
+    assert alt3_sequence_info['embedded_variants'][2]['type'] == 'deletion'
 
 
 def test_get_alt_sequence_boundary_overlapping_deletion_pos_strand(wb_f59f5_2a_1_exon10) -> None:
@@ -286,14 +396,30 @@ def test_get_alt_sequence_boundary_overlapping_deletion_pos_strand(wb_f59f5_2a_1
                                    seq_id='X', start=10536580, end=10536590)
 
     ref_sequence = wb_f59f5_2a_1_exon10.get_sequence()
-    overspan_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[overspanning_deletion])
-    start_overlap_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[start_overlap_deletion])
-    end_overlap_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[end_overlap_deletion])
+    overspan_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[overspanning_deletion])
+    start_overlap_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[start_overlap_deletion])
+    end_overlap_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[end_overlap_deletion])
 
-    assert ref_sequence           == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E221
-    assert overspan_sequence      == ''  # noqa: E221
-    assert start_overlap_sequence ==         'TCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E222
-    assert end_overlap_sequence   == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTA'  # noqa: E221
+    assert ref_sequence                            == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E221
+    assert overspan_sequence_info['sequence']      == ''  # noqa: E221
+    assert start_overlap_sequence_info['sequence'] ==         'TCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E222
+    assert end_overlap_sequence_info['sequence']   == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTA'  # noqa: E221
+
+    # Overspan seq should have one embedded variant
+    assert len(overspan_sequence_info['embedded_variants']) == 1
+    assert overspan_sequence_info['embedded_variants'][0]['rel_start'] == 0
+    assert overspan_sequence_info['embedded_variants'][0]['rel_end'] == 1
+    assert overspan_sequence_info['embedded_variants'][0]['type'] == 'deletion'
+    # Start_overlap seq should have one embedded variant
+    assert len(start_overlap_sequence_info['embedded_variants']) == 1
+    assert start_overlap_sequence_info['embedded_variants'][0]['rel_start'] == 0
+    assert start_overlap_sequence_info['embedded_variants'][0]['rel_end'] == 1
+    assert start_overlap_sequence_info['embedded_variants'][0]['type'] == 'deletion'
+    # End_overlap seq should have one embedded variant
+    assert len(end_overlap_sequence_info['embedded_variants']) == 1
+    assert end_overlap_sequence_info['embedded_variants'][0]['rel_start'] == 177
+    assert end_overlap_sequence_info['embedded_variants'][0]['rel_end'] == 178
+    assert end_overlap_sequence_info['embedded_variants'][0]['type'] == 'deletion'
 
 
 def test_get_alt_sequence_boundary_overlapping_deletion_neg_strand(c14f11_3_1_exon5) -> None:
@@ -309,14 +435,30 @@ def test_get_alt_sequence_boundary_overlapping_deletion_neg_strand(c14f11_3_1_ex
                                    seq_id='X', start=6227970, end=6227980)
 
     ref_sequence = c14f11_3_1_exon5.get_sequence()
-    overspan_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[overspanning_deletion])
-    start_overlap_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[start_overlap_deletion])
-    end_overlap_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[end_overlap_deletion])
+    overspan_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[overspanning_deletion])
+    start_overlap_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[start_overlap_deletion])
+    end_overlap_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[end_overlap_deletion])
 
-    assert ref_sequence           == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
-    assert overspan_sequence      == ''  # noqa: E221
-    assert start_overlap_sequence ==         'CCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E222
-    assert end_overlap_sequence   == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACC'  # noqa: E221
+    assert ref_sequence                            == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
+    assert overspan_sequence_info['sequence']      == ''  # noqa: E221
+    assert start_overlap_sequence_info['sequence'] ==         'CCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E222
+    assert end_overlap_sequence_info['sequence']   == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACC'  # noqa: E221
+
+    # Overspan seq should have one embedded variant
+    assert len(overspan_sequence_info['embedded_variants']) == 1
+    assert overspan_sequence_info['embedded_variants'][0]['rel_start'] == 0
+    assert overspan_sequence_info['embedded_variants'][0]['rel_end'] == 1
+    assert overspan_sequence_info['embedded_variants'][0]['type'] == 'deletion'
+    # Start_overlap seq should have one embedded variant
+    assert len(start_overlap_sequence_info['embedded_variants']) == 1
+    assert start_overlap_sequence_info['embedded_variants'][0]['rel_start'] == 0
+    assert start_overlap_sequence_info['embedded_variants'][0]['rel_end'] == 1
+    assert start_overlap_sequence_info['embedded_variants'][0]['type'] == 'deletion'
+    # End_overlap seq should have one embedded variant
+    assert len(end_overlap_sequence_info['embedded_variants']) == 1
+    assert end_overlap_sequence_info['embedded_variants'][0]['rel_start'] == 117
+    assert end_overlap_sequence_info['embedded_variants'][0]['rel_end'] == 118
+    assert end_overlap_sequence_info['embedded_variants'][0]['type'] == 'deletion'
 
 
 def test_get_alt_sequence_boundary_overlapping_mutation_pos_strand(wb_f59f5_2a_1_exon10) -> None:
@@ -337,14 +479,33 @@ def test_get_alt_sequence_boundary_overlapping_mutation_pos_strand(wb_f59f5_2a_1
                                    seq_id='X', start=10536580, end=10536590)
 
     ref_sequence = wb_f59f5_2a_1_exon10.get_sequence()
-    overspan_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[overspanning_mutation])
-    start_overlap_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[start_overlap_mutation])
-    end_overlap_sequence = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[end_overlap_mutation])
+    overspan_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[overspanning_mutation])
+    start_overlap_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[start_overlap_mutation])
+    end_overlap_sequence_info = wb_f59f5_2a_1_exon10.get_alt_sequence(variants=[end_overlap_mutation])
 
-    assert ref_sequence           == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E221
-    assert overspan_sequence      == 'GGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGA'  # noqa: E221
-    assert start_overlap_sequence == 'GGGGAAAGTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E222
-    assert end_overlap_sequence   == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAAAAGGGA'  # noqa: E221
+    assert ref_sequence                            == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E221
+    assert overspan_sequence_info['sequence']      == 'GGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGAAAGGGA'  # noqa: E221
+    assert start_overlap_sequence_info['sequence'] == 'GGGGAAAGTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAGGAATAg'  # noqa: E222
+    assert end_overlap_sequence_info['sequence']   == 'ACGATGACTCAAAAAATGGATATTCTACTTTCCTACGGAAAAAAGCAAATTAATTCATTGATACAAGAGCTGTGTTCTATAAGTATTGCTAATGCGAAACTATCTACACTCCCTCTATTCAATCAGTGCTtggaaaaaactgtaaaaccGAACTCAGTCAAAGCCGTTGATTCTTTAAAAGGGA'  # noqa: E221
+
+    # overspan seq should have one embedded variant
+    assert len(overspan_sequence_info['embedded_variants']) == 1
+    # overspan seq embedded variants should be positioned correctly
+    assert overspan_sequence_info['embedded_variants'][0]['rel_start'] == 1
+    assert overspan_sequence_info['embedded_variants'][0]['rel_end'] == 184
+    assert overspan_sequence_info['embedded_variants'][0]['type'] == 'substitution'
+    # Start_overlap seq should have one embedded variant
+    assert len(start_overlap_sequence_info['embedded_variants']) == 1
+    # start_overlap seq embedded variants should be positioned correctly
+    assert start_overlap_sequence_info['embedded_variants'][0]['rel_start'] == 1
+    assert start_overlap_sequence_info['embedded_variants'][0]['rel_end'] == 8
+    assert start_overlap_sequence_info['embedded_variants'][0]['type'] == 'substitution'
+    # End_overlap seq should have one embedded variant
+    assert len(end_overlap_sequence_info['embedded_variants']) == 1
+    # End_overlap seq embedded variants should be positioned correctly
+    assert end_overlap_sequence_info['embedded_variants'][0]['rel_start'] == 178
+    assert end_overlap_sequence_info['embedded_variants'][0]['rel_end'] == 184
+    assert end_overlap_sequence_info['embedded_variants'][0]['type'] == 'substitution'
 
 
 def test_get_alt_sequence_boundary_overlapping_mutation_neg_strand(c14f11_3_1_exon5) -> None:
@@ -366,30 +527,63 @@ def test_get_alt_sequence_boundary_overlapping_mutation_neg_strand(c14f11_3_1_ex
                                    seq_id='X', start=6227970, end=6227980)
 
     ref_sequence = c14f11_3_1_exon5.get_sequence()
-    overspan_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[overspanning_mutation])
-    start_overlap_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[start_overlap_mutation])
-    end_overlap_sequence = c14f11_3_1_exon5.get_alt_sequence(variants=[end_overlap_mutation])
+    overspan_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[overspanning_mutation])
+    start_overlap_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[start_overlap_mutation])
+    end_overlap_sequence_info = c14f11_3_1_exon5.get_alt_sequence(variants=[end_overlap_mutation])
 
-    assert ref_sequence           == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
-    assert overspan_sequence      == 'CCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCG'  # noqa: E221
-    assert start_overlap_sequence == 'CCCGGCCCCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E222
-    assert end_overlap_sequence   == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCCGGCCCG'  # noqa: E221
+    assert ref_sequence                            == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E221
+    assert overspan_sequence_info['sequence']      == 'CCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCGGCCCG'  # noqa: E221
+    assert start_overlap_sequence_info['sequence'] == 'CCCGGCCCCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCTACGCCA'  # noqa: E222
+    assert end_overlap_sequence_info['sequence']   == 'ATTTTGTGCCAGTTTTCGTTGAATGTTCGTACCAAACAAGCCGAGCGTCGTCAATTTATGATCAACACTTTTTTGGCTGTTTTCAGTGGACTTTTGGCTCTTACCATGGCGGCCACCCGGCCCG'  # noqa: E221
+
+    # overspan seq should have one embedded variant
+    assert len(overspan_sequence_info['embedded_variants']) == 1
+    # overspan seq embedded variants should be positioned correctly
+    assert overspan_sequence_info['embedded_variants'][0]['rel_start'] == 1
+    assert overspan_sequence_info['embedded_variants'][0]['rel_end'] == 124
+    assert overspan_sequence_info['embedded_variants'][0]['type'] == 'substitution'
+    # Start_overlap seq should have one embedded variant
+    assert len(start_overlap_sequence_info['embedded_variants']) == 1
+    # start_overlap seq embedded variants should be positioned correctly
+    assert start_overlap_sequence_info['embedded_variants'][0]['rel_start'] == 1
+    assert start_overlap_sequence_info['embedded_variants'][0]['rel_end'] == 8
+    assert start_overlap_sequence_info['embedded_variants'][0]['type'] == 'substitution'
+    # End_overlap seq should have one embedded variant
+    assert len(end_overlap_sequence_info['embedded_variants']) == 1
+    # End_overlap seq embedded variants should be positioned correctly
+    assert end_overlap_sequence_info['embedded_variants'][0]['rel_start'] == 118
+    assert end_overlap_sequence_info['embedded_variants'][0]['rel_end'] == 124
+    assert end_overlap_sequence_info['embedded_variants'][0]['type'] == 'substitution'
 
 
 def test_get_alt_sequence_inframe_only(wb_variant_gk787530, wb_c42d8_1_1_cds_regions) -> None:
     ref_sequence = wb_c42d8_1_1_cds_regions[0].get_sequence()
-    alt_sequence = wb_c42d8_1_1_cds_regions[0].get_alt_sequence(variants=[wb_variant_gk787530])
+    alt_sequence_info = wb_c42d8_1_1_cds_regions[0].get_alt_sequence(variants=[wb_variant_gk787530])
 
     # Phase 0 alt sequence
-    assert ref_sequence == 'ATGTCGATGTATGGCAAAGACAAGGCGTATATCGAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
-    assert alt_sequence == 'ATGTCGATGTATGGCAAAGACAAGGCGTATATCAAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
+    assert ref_sequence                  == 'ATGTCGATGTATGGCAAAGACAAGGCGTATATCGAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'  # noqa: E221
+    assert alt_sequence_info['sequence'] == 'ATGTCGATGTATGGCAAAGACAAGGCGTATATCAAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
+
+    # Phase 0 alt seq should have one embedded variant
+    assert len(alt_sequence_info['embedded_variants']) == 1
+    # Phase 0 alt seq embedded variants should be positioned correctly
+    assert alt_sequence_info['embedded_variants'][0]['rel_start'] == 34
+    assert alt_sequence_info['embedded_variants'][0]['rel_end'] == 34
+    assert alt_sequence_info['embedded_variants'][0]['type'] == 'substitution'
 
     phase_2_region = wb_c42d8_1_1_cds_regions[0].sub_region(rel_start=2, rel_end=wb_c42d8_1_1_cds_regions[0].seq_length)
     phase_2_ref_sequence = phase_2_region.get_sequence()
-    phase_2_alt_sequence = phase_2_region.get_alt_sequence(variants=[wb_variant_gk787530])
-    phase_2_alt_inframe_sequence = phase_2_region.get_alt_sequence(variants=[wb_variant_gk787530], inframe_only=True)
+    phase_2_alt_sequence_info = phase_2_region.get_alt_sequence(variants=[wb_variant_gk787530])
+    phase_2_alt_inframe_sequence_info = phase_2_region.get_alt_sequence(variants=[wb_variant_gk787530], inframe_only=True)
 
     # Phase 2 alt sequence
-    assert phase_2_ref_sequence == 'TGTCGATGTATGGCAAAGACAAGGCGTATATCGAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
-    assert phase_2_alt_sequence == 'TGTCGATGTATGGCAAAGACAAGGCGTATATCAAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
-    assert phase_2_alt_inframe_sequence == 'TCGATGTATGGCAAAGACAAGGCGTATATCAAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
+    assert phase_2_ref_sequence                  == 'TGTCGATGTATGGCAAAGACAAGGCGTATATCGAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'  # noqa: E221
+    assert phase_2_alt_sequence_info['sequence'] == 'TGTCGATGTATGGCAAAGACAAGGCGTATATCAAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
+    assert phase_2_alt_inframe_sequence_info['sequence'] == 'TCGATGTATGGCAAAGACAAGGCGTATATCAAGAATGAGACAAAGTTTCGAGCAGACAGAGATTACTTGAGCCAGCCTGTCTATCAACAAACTGTCTATCGAGAAGGCCCAATTTTGAAACCAGATGTAGAG'
+
+    # Phase 2 alt seq should have one embedded variant
+    assert len(phase_2_alt_sequence_info['embedded_variants']) == 1
+    # Phase 2 alt seq embedded variants should be positioned correctly
+    assert phase_2_alt_sequence_info['embedded_variants'][0]['rel_start'] == 33
+    assert phase_2_alt_sequence_info['embedded_variants'][0]['rel_end'] == 33
+    assert phase_2_alt_sequence_info['embedded_variants'][0]['type'] == 'substitution'

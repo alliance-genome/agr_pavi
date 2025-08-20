@@ -6,7 +6,7 @@ from Bio import Seq  # Bio.Seq biopython submodule
 from Bio.Data import CodonTable
 from typing import Dict, List, Literal, Optional, override, Set, TypedDict
 
-from .seq_region import SeqRegion
+from .seq_region import SeqRegion, AltSeqInfo
 from .multipart_seq_region import MultiPartSeqRegion
 from .variant import Variant
 from log_mgmt import get_logger
@@ -211,7 +211,7 @@ class TranslatedSeqRegion():
 
         return seq
 
-    def get_alt_sequence(self, type: Literal['transcript', 'coding', 'protein'], variants: List[Variant], unmasked: bool = False, autofetch: bool = True) -> str:
+    def get_alt_sequence(self, type: Literal['transcript', 'coding', 'protein'], variants: List[Variant], unmasked: bool = False, autofetch: bool = True) -> AltSeqInfo:
         """
         Get an alternative sequence of the object by applying a list of variants to the reference sequence.
 
@@ -238,7 +238,7 @@ class TranslatedSeqRegion():
         seq: str
         match type:
             case 'transcript':
-                seq = self.exon_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
+                seq = self.exon_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)['sequence']
             case 'coding':
                 if self.coding_dna_sequence is None and autofetch:
                     self.fetch_seq('coding', recursive_fetch=True)
@@ -249,7 +249,7 @@ class TranslatedSeqRegion():
                     raise ValueError('No reference coding sequence found, so no variants can be applied to it.')
 
                 ref_coding_seq = self.coding_dna_sequence
-                alt_coding_seq = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)
+                alt_coding_seq = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)['sequence']
 
                 ## Evaluate alternative coding sequence's ORF
                 # If the reference start codon is different from the alternative start codon,
@@ -294,7 +294,7 @@ class TranslatedSeqRegion():
 
                     logger.debug('Extended coding seq region: %s', extended_coding_region)
 
-                    extended_region_alt_seq = extended_coding_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)
+                    extended_region_alt_seq = extended_coding_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)['sequence']
                     extended_region_alt_orfs = find_orfs(dna_sequence=extended_region_alt_seq, codon_table=self.codon_table, force_start=1)
 
                     # If no extended ORF was found, reject alternative coding sequence
@@ -313,7 +313,7 @@ class TranslatedSeqRegion():
             case 'protein':
                 if len(variants) > 0:
                     try:
-                        alt_coding_seq = self.get_alt_sequence(type='coding', unmasked=unmasked, variants=variants, autofetch=autofetch)
+                        alt_coding_seq = self.get_alt_sequence(type='coding', unmasked=unmasked, variants=variants, autofetch=autofetch)['sequence']
                     except InvalidatedOrfException:
                         raise InvalidatedTranslationException('Translation invalidated due to variants invalidating the ORF.')
 
@@ -330,7 +330,10 @@ class TranslatedSeqRegion():
             case _:
                 raise ValueError(f"type {type} not implemented yet in MultiPartSeqRegion.set_multipart_sequence method.")
 
-        return seq
+        return {
+            'sequence': seq,
+            'embedded_variants': []  # TODO: implement
+        }
 
     def set_sequence(self, type: Literal['transcript', 'coding', 'protein'], sequence: str) -> None:
         """
