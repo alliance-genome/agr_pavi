@@ -3,6 +3,8 @@ from fastapi.testclient import TestClient
 from src.main import app
 from uuid import uuid1, UUID
 
+from pytest_mock import MockerFixture
+
 client = TestClient(app, follow_redirects=False)
 
 NOT_FOUND_UUID: UUID = UUID('00000000-0000-0000-0000-000000000000')
@@ -36,8 +38,8 @@ def test_result_not_found() -> None:
     assert response.status_code == 404
 
 
-def test_result_alignment(mocker) -> None:
-    def mock_alignment_open(uri=None, **kwargs):  # noqa: U100
+def test_result_alignment(mocker: MockerFixture) -> None:
+    def mock_alignment_open(uri: None = None, **kwargs):  # type: ignore  # noqa: U100
         return open('../tests/resources/submit-workflow-success-output.aln', **kwargs)
     mocker.patch('src.main.open', side_effect=mock_alignment_open)
     response = client.get(f'/api/pipeline-job/{mock_uuid}/result/alignment')
