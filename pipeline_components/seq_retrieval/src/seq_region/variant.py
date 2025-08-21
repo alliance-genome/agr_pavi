@@ -2,6 +2,8 @@
 Module containing the Variant class and related functions.
 """
 
+from enum import Enum
+
 import requests
 
 from typing import List, Optional, override, TYPE_CHECKING
@@ -12,6 +14,18 @@ if TYPE_CHECKING:
     from .seq_region import SeqRegion
 
 logger = get_logger(name=__name__)
+
+
+class SeqSubstitutionType(Enum):
+        """Value enum for variant sequence substitution type"""
+        DELETION = 'deletion'
+        """Ref by alt seq replacement results in deletion of ref sequence."""
+        INSERTION = 'insertion'
+        """Ref by alt seq replacement results in insertion of alt sequence."""
+        INDEL = 'indel'
+        """Ref by alt seq replacement results in combination of deletion of ref sequence and insertion of alt sequence of unequal length."""
+        SUBSTITUTION = 'substitution'
+        """Ref by alt seq replacement results in substitution of ref sequence by alt sequence of equal length."""
 
 
 class Variant():
@@ -37,6 +51,9 @@ class Variant():
     genomic_alt_seq: str
     """Genomic alternative sequence of the variant"""
 
+    seq_substitution_type: SeqSubstitutionType
+    """Sequence substitution type of the variant when replacing the reference sequence with the alternative sequence"""
+
     def __init__(self, variant_id: str, seq_id: str, start: int, end: int, genomic_ref_seq: Optional[str] = None, genomic_alt_seq: Optional[str] = None):
         """
         Initializes a Variant instance.
@@ -60,6 +77,17 @@ class Variant():
         if not genomic_ref_seq and end - 1 != start:
             raise ValueError('Insertions must have start and end positions that indicate insertion site boundaries (2 flanking bases).')
 
+        # Calculate substitution type
+        substitution_type: SeqSubstitutionType
+        if genomic_ref_seq and genomic_alt_seq and len(genomic_ref_seq) == len(genomic_alt_seq):
+            substitution_type = SeqSubstitutionType.SUBSTITUTION
+        elif genomic_alt_seq is None or len(genomic_alt_seq) == 0:
+            substitution_type = SeqSubstitutionType.DELETION
+        elif genomic_ref_seq is None or len(genomic_ref_seq) == 0:
+            substitution_type = SeqSubstitutionType.INSERTION
+        else:
+            substitution_type = SeqSubstitutionType.INDEL
+
         self.variant_id = variant_id
         self.genomic_seq_id = seq_id
         self.genomic_start_pos = start
@@ -67,6 +95,7 @@ class Variant():
         self.seq_length = end - start + 1
         self.genomic_ref_seq = genomic_ref_seq or ""
         self.genomic_alt_seq = genomic_alt_seq or ""
+        self.seq_substitution_type = substitution_type
 
     @override
     def __eq__(self, other: object) -> bool:

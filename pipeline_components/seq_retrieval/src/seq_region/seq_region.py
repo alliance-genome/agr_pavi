@@ -12,6 +12,8 @@ from log_mgmt import get_logger
 if TYPE_CHECKING:
     from .variant import Variant
 
+from .variant import SeqSubstitutionType
+
 logger = get_logger(name=__name__)
 
 
@@ -355,26 +357,17 @@ class SeqRegion():
             alt_rel_start = positioned_variant['rel_start'] + alt_seq_offset
             alt_rel_end = positioned_variant['rel_end'] + alt_seq_offset
 
-            variant_type: EmbeddedVariantType
-            if len(positioned_variant['overlap_ref_seq']) == len(positioned_variant['overlap_alt_seq']):
-                variant_type = 'substitution'
-            elif len(positioned_variant['overlap_alt_seq']) == 0:
-                variant_type = 'deletion'
-
+            if positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.DELETION:
                 # Relative position of deletions in the alternative sequence
                 # should be marking the flanking bases (-1 start, +1 end)
                 alt_rel_start -= 1
                 alt_rel_end += 1
-            elif len(positioned_variant['overlap_ref_seq']) == 0:
-                variant_type = 'insertion'
-
+            elif positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.INSERTION:
                 # Relative position of insertions in the alternative sequence
                 # should only mark the inserted bases (reference positions indicate
                 # insertion site flanking bases, so +1 start, -1 end)
                 alt_rel_start += 1
                 alt_rel_end -= 1
-            else:
-                variant_type = 'indel'
 
             alt_seq_len_diff = len(positioned_variant['overlap_alt_seq']) - len(positioned_variant['overlap_ref_seq'])
 
@@ -384,8 +377,7 @@ class SeqRegion():
             alt_embedded_variants.append({
                 'rel_start': alt_rel_start,
                 'rel_end': alt_rel_end,
-                'type': variant_type,
-                'Variant': positioned_variant['variant']
+                'variant': positioned_variant['variant']
             })
 
             alt_seq_offset += alt_seq_len_diff
@@ -488,17 +480,12 @@ class AltSeqInfo(TypedDict):
     """The sequence of the alternative sequence region (as a string)."""
 
 
-EmbeddedVariantType = Literal['deletion', 'insertion', 'indel', 'substitution']
-
-
 class AltSeqEmbeddedVariant(TypedDict):
     rel_start: int
     """The relative start position of the variant in the sequence."""
     rel_end: int
     """The relative end position of the variant in the sequence."""
-    type: EmbeddedVariantType
-    """The type of variant (deletion, insertion, substitution)."""
-    Variant: 'Variant'
+    variant: 'Variant'
     """The variant object."""
 
 

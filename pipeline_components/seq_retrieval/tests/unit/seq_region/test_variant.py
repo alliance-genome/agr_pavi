@@ -8,7 +8,7 @@ import pytest
 import responses  # requests mocking library
 from typing import Any
 
-from seq_region import Variant, variants_overlap
+from seq_region import SeqSubstitutionType, Variant, variants_overlap
 from log_mgmt import get_logger, set_log_level
 
 logger = get_logger(name=__name__)
@@ -35,6 +35,30 @@ def test_variant_from_id_initiation(wb_variant_yn10: Variant) -> None:
     variant = Variant.from_variant_id(VARIANT_ID)
     assert isinstance(variant, Variant)
     assert variant == wb_variant_yn10
+
+
+def test_variant_seq_substitution_type_deletion(wb_variant_kx29) -> None:
+    """Test seq_substitution_type calculation for deletion variant."""
+    assert isinstance(wb_variant_kx29, Variant)
+    assert wb_variant_kx29.seq_substitution_type == SeqSubstitutionType.DELETION
+
+
+def test_variant_seq_substitution_type_insertion(wb_variant_ce338) -> None:
+    """Test seq_substitution_type calculation for insertion variant."""
+    assert isinstance(wb_variant_ce338, Variant)
+    assert wb_variant_ce338.seq_substitution_type == SeqSubstitutionType.INSERTION
+
+
+def test_variant_seq_substitution_type_substitution(wb_variant_gk787530) -> None:
+    """Test seq_substitution_type calculation for substitution variant."""
+    assert isinstance(wb_variant_gk787530, Variant)
+    assert wb_variant_gk787530.seq_substitution_type == SeqSubstitutionType.SUBSTITUTION
+
+
+def test_variant_seq_substitution_type_indel(wb_variant_n1913) -> None:
+    """Test seq_substitution_type calculation for indel variant."""
+    assert isinstance(wb_variant_n1913, Variant)
+    assert wb_variant_n1913.seq_substitution_type == SeqSubstitutionType.INDEL
 
 
 def test_variant_initiation_errors() -> None:
