@@ -17,15 +17,15 @@ logger = get_logger(name=__name__)
 
 
 class SeqSubstitutionType(Enum):
-        """Value enum for variant sequence substitution type"""
-        DELETION = 'deletion'
-        """Ref by alt seq replacement results in deletion of ref sequence."""
-        INSERTION = 'insertion'
-        """Ref by alt seq replacement results in insertion of alt sequence."""
-        INDEL = 'indel'
-        """Ref by alt seq replacement results in combination of deletion of ref sequence and insertion of alt sequence of unequal length."""
-        SUBSTITUTION = 'substitution'
-        """Ref by alt seq replacement results in substitution of ref sequence by alt sequence of equal length."""
+    """Value enum for variant sequence substitution type"""
+    DELETION = 'deletion'
+    """Ref by alt seq replacement results in deletion of ref sequence."""
+    INSERTION = 'insertion'
+    """Ref by alt seq replacement results in insertion of alt sequence."""
+    INDEL = 'indel'
+    """Ref by alt seq replacement results in combination of deletion of ref sequence and insertion of alt sequence of unequal length."""
+    SUBSTITUTION = 'substitution'
+    """Ref by alt seq replacement results in substitution of ref sequence by alt sequence of equal length."""
 
 
 class Variant():
