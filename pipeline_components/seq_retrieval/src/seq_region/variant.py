@@ -191,6 +191,24 @@ class Variant():
         return overlaps
 
 
+class EmbeddedVariant(Variant):
+    """
+    Variant object representing a variant embedded in an (alternative) sequence.
+
+    Contains additional properties related to the embedding into the sequence.
+    """
+
+    rel_start: int
+    """The relative start position of the variant in the sequence (1-based)."""
+    rel_end: int
+    """The relative end position of the variant in the sequence (1-based)."""
+
+    def __init__(self, variant: 'Variant', rel_start: int, rel_end: int):
+        self.__dict__.update(vars(variant))
+        self.rel_start = rel_start
+        self.rel_end = rel_end
+
+
 def variants_overlap(variants: List[Variant]) -> bool:
     """
     Checks if any two Variants in a list overlap.

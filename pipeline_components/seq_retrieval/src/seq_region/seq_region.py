@@ -12,7 +12,7 @@ from log_mgmt import get_logger
 if TYPE_CHECKING:
     from .variant import Variant
 
-from .variant import SeqSubstitutionType
+from .variant import EmbeddedVariant, SeqSubstitutionType
 
 logger = get_logger(name=__name__)
 
@@ -368,7 +368,7 @@ class SeqRegion():
 
         # Calculate the position of each variant in the new (alternative) sequence
         # Loop through variants in relative positional order to include index changes due to indels
-        alt_embedded_variants: List[AltSeqEmbeddedVariant] = []
+        alt_embedded_variants: List[EmbeddedVariant] = []
         for rel_start, positioned_variant in sorted(positioned_variants.items(), reverse=False):
 
             alt_rel_start = positioned_variant['rel_start'] + alt_seq_offset
@@ -391,11 +391,11 @@ class SeqRegion():
             # Adjust relative end position to account for insertions, deletions and indels
             alt_rel_end += alt_seq_len_diff
 
-            alt_embedded_variants.append({
-                'rel_start': alt_rel_start,
-                'rel_end': alt_rel_end,
-                'variant': positioned_variant['variant']
-            })
+            alt_embedded_variants.append(EmbeddedVariant(
+                variant=positioned_variant['variant'],
+                rel_start=alt_rel_start,
+                rel_end=alt_rel_end
+            ))
 
             alt_seq_offset += alt_seq_len_diff
 
@@ -491,19 +491,10 @@ class SeqRegion():
 class AltSeqInfo(TypedDict):
     """Alternative sequence information."""
 
-    embedded_variants: List['AltSeqEmbeddedVariant']
+    embedded_variants: List['EmbeddedVariant']
     """List of the variants embedded in the sequence"""
     sequence: str
     """The sequence of the alternative sequence region (as a string)."""
-
-
-class AltSeqEmbeddedVariant(TypedDict):
-    rel_start: int
-    """The relative start position of the variant in the sequence."""
-    rel_end: int
-    """The relative end position of the variant in the sequence."""
-    variant: 'Variant'
-    """The variant object."""
 
 
 def fetch_faidx_files(fasta_file_url: str) -> str:
