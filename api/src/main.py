@@ -139,15 +139,15 @@ async def get_pipeline_job_handler(uuid: UUID) -> Pipeline_job:
         return job
 
 
-@router.get("/pipeline-job/{uuid}/alignment-result", responses={404: {'model': HTTP_exception_response}})
+@router.get("/pipeline-job/{uuid}/result/alignment", responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
     try:
         file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/alignment-output.aln', mode="rb")
     except FileNotFoundError:
-        logger.warning(f'GET alignment-result error: File not found for job "{uuid}".')
+        logger.warning(f'GET result/alignment error: File not found for job "{uuid}".')
         raise HTTPException(status_code=404, detail='File not found.')
     except OSError as error:
-        logger.warning(f'GET alignment-result error: OS error caught while opening "{uuid}" result file.')
+        logger.warning(f'GET result/alignment error: OS error caught while opening "{uuid}" result file.')
         raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
     else:
         def iterfile():  # type: ignore

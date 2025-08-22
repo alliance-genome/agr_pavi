@@ -119,3 +119,12 @@ def wb_variant_c42d8_1_1_transcript_stop_loss() -> Variant:
     # NC_003284.9:g.5112328T>A - WB:C42D8.1.1:c.2848T>A (start of last codon, mock variant) - gene C42D8.1 WB:WBGene00016599
     return Variant(variant_id='NC_003284.9:g.9968631A>T', seq_id='X', start=5112328, end=5112328,
                    genomic_ref_seq='T', genomic_alt_seq='A')
+
+
+@pytest.fixture
+def wb_variant_n1913() -> Variant:
+    # WBVar00090295 - n1913 - NC_003280.10:g.2686968_2686968delinsATC - delin/indel
+    return Variant(variant_id='NC_003280.10:g.2686968_2686968delinsATC',
+                   seq_id='II', start=2686968, end=2686968,
+                   genomic_ref_seq='G',
+                   genomic_alt_seq='ATC')

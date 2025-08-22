@@ -10,7 +10,7 @@ export async function fetchAlignmentResults (jobId: string ): Promise<string|und
         return Promise.resolve(undefined)
     }
 
-    const jobResponse = fetch(`${process.env.PAVI_API_BASE_URL}/api/pipeline-job/${jobId}/alignment-result`, {
+    const jobResponse = fetch(`${process.env.PAVI_API_BASE_URL}/api/pipeline-job/${jobId}/result/alignment`, {
         method: 'GET',
         headers: {
             'accept': 'application/json'
@@ -29,7 +29,7 @@ export async function fetchAlignmentResults (jobId: string ): Promise<string|und
             console.log(`Alignment results for job ${jobId} received successfully.`)
             return body;
         } else {
-            const errMsg = 'Failure response received from alignment-result retrieval API.'
+            const errMsg = 'Failure response received from result/alignment retrieval API.'
             console.error(errMsg)
             if( 400 <= response.status && response.status <= 499 ){
                 throw new Error(errMsg, {cause: 'user error'})
@@ -42,7 +42,7 @@ export async function fetchAlignmentResults (jobId: string ): Promise<string|und
         }
     })
     .catch((e: Error) => {
-        console.error('Error caught while requesting job alignment-result:', e)
+        console.error('Error caught while requesting job result/alignment:', e)
         return undefined;
     });
 
