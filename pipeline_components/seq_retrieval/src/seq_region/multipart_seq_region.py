@@ -5,7 +5,7 @@ Module containing the MultiPartSeqRegion class.
 from typing import Any, Callable, Dict, List, override, Optional, Set, TypedDict
 
 from .seq_region import SeqRegion, AltSeqInfo
-from .variant import EmbeddedVariant, SeqSubstitutionType, Variant, variants_overlap
+from .variant import EmbeddedVariantsList, SeqSubstitutionType, Variant, variants_overlap
 
 from log_mgmt import get_logger
 
@@ -168,7 +168,7 @@ class MultiPartSeqRegion(SeqRegion):
 
         # Loop through region.ordered_seqRegions and apply overlapping variants for each seqRegion as required
         complete_multipart_sequence = ''
-        embedded_variants: List[EmbeddedVariant] = []
+        embedded_variants: EmbeddedVariantsList = EmbeddedVariantsList()
 
         for region_part in region.ordered_seqRegions:
             region_part_str = str(region_part)
@@ -190,9 +190,7 @@ class MultiPartSeqRegion(SeqRegion):
                         region_alt_seq['embedded_variants'].pop(0)
 
                     # Bump rel_start and rel_end positions to include prior region parts
-                    for embedded_variant in region_alt_seq['embedded_variants']:
-                        embedded_variant.rel_start += len(complete_multipart_sequence)
-                        embedded_variant.rel_end += len(complete_multipart_sequence)
+                    region_alt_seq['embedded_variants'].shift_rel_positions(len(complete_multipart_sequence))
 
                     embedded_variants.extend(region_alt_seq['embedded_variants'])
 
@@ -207,20 +205,7 @@ class MultiPartSeqRegion(SeqRegion):
 
             # Remove embedded variants that are outside of in-frame window
             # and trim rel_end for embedded variants partially outside of in-frame window
-            for index, embedded_variant in reversed(list(enumerate(embedded_variants))):
-                if embedded_variant.rel_start > inframe_length:
-                    # Embedded variant completely outside of in-frame window
-                    del embedded_variants[index]
-                elif embedded_variant.rel_start == inframe_length and embedded_variant.seq_substitution_type == SeqSubstitutionType.DELETION:
-                    # Embedded variant is deletions just outside of in-frame window
-                    del embedded_variants[index]
-                elif embedded_variant.rel_end > inframe_length:
-                    # Embedded variant partially outside of in-frame window
-                    # Set rel_end to length of in-frame window
-                    embedded_variant.rel_end = inframe_length
-                else:
-                    # Embedded variant is fully within in-frame window
-                    break
+            embedded_variants.trim_on_rel_positions(inframe_length)
 
         return {
             'sequence': complete_multipart_sequence,

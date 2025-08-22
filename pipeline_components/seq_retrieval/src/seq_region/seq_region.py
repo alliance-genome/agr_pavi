@@ -12,7 +12,7 @@ from log_mgmt import get_logger
 if TYPE_CHECKING:
     from .variant import Variant
 
-from .variant import EmbeddedVariant, SeqSubstitutionType
+from .variant import EmbeddedVariant, EmbeddedVariantsList, SeqSubstitutionType
 
 logger = get_logger(name=__name__)
 
@@ -368,7 +368,7 @@ class SeqRegion():
 
         # Calculate the position of each variant in the new (alternative) sequence
         # Loop through variants in relative positional order to include index changes due to indels
-        alt_embedded_variants: List[EmbeddedVariant] = []
+        alt_embedded_variants: EmbeddedVariantsList = EmbeddedVariantsList()
         for rel_start, positioned_variant in sorted(positioned_variants.items(), reverse=False):
 
             alt_rel_start = positioned_variant['rel_start'] + alt_seq_offset
@@ -491,7 +491,7 @@ class SeqRegion():
 class AltSeqInfo(TypedDict):
     """Alternative sequence information."""
 
-    embedded_variants: List['EmbeddedVariant']
+    embedded_variants: EmbeddedVariantsList
     """List of the variants embedded in the sequence"""
     sequence: str
     """The sequence of the alternative sequence region (as a string)."""
