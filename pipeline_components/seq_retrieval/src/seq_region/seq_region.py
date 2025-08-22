@@ -213,6 +213,23 @@ class SeqRegion():
 
         return seq
 
+    def inframe_seq_region(self) -> 'SeqRegion':
+        """
+        Return the subregion of the SeqRegion within complete reading frames.
+
+        Skips the first n bases of the region where n is `self.frame` if `frame` is set.
+        Trims the end of the resulting region to a sequencelength that matches complete codons (a multiple of 3).
+
+        Returns:
+            The in-frame subregion of a seq region.
+        """
+
+        rel_start: int = self.frame or 0  # 0-based relative start of inframe region
+        length = (self.seq_length - rel_start) // 3 * 3  # Floor the length to full codons
+        rel_end: int = rel_start + length - 1  # 0-based relative end of inframe region
+
+        return self.sub_region(rel_start + 1, rel_end + 1)
+
     def get_alt_sequence(self, unmasked: bool = False, variants: List['Variant'] = [], autofetch: bool = True, inframe_only: bool = False) -> 'AltSeqInfo':
         """
         Calculate an alternative `sequence` of the SeqRegion by applying a list of variants to it.
