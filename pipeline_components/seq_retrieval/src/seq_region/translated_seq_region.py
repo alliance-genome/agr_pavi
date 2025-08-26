@@ -44,6 +44,14 @@ class InvalidatedTranslationException(Exception):
         super().__init__(message)
 
 
+class OrfNotFoundException(Exception):
+    """
+    Exception raised when finding ORFs in a sequence region fails.
+    """
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class TranslatedSeqRegion():
     """
     Defines a genetically translated sequence region, consisting of multiple (non-continuous) sequence regions.
@@ -169,8 +177,9 @@ class TranslatedSeqRegion():
 
                         self.set_sequence(type='coding', sequence=orf['sequence'])
                     else:
-                        logger.warning('No open reading frames found.')
-                        return None
+                        msg = 'No open reading frames found in transcript sequence.'
+                        logger.warning(msg)
+                        raise OrfNotFoundException(msg)
             case _:
                 raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.fetch_seq method.")
 

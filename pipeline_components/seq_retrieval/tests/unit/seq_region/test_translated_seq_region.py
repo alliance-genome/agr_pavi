@@ -6,7 +6,7 @@ import logging
 import pytest
 from Bio.Data import CodonTable
 
-from seq_region import SeqRegion, TranslatedSeqRegion, InvalidatedOrfException, InvalidatedTranslationException
+from seq_region import SeqRegion, TranslatedSeqRegion, InvalidatedOrfException, InvalidatedTranslationException, OrfNotFoundException
 from seq_region.translated_seq_region import find_orfs, coding_to_protein_rel_position
 
 from .fixtures.translated_seq_regions import TranscriptFixture
@@ -63,10 +63,9 @@ def test_incomplete_orf_translation() -> None:
     assert isinstance(chained_utr_seq, str)
     assert chained_utr_seq == UTR_SEQ
 
-    incomplete_translation = incomplete_multipart_seq_region.translate()
-
     # Assert failed translation
-    assert incomplete_translation is None
+    with pytest.raises(OrfNotFoundException):
+        incomplete_multipart_seq_region.translate()
 
 
 def test_orf_detection() -> None:
