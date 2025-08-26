@@ -161,6 +161,8 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
               help="""The output type to return.""")
 @click.option("--name", type=click.STRING, required=True,
               help="The sequence name to use in the output fasta header.")
+@click.option("--sequence_output_file", type=click.STRING, required=False,
+              help="""The sequence output file to write to (default "`name`-`output_type`.fa").""")
 @click.option("--reuse_local_cache", is_flag=True,
               help="""When defined and using remote `fasta_file_url`, reused local files
               if file already exists at destination path, rather than re-downloading and overwritting.""")
@@ -169,7 +171,8 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
 def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict],
-         variant_ids: set[str], alt_seq_name_suffix: str, fasta_file_url: str, output_type: str, name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
+         variant_ids: set[str], alt_seq_name_suffix: str, fasta_file_url: str, output_type: str, name: str, sequence_output_file: str,
+         reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
@@ -239,7 +242,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
     else:
         raise NotImplementedError(f"Output_type {output_type} is currently not implemented.")
 
-    # Print output
+    # Define sequence names
     ref_name: str = name
     alt_name: str
 
@@ -247,12 +250,17 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
         ref_name = name + '_ref'
         alt_name = name + alt_seq_name_suffix
 
-    click.echo('>' + ref_name)
-    click.echo(ref_seq)
+    # Print sequence output
+    if sequence_output_file is None:
+        sequence_output_file = name + '-' + output_type + '.fa'
 
-    if variant_info:
-        click.echo('>' + alt_name)
-        click.echo(alt_seq)
+    with open(sequence_output_file, 'w') as output_file:
+        logger.debug(f'Writing sequence output to {sequence_output_file}...')
+
+        output_file.write(f'>{ref_name}\n{ref_seq}\n')
+
+        if variant_info:
+            output_file.write(f'>{alt_name}\n{alt_seq}\n')
 
 
 if __name__ == '__main__':
