@@ -4,11 +4,12 @@ Module containing the translated MultiPartSeqRegion class.
 
 from Bio import Seq  # Bio.Seq biopython submodule
 from Bio.Data import CodonTable
+from math import ceil
 from typing import Dict, List, Literal, Optional, override, Set, TypedDict
 
 from .seq_region import SeqRegion, AltSeqInfo
 from .multipart_seq_region import MultiPartSeqRegion
-from .variant import Variant
+from .variant import EmbeddedVariantsList, Variant
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
@@ -20,7 +21,9 @@ CODON_SIZE = 3
 class CalculatedOrf(TypedDict):
     sequence: str
     seq_start: int
+    """Relative sequence start position (1-based)"""
     seq_end: int
+    """Relative sequence end position (1-based)"""
     complete: bool
     frameshift: int
 
@@ -235,10 +238,13 @@ class TranslatedSeqRegion():
                                  when requesting coding or protein sequence.
         """
 
-        seq: str
+        alt_seq_info: AltSeqInfo = {
+            'sequence': '',
+            'embedded_variants': EmbeddedVariantsList()
+        }
         match type:
             case 'transcript':
-                seq = self.exon_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)['sequence']
+                alt_seq_info = self.exon_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
             case 'coding':
                 if self.coding_dna_sequence is None and autofetch:
                     self.fetch_seq('coding', recursive_fetch=True)
@@ -249,13 +255,13 @@ class TranslatedSeqRegion():
                     raise ValueError('No reference coding sequence found, so no variants can be applied to it.')
 
                 ref_coding_seq = self.coding_dna_sequence
-                alt_coding_seq = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)['sequence']
+                alt_coding_seq_info = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)
 
                 ## Evaluate alternative coding sequence's ORF
                 # If the reference start codon is different from the alternative start codon,
                 # reject the alternative coding sequence and any further coding sequence searches
                 ref_start_codon = ref_coding_seq[0:CODON_SIZE]
-                alt_start_codon = alt_coding_seq[0:CODON_SIZE]
+                alt_start_codon = alt_coding_seq_info['sequence'][0:CODON_SIZE]
 
                 if ref_start_codon != alt_start_codon:
                     err_msg = 'Reference start codon is different from alternative start codon. '\
@@ -266,12 +272,16 @@ class TranslatedSeqRegion():
                 # Check if stop codon in current coding region changed
                 # * If an early stop was gained or previous stop maintained, accept alternative coding sequence
                 # * If the reference stop codon was lost, extend the alternative coding sequence and search for new (longer) ORF using reference start codon
-                new_orfs = find_orfs(dna_sequence=alt_coding_seq, codon_table=self.codon_table, force_start=1)
+                new_orfs = find_orfs(dna_sequence=alt_coding_seq_info['sequence'], codon_table=self.codon_table, force_start=1)
 
                 if len(new_orfs) > 0:
                     # An early stop was gained or previous stop maintained,
                     # accepting the alternative coding sequence
-                    seq = new_orfs[0]['sequence']
+
+                    alt_seq_info['sequence'] = new_orfs[0]['sequence']
+                    # Trim embedded variants (and shift their positions using orf relative start?)
+                    # Reuse code from get/fetch_alt_sequence methods
+                    alt_seq_info['embedded_variants'] = EmbeddedVariantsList.trimmed_on_rel_positions(alt_coding_seq_info['embedded_variants'], trim_end=new_orfs[0]['seq_end'])
 
                 else:
                     # Reference stop codon was lost,
@@ -294,8 +304,8 @@ class TranslatedSeqRegion():
 
                     logger.debug('Extended coding seq region: %s', extended_coding_region)
 
-                    extended_region_alt_seq = extended_coding_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)['sequence']
-                    extended_region_alt_orfs = find_orfs(dna_sequence=extended_region_alt_seq, codon_table=self.codon_table, force_start=1)
+                    extended_region_alt_seq_info = extended_coding_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)
+                    extended_region_alt_orfs = find_orfs(dna_sequence=extended_region_alt_seq_info['sequence'], codon_table=self.codon_table, force_start=1)
 
                     # If no extended ORF was found, reject alternative coding sequence
                     if not len(extended_region_alt_orfs) > 0:
@@ -305,35 +315,44 @@ class TranslatedSeqRegion():
                         raise InvalidatedOrfException(err_msg)
 
                     # Otherwise, accept alternative ORF sequence of extended region
-                    seq = extended_region_alt_orfs[0]['sequence']
+                    # seq = extended_region_alt_orfs[0]['sequence']
+                    alt_seq_info['sequence'] = extended_region_alt_orfs[0]['sequence']
+                    # Trim embedded variants (and shift their positions using orf relative start?)
+                    # Reuse code from get/fetch_alt_sequence methods
+                    alt_seq_info['embedded_variants'] = EmbeddedVariantsList.trimmed_on_rel_positions(extended_region_alt_seq_info['embedded_variants'], trim_end=extended_region_alt_orfs[0]['seq_end'])
 
                 if unmasked:
-                    seq = seq.upper()
+                    alt_seq_info['sequence'] = alt_seq_info['sequence'].upper()
 
             case 'protein':
                 if len(variants) > 0:
                     try:
-                        alt_coding_seq = self.get_alt_sequence(type='coding', unmasked=unmasked, variants=variants, autofetch=autofetch)['sequence']
+                        alt_coding_seq_info = self.get_alt_sequence(type='coding', unmasked=unmasked, variants=variants, autofetch=autofetch)
                     except InvalidatedOrfException:
                         raise InvalidatedTranslationException('Translation invalidated due to variants invalidating the ORF.')
 
-                    if alt_coding_seq == '':
+                    if alt_coding_seq_info['sequence'] == '':
                         raise ValueError('No alternative coding sequence region found, so no translation possible.')
 
-                    seq = self.translate(coding_sequence=alt_coding_seq) or ''
+                    # Calculate embedded variants positions in protein sequence from embedded variants positions in coding sequence
+                    protein_embedded_variants = EmbeddedVariantsList(alt_coding_seq_info['embedded_variants'].copy())
+                    for variant in protein_embedded_variants:
+                        variant.rel_start = coding_to_protein_rel_position(variant.rel_start)
+                        variant.rel_end = coding_to_protein_rel_position(variant.rel_end)
+
+                    alt_seq_info['sequence'] = self.translate(coding_sequence=alt_coding_seq_info['sequence']) or ''
+                    alt_seq_info['embedded_variants'] = protein_embedded_variants
                 else:
                     if self.protein_sequence is None and autofetch:
                         self.translate()
 
-                    seq = str(self.protein_sequence) if self.protein_sequence is not None else ''
+                    alt_seq_info['sequence'] = str(self.protein_sequence) if self.protein_sequence is not None else ''
+                    alt_seq_info['embedded_variants'] = EmbeddedVariantsList()
 
             case _:
                 raise ValueError(f"type {type} not implemented yet in MultiPartSeqRegion.set_multipart_sequence method.")
 
-        return {
-            'sequence': seq,
-            'embedded_variants': []  # TODO: implement
-        }
+        return alt_seq_info
 
     def set_sequence(self, type: Literal['transcript', 'coding', 'protein'], sequence: str) -> None:
         """
@@ -480,3 +499,15 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, force_start
         return [orfs.pop()]
     else:
         raise ValueError(f"return_type {return_type} is not a valid value.")
+
+
+def coding_to_protein_rel_position(pos: int) -> int:
+    """
+    Converts relative position `pos` in coding sequence to it's corresponding relative position in protein sequence.
+
+    Assumes full coding-sequence translation (no frameshift, start of coding seq is start codon).
+
+    Returns:
+        Relative position in protein sequence
+    """
+    return ceil(pos / 3)

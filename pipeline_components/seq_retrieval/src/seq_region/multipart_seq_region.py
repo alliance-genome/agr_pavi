@@ -205,7 +205,7 @@ class MultiPartSeqRegion(SeqRegion):
 
             # Remove embedded variants that are outside of in-frame window
             # and trim rel_end for embedded variants partially outside of in-frame window
-            embedded_variants.trim_on_rel_positions(inframe_length)
+            embedded_variants = EmbeddedVariantsList.trimmed_on_rel_positions(embedded_variants, inframe_length)
 
         return {
             'sequence': complete_multipart_sequence,

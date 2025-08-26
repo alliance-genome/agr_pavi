@@ -232,23 +232,26 @@ class EmbeddedVariantsList(list[EmbeddedVariant]):
             variant.rel_start += shift
             variant.rel_end += shift
 
-    def trim_on_rel_positions(self, trim_end: int) -> None:
+    @classmethod
+    def trimmed_on_rel_positions(cls, variants_list: 'EmbeddedVariantsList', trim_end: int) -> 'EmbeddedVariantsList':
         """
-        Trims the list to only include variants within relative positions 1 to `trim_end`.
+        Trims the `variants_list` to only include variants within relative positions 1 to `trim_end`.
         Additionally trims the rel_end positions of all variants in the list that overlap `trim_end`.
 
         Args:
             trim_end: The relative end position to trim to (1-based).
         """
+        list_copy = cls(variants_list.copy())
+
         # Remove embedded variants that are outside of the trim window
         # and trim rel_end for embedded variants partially outside of trim window
-        for index, embedded_variant in reversed(list(enumerate(self))):
+        for index, embedded_variant in reversed(list(enumerate(list_copy))):
             if embedded_variant.rel_start > trim_end:
                 # Embedded variant completely outside of in-frame window
-                del self[index]
+                del list_copy[index]
             elif embedded_variant.rel_start == trim_end and embedded_variant.seq_substitution_type == SeqSubstitutionType.DELETION:
                 # Embedded variant is deletions just outside of in-frame window
-                del self[index]
+                del list_copy[index]
             elif embedded_variant.rel_end > trim_end:
                 # Embedded variant partially outside of in-frame window
                 # Trim rel_end to trim_end
@@ -256,6 +259,8 @@ class EmbeddedVariantsList(list[EmbeddedVariant]):
             else:
                 # Embedded variant is fully within in-frame window
                 continue
+
+        return list_copy
 
 
 def variants_overlap(variants: List[Variant]) -> bool:
