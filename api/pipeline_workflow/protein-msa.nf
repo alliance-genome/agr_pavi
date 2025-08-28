@@ -14,7 +14,8 @@ process sequence_retrieval {
         val request_map
 
     output:
-        path "${request_map.name}-protein.fa"
+        path "${request_map.name}-protein.fa", emit: output_sequences
+        path "${request_map.name}-seqinfo.json", emit: seq_info
 
     script:
         encoded_exon_regions = groovy.json.JsonOutput.toJson(request_map.exon_seq_regions)
@@ -48,6 +49,25 @@ process alignment {
         """
 }
 
+process collectAndAlignSeqInfo {
+    debug true
+
+    input:
+        path seq_info_files
+        path alignment_output_file
+
+    output:
+        stdout
+
+    script:
+        """
+        #!/usr/bin/env python3
+
+        print('seq_info_files: "${seq_info_files}"')
+        print('alignment_output_file: "${alignment_output_file}"')
+        """
+}
+
 workflow {
     def seq_regions_json = '[]'
     if (params.input_seq_regions_str) {
@@ -62,5 +82,12 @@ workflow {
 
     def seq_regions_channel = Channel.of(seq_regions_json).splitJson()
 
-    seq_regions_channel | sequence_retrieval | collectFile(name: 'alignment-input.fa', sort: { file -> file.name }) | alignment
+    // Retrieve sequences (w embedded variants)
+    sequence_retrieval(seq_regions_channel)
+
+    // Collect all sequences and align
+    alignment(sequence_retrieval.out.output_sequences.collectFile(name: 'alignment-input.fa', sort: { file -> file.name }))
+
+    // Merge seqinfo and add alignment positions
+    collectAndAlignSeqInfo(sequence_retrieval.out.seq_info.collect(), alignment.out)
 }
