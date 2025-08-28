@@ -16,7 +16,7 @@ registry-docker-login:
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
-	rm -rf .venv/
+	rm -rf .venv/ .venv-build/
 
 container-image:
 	docker build ${ADDITIONAL_BUILD_ARGS} -t ${CONTAINER_NAME} .
