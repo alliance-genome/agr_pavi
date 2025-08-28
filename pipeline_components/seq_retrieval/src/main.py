@@ -5,7 +5,9 @@ Main module serving the CLI for PAVI sequence retrieval.
 Retrieves multiple sequence regions and returns them as one chained sequence.
 """
 import click
+from enum import Enum
 import json
+import jsonpickle
 import logging
 import re
 from typing import get_args, List, TypedDict, Optional
@@ -213,16 +215,32 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
     logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")
 
-    # Retrieve relevant sequence(s)
+    # Define sequence names
+    ref_name: str = name
+    alt_name: str
+
+    if variant_info:
+        ref_name = name + '_ref'
+        alt_name = name + alt_seq_name_suffix
+
+    # Initiate output variables
     ref_seq: str | None = None
     alt_seq: str | None = None
 
+    seq_info: dict = {}
+    seq_info[ref_name] = {}
+    if variant_info:
+        seq_info[alt_name] = {}
+
+    # Retrieve relevant sequence info
     if output_type == 'transcript':
         ref_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
 
         if variant_info:
             # Generate additional sequence for full region with variants embedded
-            alt_seq = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))['sequence']
+            alt_info = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
+            alt_seq = alt_info['sequence']
+            seq_info[alt_name]['embedded_variants'] = alt_info['embedded_variants']
 
     elif output_type == 'protein':
         ref_seq = fullRegion.get_sequence(type='protein')
@@ -233,7 +251,9 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
         if variant_info:
             # Generate additional sequence for full region with variants embedded
             try:
-                alt_seq = fullRegion.get_alt_sequence(type='protein', variants=list(variant_info.values()))['sequence']
+                alt_info = fullRegion.get_alt_sequence(type='protein', variants=list(variant_info.values()))
+                alt_seq = alt_info['sequence']
+                seq_info[alt_name]['embedded_variants'] = alt_info['embedded_variants']
             except InvalidatedOrfException:
                 logger.error(f'Embedding variants ({variant_ids}) into TranslatedSeqRegion {fullRegion} invalidated the ORF.')
 
@@ -242,25 +262,36 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
     else:
         raise NotImplementedError(f"Output_type {output_type} is currently not implemented.")
 
-    # Define sequence names
-    ref_name: str = name
-    alt_name: str
-
-    if variant_info:
-        ref_name = name + '_ref'
-        alt_name = name + alt_seq_name_suffix
-
     # Print sequence output
     if sequence_output_file is None:
-        sequence_output_file = name + '-' + output_type + '.fa'
+        sequence_output_file = f'{name}-{output_type}.fa'
 
     with open(sequence_output_file, 'w') as output_file:
-        logger.debug(f'Writing sequence output to {sequence_output_file}...')
+        logger.debug(f'Writing sequences to {sequence_output_file}...')
 
         output_file.write(f'>{ref_name}\n{ref_seq}\n')
 
         if variant_info:
             output_file.write(f'>{alt_name}\n{alt_seq}\n')
+
+    # Print seq info
+    seq_info_output_file = f'{name}-seqinfo.json'
+
+    class EnumValueHandler(jsonpickle.handlers.BaseHandler):
+        def flatten(self, obj, data):  # noqa: U100
+            # Only store the value
+            return obj.value
+
+        def restore(self, data):
+            # Restore using the Enum class this handler is registered for
+            return self.cls(data)
+
+    jsonpickle.register(Enum, EnumValueHandler, base=True)
+
+    with open(seq_info_output_file, 'w') as output_file:
+        logger.debug(f'Writing sequence info to {seq_info_output_file}...')
+
+        output_file.write(jsonpickle.encode(seq_info, make_refs=False, unpicklable=False))
 
 
 if __name__ == '__main__':
