@@ -12,6 +12,7 @@ from log_mgmt import get_logger
 if TYPE_CHECKING:
     from variant import Variant
 
+from .seq_info import AltSeqInfo
 from variant import EmbeddedVariant, EmbeddedVariantsList, SeqSubstitutionType
 
 logger = get_logger(name=__name__)
@@ -486,15 +487,6 @@ class SeqRegion():
             rel_position = seq_position - self.start + 1
 
         return rel_position
-
-
-class AltSeqInfo(TypedDict):
-    """Alternative sequence information."""
-
-    embedded_variants: EmbeddedVariantsList
-    """List of the variants embedded in the sequence"""
-    sequence: str
-    """The sequence of the alternative sequence region (as a string)."""
 
 
 def fetch_faidx_files(fasta_file_url: str) -> str:
