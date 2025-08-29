@@ -2,6 +2,9 @@
 Module containing the Variant class and related functions.
 """
 
+from collections.abc import Iterable
+from enum import Enum
+
 import requests
 
 from typing import List, Optional, override, TYPE_CHECKING
@@ -9,9 +12,21 @@ from log_mgmt import get_logger
 
 # Only import on type-checking to prevent circular dependency at runtime
 if TYPE_CHECKING:
-    from .seq_region import SeqRegion
+    from seq_region.seq_region import SeqRegion
 
 logger = get_logger(name=__name__)
+
+
+class SeqSubstitutionType(Enum):
+    """Value enum for variant sequence substitution type"""
+    DELETION = 'deletion'
+    """Ref by alt seq replacement results in deletion of ref sequence."""
+    INSERTION = 'insertion'
+    """Ref by alt seq replacement results in insertion of alt sequence."""
+    INDEL = 'indel'
+    """Ref by alt seq replacement results in combination of deletion of ref sequence and insertion of alt sequence of unequal length."""
+    SUBSTITUTION = 'substitution'
+    """Ref by alt seq replacement results in substitution of ref sequence by alt sequence of equal length."""
 
 
 class Variant():
@@ -37,6 +52,9 @@ class Variant():
     genomic_alt_seq: str
     """Genomic alternative sequence of the variant"""
 
+    seq_substitution_type: SeqSubstitutionType
+    """Sequence substitution type of the variant when replacing the reference sequence with the alternative sequence"""
+
     def __init__(self, variant_id: str, seq_id: str, start: int, end: int, genomic_ref_seq: Optional[str] = None, genomic_alt_seq: Optional[str] = None):
         """
         Initializes a Variant instance.
@@ -60,6 +78,17 @@ class Variant():
         if not genomic_ref_seq and end - 1 != start:
             raise ValueError('Insertions must have start and end positions that indicate insertion site boundaries (2 flanking bases).')
 
+        # Calculate substitution type
+        substitution_type: SeqSubstitutionType
+        if genomic_ref_seq and genomic_alt_seq and len(genomic_ref_seq) == len(genomic_alt_seq):
+            substitution_type = SeqSubstitutionType.SUBSTITUTION
+        elif genomic_alt_seq is None or len(genomic_alt_seq) == 0:
+            substitution_type = SeqSubstitutionType.DELETION
+        elif genomic_ref_seq is None or len(genomic_ref_seq) == 0:
+            substitution_type = SeqSubstitutionType.INSERTION
+        else:
+            substitution_type = SeqSubstitutionType.INDEL
+
         self.variant_id = variant_id
         self.genomic_seq_id = seq_id
         self.genomic_start_pos = start
@@ -67,6 +96,7 @@ class Variant():
         self.seq_length = end - start + 1
         self.genomic_ref_seq = genomic_ref_seq or ""
         self.genomic_alt_seq = genomic_alt_seq or ""
+        self.seq_substitution_type = substitution_type
 
     @override
     def __eq__(self, other: object) -> bool:
@@ -160,6 +190,77 @@ class Variant():
                 overlaps = True
 
         return overlaps
+
+
+class EmbeddedVariant(Variant):
+    """
+    Variant object representing a variant embedded in an (alternative) sequence.
+
+    Contains additional properties related to the embedding into the sequence.
+    """
+
+    rel_start: int
+    """The relative start position of the variant in the sequence (1-based)."""
+    rel_end: int
+    """The relative end position of the variant in the sequence (1-based)."""
+
+    def __init__(self, variant: 'Variant', rel_start: int, rel_end: int):
+        self.__dict__.update(vars(variant))
+        self.rel_start = rel_start
+        self.rel_end = rel_end
+
+
+class EmbeddedVariantsList(list[EmbeddedVariant]):
+    """
+    Representation of a list of EmbeddedVariant objects, with methods for manipulation.
+    """
+
+    def __init__(self, iterable: Iterable[EmbeddedVariant] = []):
+        for item in iterable:
+            if not isinstance(item, EmbeddedVariant):
+                raise TypeError(f"Expected EmbeddedVariant, got {type(item)}")
+        super().__init__(iterable)
+
+    def shift_rel_positions(self, shift: int) -> None:
+        """
+        Shifts the relative positions of all variants in the list by the specified number of bases.
+
+        Args:
+            shift: The amount to shift the relative positions by.
+        """
+        for variant in self:
+            variant.rel_start += shift
+            variant.rel_end += shift
+
+    @classmethod
+    def trimmed_on_rel_positions(cls, variants_list: 'EmbeddedVariantsList', trim_end: int) -> 'EmbeddedVariantsList':
+        """
+        Trims the `variants_list` to only include variants within relative positions 1 to `trim_end`.
+        Additionally trims the rel_end positions of all variants in the list that overlap `trim_end`.
+
+        Args:
+            trim_end: The relative end position to trim to (1-based).
+        """
+        list_copy = cls(variants_list.copy())
+
+        # Remove embedded variants that are outside of the trim window
+        # and trim rel_end for embedded variants partially outside of trim window
+        for index, embedded_variant in reversed(list(enumerate(list_copy))):
+            if embedded_variant.rel_start > trim_end:
+                # Embedded variant completely outside of in-frame window
+                del list_copy[index]
+            elif embedded_variant.rel_start == trim_end and embedded_variant.seq_substitution_type == SeqSubstitutionType.DELETION:
+                # Embedded variant is deletions just outside of in-frame window
+                del list_copy[index]
+            elif embedded_variant.rel_end > trim_end:
+                # Embedded variant partially outside of in-frame window
+                # Trim rel_end to trim_end
+                embedded_variant.rel_end = trim_end
+            else:
+                # Embedded variant is fully within in-frame window
+                continue
+
+        return list_copy
 
 
 def variants_overlap(variants: List[Variant]) -> bool:
