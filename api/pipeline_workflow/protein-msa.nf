@@ -55,16 +55,19 @@ process collectAndAlignSeqInfo {
 
     container "${params.image_registry}agr_pavi/pipeline_seq_retrieval:${params.image_tag}"
 
+    publishDir "${params.publish_dir_prefix}${params.publish_dir}", mode: 'copy'
+
     input:
         path seq_info_files
         path alignment_output_file
 
     output:
         stdout
+        path 'seq_info.json'
 
     script:
         """
-        seq_info_align.py --sequence_info_files '${seq_info_files}' --alignment-result-file '${alignment_output_file}'
+        seq_info_align.py --sequence-info-files '${seq_info_files}' --alignment-result-file '${alignment_output_file}'
         """
 }
 
