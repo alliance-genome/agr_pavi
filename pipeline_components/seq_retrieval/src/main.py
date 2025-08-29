@@ -10,7 +10,7 @@ import json
 import jsonpickle
 import logging
 import re
-from typing import get_args, List, TypedDict, Optional
+from typing import Any, get_args, List, TypedDict, Optional
 
 import data_mover.data_file_mover as data_file_mover
 from seq_region import InvalidatedOrfException, SeqRegion, TranslatedSeqRegion, Variant
@@ -139,6 +139,53 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
         return variants
 
 
+def write_output(name: str, output_type: str, variants_flag: bool, alt_seq_name_suffix: str,
+                 ref_seq: str, alt_seq: str, ref_info: dict[str, Any], alt_info: dict[str, Any], sequence_output_file: str | None = None) -> None:
+    # Define sequence names
+    ref_name: str = name
+    alt_name: str
+
+    if variants_flag:
+        ref_name = name + '_ref'
+        alt_name = name + alt_seq_name_suffix
+
+    # Print sequence output
+    if sequence_output_file is None:
+        sequence_output_file = f'{name}-{output_type}.fa'
+
+    with open(sequence_output_file, 'w') as output_file:
+        logger.debug(f'Writing sequences to {sequence_output_file}...')
+
+        output_file.write(f'>{ref_name}\n{ref_seq}\n')
+
+        if variants_flag:
+            output_file.write(f'>{alt_name}\n{alt_seq}\n')
+
+    # Print seq info
+    seq_info: dict[str, Any] = {}
+    seq_info[ref_name] = ref_info
+    if variants_flag:
+        seq_info[alt_name] = alt_info
+
+    seq_info_output_file = f'{name}-seqinfo.json'
+
+    class EnumValueHandler(jsonpickle.handlers.BaseHandler):
+        def flatten(self, obj: Enum, data: Any) -> Any:  # noqa: U100
+            # Only store the value
+            return obj.value
+
+        def restore(self, data: Any):  # type: ignore
+            # Restore using the Enum class this handler is registered for
+            return self.cls(data)
+
+    jsonpickle.register(Enum, EnumValueHandler, base=True)
+
+    with open(seq_info_output_file, 'w') as output_file:
+        logger.debug(f'Writing sequence info to {seq_info_output_file}...')
+
+        output_file.write(jsonpickle.encode(seq_info, make_refs=False, unpicklable=False))
+
+
 @click.command(context_settings={'show_default': True})
 @click.option("--seq_id", type=click.STRING, required=True,
               help="The sequence ID to retrieve sequences for.")
@@ -215,22 +262,11 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
     logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")
 
-    # Define sequence names
-    ref_name: str = name
-    alt_name: str
-
-    if variant_info:
-        ref_name = name + '_ref'
-        alt_name = name + alt_seq_name_suffix
-
     # Initiate output variables
     ref_seq: str | None = None
     alt_seq: str | None = None
-
-    seq_info: dict = {}
-    seq_info[ref_name] = {}
-    if variant_info:
-        seq_info[alt_name] = {}
+    ref_info: dict[str, Any] = {}
+    alt_info: dict[str, Any] = {}
 
     # Retrieve relevant sequence info
     if output_type == 'transcript':
@@ -238,9 +274,11 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
         if variant_info:
             # Generate additional sequence for full region with variants embedded
-            alt_info = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
-            alt_seq = alt_info['sequence']
-            seq_info[alt_name]['embedded_variants'] = alt_info['embedded_variants']
+            seq_info = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
+            alt_seq = seq_info['sequence']
+            alt_info = {
+                'embedded_variants': seq_info['embedded_variants']
+            }
 
     elif output_type == 'protein':
         ref_seq = fullRegion.get_sequence(type='protein')
@@ -251,9 +289,11 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
         if variant_info:
             # Generate additional sequence for full region with variants embedded
             try:
-                alt_info = fullRegion.get_alt_sequence(type='protein', variants=list(variant_info.values()))
-                alt_seq = alt_info['sequence']
-                seq_info[alt_name]['embedded_variants'] = alt_info['embedded_variants']
+                seq_info = fullRegion.get_alt_sequence(type='protein', variants=list(variant_info.values()))
+                alt_seq = seq_info['sequence']
+                alt_info = {
+                    'embedded_variants': seq_info['embedded_variants']
+                }
             except InvalidatedOrfException:
                 logger.error(f'Embedding variants ({variant_ids}) into TranslatedSeqRegion {fullRegion} invalidated the ORF.')
 
@@ -262,36 +302,8 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
     else:
         raise NotImplementedError(f"Output_type {output_type} is currently not implemented.")
 
-    # Print sequence output
-    if sequence_output_file is None:
-        sequence_output_file = f'{name}-{output_type}.fa'
-
-    with open(sequence_output_file, 'w') as output_file:
-        logger.debug(f'Writing sequences to {sequence_output_file}...')
-
-        output_file.write(f'>{ref_name}\n{ref_seq}\n')
-
-        if variant_info:
-            output_file.write(f'>{alt_name}\n{alt_seq}\n')
-
-    # Print seq info
-    seq_info_output_file = f'{name}-seqinfo.json'
-
-    class EnumValueHandler(jsonpickle.handlers.BaseHandler):
-        def flatten(self, obj, data):  # noqa: U100
-            # Only store the value
-            return obj.value
-
-        def restore(self, data):
-            # Restore using the Enum class this handler is registered for
-            return self.cls(data)
-
-    jsonpickle.register(Enum, EnumValueHandler, base=True)
-
-    with open(seq_info_output_file, 'w') as output_file:
-        logger.debug(f'Writing sequence info to {seq_info_output_file}...')
-
-        output_file.write(jsonpickle.encode(seq_info, make_refs=False, unpicklable=False))
+    write_output(name=name, output_type=output_type, sequence_output_file=sequence_output_file, alt_seq_name_suffix=alt_seq_name_suffix,
+                 ref_seq=ref_seq, alt_seq=alt_seq or '', ref_info=ref_info, alt_info=alt_info, variants_flag=len(variant_info) > 0)
 
 
 if __name__ == '__main__':
