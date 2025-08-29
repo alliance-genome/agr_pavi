@@ -7,7 +7,7 @@ Retrieves multiple sequence regions and returns them as one chained sequence.
 import click
 from enum import Enum
 import json
-import jsonpickle
+import jsonpickle  # type: ignore
 import logging
 import re
 from typing import Any, get_args, List, TypedDict, Optional
