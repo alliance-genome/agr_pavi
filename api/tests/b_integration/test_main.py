@@ -9,7 +9,7 @@ from .helper_fns import poll_job_progress
 
 from httpx import Client, codes, ReadTimeout, Timeout
 
-from src.log_mgmt import get_logger
+from log_mgmt import get_logger
 
 
 logger = get_logger(name=__name__)
