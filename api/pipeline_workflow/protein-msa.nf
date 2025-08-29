@@ -51,6 +51,9 @@ process alignment {
 
 process collectAndAlignSeqInfo {
     debug true
+    memory '100 MB'
+
+    container "${params.image_registry}agr_pavi/pipeline_seq_retrieval:${params.image_tag}"
 
     input:
         path seq_info_files
@@ -61,10 +64,7 @@ process collectAndAlignSeqInfo {
 
     script:
         """
-        #!/usr/bin/env python3
-
-        print('seq_info_files: "${seq_info_files}"')
-        print('alignment_output_file: "${alignment_output_file}"')
+        seq_info_align.py --sequence_info_files '${seq_info_files}' --alignment-result-file '${alignment_output_file}'
         """
 }
 

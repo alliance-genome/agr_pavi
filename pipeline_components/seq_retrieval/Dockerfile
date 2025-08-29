@@ -45,6 +45,7 @@ COPY --from=install-python /usr/src/app/.venv /usr/src/app/.venv
 
 COPY src/ ./
 RUN chmod a+x seq_retrieval.py
+RUN chmod a+x seq_info_align.py
 ENV PATH=/usr/src/app/.venv/bin:$PATH:/usr/src/app
 
 CMD [ "seq_retrieval.py", "--help" ]

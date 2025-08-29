@@ -4,6 +4,7 @@ omit =
     *__init__*
     # Exclude CLI runnables (covered through integration rather than unit testing)
     src/seq_retrieval.py
+    src/seq_info_align.py
     # Exclude logging code (no need to be tested)
     src/log_mgmt/*
     # Exclude comparison analysis code
