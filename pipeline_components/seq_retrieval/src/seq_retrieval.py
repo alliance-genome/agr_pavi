@@ -13,7 +13,8 @@ import re
 from typing import Any, get_args, List, TypedDict, Optional
 
 from data_mover import data_file_mover
-from seq_region import InvalidatedOrfException, SeqRegion, TranslatedSeqRegion, Variant
+from seq_region import InvalidatedOrfException, SeqRegion, TranslatedSeqRegion
+from variant.variant import Variant
 from log_mgmt import set_log_level, get_logger
 
 logger = get_logger(name=__name__)

@@ -6,7 +6,8 @@ from Bio import Seq
 import logging
 import pytest
 
-from seq_region import MultiPartSeqRegion, Variant
+from seq_region import MultiPartSeqRegion
+from variant.variant import Variant
 from log_mgmt import get_logger, set_log_level
 
 logger = get_logger(name=__name__)

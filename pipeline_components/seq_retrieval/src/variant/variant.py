@@ -12,7 +12,7 @@ from log_mgmt import get_logger
 
 # Only import on type-checking to prevent circular dependency at runtime
 if TYPE_CHECKING:
-    from .seq_region import SeqRegion
+    from seq_region.seq_region import SeqRegion
 
 logger = get_logger(name=__name__)
 

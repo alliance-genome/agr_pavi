@@ -5,7 +5,7 @@ Module containing the MultiPartSeqRegion class.
 from typing import Any, Callable, Dict, List, override, Optional, Set, TypedDict
 
 from .seq_region import SeqRegion, AltSeqInfo
-from .variant import EmbeddedVariantsList, SeqSubstitutionType, Variant, variants_overlap
+from variant.variant import EmbeddedVariantsList, SeqSubstitutionType, Variant, variants_overlap
 
 from log_mgmt import get_logger
 

@@ -10,9 +10,9 @@ from data_mover import data_file_mover
 from log_mgmt import get_logger
 
 if TYPE_CHECKING:
-    from .variant import Variant
+    from variant.variant import Variant
 
-from .variant import EmbeddedVariant, EmbeddedVariantsList, SeqSubstitutionType
+from variant.variant import EmbeddedVariant, EmbeddedVariantsList, SeqSubstitutionType
 
 logger = get_logger(name=__name__)
 
@@ -252,7 +252,7 @@ class SeqRegion():
              * If any of the variants does not overlap the SeqRegion.
             NotImplementedError: If `variants` contains partially overlapping indels.
         """
-        from .variant import variants_overlap  # Imported here to prevent circular dependency
+        from variant.variant import variants_overlap  # Imported here to prevent circular dependency
 
         if len(variants) < 1:
             raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
