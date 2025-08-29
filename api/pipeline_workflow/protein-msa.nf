@@ -51,7 +51,7 @@ process alignment {
 
 process collectAndAlignSeqInfo {
     debug true
-    memory '100 MB'
+    memory '200 MB'
 
     container "${params.image_registry}agr_pavi/pipeline_seq_retrieval:${params.image_tag}"
 
