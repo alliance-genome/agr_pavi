@@ -44,7 +44,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 COPY --from=install-python /usr/src/app/.venv /usr/src/app/.venv
 
 COPY src/ ./
-RUN chmod a+x main.py
+RUN chmod a+x seq_retrieval.py
 ENV PATH=/usr/src/app/.venv/bin:$PATH:/usr/src/app
 
-CMD [ "main.py", "--help" ]
+CMD [ "seq_retrieval.py", "--help" ]

@@ -23,7 +23,7 @@ process sequence_retrieval {
         variant_ids = groovy.json.JsonOutput.toJson(request_map.variant_ids)
         alt_seq_name_suffix = request_map.alt_seq_name_suffix ?: '_alt'
         """
-        main.py --output_type protein \
+        seq_retrieval.py --output_type protein \
             --name ${request_map.name} --seq_id ${request_map.seq_id} --seq_strand ${request_map.seq_strand} \
             --fasta_file_url ${request_map.fasta_file_url} --exon_seq_regions '${encoded_exon_regions}' --cds_seq_regions '${encoded_cds_regions}' \
             --variant_ids '${variant_ids}' --alt_seq_name_suffix ${alt_seq_name_suffix}

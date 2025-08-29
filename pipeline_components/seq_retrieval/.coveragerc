@@ -2,8 +2,8 @@
 source = src
 omit =
     *__init__*
-    # Exclude main runnables (covered through integration rather than unit testing)
-    src/main.py
+    # Exclude CLI runnables (covered through integration rather than unit testing)
+    src/seq_retrieval.py
     # Exclude logging code (no need to be tested)
     src/log_mgmt/*
     # Exclude comparison analysis code
