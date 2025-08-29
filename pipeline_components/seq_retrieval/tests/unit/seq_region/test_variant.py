@@ -8,7 +8,7 @@ import pytest
 import responses  # requests mocking library
 from typing import Any
 
-from variant.variant import SeqSubstitutionType, Variant, variants_overlap
+from variant import SeqSubstitutionType, Variant, variants_overlap
 from log_mgmt import get_logger, set_log_level
 
 logger = get_logger(name=__name__)

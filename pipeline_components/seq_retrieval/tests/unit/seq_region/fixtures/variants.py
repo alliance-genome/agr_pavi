@@ -4,7 +4,7 @@ Variant fixtures for unit testing
 
 import pytest
 
-from variant.variant import Variant
+from variant import Variant
 
 
 @pytest.fixture

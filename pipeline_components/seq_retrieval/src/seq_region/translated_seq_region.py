@@ -9,7 +9,7 @@ from typing import Dict, List, Literal, Optional, override, Set, TypedDict
 
 from .seq_region import SeqRegion, AltSeqInfo
 from .multipart_seq_region import MultiPartSeqRegion
-from variant.variant import EmbeddedVariantsList, Variant
+from variant import EmbeddedVariantsList, Variant
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
