@@ -12,7 +12,7 @@ from log_mgmt import get_logger
 if TYPE_CHECKING:
     from variant import Variant
 
-from .seq_info import AltSeqInfo
+from seq_info import AltSeqInfo
 from variant import EmbeddedVariant, EmbeddedVariantsList, SeqSubstitutionType
 
 logger = get_logger(name=__name__)
