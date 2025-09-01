@@ -85,7 +85,7 @@ def seq_to_alignment_position(seqRecord: SeqRecord, pos: int) -> int:
         raise ValueError(f"Sequence record '{seqRecord.id}' has no sequence.")
 
     tmp_alignment_pos = pos
-    gap_count = seqRecord.seq[:tmp_alignment_pos].count("-")
+    gap_count: int = seqRecord.seq[:tmp_alignment_pos].count("-")
     while tmp_alignment_pos - gap_count < pos:
         tmp_alignment_pos = pos + gap_count
         gap_count = seqRecord.seq[:tmp_alignment_pos].count("-")
