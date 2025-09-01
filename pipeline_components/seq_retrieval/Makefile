@@ -48,6 +48,7 @@ install-deps-update: update-deps-lock install-deps
 
 install-test-deps:
 	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-test-deps
+	.venv/bin/pip install --editable .
 
 run-type-checks: .venv/ install-test-deps
 	.venv/bin/mypy --install-types --non-interactive --warn-unused-config ./
