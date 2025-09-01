@@ -276,9 +276,9 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
         if variant_info:
             # Generate additional sequence for full region with variants embedded
             seq_info = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
-            alt_seq = seq_info['sequence']
+            alt_seq = seq_info.sequence
             alt_info = {
-                'embedded_variants': seq_info['embedded_variants']
+                'embedded_variants': seq_info.embedded_variants
             }
 
     elif output_type == 'protein':
@@ -291,9 +291,9 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
             # Generate additional sequence for full region with variants embedded
             try:
                 seq_info = fullRegion.get_alt_sequence(type='protein', variants=list(variant_info.values()))
-                alt_seq = seq_info['sequence']
+                alt_seq = seq_info.sequence
                 alt_info = {
-                    'embedded_variants': seq_info['embedded_variants']
+                    'embedded_variants': seq_info.embedded_variants
                 }
             except InvalidatedOrfException:
                 logger.error(f'Embedding variants ({variant_ids}) into TranslatedSeqRegion {fullRegion} invalidated the ORF.')

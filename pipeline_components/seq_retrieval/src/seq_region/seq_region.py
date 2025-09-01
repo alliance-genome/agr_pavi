@@ -400,10 +400,7 @@ class SeqRegion():
 
             alt_seq_offset += alt_seq_len_diff
 
-        return {
-            'sequence': sequence,
-            'embedded_variants': alt_embedded_variants
-        }
+        return AltSeqInfo(sequence=sequence, embedded_variants=alt_embedded_variants)
 
     def overlaps(self, seq_region_2: "SeqRegion") -> bool:
         """

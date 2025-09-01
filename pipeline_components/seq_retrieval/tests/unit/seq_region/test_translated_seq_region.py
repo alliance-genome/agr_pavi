@@ -115,18 +115,18 @@ def test_transcript_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, 
     ref_transcript_seq = translatedSeqRegion.get_sequence(type='transcript', unmasked=False)
     # AAAAAAGAAG > AAAAAAGAAA
     alt_transcript_seq_info = translatedSeqRegion.get_alt_sequence(type='transcript', variants=[wb_variant_mgl_1_transcript])
-    alt_transcript_seq = alt_transcript_seq_info['sequence']
+    alt_transcript_seq = alt_transcript_seq_info.sequence
 
     assert ref_transcript_seq == wb_transcript_zc506_4a_1_with_cds['transcriptSeq']
     assert alt_transcript_seq != ref_transcript_seq
     assert alt_transcript_seq == 'AAACGACACATATGAATGTATATAGGGAACAAGAGTTTCCATACTCATAGTGCTCATTAGAATAGCACGGATCGTGTTTCGCCTCTCGCCTTGTTAACCGAATCTGCCCCCGTGTGCCCCGGCTGCTTGTGTTGTGTCACACAAGACTAACGCCCTCTTATCCTTTCCATTCTCTTAAAATCCATTTCTAgagttgaaaactttatttttattcaatactCAAATCATGGTACCGaaaccCCCTTCAATAATTCGACACATGTTCTCGGTGCTTGCACTTGCTATACAGATACTTGCAAATGTCAATGTGGTTGCACAgACAACGGAAGCCGTCGACCTCGCTCCACCTCCAAAAgTTCGACAAATCCGAATACCCGGAGATATATTAATCGGTGGCGTCTTTCCAGTTCATTCAAAGTCATTAAACGGCGATGAGCCATGTGGCGAAATAGCCGAAACCAGGGGTGTGCATCGAGTGGAAGCAATGCTCTATGCGCTCGACCAGATTAACTCTCAAAACGACTTTCTTCGCGGGTACAAATTGggTGCACTTATTCTTGATTCATGCTCAAATCCAGCATATGCGCTAAACCAGAGTTTAGATTTTGTGAGAGATATGATTGGATCCTCAGAAGCTTCTGATTATGTTTGTCTGGATGGGAGCGATCCAAATCTCAAGAAACAATCACAAAAGAAGAATGTAGCAGCAGTAGTAGGTGGTAGTTATAGTTCTGTGTCTGTACAATTAGCAAACCTATTGCGACTGTTTCGAATAGCACAAGTTAGCCCTGCAAGTACTAATGCAGACTTGTCGGATAAAAAccgatttgaatattttgcaaGAACAGTACCTTCTGATGATTATCAGGCTATGGCAATGGTCGAAATCGCTGTTAAATTCAAATGGAGTTATGTTTCCCTTGTTTACTCGGCAGATGAATACGGAGAATTGGGTGCTGACGCtttcaaaaaagaaAcaaGAAAGAAAGGAATCTGCATCGCACTAGAAGAAcgaatacaaaataaaaaagaaagtttcaCGGAGTCAATCAACAATTTGGTTCAAAAACTTCAACCCGAGAAAAATGTTGGAGCAACGGTGGTGGTTCTGTTTGTAGGAACAGAATACATCCCAGACATATTGCGATACACGGCAGAAAGGATGAAGTTGACGTCCGGCGCAAAGAAGCGTATCATTTGGCTTGCATCAGAGTCGTGGGATAGAAACAATGACAAGTATACCGCAGGAGACAATCGGCTAGCAGCTCAAGGAGCTATAGTTTTGATGTTGGCATCACAGAAAGTTCCGTCATTTGAAGAGTATTTTATGAGTTTGCATCCTGGTACAGAAGCGTTCGAAAGAAATAAATGGTTAAGGGAGTTGTGGCAAGTAAAGTACAAATGTGAATTTGATACTCCGCCTGGGTCAACGGCATCAAGGTGCGAGGATATCAAACAATCCACCGAAGGCTTCAATGCAGATGACAAGGTTCAATTTGTAATTGATGCAGTCTATGCCATTGCTCATGGGCTCCAATCTATGAAACAAGCGATATGTCCAGATGATGCTATCGAAAATCACTGGATTTCTCGGTACAGCAAGCAACCTGAAATATGCCACGCCATGCAAAACATTGATGGAAGtgacttttatcaaaattatttgctCAAAGTTAACTTTACAGATATTGTTGGAAAAAGGTTTCGTTTTTCACCACAAGGAGATGGTCCAGCTAGTTACACAATTTTGACATATAAGCCAAAATCCATGGATAAAAAGCGGAGGATGACAGATGACGAGAGCTCGCCATCTGATTATGTAGAAATTGGACACTGGAGTGAGAACAACttgaccatttatgagaaaaacttATGGTGGGATCCTGATCATACACCAGTCTCCGTTTGTTCTTTGCCCTGTAAAATCGGGTTCAGAAAACAGTTGATAAAGGATGAACAATGTTGTTGGGCATGCAGCAAATGTGAAGACTACGAATATCTCATCAATGAAACTCATTGTGTAGGGTGTGAACAGGGATGGTGGCCAACAAAGGATAGGAAAGGATGTTTTGATCTATCTCTTTCCCAGTTAAAATATATGAGATGGAGGTCGATGTACTCGTTGGTTCCAACCATTTTAGCAGTGTTTGGAATTATTGCCACACTCTTTGTGATAGTGGTGTATGTGATatataatGAAACCCCTGTCGTTAAAGCTTCGGGGCGAGAGCTAAGCTACATTTTGCTTATTTCCATGATTATGTGTTACTGCATGACATTTGTTCTTCTATCAAAACCAAGTGCAATTGTATGTGCTATCAAACGAACAGGAATTGGATTCGCATTTTCTTGTCTATACTCTGCAATGTTTGTAAAAACCAATAGAATTTTCCGCATCTTCAGCACAAGATCTGCTCAACGACCAAGATTCATATCTCCCATCTCTCAGGTTGTCATGACTGCAATGCTAGCCGGAGTACAATTGATCGGAAGTCTTATTTGGCTGTCAGTAGTGCCACCAGGTTGGAGACACCACTACCCCACCAGGGACCAGGTGGTTTTAACTTGTAATGTTCCTGACCATCACTTTTTGTATTCATTGGCTTATGATGGTTTCCTGATTGTGCTTTGTACAACGTATGCtgtaaaaactagaaaagtgcccgaaaatttcaacgaGACAAAATTCATCGGCTTCTCCATGTACACGACATGTGTTGTTTGGCTCAGttggattttctttttttttggaaccgGAAGTGATTTCCAAattcaaacaTCATCTCTTtgtatttcaatttccatGTCAGCCAATGTGGCATTAGCATGCATATTTTCACCAAAGCTTTGGatcattttgtttgaaaaacacaaaaacgtCCGAAAGCAGGAAGGTGAAAGTATGCTTAACAAAAGtagCAGATCATTAGGAAACTGTAGTTCCCGATTATGTGCCAATAGCATCGACGAGCCAAATCAGTACACCGCTTTGCTCACTGACAGTACACGAAGACGATCATCACGCAAGACATCTCAGCCAACGAGCACCAGCTCTGCTCACGATACTTTCTTATGAATGATATCCATTAATTTATTGTGCATATGTATCAATATACCTGATAACGAAAATTGTTTATCGATAATTCTTTCTTTTGATACGGAATGAATGAACTATTCGGACGAACACG'
     # Alt seq should have one embedded variant
-    assert len(alt_transcript_seq_info['embedded_variants']) == 1
-    assert alt_transcript_seq_info['embedded_variants'][0].variant_id == wb_variant_mgl_1_transcript.variant_id
+    assert len(alt_transcript_seq_info.embedded_variants) == 1
+    assert alt_transcript_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript.variant_id
     # Alt seq embedded variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert alt_transcript_seq_info['embedded_variants'][0].rel_start == 977
-    assert alt_transcript_seq_info['embedded_variants'][0].rel_end == 977
+    assert alt_transcript_seq_info.embedded_variants[0].rel_start == 977
+    assert alt_transcript_seq_info.embedded_variants[0].rel_end == 977
 
 
 def test_coding_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript) -> None:
@@ -134,17 +134,17 @@ def test_coding_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_v
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # AAAAAAGAAG > AAAAAAGAAA
     alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript])
-    alt_coding_seq = alt_coding_seq_info['sequence']
+    alt_coding_seq = alt_coding_seq_info.sequence
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
     assert alt_coding_seq != ref_coding_seq
     assert alt_coding_seq == 'ATGGTACCGaaaccCCCTTCAATAATTCGACACATGTTCTCGGTGCTTGCACTTGCTATACAGATACTTGCAAATGTCAATGTGGTTGCACAgACAACGGAAGCCGTCGACCTCGCTCCACCTCCAAAAgTTCGACAAATCCGAATACCCGGAGATATATTAATCGGTGGCGTCTTTCCAGTTCATTCAAAGTCATTAAACGGCGATGAGCCATGTGGCGAAATAGCCGAAACCAGGGGTGTGCATCGAGTGGAAGCAATGCTCTATGCGCTCGACCAGATTAACTCTCAAAACGACTTTCTTCGCGGGTACAAATTGggTGCACTTATTCTTGATTCATGCTCAAATCCAGCATATGCGCTAAACCAGAGTTTAGATTTTGTGAGAGATATGATTGGATCCTCAGAAGCTTCTGATTATGTTTGTCTGGATGGGAGCGATCCAAATCTCAAGAAACAATCACAAAAGAAGAATGTAGCAGCAGTAGTAGGTGGTAGTTATAGTTCTGTGTCTGTACAATTAGCAAACCTATTGCGACTGTTTCGAATAGCACAAGTTAGCCCTGCAAGTACTAATGCAGACTTGTCGGATAAAAAccgatttgaatattttgcaaGAACAGTACCTTCTGATGATTATCAGGCTATGGCAATGGTCGAAATCGCTGTTAAATTCAAATGGAGTTATGTTTCCCTTGTTTACTCGGCAGATGAATACGGAGAATTGGGTGCTGACGCtttcaaaaaagaaAcaaGAAAGAAAGGAATCTGCATCGCACTAGAAGAAcgaatacaaaataaaaaagaaagtttcaCGGAGTCAATCAACAATTTGGTTCAAAAACTTCAACCCGAGAAAAATGTTGGAGCAACGGTGGTGGTTCTGTTTGTAGGAACAGAATACATCCCAGACATATTGCGATACACGGCAGAAAGGATGAAGTTGACGTCCGGCGCAAAGAAGCGTATCATTTGGCTTGCATCAGAGTCGTGGGATAGAAACAATGACAAGTATACCGCAGGAGACAATCGGCTAGCAGCTCAAGGAGCTATAGTTTTGATGTTGGCATCACAGAAAGTTCCGTCATTTGAAGAGTATTTTATGAGTTTGCATCCTGGTACAGAAGCGTTCGAAAGAAATAAATGGTTAAGGGAGTTGTGGCAAGTAAAGTACAAATGTGAATTTGATACTCCGCCTGGGTCAACGGCATCAAGGTGCGAGGATATCAAACAATCCACCGAAGGCTTCAATGCAGATGACAAGGTTCAATTTGTAATTGATGCAGTCTATGCCATTGCTCATGGGCTCCAATCTATGAAACAAGCGATATGTCCAGATGATGCTATCGAAAATCACTGGATTTCTCGGTACAGCAAGCAACCTGAAATATGCCACGCCATGCAAAACATTGATGGAAGtgacttttatcaaaattatttgctCAAAGTTAACTTTACAGATATTGTTGGAAAAAGGTTTCGTTTTTCACCACAAGGAGATGGTCCAGCTAGTTACACAATTTTGACATATAAGCCAAAATCCATGGATAAAAAGCGGAGGATGACAGATGACGAGAGCTCGCCATCTGATTATGTAGAAATTGGACACTGGAGTGAGAACAACttgaccatttatgagaaaaacttATGGTGGGATCCTGATCATACACCAGTCTCCGTTTGTTCTTTGCCCTGTAAAATCGGGTTCAGAAAACAGTTGATAAAGGATGAACAATGTTGTTGGGCATGCAGCAAATGTGAAGACTACGAATATCTCATCAATGAAACTCATTGTGTAGGGTGTGAACAGGGATGGTGGCCAACAAAGGATAGGAAAGGATGTTTTGATCTATCTCTTTCCCAGTTAAAATATATGAGATGGAGGTCGATGTACTCGTTGGTTCCAACCATTTTAGCAGTGTTTGGAATTATTGCCACACTCTTTGTGATAGTGGTGTATGTGATatataatGAAACCCCTGTCGTTAAAGCTTCGGGGCGAGAGCTAAGCTACATTTTGCTTATTTCCATGATTATGTGTTACTGCATGACATTTGTTCTTCTATCAAAACCAAGTGCAATTGTATGTGCTATCAAACGAACAGGAATTGGATTCGCATTTTCTTGTCTATACTCTGCAATGTTTGTAAAAACCAATAGAATTTTCCGCATCTTCAGCACAAGATCTGCTCAACGACCAAGATTCATATCTCCCATCTCTCAGGTTGTCATGACTGCAATGCTAGCCGGAGTACAATTGATCGGAAGTCTTATTTGGCTGTCAGTAGTGCCACCAGGTTGGAGACACCACTACCCCACCAGGGACCAGGTGGTTTTAACTTGTAATGTTCCTGACCATCACTTTTTGTATTCATTGGCTTATGATGGTTTCCTGATTGTGCTTTGTACAACGTATGCtgtaaaaactagaaaagtgcccgaaaatttcaacgaGACAAAATTCATCGGCTTCTCCATGTACACGACATGTGTTGTTTGGCTCAGttggattttctttttttttggaaccgGAAGTGATTTCCAAattcaaacaTCATCTCTTtgtatttcaatttccatGTCAGCCAATGTGGCATTAGCATGCATATTTTCACCAAAGCTTTGGatcattttgtttgaaaaacacaaaaacgtCCGAAAGCAGGAAGGTGAAAGTATGCTTAACAAAAGtagCAGATCATTAGGAAACTGTAGTTCCCGATTATGTGCCAATAGCATCGACGAGCCAAATCAGTACACCGCTTTGCTCACTGACAGTACACGAAGACGATCATCACGCAAGACATCTCAGCCAACGAGCACCAGCTCTGCTCACGATACTTTCTTATGA'
     # Alt seq should have one embedded variant
-    assert len(alt_coding_seq_info['embedded_variants']) == 1
-    assert alt_coding_seq_info['embedded_variants'][0].variant_id == wb_variant_mgl_1_transcript.variant_id
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_coding_seq_info['embedded_variants'][0].rel_start == 751
-    assert alt_coding_seq_info['embedded_variants'][0].rel_end == 751
+    assert alt_coding_seq_info.embedded_variants[0].rel_start == 751
+    assert alt_coding_seq_info.embedded_variants[0].rel_end == 751
 
 
 def test_protein_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript) -> None:
@@ -154,14 +154,14 @@ def test_protein_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_
     alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript])
 
     assert ref_protein_seq == wb_transcript_zc506_4a_1_with_cds['proteinSeq']
-    assert alt_protein_seq_info['sequence'] != ref_protein_seq
-    assert alt_protein_seq_info['sequence'] == 'MVPKPPSIIRHMFSVLALAIQILANVNVVAQTTEAVDLAPPPKVRQIRIPGDILIGGVFPVHSKSLNGDEPCGEIAETRGVHRVEAMLYALDQINSQNDFLRGYKLGALILDSCSNPAYALNQSLDFVRDMIGSSEASDYVCLDGSDPNLKKQSQKKNVAAVVGGSYSSVSVQLANLLRLFRIAQVSPASTNADLSDKNRFEYFARTVPSDDYQAMAMVEIAVKFKWSYVSLVYSADEYGELGADAFKKETRKKGICIALEERIQNKKESFTESINNLVQKLQPEKNVGATVVVLFVGTEYIPDILRYTAERMKLTSGAKKRIIWLASESWDRNNDKYTAGDNRLAAQGAIVLMLASQKVPSFEEYFMSLHPGTEAFERNKWLRELWQVKYKCEFDTPPGSTASRCEDIKQSTEGFNADDKVQFVIDAVYAIAHGLQSMKQAICPDDAIENHWISRYSKQPEICHAMQNIDGSDFYQNYLLKVNFTDIVGKRFRFSPQGDGPASYTILTYKPKSMDKKRRMTDDESSPSDYVEIGHWSENNLTIYEKNLWWDPDHTPVSVCSLPCKIGFRKQLIKDEQCCWACSKCEDYEYLINETHCVGCEQGWWPTKDRKGCFDLSLSQLKYMRWRSMYSLVPTILAVFGIIATLFVIVVYVIYNETPVVKASGRELSYILLISMIMCYCMTFVLLSKPSAIVCAIKRTGIGFAFSCLYSAMFVKTNRIFRIFSTRSAQRPRFISPISQVVMTAMLAGVQLIGSLIWLSVVPPGWRHHYPTRDQVVLTCNVPDHHFLYSLAYDGFLIVLCTTYAVKTRKVPENFNETKFIGFSMYTTCVVWLSWIFFFFGTGSDFQIQTSSLCISISMSANVALACIFSPKLWIILFEKHKNVRKQEGESMLNKSSRSLGNCSSRLCANSIDEPNQYTALLTDSTRRRSSRKTSQPTSTSSAHDTFL'
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+    assert alt_protein_seq_info.sequence == 'MVPKPPSIIRHMFSVLALAIQILANVNVVAQTTEAVDLAPPPKVRQIRIPGDILIGGVFPVHSKSLNGDEPCGEIAETRGVHRVEAMLYALDQINSQNDFLRGYKLGALILDSCSNPAYALNQSLDFVRDMIGSSEASDYVCLDGSDPNLKKQSQKKNVAAVVGGSYSSVSVQLANLLRLFRIAQVSPASTNADLSDKNRFEYFARTVPSDDYQAMAMVEIAVKFKWSYVSLVYSADEYGELGADAFKKETRKKGICIALEERIQNKKESFTESINNLVQKLQPEKNVGATVVVLFVGTEYIPDILRYTAERMKLTSGAKKRIIWLASESWDRNNDKYTAGDNRLAAQGAIVLMLASQKVPSFEEYFMSLHPGTEAFERNKWLRELWQVKYKCEFDTPPGSTASRCEDIKQSTEGFNADDKVQFVIDAVYAIAHGLQSMKQAICPDDAIENHWISRYSKQPEICHAMQNIDGSDFYQNYLLKVNFTDIVGKRFRFSPQGDGPASYTILTYKPKSMDKKRRMTDDESSPSDYVEIGHWSENNLTIYEKNLWWDPDHTPVSVCSLPCKIGFRKQLIKDEQCCWACSKCEDYEYLINETHCVGCEQGWWPTKDRKGCFDLSLSQLKYMRWRSMYSLVPTILAVFGIIATLFVIVVYVIYNETPVVKASGRELSYILLISMIMCYCMTFVLLSKPSAIVCAIKRTGIGFAFSCLYSAMFVKTNRIFRIFSTRSAQRPRFISPISQVVMTAMLAGVQLIGSLIWLSVVPPGWRHHYPTRDQVVLTCNVPDHHFLYSLAYDGFLIVLCTTYAVKTRKVPENFNETKFIGFSMYTTCVVWLSWIFFFFGTGSDFQIQTSSLCISISMSANVALACIFSPKLWIILFEKHKNVRKQEGESMLNKSSRSLGNCSSRLCANSIDEPNQYTALLTDSTRRRSSRKTSQPTSTSSAHDTFL'
     # Alt seq should have one embedded variant
-    assert len(alt_protein_seq_info['embedded_variants']) == 1
-    assert alt_protein_seq_info['embedded_variants'][0].variant_id == wb_variant_mgl_1_transcript.variant_id
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_protein_seq_info['embedded_variants'][0].rel_start == 251
-    assert alt_protein_seq_info['embedded_variants'][0].rel_end == 251
+    assert alt_protein_seq_info.embedded_variants[0].rel_start == 251
+    assert alt_protein_seq_info.embedded_variants[0].rel_end == 251
 
 
 def test_protein_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_start_codon) -> None:
@@ -170,7 +170,7 @@ def test_protein_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1
     ref_protein_seq = translatedSeqRegion.get_sequence(type='protein')
     # ATGGTA > TTGGTA
     with pytest.raises(InvalidatedTranslationException):
-        translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript_start_codon])['sequence']
+        translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript_start_codon]).sequence
 
     assert ref_protein_seq == wb_transcript_zc506_4a_1_with_cds['proteinSeq']
 
@@ -181,7 +181,7 @@ def test_coding_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGGTA > TTGGTA
     with pytest.raises(InvalidatedOrfException):
-        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_start_codon])['sequence']
+        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_start_codon]).sequence
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
 
@@ -196,17 +196,17 @@ def test_coding_seq_retrieval_w_stop_loss_recovery_neg_strand(wb_transcript_zc50
     variant_alt_rel_end = variant_ref_rel_end
     # ATGA > AAGA
     alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss])
-    alt_coding_seq = alt_coding_seq_info['sequence']
+    alt_coding_seq = alt_coding_seq_info.sequence
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
     assert alt_coding_seq != ref_coding_seq
     assert alt_coding_seq == ref_coding_seq[:variant_ref_rel_start] + 'AGA' + 'ATGATATCCATTAATTTATTGTGCATATGTATCAATATACCTGATAACGAAAATTGTTTATCGATAATTCTTTCTTTTGATACGGAATGA'
     # Alt seq should have one embedded variant
-    assert len(alt_coding_seq_info['embedded_variants']) == 1
-    assert alt_coding_seq_info['embedded_variants'][0].variant_id == wb_variant_mgl_1_transcript_stop_loss.variant_id
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript_stop_loss.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_coding_seq_info['embedded_variants'][0].rel_start == variant_alt_rel_start + 1
-    assert alt_coding_seq_info['embedded_variants'][0].rel_end == variant_alt_rel_end + 1
+    assert alt_coding_seq_info.embedded_variants[0].rel_start == variant_alt_rel_start + 1
+    assert alt_coding_seq_info.embedded_variants[0].rel_end == variant_alt_rel_end + 1
 
 
 def test_coding_seq_retrieval_w_stop_loss_recovery_pos_strand(wb_transcript_c42d8_1_1_with_cds, wb_variant_c42d8_1_1_transcript_stop_loss) -> None:
@@ -219,17 +219,17 @@ def test_coding_seq_retrieval_w_stop_loss_recovery_pos_strand(wb_transcript_c42d
     variant_alt_rel_end = variant_ref_rel_end
     # CTAA > CAAA
     alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_c42d8_1_1_transcript_stop_loss])
-    alt_coding_seq = alt_coding_seq_info['sequence']
+    alt_coding_seq = alt_coding_seq_info.sequence
 
     assert ref_coding_seq == wb_transcript_c42d8_1_1_with_cds['codingSeq']
     assert alt_coding_seq != ref_coding_seq
     assert alt_coding_seq == ref_coding_seq[:variant_ref_rel_start] + 'AAA' + 'TTCTGA'
     # Alt seq should have one embedded variant
-    assert len(alt_coding_seq_info['embedded_variants']) == 1
-    assert alt_coding_seq_info['embedded_variants'][0].variant_id == wb_variant_c42d8_1_1_transcript_stop_loss.variant_id
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_c42d8_1_1_transcript_stop_loss.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_coding_seq_info['embedded_variants'][0].rel_start == variant_alt_rel_start + 1
-    assert alt_coding_seq_info['embedded_variants'][0].rel_end == variant_alt_rel_end + 1
+    assert alt_coding_seq_info.embedded_variants[0].rel_start == variant_alt_rel_start + 1
+    assert alt_coding_seq_info.embedded_variants[0].rel_end == variant_alt_rel_end + 1
 
 
 def test_coding_seq_retrieval_w_stop_loss_no_recovery(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss) -> None:
@@ -238,7 +238,7 @@ def test_coding_seq_retrieval_w_stop_loss_no_recovery(wb_transcript_zc506_4a_1_w
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGA > AAGA
     with pytest.raises(InvalidatedOrfException):
-        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss])['sequence']
+        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss]).sequence
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
 
@@ -253,14 +253,14 @@ def test_coding_seq_retrieval_w_stop_gain(wb_transcript_zc506_4a_1_with_cds, wb_
     variant_alt_rel_end = variant_ref_rel_end
     # TCAA > TCA
     alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_gain])
-    alt_coding_seq = alt_coding_seq_info['sequence']
+    alt_coding_seq = alt_coding_seq_info.sequence
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
     assert alt_coding_seq != ref_coding_seq
     assert alt_coding_seq == ref_coding_seq[:variant_ref_rel_start] + ref_coding_seq[variant_ref_rel_end + 1:25]
     # Alt seq should have one embedded variant
-    assert len(alt_coding_seq_info['embedded_variants']) == 1
-    assert alt_coding_seq_info['embedded_variants'][0].variant_id == wb_variant_mgl_1_transcript_stop_gain.variant_id
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript_stop_gain.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_coding_seq_info['embedded_variants'][0].rel_start == variant_alt_rel_start + 1
-    assert alt_coding_seq_info['embedded_variants'][0].rel_end == variant_alt_rel_end + 1
+    assert alt_coding_seq_info.embedded_variants[0].rel_start == variant_alt_rel_start + 1
+    assert alt_coding_seq_info.embedded_variants[0].rel_end == variant_alt_rel_end + 1
