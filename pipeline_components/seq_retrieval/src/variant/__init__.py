@@ -1,1 +1,2 @@
-from .variant import EmbeddedVariant, EmbeddedVariantsList, SeqSubstitutionType, Variant, variants_overlap
+from .variant import SeqSubstitutionType, Variant, variants_overlap
+from .embedded_variant import EmbeddedVariant, EmbeddedVariantsList
