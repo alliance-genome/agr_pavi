@@ -9,13 +9,16 @@ from Bio import AlignIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Align import MultipleSeqAlignment
 import click
+from enum import Enum
 import json
 import jsonpickle  # type: ignore
 import logging
 from os import path, access, R_OK
-from typing import Any, List
+from typing import Any, List, Optional
 
 from log_mgmt import set_log_level, get_logger
+from variant import AlignmentEmbeddedVariant, AlignmentEmbeddedVariantsList
+from seq_info import EnumValueHandler, SeqInfo
 
 logger = get_logger(name=__name__)
 
@@ -70,29 +73,6 @@ def process_alignment_result_file_param(ctx: click.Context, param: click.Paramet
     return value
 
 
-def seq_to_alignment_position(seqRecord: SeqRecord, pos: int) -> int:
-    """
-    Convert a sequence position to its corresponding alignment position.
-
-    Args:
-        seq: Alignment sequence record to generate relative position for.
-        pos: Sequence position to be converted.
-
-    Returns:
-        Alignment position of the sequence record.
-    """
-    if seqRecord.seq is None:
-        raise ValueError(f"Sequence record '{seqRecord.id}' has no sequence.")
-
-    tmp_alignment_pos = pos
-    gap_count: int = seqRecord.seq[:tmp_alignment_pos].count("-")
-    while tmp_alignment_pos - gap_count < pos:
-        tmp_alignment_pos = pos + gap_count
-        gap_count = seqRecord.seq[:tmp_alignment_pos].count("-")
-
-    return pos + gap_count
-
-
 @click.command(context_settings={'show_default': True})
 @click.option("--sequence-info-files", type=click.UNPROCESSED, required=True, callback=process_sequence_info_files_param,
               help="Space separated list of sequence info files to read.")
@@ -109,13 +89,17 @@ def main(alignment_result_file: str, sequence_info_files: List[str], debug: bool
     logger.debug(f"sequence_info_files: {sequence_info_files}")
     logger.debug(f"alignment output file: {alignment_result_file}")
 
-    all_sequence_info: dict[str, Any] = {}
+    alt_sequence_info_dict: dict[str, SeqInfo] = {}
+
     # * Read each of the sequence_info_files (JSON) and merge into a single dict
     for file in sequence_info_files:
         try:
             with open(file, 'r') as f:
-                sequence_info: dict[str, Any] = json.load(f)
-                all_sequence_info.update(sequence_info)
+                sequence_info_json_dict: dict[str, Any] = json.load(f)
+                sequence_info_dict: dict[str, SeqInfo] = {}
+                for key, value in sequence_info_json_dict.items():
+                    sequence_info_dict[key] = SeqInfo.from_dict(value)
+                alt_sequence_info_dict.update(sequence_info_dict)
         except Exception as e:
             logger.error(f"Failed to read sequence info file '{file}': {e}")
             exit(1)
@@ -133,7 +117,7 @@ def main(alignment_result_file: str, sequence_info_files: List[str], debug: bool
         exit(1)
 
     # * Loop over each record in the alignment_result_file and update the sequence info dict with relative alignment positions
-    #   rel alignment pos = rel_(start|end) + "-" count from start till variant start|end
+    aligned_seq_info_dict: dict[str, SeqInfo] = {}
     for record in alignment:
         if not isinstance(record, SeqRecord):
             logger.error(f"Error while parsing record of alignment result file '{alignment_result_file}'.")
@@ -142,14 +126,25 @@ def main(alignment_result_file: str, sequence_info_files: List[str], debug: bool
             logger.error(f"Error while reading record sequence for alignment record '{record.id}'.")
             exit(1)
 
-        if record.id in all_sequence_info and 'embedded_variants' in all_sequence_info[record.id]:
-            for variant in all_sequence_info[record.id]["embedded_variants"]:
-                variant["alignment_rel_start"] = seq_to_alignment_position(record, variant["rel_start"])
-                variant["alignment_rel_end"] = seq_to_alignment_position(record, variant["rel_end"])
+        aligned_variants: Optional[AlignmentEmbeddedVariantsList] = None
+
+        if record.id in alt_sequence_info_dict:
+            if hasattr(alt_sequence_info_dict[record.id], 'embedded_variants'):
+                embedded_variants = alt_sequence_info_dict[record.id].embedded_variants
+                if isinstance(embedded_variants, AlignmentEmbeddedVariantsList):
+                    aligned_variants = embedded_variants
+                else:
+                    aligned_variants = AlignmentEmbeddedVariantsList()
+                    if embedded_variants:
+                        for variant in embedded_variants:
+                            aligned_variants.append(AlignmentEmbeddedVariant(variant, record))
+
+            aligned_seq_info_dict[record.id] = SeqInfo(embedded_variants=aligned_variants)
 
     jsonpickle.set_encoder_options("simplejson", sort_maps=True)
+    jsonpickle.register(Enum, EnumValueHandler, base=True)
     with open('seq_info.json', 'w') as f:
-        f.write(jsonpickle.encode(all_sequence_info, unpicklable=False))
+        f.write(jsonpickle.encode(aligned_seq_info_dict, make_refs=False, unpicklable=False))
 
 
 if __name__ == '__main__':

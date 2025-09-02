@@ -20,6 +20,25 @@ class SeqEmbeddedVariant(Variant):
         self.rel_start = rel_start
         self.rel_end = rel_end
 
+    @override
+    @classmethod
+    def from_dict(cls, seq_embedded_variant_dict: dict[str, Any]) -> 'SeqEmbeddedVariant':
+        if 'rel_start' not in seq_embedded_variant_dict:
+            raise KeyError('rel_start not in seq_embedded_variant_dict')
+        elif not isinstance(seq_embedded_variant_dict['rel_start'], int):
+            raise TypeError('rel_start must be an integer')
+
+        if 'rel_end' not in seq_embedded_variant_dict:
+            raise KeyError('rel_end not in seq_embedded_variant_dict')
+        elif not isinstance(seq_embedded_variant_dict['rel_end'], int):
+            raise TypeError('rel_end must be an integer')
+
+        variant_dict = seq_embedded_variant_dict.copy()
+        del variant_dict['rel_start']
+        del variant_dict['rel_end']
+
+        return cls(Variant.from_dict(variant_dict), seq_embedded_variant_dict['rel_start'], seq_embedded_variant_dict['rel_end'])
+
 
 class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):
     """

@@ -6,7 +6,7 @@ from enum import Enum
 
 import requests
 
-from typing import List, Optional, override, TYPE_CHECKING
+from typing import Any, List, Optional, override, TYPE_CHECKING
 from log_mgmt import get_logger
 
 # Only import on type-checking to prevent circular dependency at runtime
@@ -96,6 +96,45 @@ class Variant():
         self.genomic_ref_seq = genomic_ref_seq or ""
         self.genomic_alt_seq = genomic_alt_seq or ""
         self.seq_substitution_type = substitution_type
+
+    @classmethod
+    def from_dict(cls, variant_dict: dict[str, Any]) -> 'Variant':
+        if 'variant_id' not in variant_dict:
+            raise KeyError('variant_id not in variant_dict')
+        elif not isinstance(variant_dict['variant_id'], str):
+            raise TypeError('variant_id must be a string')
+
+        if 'genomic_seq_id' not in variant_dict:
+            raise KeyError('genomic_seq_id not in variant_dict')
+        elif not isinstance(variant_dict['genomic_seq_id'], str):
+            raise TypeError('genomic_seq_id must be a string')
+
+        if 'genomic_start_pos' not in variant_dict:
+            raise KeyError('genomic_start_pos not in variant_dict')
+        elif not isinstance(variant_dict['genomic_start_pos'], int):
+            raise TypeError('genomic_start_pos must be an integer')
+
+        if 'genomic_end_pos' not in variant_dict:
+            raise KeyError('genomic_end_pos not in variant_dict')
+        elif not isinstance(variant_dict['genomic_end_pos'], int):
+            raise TypeError('genomic_end_pos must be an integer')
+
+        genomic_ref_seq = None
+        if 'genomic_ref_seq' in variant_dict:
+            genomic_ref_seq = variant_dict['genomic_ref_seq']
+
+        genomic_alt_seq = None
+        if 'genomic_alt_seq' in variant_dict:
+            genomic_alt_seq = variant_dict['genomic_alt_seq']
+
+        return cls(
+            variant_id=variant_dict['variant_id'],
+            seq_id=variant_dict['genomic_seq_id'],
+            start=variant_dict['genomic_start_pos'],
+            end=variant_dict['genomic_end_pos'],
+            genomic_ref_seq=genomic_ref_seq,
+            genomic_alt_seq=genomic_alt_seq
+        )
 
     @override
     def __eq__(self, other: object) -> bool:

@@ -5,8 +5,10 @@ from typing import override
 
 from variant import SeqEmbeddedVariantsList
 
+from .seq_info import SeqInfo
 
-class AltSeqInfo():
+
+class AltSeqInfo(SeqInfo):
     """Alternative sequence information."""
 
     embedded_variants: SeqEmbeddedVariantsList
