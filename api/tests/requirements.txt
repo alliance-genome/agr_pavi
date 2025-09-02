@@ -599,9 +599,9 @@ starlette==0.47.2 \
     --hash=sha256:6ae9aa5db235e4846decc1e7b79c4f346adf41e9777aebeb49dfd09bbd7023d8 \
     --hash=sha256:c5847e96134e5c5371ee9fac6fdf1a67336d5815e09eb2a01fdb57a351ef915b
     # via fastapi
-typer==0.16.0 \
-    --hash=sha256:1f79bed11d4d02d4310e3c1b7ba594183bcedb0ac73b27a9e5f28f6fb5b98855 \
-    --hash=sha256:af377ffaee1dbe37ae9440cb4e8f11686ea5ce4e9bae01b84ae7c63b87f1dd3b
+typer==0.17.3 \
+    --hash=sha256:0c600503d472bcf98d29914d4dcd67f80c24cc245395e2e00ba3603c9332e8ba \
+    --hash=sha256:643919a79182ab7ac7581056d93c6a2b865b026adf2872c4d02c72758e6f095b
     # via fastapi-cli
 typing-extensions==4.14.1 \
     --hash=sha256:38b39f4aeeab64884ce9f74c94263ef78f3c22467c8724005483154c26648d36 \
