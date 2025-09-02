@@ -1,9 +1,9 @@
-from typing import Iterable
+from typing import Any, Iterable, override
 
 from .variant import SeqSubstitutionType, Variant
 
 
-class EmbeddedVariant(Variant):
+class SeqEmbeddedVariant(Variant):
     """
     Variant object representing a variant embedded in an (alternative) sequence.
 
@@ -21,14 +21,14 @@ class EmbeddedVariant(Variant):
         self.rel_end = rel_end
 
 
-class EmbeddedVariantsList(list[EmbeddedVariant]):
+class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):
     """
     Representation of a list of EmbeddedVariant objects, with methods for manipulation.
     """
 
-    def __init__(self, iterable: Iterable[EmbeddedVariant] = []):
+    def __init__(self, iterable: Iterable[SeqEmbeddedVariant] = []):
         for item in iterable:
-            if not isinstance(item, EmbeddedVariant):
+            if not isinstance(item, SeqEmbeddedVariant):
                 raise TypeError(f"Expected EmbeddedVariant, got {type(item)}")
         super().__init__(iterable)
 
@@ -44,7 +44,7 @@ class EmbeddedVariantsList(list[EmbeddedVariant]):
             variant.rel_end += shift
 
     @classmethod
-    def trimmed_on_rel_positions(cls, variants_list: 'EmbeddedVariantsList', trim_end: int) -> 'EmbeddedVariantsList':
+    def trimmed_on_rel_positions(cls, variants_list: 'SeqEmbeddedVariantsList', trim_end: int) -> 'SeqEmbeddedVariantsList':
         """
         Trims the `variants_list` to only include variants within relative positions 1 to `trim_end`.
         Additionally trims the rel_end positions of all variants in the list that overlap `trim_end`.

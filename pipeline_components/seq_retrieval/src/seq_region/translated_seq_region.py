@@ -9,7 +9,7 @@ from typing import Dict, List, Literal, Optional, override, Set, TypedDict
 
 from .seq_region import SeqRegion, AltSeqInfo
 from .multipart_seq_region import MultiPartSeqRegion
-from variant import EmbeddedVariantsList, Variant
+from variant import SeqEmbeddedVariantsList, Variant
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
@@ -254,7 +254,7 @@ class TranslatedSeqRegion():
                 alt_seq_info = self.exon_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
             case 'coding':
                 coding_alt_seq: str
-                coding_alt_embedded_variants: EmbeddedVariantsList
+                coding_alt_embedded_variants: SeqEmbeddedVariantsList
 
                 if self.coding_dna_sequence is None and autofetch:
                     self.fetch_seq('coding', recursive_fetch=True)
@@ -291,7 +291,7 @@ class TranslatedSeqRegion():
                     coding_alt_seq = new_orfs[0]['sequence']
                     # Trim embedded variants (and shift their positions using orf relative start?)
                     # Reuse code from get/fetch_alt_sequence methods
-                    coding_alt_embedded_variants = EmbeddedVariantsList.trimmed_on_rel_positions(alt_coding_seq_info.embedded_variants, trim_end=new_orfs[0]['seq_end'])
+                    coding_alt_embedded_variants = SeqEmbeddedVariantsList.trimmed_on_rel_positions(alt_coding_seq_info.embedded_variants, trim_end=new_orfs[0]['seq_end'])
 
                 else:
                     # Reference stop codon was lost,
@@ -329,7 +329,7 @@ class TranslatedSeqRegion():
                     coding_alt_seq = extended_region_alt_orfs[0]['sequence']
                     # Trim embedded variants (and shift their positions using orf relative start?)
                     # Reuse code from get/fetch_alt_sequence methods
-                    coding_alt_embedded_variants = EmbeddedVariantsList.trimmed_on_rel_positions(extended_region_alt_seq_info.embedded_variants, trim_end=extended_region_alt_orfs[0]['seq_end'])
+                    coding_alt_embedded_variants = SeqEmbeddedVariantsList.trimmed_on_rel_positions(extended_region_alt_seq_info.embedded_variants, trim_end=extended_region_alt_orfs[0]['seq_end'])
 
                 alt_seq_info = AltSeqInfo(sequence=coding_alt_seq, embedded_variants=coding_alt_embedded_variants)
 
@@ -338,7 +338,7 @@ class TranslatedSeqRegion():
 
             case 'protein':
                 protein_alt_seq: str
-                protein_alt_embedded_variants: EmbeddedVariantsList
+                protein_alt_embedded_variants: SeqEmbeddedVariantsList
 
                 if len(variants) > 0:
                     try:
@@ -350,7 +350,7 @@ class TranslatedSeqRegion():
                         raise ValueError('No alternative coding sequence region found, so no translation possible.')
 
                     # Calculate embedded variants positions in protein sequence from embedded variants positions in coding sequence
-                    protein_embedded_variants = EmbeddedVariantsList(alt_coding_seq_info.embedded_variants.copy())
+                    protein_embedded_variants = SeqEmbeddedVariantsList(alt_coding_seq_info.embedded_variants.copy())
                     for variant in protein_embedded_variants:
                         variant.rel_start = coding_to_protein_rel_position(variant.rel_start)
                         variant.rel_end = coding_to_protein_rel_position(variant.rel_end)
@@ -362,7 +362,7 @@ class TranslatedSeqRegion():
                         self.translate()
 
                     protein_alt_seq = str(self.protein_sequence) if self.protein_sequence is not None else ''
-                    protein_alt_embedded_variants = EmbeddedVariantsList()
+                    protein_alt_embedded_variants = SeqEmbeddedVariantsList()
 
                 alt_seq_info = AltSeqInfo(sequence=protein_alt_seq, embedded_variants=protein_alt_embedded_variants)
 

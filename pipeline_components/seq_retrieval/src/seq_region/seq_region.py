@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from variant import Variant
 
 from seq_info import AltSeqInfo
-from variant import EmbeddedVariant, EmbeddedVariantsList, SeqSubstitutionType
+from variant import SeqEmbeddedVariant, SeqEmbeddedVariantsList, SeqSubstitutionType
 
 logger = get_logger(name=__name__)
 
@@ -369,7 +369,7 @@ class SeqRegion():
 
         # Calculate the position of each variant in the new (alternative) sequence
         # Loop through variants in relative positional order to include index changes due to indels
-        alt_embedded_variants: EmbeddedVariantsList = EmbeddedVariantsList()
+        alt_embedded_variants: SeqEmbeddedVariantsList = SeqEmbeddedVariantsList()
         for rel_start, positioned_variant in sorted(positioned_variants.items(), reverse=False):
 
             alt_rel_start = positioned_variant['rel_start'] + alt_seq_offset
@@ -392,7 +392,7 @@ class SeqRegion():
             # Adjust relative end position to account for insertions, deletions and indels
             alt_rel_end += alt_seq_len_diff
 
-            alt_embedded_variants.append(EmbeddedVariant(
+            alt_embedded_variants.append(SeqEmbeddedVariant(
                 variant=positioned_variant['variant'],
                 rel_start=alt_rel_start,
                 rel_end=alt_rel_end

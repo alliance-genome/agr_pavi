@@ -5,7 +5,7 @@ Module containing the MultiPartSeqRegion class.
 from typing import Any, Callable, Dict, List, override, Optional, Set, TypedDict
 
 from .seq_region import SeqRegion, AltSeqInfo
-from variant import EmbeddedVariantsList, SeqSubstitutionType, Variant, variants_overlap
+from variant import SeqEmbeddedVariantsList, SeqSubstitutionType, Variant, variants_overlap
 
 from log_mgmt import get_logger
 
@@ -168,7 +168,7 @@ class MultiPartSeqRegion(SeqRegion):
 
         # Loop through region.ordered_seqRegions and apply overlapping variants for each seqRegion as required
         complete_multipart_sequence = ''
-        embedded_variants: EmbeddedVariantsList = EmbeddedVariantsList()
+        embedded_variants: SeqEmbeddedVariantsList = SeqEmbeddedVariantsList()
 
         for region_part in region.ordered_seqRegions:
             region_part_str = str(region_part)
@@ -205,7 +205,7 @@ class MultiPartSeqRegion(SeqRegion):
 
             # Remove embedded variants that are outside of in-frame window
             # and trim rel_end for embedded variants partially outside of in-frame window
-            embedded_variants = EmbeddedVariantsList.trimmed_on_rel_positions(embedded_variants, inframe_length)
+            embedded_variants = SeqEmbeddedVariantsList.trimmed_on_rel_positions(embedded_variants, inframe_length)
 
         return AltSeqInfo(
             sequence=complete_multipart_sequence,

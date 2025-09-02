@@ -3,18 +3,18 @@ Module containing classes related to (alternative) sequence information reportin
 """
 from typing import override
 
-from variant import EmbeddedVariantsList
+from variant import SeqEmbeddedVariantsList
 
 
 class AltSeqInfo():
     """Alternative sequence information."""
 
-    embedded_variants: EmbeddedVariantsList
+    embedded_variants: SeqEmbeddedVariantsList
     """List of the variants embedded in the sequence"""
     sequence: str
     """The sequence of the alternative sequence region (as a string)."""
 
-    def __init__(self, sequence: str, embedded_variants: EmbeddedVariantsList):
+    def __init__(self, sequence: str, embedded_variants: SeqEmbeddedVariantsList):
         self.sequence = sequence
         self.embedded_variants = embedded_variants
 
