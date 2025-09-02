@@ -164,6 +164,17 @@ def test_protein_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_
     assert alt_protein_seq_info.embedded_variants[0].rel_end == 251
 
 
+def test_protein_seq_retrieval_w_empty_variants_list(wb_transcript_zc506_4a_1_with_cds) -> None:
+    translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[])
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein', unmasked=False)
+
+    assert alt_protein_seq_info.sequence == wb_transcript_zc506_4a_1_with_cds['proteinSeq']
+    assert ref_protein_seq == alt_protein_seq_info.sequence
+    # Alt seq should have no embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 0
+
+
 def test_protein_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_start_codon) -> None:
     # Translation through alternative ORFs is currently not supported, so variants in start codon are not supported
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
