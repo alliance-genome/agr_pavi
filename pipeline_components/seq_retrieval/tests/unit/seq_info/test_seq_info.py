@@ -78,7 +78,7 @@ def test_seq_info_initiation_from_dict_seq_embedded_variants():
 
     assert isinstance(seq_info, SeqInfo)
     assert seq_info.sequence == 'ATG'
-    assert len(seq_info.embedded_variants) == 1
+    assert seq_info.embedded_variants is not None and len(seq_info.embedded_variants) == 1
     assert isinstance(seq_info.embedded_variants[0], SeqEmbeddedVariant)
     assert seq_info.embedded_variants[0].variant_id == 'NC_003284.9:g.5114224C>T'
 
@@ -108,6 +108,6 @@ def test_seq_info_initiation_from_dict_alignment_embedded_variants():
 
     assert isinstance(seq_info, SeqInfo)
     assert seq_info.sequence == 'ATG'
-    assert len(seq_info.embedded_variants) == 1
+    assert seq_info.embedded_variants is not None and len(seq_info.embedded_variants) == 1
     assert isinstance(seq_info.embedded_variants[0], AlignmentEmbeddedVariant)
     assert seq_info.embedded_variants[0].variant_id == 'NC_003284.9:g.5114224C>T'
