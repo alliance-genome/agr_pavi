@@ -74,4 +74,5 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
             'rel_start': 377,
+            'rel_end': 377,
         })
