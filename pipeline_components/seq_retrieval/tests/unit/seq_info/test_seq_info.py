@@ -70,8 +70,8 @@ def test_seq_info_initiation_from_dict_seq_embedded_variants():
                 'genomic_ref_seq': 'C',
                 'genomic_alt_seq': 'T',
                 'seq_substitution_type': 'substitution',
-                'rel_start': 2,
-                'rel_end': 2
+                'seq_start_pos': 2,
+                'seq_end_pos': 2
             }
         ]
     })
@@ -98,8 +98,8 @@ def test_seq_info_initiation_from_dict_alignment_embedded_variants():
                 'genomic_ref_seq': 'C',
                 'genomic_alt_seq': 'T',
                 'seq_substitution_type': 'substitution',
-                'rel_start': 2,
-                'rel_end': 2,
+                'seq_start_pos': 2,
+                'seq_end_pos': 2,
                 'alignment_start': 2,
                 'alignment_end': 2
             }

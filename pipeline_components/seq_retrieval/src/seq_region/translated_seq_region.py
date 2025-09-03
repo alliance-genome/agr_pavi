@@ -352,8 +352,8 @@ class TranslatedSeqRegion():
                     # Calculate embedded variants positions in protein sequence from embedded variants positions in coding sequence
                     protein_embedded_variants = SeqEmbeddedVariantsList(alt_coding_seq_info.embedded_variants.copy())
                     for variant in protein_embedded_variants:
-                        variant.rel_start = coding_to_protein_rel_position(variant.rel_start)
-                        variant.rel_end = coding_to_protein_rel_position(variant.rel_end)
+                        variant.seq_start_pos = coding_to_protein_rel_position(variant.seq_start_pos)
+                        variant.seq_end_pos = coding_to_protein_rel_position(variant.seq_end_pos)
 
                     protein_alt_seq = self.translate(coding_sequence=alt_coding_seq_info.sequence) or ''
                     protein_alt_embedded_variants = protein_embedded_variants

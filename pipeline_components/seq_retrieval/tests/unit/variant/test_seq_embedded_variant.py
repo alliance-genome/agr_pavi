@@ -14,8 +14,8 @@ set_log_level(logging.DEBUG)
 
 def test_seq_embedded_variant_initiation(wb_variant_yn32_in_C42D8_8a_1_seq, wb_variant_yn32) -> None:
     assert isinstance(wb_variant_yn32_in_C42D8_8a_1_seq, SeqEmbeddedVariant)
-    assert wb_variant_yn32_in_C42D8_8a_1_seq.rel_start == 377
-    assert wb_variant_yn32_in_C42D8_8a_1_seq.rel_end == 377
+    assert wb_variant_yn32_in_C42D8_8a_1_seq.seq_start_pos == 377
+    assert wb_variant_yn32_in_C42D8_8a_1_seq.seq_end_pos == 377
     assert wb_variant_yn32_in_C42D8_8a_1_seq.variant_id == wb_variant_yn32.variant_id
 
 
@@ -28,8 +28,8 @@ def test_seq_embedded_variant_initiation_from_dict(wb_variant_yn32_in_C42D8_8a_1
         'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
         'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
         'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-        'rel_start': 377,
-        'rel_end': 377
+        'seq_start_pos': 377,
+        'seq_end_pos': 377
     })
 
     assert isinstance(seq_embedded_variant, SeqEmbeddedVariant)
@@ -40,7 +40,7 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
     """
     Test SeqEmbeddedVariant class initiation errors when initiating from dict.
     """
-    # Missing rel_start
+    # Missing seq_start_pos
     with pytest.raises(KeyError):
         SeqEmbeddedVariant.from_dict({
             'variant_id': wb_variant_yn32.variant_id,
@@ -50,9 +50,9 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-            'rel_end': 377
+            'seq_end_pos': 377
         })
-    # Missing rel_end
+    # Missing seq_end_pos
     with pytest.raises(KeyError):
         SeqEmbeddedVariant.from_dict({
             'variant_id': wb_variant_yn32.variant_id,
@@ -62,7 +62,7 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-            'rel_start': 377,
+            'seq_start_pos': 377,
         })
     # Missing any of the variant properties (here variant_id)
     with pytest.raises(KeyError):
@@ -73,6 +73,6 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-            'rel_start': 377,
-            'rel_end': 377,
+            'seq_start_pos': 377,
+            'seq_end_pos': 377,
         })

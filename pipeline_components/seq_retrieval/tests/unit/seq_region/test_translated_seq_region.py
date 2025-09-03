@@ -125,8 +125,8 @@ def test_transcript_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, 
     assert alt_transcript_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript.variant_id
     # Alt seq embedded variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert alt_transcript_seq_info.embedded_variants[0].rel_start == 977
-    assert alt_transcript_seq_info.embedded_variants[0].rel_end == 977
+    assert alt_transcript_seq_info.embedded_variants[0].seq_start_pos == 977
+    assert alt_transcript_seq_info.embedded_variants[0].seq_end_pos == 977
 
 
 def test_coding_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript) -> None:
@@ -143,8 +143,8 @@ def test_coding_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_v
     assert len(alt_coding_seq_info.embedded_variants) == 1
     assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_coding_seq_info.embedded_variants[0].rel_start == 751
-    assert alt_coding_seq_info.embedded_variants[0].rel_end == 751
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 751
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 751
 
 
 def test_protein_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript) -> None:
@@ -160,8 +160,8 @@ def test_protein_seq_retrieval_w_variants(wb_transcript_zc506_4a_1_with_cds, wb_
     assert len(alt_protein_seq_info.embedded_variants) == 1
     assert alt_protein_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_protein_seq_info.embedded_variants[0].rel_start == 251
-    assert alt_protein_seq_info.embedded_variants[0].rel_end == 251
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 251
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 251
 
 
 def test_protein_seq_retrieval_w_empty_variants_list(wb_transcript_zc506_4a_1_with_cds) -> None:
@@ -216,8 +216,8 @@ def test_coding_seq_retrieval_w_stop_loss_recovery_neg_strand(wb_transcript_zc50
     assert len(alt_coding_seq_info.embedded_variants) == 1
     assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript_stop_loss.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_coding_seq_info.embedded_variants[0].rel_start == variant_alt_rel_start + 1
-    assert alt_coding_seq_info.embedded_variants[0].rel_end == variant_alt_rel_end + 1
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == variant_alt_rel_start + 1
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == variant_alt_rel_end + 1
 
 
 def test_coding_seq_retrieval_w_stop_loss_recovery_pos_strand(wb_transcript_c42d8_1_1_with_cds, wb_variant_c42d8_1_1_transcript_stop_loss) -> None:
@@ -239,8 +239,8 @@ def test_coding_seq_retrieval_w_stop_loss_recovery_pos_strand(wb_transcript_c42d
     assert len(alt_coding_seq_info.embedded_variants) == 1
     assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_c42d8_1_1_transcript_stop_loss.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_coding_seq_info.embedded_variants[0].rel_start == variant_alt_rel_start + 1
-    assert alt_coding_seq_info.embedded_variants[0].rel_end == variant_alt_rel_end + 1
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == variant_alt_rel_start + 1
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == variant_alt_rel_end + 1
 
 
 def test_coding_seq_retrieval_w_stop_loss_no_recovery(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss) -> None:
@@ -273,5 +273,5 @@ def test_coding_seq_retrieval_w_stop_gain(wb_transcript_zc506_4a_1_with_cds, wb_
     assert len(alt_coding_seq_info.embedded_variants) == 1
     assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_mgl_1_transcript_stop_gain.variant_id
     # Alt seq embedded variant should be positioned correctly
-    assert alt_coding_seq_info.embedded_variants[0].rel_start == variant_alt_rel_start + 1
-    assert alt_coding_seq_info.embedded_variants[0].rel_end == variant_alt_rel_end + 1
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == variant_alt_rel_start + 1
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == variant_alt_rel_end + 1

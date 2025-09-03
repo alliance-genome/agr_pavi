@@ -221,8 +221,8 @@ def test_get_alt_sequence_single_exon_mutation_pos_strand(wb_variant_gk803418, w
     embedded_variant = alt_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variant_alt_rel_start + 1
-    assert embedded_variant.rel_end == variant_alt_rel_end + 1
+    assert embedded_variant.seq_start_pos == variant_alt_rel_start + 1
+    assert embedded_variant.seq_end_pos == variant_alt_rel_end + 1
     assert embedded_variant.variant_id == wb_variant_gk803418.variant_id
 
 
@@ -248,8 +248,8 @@ def test_get_alt_sequence_single_exon_mutation_neg_strand(wb_cds_c42d8_8b_1, wb_
     embedded_variant = alt_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variant_alt_rel_start + 1
-    assert embedded_variant.rel_end == variant_alt_rel_end + 1
+    assert embedded_variant.seq_start_pos == variant_alt_rel_start + 1
+    assert embedded_variant.seq_end_pos == variant_alt_rel_end + 1
     assert embedded_variant.variant_id == wb_variant_yn32.variant_id
 
 
@@ -272,8 +272,8 @@ def test_get_alt_sequence_single_exon_insertion_pos_strand(wb_cds_c42d8_1_1) -> 
     embedded_variant = alt_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variant_alt_rel_start + 1
-    assert embedded_variant.rel_end == variant_alt_rel_end + 1
+    assert embedded_variant.seq_start_pos == variant_alt_rel_start + 1
+    assert embedded_variant.seq_end_pos == variant_alt_rel_end + 1
     assert embedded_variant.variant_id == insertion.variant_id
 
 
@@ -297,8 +297,8 @@ def test_get_alt_sequence_single_exon_insertion_neg_strand(wb_cds_c42d8_8b_1) ->
     embedded_variant = alt_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variant_alt_rel_start + 1
-    assert embedded_variant.rel_end == variant_alt_rel_end + 1
+    assert embedded_variant.seq_start_pos == variant_alt_rel_start + 1
+    assert embedded_variant.seq_end_pos == variant_alt_rel_end + 1
     assert embedded_variant.variant_id == insertion.variant_id
 
 
@@ -321,8 +321,8 @@ def test_get_alt_sequence_single_exon_deletion_pos_strand(wb_cds_c42d8_1_1) -> N
     embedded_variant = alt_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variant_alt_rel_start + 1
-    assert embedded_variant.rel_end == variant_alt_rel_end + 1
+    assert embedded_variant.seq_start_pos == variant_alt_rel_start + 1
+    assert embedded_variant.seq_end_pos == variant_alt_rel_end + 1
     assert embedded_variant.variant_id == deletion.variant_id
 
 
@@ -346,8 +346,8 @@ def test_get_alt_sequence_single_exon_deletion_neg_strand(wb_cds_c42d8_8b_1) -> 
     embedded_variant = alt_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variant_alt_rel_start + 1
-    assert embedded_variant.rel_end == variant_alt_rel_end + 1
+    assert embedded_variant.seq_start_pos == variant_alt_rel_start + 1
+    assert embedded_variant.seq_end_pos == variant_alt_rel_end + 1
     assert embedded_variant.variant_id == deletion.variant_id
 
 
@@ -368,8 +368,8 @@ def test_get_alt_sequence_partial_exon_deletion(wb_cds_c42d8_8b_1, wb_variant_yn
     embedded_variant = alt_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variant_alt_rel_start + 1
-    assert embedded_variant.rel_end == variant_alt_rel_end + 1
+    assert embedded_variant.seq_start_pos == variant_alt_rel_start + 1
+    assert embedded_variant.seq_end_pos == variant_alt_rel_end + 1
     assert embedded_variant.variant_id == wb_variant_yn5.variant_id
 
 
@@ -389,8 +389,8 @@ def test_get_alt_sequence_multi_exon_deletion(wb_cds_c42d8_8b_1, wb_variant_yn10
     embedded_variant = alt_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variant_alt_rel_start + 1
-    assert embedded_variant.rel_end == variant_alt_rel_end + 1
+    assert embedded_variant.seq_start_pos == variant_alt_rel_start + 1
+    assert embedded_variant.seq_end_pos == variant_alt_rel_end + 1
     assert embedded_variant.variant_id == wb_variant_yn10.variant_id
 
 
@@ -413,16 +413,16 @@ def test_get_alt_sequence_multi_variant(wb_cds_c42d8_8b_1, wb_variant_yn10, wb_v
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
     # First variant in alt seq (wb_variant_yn30) should be positioned correctly
     assert alt_seq_info.embedded_variants[0].variant_id == wb_variant_yn30.variant_id
-    assert alt_seq_info.embedded_variants[0].rel_start == 387 + 1
-    assert alt_seq_info.embedded_variants[0].rel_end == 387 + 1
+    assert alt_seq_info.embedded_variants[0].seq_start_pos == 387 + 1
+    assert alt_seq_info.embedded_variants[0].seq_end_pos == 387 + 1
     # Second variant in alt seq (wb_variant_yn10) should be positioned correctly
     assert alt_seq_info.embedded_variants[1].variant_id == wb_variant_yn10.variant_id
-    assert alt_seq_info.embedded_variants[1].rel_start == 517 + 1
-    assert alt_seq_info.embedded_variants[1].rel_end == 518 + 1
+    assert alt_seq_info.embedded_variants[1].seq_start_pos == 517 + 1
+    assert alt_seq_info.embedded_variants[1].seq_end_pos == 518 + 1
     # Third variant in alt seq (end_variant) should be positioned correctly
     assert alt_seq_info.embedded_variants[2].variant_id == end_variant.variant_id
-    assert alt_seq_info.embedded_variants[2].rel_start == 566 + 1
-    assert alt_seq_info.embedded_variants[2].rel_end == 566 + 1
+    assert alt_seq_info.embedded_variants[2].seq_start_pos == 566 + 1
+    assert alt_seq_info.embedded_variants[2].seq_end_pos == 566 + 1
 
 
 def test_get_alt_sequence_inframe_only(wb_cds_c42d8_1_1) -> None:
@@ -447,8 +447,8 @@ def test_get_alt_sequence_inframe_only(wb_cds_c42d8_1_1) -> None:
     embedded_variant = alt_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variants_alt_phase0_rel_start + 1
-    assert embedded_variant.rel_end == variants_alt_phase0_rel_end + 1
+    assert embedded_variant.seq_start_pos == variants_alt_phase0_rel_start + 1
+    assert embedded_variant.seq_end_pos == variants_alt_phase0_rel_end + 1
     assert embedded_variant.variant_id == insertion.variant_id
 
     phase_2_region = wb_cds_c42d8_1_1.sub_region(rel_start=2, rel_end=wb_cds_c42d8_1_1.seq_length)
@@ -467,8 +467,8 @@ def test_get_alt_sequence_inframe_only(wb_cds_c42d8_1_1) -> None:
     embedded_variant = phase_2_alt_inframe_seq_info.embedded_variants[0]
     # Alt seq variant should be positioned correctly (phase 2 inframe-only results in all positions shifted three bases backwards)
     # note: AltSeqEmbeddedVariant stores 1-based relative positions
-    assert embedded_variant.rel_start == variants_alt_phase0_rel_start - 3 + 1
-    assert embedded_variant.rel_end == variants_alt_phase0_rel_end - 3 + 1
+    assert embedded_variant.seq_start_pos == variants_alt_phase0_rel_start - 3 + 1
+    assert embedded_variant.seq_end_pos == variants_alt_phase0_rel_end - 3 + 1
     assert embedded_variant.variant_id == insertion.variant_id
 
 

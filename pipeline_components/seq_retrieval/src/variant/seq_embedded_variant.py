@@ -10,34 +10,34 @@ class SeqEmbeddedVariant(Variant):
     Contains additional properties related to the embedding into the sequence.
     """
 
-    rel_start: int
+    seq_start_pos: int
     """The relative start position of the variant in the sequence (1-based)."""
-    rel_end: int
+    seq_end_pos: int
     """The relative end position of the variant in the sequence (1-based)."""
 
-    def __init__(self, variant: 'Variant', rel_start: int, rel_end: int):
+    def __init__(self, variant: 'Variant', seq_start_pos: int, seq_end_pos: int):
         self.__dict__.update(vars(variant))
-        self.rel_start = rel_start
-        self.rel_end = rel_end
+        self.seq_start_pos = seq_start_pos
+        self.seq_end_pos = seq_end_pos
 
     @override
     @classmethod
     def from_dict(cls, seq_embedded_variant_dict: dict[str, Any]) -> 'SeqEmbeddedVariant':
-        if 'rel_start' not in seq_embedded_variant_dict:
-            raise KeyError('rel_start not in seq_embedded_variant_dict')
-        elif not isinstance(seq_embedded_variant_dict['rel_start'], int):
-            raise TypeError('rel_start must be an integer')
+        if 'seq_start_pos' not in seq_embedded_variant_dict:
+            raise KeyError('seq_start_pos not in seq_embedded_variant_dict')
+        elif not isinstance(seq_embedded_variant_dict['seq_start_pos'], int):
+            raise TypeError('seq_start_pos must be an integer')
 
-        if 'rel_end' not in seq_embedded_variant_dict:
-            raise KeyError('rel_end not in seq_embedded_variant_dict')
-        elif not isinstance(seq_embedded_variant_dict['rel_end'], int):
-            raise TypeError('rel_end must be an integer')
+        if 'seq_end_pos' not in seq_embedded_variant_dict:
+            raise KeyError('seq_end_pos not in seq_embedded_variant_dict')
+        elif not isinstance(seq_embedded_variant_dict['seq_end_pos'], int):
+            raise TypeError('seq_end_pos must be an integer')
 
         variant_dict = seq_embedded_variant_dict.copy()
-        del variant_dict['rel_start']
-        del variant_dict['rel_end']
+        del variant_dict['seq_start_pos']
+        del variant_dict['seq_end_pos']
 
-        return cls(Variant.from_dict(variant_dict), seq_embedded_variant_dict['rel_start'], seq_embedded_variant_dict['rel_end'])
+        return cls(Variant.from_dict(variant_dict), seq_embedded_variant_dict['seq_start_pos'], seq_embedded_variant_dict['seq_end_pos'])
 
 
 class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):
@@ -59,14 +59,14 @@ class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):
             shift: The amount to shift the relative positions by.
         """
         for variant in self:
-            variant.rel_start += shift
-            variant.rel_end += shift
+            variant.seq_start_pos += shift
+            variant.seq_end_pos += shift
 
     @classmethod
     def trimmed_on_rel_positions(cls, variants_list: 'SeqEmbeddedVariantsList', trim_end: int) -> 'SeqEmbeddedVariantsList':
         """
         Trims the `variants_list` to only include variants within relative positions 1 to `trim_end`.
-        Additionally trims the rel_end positions of all variants in the list that overlap `trim_end`.
+        Additionally trims the seq_end_pos positions of all variants in the list that overlap `trim_end`.
 
         Args:
             trim_end: The relative end position to trim to (1-based).
@@ -74,18 +74,18 @@ class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):
         list_copy = cls(variants_list.copy())
 
         # Remove embedded variants that are outside of the trim window
-        # and trim rel_end for embedded variants partially outside of trim window
+        # and trim seq_end_pos for embedded variants partially outside of trim window
         for index, embedded_variant in reversed(list(enumerate(list_copy))):
-            if embedded_variant.rel_start > trim_end:
+            if embedded_variant.seq_start_pos > trim_end:
                 # Embedded variant completely outside of in-frame window
                 del list_copy[index]
-            elif embedded_variant.rel_start == trim_end and embedded_variant.seq_substitution_type == SeqSubstitutionType.DELETION:
+            elif embedded_variant.seq_start_pos == trim_end and embedded_variant.seq_substitution_type == SeqSubstitutionType.DELETION:
                 # Embedded variant is deletions just outside of in-frame window
                 del list_copy[index]
-            elif embedded_variant.rel_end > trim_end:
+            elif embedded_variant.seq_end_pos > trim_end:
                 # Embedded variant partially outside of in-frame window
-                # Trim rel_end to trim_end
-                embedded_variant.rel_end = trim_end
+                # Trim seq_end_pos to trim_end
+                embedded_variant.seq_end_pos = trim_end
             else:
                 # Embedded variant is fully within in-frame window
                 continue

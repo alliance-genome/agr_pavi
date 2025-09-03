@@ -24,8 +24,8 @@ def test_shift_rel_positions_forwards(wb_variants_yn10_yn30_in_C42D8_8a_1_list) 
     list_copy.shift_rel_positions(2)
 
     for key in range(len(list_copy)):
-        assert list_copy[key].rel_start == wb_variants_yn10_yn30_in_C42D8_8a_1_list[key].rel_start + 2
-        assert list_copy[key].rel_end == wb_variants_yn10_yn30_in_C42D8_8a_1_list[key].rel_end + 2
+        assert list_copy[key].seq_start_pos == wb_variants_yn10_yn30_in_C42D8_8a_1_list[key].seq_start_pos + 2
+        assert list_copy[key].seq_end_pos == wb_variants_yn10_yn30_in_C42D8_8a_1_list[key].seq_end_pos + 2
 
 
 def test_shift_rel_positions_backwards(wb_variants_yn10_yn30_in_C42D8_8a_1_list) -> None:
@@ -33,8 +33,8 @@ def test_shift_rel_positions_backwards(wb_variants_yn10_yn30_in_C42D8_8a_1_list)
     list_copy.shift_rel_positions(-1)
 
     for key in range(len(list_copy)):
-        assert list_copy[key].rel_start == wb_variants_yn10_yn30_in_C42D8_8a_1_list[key].rel_start - 1
-        assert list_copy[key].rel_end == wb_variants_yn10_yn30_in_C42D8_8a_1_list[key].rel_end - 1
+        assert list_copy[key].seq_start_pos == wb_variants_yn10_yn30_in_C42D8_8a_1_list[key].seq_start_pos - 1
+        assert list_copy[key].seq_end_pos == wb_variants_yn10_yn30_in_C42D8_8a_1_list[key].seq_end_pos - 1
 
 
 def test_trimmed_on_rel_positions_deletion_edge(wb_variants_yn10_yn30_in_C42D8_8a_1_list) -> None:

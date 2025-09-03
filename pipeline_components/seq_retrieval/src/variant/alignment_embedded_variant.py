@@ -23,8 +23,8 @@ class AlignmentEmbeddedVariant(SeqEmbeddedVariant):
         #     raise ValueError('alignment_record or (alignment_start and alignment_end) must be provided')
 
         if alignment_record is not None:
-            self.alignment_start = seq_to_alignment_position(alignment_record, embedded_variant.rel_start)
-            self.alignment_end = seq_to_alignment_position(alignment_record, embedded_variant.rel_end)
+            self.alignment_start = seq_to_alignment_position(alignment_record, embedded_variant.seq_start_pos)
+            self.alignment_end = seq_to_alignment_position(alignment_record, embedded_variant.seq_end_pos)
         else:
             if alignment_start is None or alignment_end is None:
                 raise ValueError('alignment_record or (alignment_start and alignment_end) must be provided')

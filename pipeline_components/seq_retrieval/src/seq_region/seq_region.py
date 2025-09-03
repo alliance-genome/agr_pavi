@@ -394,8 +394,8 @@ class SeqRegion():
 
             alt_embedded_variants.append(SeqEmbeddedVariant(
                 variant=positioned_variant['variant'],
-                rel_start=alt_rel_start,
-                rel_end=alt_rel_end
+                seq_start_pos=alt_rel_start,
+                seq_end_pos=alt_rel_end
             ))
 
             alt_seq_offset += alt_seq_len_diff

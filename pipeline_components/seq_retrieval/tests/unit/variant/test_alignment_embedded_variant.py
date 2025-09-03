@@ -51,8 +51,8 @@ def test_alignment_embedded_variant_from_dict(wb_variant_yn32_in_C42D8_8a_1_alig
         'genomic_end_pos': 5114224,
         'genomic_ref_seq': 'C',
         'genomic_alt_seq': 'T',
-        'rel_start': 377,
-        'rel_end': 377,
+        'seq_start_pos': 377,
+        'seq_end_pos': 377,
         'alignment_start': 590,
         'alignment_end': 590
     })
@@ -75,8 +75,8 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-            'rel_start': 377,
-            'rel_end': 377,
+            'seq_start_pos': 377,
+            'seq_end_pos': 377,
             'alignment_end': 590
         })
     # Missing alignment_end
@@ -89,11 +89,11 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-            'rel_start': 377,
-            'rel_end': 377,
+            'seq_start_pos': 377,
+            'seq_end_pos': 377,
             'alignment_start': 590
         })
-    # Missing rel_start
+    # Missing seq_start_pos
     with pytest.raises(KeyError):
         AlignmentEmbeddedVariant.from_dict({
             'variant_id': wb_variant_yn32.variant_id,
@@ -103,11 +103,11 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-            'rel_end': 377,
+            'seq_end_pos': 377,
             'alignment_start': 590,
             'alignment_end': 590
         })
-    # Missing rel_end
+    # Missing seq_end_pos
     with pytest.raises(KeyError):
         AlignmentEmbeddedVariant.from_dict({
             'variant_id': wb_variant_yn32.variant_id,
@@ -117,7 +117,7 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-            'rel_start': 377,
+            'seq_start_pos': 377,
             'alignment_start': 590,
             'alignment_end': 590
         })
@@ -130,8 +130,8 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-            'rel_start': 377,
-            'rel_end': 377,
+            'seq_start_pos': 377,
+            'seq_end_pos': 377,
             'alignment_start': 590,
             'alignment_end': 590
         })
