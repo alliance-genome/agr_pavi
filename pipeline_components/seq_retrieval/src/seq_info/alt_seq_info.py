@@ -25,5 +25,5 @@ class AltSeqInfo(SeqInfo):
         return f'AltSeqInfo(sequence={self.sequence}, embedded_variants={self.embedded_variants})'
 
     @override
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return f'AltSeqInfo(sequence={self.sequence}, embedded_variants={self.embedded_variants})'
