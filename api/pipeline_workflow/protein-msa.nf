@@ -63,7 +63,7 @@ process collectAndAlignSeqInfo {
 
     output:
         stdout
-        path 'seq_info.json'
+        path 'aligned_seq_info.json'
 
     script:
         """

@@ -143,7 +143,7 @@ def main(alignment_result_file: str, sequence_info_files: List[str], debug: bool
 
     jsonpickle.set_encoder_options("simplejson", sort_maps=True)
     jsonpickle.register(Enum, EnumValueHandler, base=True)
-    with open('seq_info.json', 'w') as f:
+    with open('aligned_seq_info.json', 'w') as f:
         f.write(jsonpickle.encode(aligned_seq_info_dict, make_refs=False, unpicklable=False))
 
 
