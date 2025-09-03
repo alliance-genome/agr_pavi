@@ -46,3 +46,13 @@ def test_result_alignment(mocker: MockerFixture) -> None:
 
     assert response.status_code == 200
     assert response.text == mock_alignment_open().read()
+
+
+def test_result_seq_info(mocker: MockerFixture) -> None:
+    def mock_seq_info_open(uri: None = None, **kwargs):  # type: ignore  # noqa: U100
+        return open('../tests/resources/submit-workflow-success/aligned_seq_info.json', **kwargs)
+    mocker.patch('src.main.open', side_effect=mock_seq_info_open)
+    response = client.get(f'/api/pipeline-job/{mock_uuid}/result/seq-info')
+
+    assert response.status_code == 200
+    assert response.text == mock_seq_info_open().read()

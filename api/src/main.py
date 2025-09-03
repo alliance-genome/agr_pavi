@@ -157,6 +157,24 @@ async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
         return StreamingResponse(iterfile(), media_type="text/plain")
 
 
+@router.get("/pipeline-job/{uuid}/result/seq-info", responses={404: {'model': HTTP_exception_response}})
+async def get_pipeline_job_seq_info_result(uuid: UUID) -> StreamingResponse:
+    try:
+        file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/aligned_seq_info.json', mode="rb")
+    except FileNotFoundError:
+        logger.warning(f'GET result/seq-info error: File not found for job "{uuid}".')
+        raise HTTPException(status_code=404, detail='File not found.')
+    except OSError as error:
+        logger.warning(f'GET result/seq-info error: OS error caught while opening "{uuid}" result file.')
+        raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
+    else:
+        def iterfile():  # type: ignore
+            with file_like:
+                yield from file_like
+
+        return StreamingResponse(iterfile(), media_type="application/json")
+
+
 @router.get("/pipeline-job/{uuid}/logs", responses={400: {'model': HTTP_exception_response}, 404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_logs(uuid: UUID) -> StreamingResponse:
     job: Pipeline_job | None = get_pipeline_job(uuid)
