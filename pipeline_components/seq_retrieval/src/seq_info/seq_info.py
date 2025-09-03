@@ -12,7 +12,7 @@ class SeqInfo():
     """Sequence information."""
 
     embedded_variants: Optional[SeqEmbeddedVariantsList | AlignmentEmbeddedVariantsList]
-    """List of the variants embedded in the sequence"""
+    """List of the variants embedded in the sequence or aligned sequence."""
     sequence: Optional[str]
     """The sequence as a string."""
 

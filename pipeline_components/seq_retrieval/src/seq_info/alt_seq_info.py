@@ -12,7 +12,7 @@ class AltSeqInfo(SeqInfo):
     """Alternative sequence information."""
 
     embedded_variants: SeqEmbeddedVariantsList
-    """List of the variants embedded in the sequence"""
+    """List of the variants embedded in the sequence."""
     sequence: str
     """The sequence of the alternative sequence region (as a string)."""
 
