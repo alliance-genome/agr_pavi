@@ -25,19 +25,19 @@ def test_alignment_embedded_variant_initiation_with_SeqRecord(wb_variant_yn32_in
     Test AlignmentEmbeddedVariant class initiation using SeqRecord.
     """
     assert isinstance(wb_variant_yn32_in_C42D8_8a_1_alignment, AlignmentEmbeddedVariant)
-    assert wb_variant_yn32_in_C42D8_8a_1_alignment.alignment_start == 590
-    assert wb_variant_yn32_in_C42D8_8a_1_alignment.alignment_end == 590
+    assert wb_variant_yn32_in_C42D8_8a_1_alignment.alignment_start_pos == 590
+    assert wb_variant_yn32_in_C42D8_8a_1_alignment.alignment_end_pos == 590
 
 
 def test_alignment_embedded_variant_initiation_with_positions(wb_variant_yn32_in_C42D8_8a_1_seq) -> None:
     """
     Test AlignmentEmbeddedVariant class initiation using positions.
     """
-    alignment_embedded_w_positions = AlignmentEmbeddedVariant(embedded_variant=wb_variant_yn32_in_C42D8_8a_1_seq, alignment_start=590, alignment_end=590)
+    alignment_embedded_w_positions = AlignmentEmbeddedVariant(embedded_variant=wb_variant_yn32_in_C42D8_8a_1_seq, alignment_start_pos=590, alignment_end_pos=590)
 
     assert isinstance(alignment_embedded_w_positions, AlignmentEmbeddedVariant)
-    assert alignment_embedded_w_positions.alignment_start == 590
-    assert alignment_embedded_w_positions.alignment_end == 590
+    assert alignment_embedded_w_positions.alignment_start_pos == 590
+    assert alignment_embedded_w_positions.alignment_end_pos == 590
 
 
 def test_alignment_embedded_variant_from_dict(wb_variant_yn32_in_C42D8_8a_1_alignment) -> None:
@@ -53,8 +53,8 @@ def test_alignment_embedded_variant_from_dict(wb_variant_yn32_in_C42D8_8a_1_alig
         'genomic_alt_seq': 'T',
         'seq_start_pos': 377,
         'seq_end_pos': 377,
-        'alignment_start': 590,
-        'alignment_end': 590
+        'alignment_start_pos': 590,
+        'alignment_end_pos': 590
     })
 
     assert isinstance(alignment_embedded_from_dict, AlignmentEmbeddedVariant)
@@ -65,7 +65,7 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
     """
     Test SeqEmbeddedVariant class initiation errors when initiating from dict.
     """
-    # Missing alignment_start
+    # Missing alignment_start_pos
     with pytest.raises(KeyError):
         AlignmentEmbeddedVariant.from_dict({
             'variant_id': wb_variant_yn32.variant_id,
@@ -77,9 +77,9 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
             'seq_start_pos': 377,
             'seq_end_pos': 377,
-            'alignment_end': 590
+            'alignment_end_pos': 590
         })
-    # Missing alignment_end
+    # Missing alignment_end_pos
     with pytest.raises(KeyError):
         AlignmentEmbeddedVariant.from_dict({
             'variant_id': wb_variant_yn32.variant_id,
@@ -91,7 +91,7 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
             'seq_start_pos': 377,
             'seq_end_pos': 377,
-            'alignment_start': 590
+            'alignment_start_pos': 590
         })
     # Missing seq_start_pos
     with pytest.raises(KeyError):
@@ -104,8 +104,8 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
             'seq_end_pos': 377,
-            'alignment_start': 590,
-            'alignment_end': 590
+            'alignment_start_pos': 590,
+            'alignment_end_pos': 590
         })
     # Missing seq_end_pos
     with pytest.raises(KeyError):
@@ -118,8 +118,8 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
             'seq_start_pos': 377,
-            'alignment_start': 590,
-            'alignment_end': 590
+            'alignment_start_pos': 590,
+            'alignment_end_pos': 590
         })
     # Missing any of the variant properties (here variant_id)
     with pytest.raises(KeyError):
@@ -132,6 +132,6 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
             'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
             'seq_start_pos': 377,
             'seq_end_pos': 377,
-            'alignment_start': 590,
-            'alignment_end': 590
+            'alignment_start_pos': 590,
+            'alignment_end_pos': 590
         })

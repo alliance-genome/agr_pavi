@@ -36,7 +36,7 @@ class SeqInfo():
             if not isinstance(seq_info_dict['embedded_variants'], list):
                 raise TypeError('embedded_variants must be a list')
 
-            if any('alignment_start' in variant for variant in seq_info_dict['embedded_variants']):
+            if any('alignment_start_pos' in variant for variant in seq_info_dict['embedded_variants']):
                 embedded_variants = AlignmentEmbeddedVariantsList()
             else:
                 embedded_variants = SeqEmbeddedVariantsList()
