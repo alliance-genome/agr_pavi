@@ -536,6 +536,7 @@ jobs:
           sparse-checkout: |
             Makefile
             pipeline_components/seq_retrieval/
+            tests/resources/
       - name: Download updated seq_retrieval (main) dependencies lock file
         uses: actions/download-artifact@v5
         with:
