@@ -10,8 +10,9 @@ client = TestClient(app, follow_redirects=False)
 NOT_FOUND_UUID: UUID = UUID('00000000-0000-0000-0000-000000000000')
 mock_uuid: UUID = uuid1()
 
+
 def mock_open_OSError(uri: None = None, **kwargs):  # type: ignore  # noqa: U100
-        raise OSError('Test mock OSError')
+    raise OSError('Test mock OSError')
 
 
 # Health endpoint is used by ELB health checks.
