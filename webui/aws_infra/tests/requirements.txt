@@ -18,23 +18,23 @@ aws-cdk-asset-node-proxy-agent-v6==2.1.0 \
     --hash=sha256:1f292c0631f86708ba4ee328b3a2b229f7e46ea1c79fbde567ee9eb119c2b0e2 \
     --hash=sha256:24a388b69a44d03bae6dbf864c4e25ba650d4b61c008b4568b94ffbb9a69e40e
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==48.3.0 \
-    --hash=sha256:139a0e6b61d50cb593788882697676556035d4cfd522423ce12597ec0b388a5c \
-    --hash=sha256:a7ed8566144a9d49a915af69bd53d6a668f4709cac61fb6d63feaaee61edbc79
+aws-cdk-cloud-assembly-schema==48.7.0 \
+    --hash=sha256:620a3851b6acd940454f9bca3186cc9b89041b592d7b6a48d125f2a4a545e1b7 \
+    --hash=sha256:d29ecc8b172581a1495a12f1e221014b70fdc9a51b6674069e9c1b6f10edf4be
     # via aws-cdk-lib
-aws-cdk-lib==2.210.0 \
-    --hash=sha256:0b3c30acb1142252b649303e63fa914832bed4357452c2b2bfff5455e448253c \
-    --hash=sha256:a6695b0b0ec691b1007865ab0c9e4d246f33dca23ad205d980f2e5724d8cbb01
+aws-cdk-lib==2.214.0 \
+    --hash=sha256:374dd3b6e412becfb77808e4d828efbee070e3400968360af16df856485c3ade \
+    --hash=sha256:90f3268218e020c641d634d74cff3376905824c80a572d7e2eabc219977d98ef
     # via
     #   pavi-shared-aws
     #   webui-aws_infra (pyproject.toml)
-boto3==1.40.5 \
-    --hash=sha256:7340706beffe93e3638adcd77cb266f46ba424f77623a5a6be591baa3cdbd3f3 \
-    --hash=sha256:8072f11a973709b582ef9834794721d543869cc506d029477172054dcc19c2da
+boto3==1.40.23 \
+    --hash=sha256:9826fb6abcdda2f016a939b81e94d1a9e1147ae897a523f366cf5a1558936356 \
+    --hash=sha256:ca5e2f767a7b759b0bb5c7e5c665effa1512799e763823e68d04e7c10b1399d5
     # via pavi-shared-aws
-botocore==1.40.5 \
-    --hash=sha256:f0c95e35a3a96a2b33d257160cbee923ae87b14ac3ba10f010f3baf8e03f73a2 \
-    --hash=sha256:fbad8ce6605d45d12b9efbdcc9bbf68bcc5acc1ae3eb7dabb5919f38feeeeef7
+botocore==1.40.23 \
+    --hash=sha256:487cced8f9346f7d1038e9158c56b6ecf6d839dd43e345bc730053c8cf321ed3 \
+    --hash=sha256:de07cceaf9b142c183e165d303a0eee289c34d63f63e6b7a640406d6bacfb646
     # via
     #   boto3
     #   s3transfer
@@ -196,9 +196,9 @@ typeguard==2.13.3 \
     #   aws-cdk-lib
     #   constructs
     #   jsii
-typing-extensions==4.14.1 \
-    --hash=sha256:38b39f4aeeab64884ce9f74c94263ef78f3c22467c8724005483154c26648d36 \
-    --hash=sha256:d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76
+typing-extensions==4.15.0 \
+    --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
+    --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548
     # via
     #   cattrs
     #   jsii
