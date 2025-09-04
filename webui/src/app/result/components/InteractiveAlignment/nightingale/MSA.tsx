@@ -9,6 +9,23 @@ import { NightingaleChangeEvent } from './types';
 type NightingaleMSAType = NightingaleMSA
 type OnFeatureClick = CustomEvent<{ id: string; event: MouseEvent }>;
 
+type dataPropType = {sequence: string, name: string}[]
+type featuresPropType = {
+    residues: {
+        from: number,
+        to: number
+    },
+    sequences: {
+        from: number,
+        to: number
+    },
+    id: string,
+    borderColor: string,
+    fillColor: string,
+    mouseOverFillColor: string,
+    mouseOverBorderColor: string,
+}[]
+
 const NightingaleMSAReactComponent = createComponent({
     tagName: 'nightingale-msa',
     elementClass: NightingaleMSA,
@@ -20,4 +37,5 @@ const NightingaleMSAReactComponent = createComponent({
 });
 
 export type { NightingaleMSAType }
+export type { dataPropType, featuresPropType }
 export default NightingaleMSAReactComponent

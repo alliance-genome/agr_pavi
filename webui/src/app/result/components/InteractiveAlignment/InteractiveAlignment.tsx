@@ -4,7 +4,7 @@ import React, { FunctionComponent, useEffect, useState, useRef } from 'react';
 
 import {parse} from 'clustal-js';
 
-import NightingaleMSAComponent from './nightingale/MSA';
+import NightingaleMSAComponent, {dataPropType as MSADataProp, featuresPropType as MSAFeaturesProp} from './nightingale/MSA';
 import NightingaleManagerComponent from './nightingale/Manager';
 import NightingaleNavigationComponent, {NightingaleNavigationType} from './nightingale/Navigation';
 import { Dropdown } from 'primereact/dropdown';
@@ -107,27 +107,11 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
     const parsedAlignment = parse(props.alignmentResult)
     const seqInfoDict = props.seqInfoDict
 
-    type alignmentDataType = {sequence: string, name: string}[]
-    const alignmentData: alignmentDataType = parsedAlignment['alns'].map((aln: {id: string, seq: string}) => {
+    const alignmentData: MSADataProp = parsedAlignment['alns'].map((aln: {id: string, seq: string}) => {
         return {sequence: aln.seq, name: aln.id}
     })
 
-    type alignmentFeatureType = {
-        residues: {
-            from: number,
-            to: number
-        },
-        sequences: {
-            from: number,
-            to: number
-        },
-        id: string,
-        borderColor: string,
-        fillColor: string,
-        mouseOverFillColor: string,
-        mouseOverBorderColor: string,
-    }[]
-    const alignmentFeatures: alignmentFeatureType = []
+    const alignmentFeatures: MSAFeaturesProp = []
     for (let i = 0; i < alignmentData.length; i++){
         const alignment_seq_name = alignmentData[i].name
         if(alignment_seq_name in seqInfoDict && 'embedded_variants' in seqInfoDict[alignment_seq_name]){
