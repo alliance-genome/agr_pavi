@@ -18,6 +18,7 @@ API_BASE_URL ?= http://localhost:8080
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
+	@rm -rf .venv/ .venv-build/
 	@rm -f nextflow.sh
 	@rm -f protein-msa.nf
 	@rm -f nextflow.config
