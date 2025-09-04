@@ -576,9 +576,9 @@ rich==14.1.0 \
     # via
     #   rich-toolkit
     #   typer
-rich-toolkit==0.15.0 \
-    --hash=sha256:3f5730e9f2d36d0bfe01cf723948b7ecf4cc355d2b71e2c00e094f7963128c09 \
-    --hash=sha256:ddb91008283d4a7989fd8ff0324a48773a7a2276229c6a3070755645538ef1bb
+rich-toolkit==0.15.1 \
+    --hash=sha256:36a0b1d9a135d26776e4b78f1d5c2655da6e0ef432380b5c6b523c8d8ab97478 \
+    --hash=sha256:6f9630eb29f3843d19d48c3bd5706a086d36d62016687f9d0efa027ddc2dd08a
     # via fastapi-cli
 s3transfer==0.13.1 \
     --hash=sha256:a981aa7429be23fe6dfc13e80e4020057cbab622b08c0315288758d67cabc724 \
