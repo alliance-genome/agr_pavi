@@ -10,7 +10,10 @@ from data_mover import data_file_mover
 from log_mgmt import get_logger
 
 if TYPE_CHECKING:
-    from .variant import Variant
+    from variant import Variant
+
+from seq_info import AltSeqInfo
+from variant import SeqEmbeddedVariant, SeqEmbeddedVariantsList, SeqSubstitutionType
 
 logger = get_logger(name=__name__)
 
@@ -211,9 +214,26 @@ class SeqRegion():
 
         return seq
 
-    def get_alt_sequence(self, unmasked: bool = False, variants: List['Variant'] = [], autofetch: bool = True, inframe_only: bool = False) -> str:
+    def inframe_seq_region(self) -> 'SeqRegion':
         """
-        Get an alternative `sequence` of the SeqRegion by applying a list of variants to it.
+        Return the subregion of the SeqRegion within complete reading frames.
+
+        Skips the first n bases of the region where n is `self.frame` if `frame` is set.
+        Trims the end of the resulting region to a sequencelength that matches complete codons (a multiple of 3).
+
+        Returns:
+            The in-frame subregion of a seq region.
+        """
+
+        rel_start: int = self.frame or 0  # 0-based relative start of inframe region
+        length = (self.seq_length - rel_start) // 3 * 3  # Floor the length to full codons
+        rel_end: int = rel_start + length - 1  # 0-based relative end of inframe region
+
+        return self.sub_region(rel_start + 1, rel_end + 1)
+
+    def get_alt_sequence(self, unmasked: bool = False, variants: List['Variant'] = [], autofetch: bool = True, inframe_only: bool = False) -> 'AltSeqInfo':
+        """
+        Calculate an alternative `sequence` of the SeqRegion by applying a list of variants to it.
 
         Replaces the ref sequence of the variants found in the sequence region with its alt sequence.
 
@@ -226,9 +246,14 @@ class SeqRegion():
             inframe_only: Flag to return only complete in-frame codons (start==frame, len(seq) % 3 == 0).\
                           Default `False`.
         Returns:
-            The sequence of a seq region as a string (empty string if `None`).
+            `AltSeqInfo` object representing the alternative sequence result.
+        Raises:
+            ValueError:
+             * If `variants` is empty or contains overlapping variants.
+             * If any of the variants does not overlap the SeqRegion.
+            NotImplementedError: If `variants` contains partially overlapping indels.
         """
-        from .variant import variants_overlap  # Imported here to prevent circular dependency
+        from variant import variants_overlap  # Imported here to prevent circular dependency
 
         if len(variants) < 1:
             raise ValueError('variants_alt_sequence method requires at least one variant to be provided.')
@@ -241,10 +266,18 @@ class SeqRegion():
             """The Variant object"""
             boundary_start: int
             boundary_end: int
+            rel_start: int
+            """The relative start position of the variant in the SeqRegion's sequence"""
+            rel_end: int
+            """The relative end position of the variant in the SeqRegion's sequence"""
             boundary_start_overhang: int
             """The number of bases the variant is overhanging the start of the SeqRegion (outside of the SeqRegion boundary)"""
             boundary_end_overhang: int
             """The number of bases the variant is overhanging the end of the SeqRegion (outside of the SeqRegion boundary)"""
+            overlap_ref_seq: str
+            """Strand-corrected part of the variant's reference sequence that overlaps the SeqRegion"""
+            overlap_alt_seq: str
+            """Strand-corrected part of the variant's alternative sequence that overlaps the SeqRegion"""
 
         positioned_variants: Dict[int, PositionedVariant] = {}  # Variants indexed by relative position in SeqRegion
 
@@ -279,51 +312,95 @@ class SeqRegion():
                 raise NotImplementedError('Embedding of partially overlapping indels not supported.')
 
             rel_variant_start_pos = self.to_rel_position(boundary_start)
+
+            # Calculate the part of the variant's reference and alternative sequence that overlaps the SeqRegion
+            overlap_ref_seq = variant.genomic_ref_seq
+            overlap_alt_seq = variant.genomic_alt_seq
+
+            if self.strand == '-':
+                overlap_ref_seq = str(Seq.reverse_complement(overlap_ref_seq))
+                overlap_alt_seq = str(Seq.reverse_complement(overlap_alt_seq))
+
+            # Remove overhangs (for partial overlapping variants)
+            overlap_ref_seq = overlap_ref_seq[start_overhang:len(overlap_ref_seq) - end_overhang]
+            if overlap_alt_seq:
+                overlap_alt_seq = overlap_alt_seq[start_overhang:len(overlap_alt_seq) - end_overhang]
+
             positioned_variants[rel_variant_start_pos] = {
                 'variant': variant,
                 'boundary_start': boundary_start,
                 'boundary_end': boundary_end,
                 'boundary_start_overhang': start_overhang,
-                'boundary_end_overhang': end_overhang
+                'boundary_end_overhang': end_overhang,
+                'overlap_ref_seq': overlap_ref_seq,
+                'overlap_alt_seq': overlap_alt_seq,
+                'rel_start': rel_variant_start_pos,
+                'rel_end': rel_variant_start_pos + abs(boundary_end - boundary_start)
             }
 
         # Replace the reference sequence with the alternative sequence for each variant
-        sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch, inframe_only=False)
         # Loop through variants in relative positional reverse order to avoid changes in indices due to indels
+        sequence = self.get_sequence(unmasked=unmasked, autofetch=autofetch, inframe_only=False)
         for rel_start, positioned_variant in sorted(positioned_variants.items(), reverse=True):
             rel_end = rel_start + abs(positioned_variant['boundary_end'] - positioned_variant['boundary_start'])
-
-            variant_ref_seq = positioned_variant['variant'].genomic_ref_seq
-            variant_alt_seq = positioned_variant['variant'].genomic_alt_seq
-
-            if self.strand == '-':
-                variant_ref_seq = str(Seq.reverse_complement(variant_ref_seq))
-                variant_alt_seq = str(Seq.reverse_complement(variant_alt_seq))
-
-            # Remove overhangs (partial overlapping variants)
-            variant_ref_seq = variant_ref_seq[positioned_variant['boundary_start_overhang']:len(variant_ref_seq) - positioned_variant['boundary_end_overhang']]
-            if variant_alt_seq:
-                variant_alt_seq = variant_alt_seq[positioned_variant['boundary_start_overhang']:len(variant_alt_seq) - positioned_variant['boundary_end_overhang']]
 
             # Replace variant sequence
             if not positioned_variant['variant'].genomic_ref_seq:
                 # Insertions
-                sequence = sequence[:rel_start] + variant_alt_seq + sequence[(rel_end - 1):]
+                sequence = sequence[:rel_start] + positioned_variant['overlap_alt_seq'] + sequence[(rel_end - 1):]
             else:
                 # All other variants
                 seq_region_variant_seq = sequence[(rel_start - 1):(rel_end)]
 
-                if seq_region_variant_seq.upper() != variant_ref_seq.upper():
+                if seq_region_variant_seq.upper() != positioned_variant['overlap_ref_seq'].upper():
                     logger.error(f'Variant ({positioned_variant["variant"]}) '
                                  + f'does not match the reference sequence of SeqRegion {self} at positions {rel_start}-{rel_end}.'
-                                 + f'Expected: "{variant_ref_seq}", Found: "{seq_region_variant_seq}"')
+                                 + f'Expected: "{positioned_variant['overlap_ref_seq']}", Found: "{seq_region_variant_seq}"')
                     raise ValueError('Unexpected variant reference sequence mismatch.')
-                sequence = sequence[:(rel_start - 1)] + variant_alt_seq + sequence[rel_end:]
+                sequence = sequence[:(rel_start - 1)] + positioned_variant['overlap_alt_seq'] + sequence[rel_end:]
+
+        alt_seq_offset = 0
 
         if inframe_only:
             sequence = self.inframe_sequence(sequence)
 
-        return sequence
+            if self.frame is not None:
+                alt_seq_offset -= self.frame
+
+        # Calculate the position of each variant in the new (alternative) sequence
+        # Loop through variants in relative positional order to include index changes due to indels
+        alt_embedded_variants: SeqEmbeddedVariantsList = SeqEmbeddedVariantsList()
+        for rel_start, positioned_variant in sorted(positioned_variants.items(), reverse=False):
+
+            alt_rel_start = positioned_variant['rel_start'] + alt_seq_offset
+            alt_rel_end = positioned_variant['rel_end'] + alt_seq_offset
+
+            if positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.DELETION:
+                # Relative position of deletions in the alternative sequence
+                # should be marking the flanking bases (-1 start, +1 end)
+                alt_rel_start -= 1
+                alt_rel_end += 1
+            elif positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.INSERTION:
+                # Relative position of insertions in the alternative sequence
+                # should only mark the inserted bases (reference positions indicate
+                # insertion site flanking bases, so +1 start, -1 end)
+                alt_rel_start += 1
+                alt_rel_end -= 1
+
+            alt_seq_len_diff = len(positioned_variant['overlap_alt_seq']) - len(positioned_variant['overlap_ref_seq'])
+
+            # Adjust relative end position to account for insertions, deletions and indels
+            alt_rel_end += alt_seq_len_diff
+
+            alt_embedded_variants.append(SeqEmbeddedVariant(
+                variant=positioned_variant['variant'],
+                seq_start_pos=alt_rel_start,
+                seq_end_pos=alt_rel_end
+            ))
+
+            alt_seq_offset += alt_seq_len_diff
+
+        return AltSeqInfo(sequence=sequence, embedded_variants=alt_embedded_variants)
 
     def overlaps(self, seq_region_2: "SeqRegion") -> bool:
         """

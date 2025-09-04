@@ -5,13 +5,17 @@ Main module serving the CLI for PAVI sequence retrieval.
 Retrieves multiple sequence regions and returns them as one chained sequence.
 """
 import click
+from enum import Enum
 import json
+import jsonpickle  # type: ignore
 import logging
 import re
-from typing import get_args, List, TypedDict, Optional
+from typing import Any, get_args, List, TypedDict, Optional
 
-import data_mover.data_file_mover as data_file_mover
-from seq_region import SeqRegion, TranslatedSeqRegion, Variant
+from data_mover import data_file_mover
+from seq_info import EnumValueHandler, SeqInfo
+from seq_region import InvalidatedOrfException, SeqRegion, TranslatedSeqRegion
+from variant import Variant
 from log_mgmt import set_log_level, get_logger
 
 logger = get_logger(name=__name__)
@@ -137,6 +141,44 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
         return variants
 
 
+def write_output(name: str, output_type: str, variants_flag: bool, alt_seq_name_suffix: str,
+                 ref_seq: str, alt_seq: str, ref_info: SeqInfo, alt_info: Optional[SeqInfo], sequence_output_file: str | None = None) -> None:
+    # Define sequence names
+    ref_name: str = name
+    alt_name: str
+
+    if variants_flag:
+        ref_name = name + '_ref'
+        alt_name = name + alt_seq_name_suffix
+
+    # Print sequence output
+    if sequence_output_file is None:
+        sequence_output_file = f'{name}-{output_type}.fa'
+
+    with open(sequence_output_file, 'w') as output_file:
+        logger.debug(f'Writing sequences to {sequence_output_file}...')
+
+        output_file.write(f'>{ref_name}\n{ref_seq}\n')
+
+        if variants_flag:
+            output_file.write(f'>{alt_name}\n{alt_seq}\n')
+
+    # Print seq info
+    indexed_seq_info: dict[str, Any] = {}
+    indexed_seq_info[ref_name] = ref_info
+    if variants_flag:
+        indexed_seq_info[alt_name] = alt_info
+
+    seq_info_output_file = f'{name}-seqinfo.json'
+
+    jsonpickle.register(Enum, EnumValueHandler, base=True)
+
+    with open(seq_info_output_file, 'w') as output_file:
+        logger.debug(f'Writing sequence info to {seq_info_output_file}...')
+
+        output_file.write(jsonpickle.encode(indexed_seq_info, make_refs=False, unpicklable=False))
+
+
 @click.command(context_settings={'show_default': True})
 @click.option("--seq_id", type=click.STRING, required=True,
               help="The sequence ID to retrieve sequences for.")
@@ -161,6 +203,8 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
               help="""The output type to return.""")
 @click.option("--name", type=click.STRING, required=True,
               help="The sequence name to use in the output fasta header.")
+@click.option("--sequence_output_file", type=click.STRING, required=False,
+              help="""The sequence output file to write to (default "`name`-`output_type`.fa").""")
 @click.option("--reuse_local_cache", is_flag=True,
               help="""When defined and using remote `fasta_file_url`, reused local files
               if file already exists at destination path, rather than re-downloading and overwritting.""")
@@ -169,7 +213,8 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
 def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict],
-         variant_ids: set[str], alt_seq_name_suffix: str, fasta_file_url: str, output_type: str, name: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
+         variant_ids: set[str], alt_seq_name_suffix: str, fasta_file_url: str, output_type: str, name: str, sequence_output_file: str,
+         reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
@@ -210,16 +255,21 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
     logger.debug(f"full region: {fullRegion.seq_id}:{fullRegion.start}-{fullRegion.end}:{fullRegion.strand}")
 
-    # Retrieve relevant sequence(s)
+    # Initiate output variables
     ref_seq: str | None = None
     alt_seq: str | None = None
+    ref_info: SeqInfo = SeqInfo()
+    alt_info: SeqInfo | None = None
 
+    # Retrieve relevant sequence info
     if output_type == 'transcript':
         ref_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
 
         if variant_info:
             # Generate additional sequence for full region with variants embedded
-            alt_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
+            seq_info = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
+            alt_seq = seq_info.sequence
+            alt_info = SeqInfo(embedded_variants=seq_info.embedded_variants)
 
     elif output_type == 'protein':
         ref_seq = fullRegion.get_sequence(type='protein')
@@ -229,27 +279,20 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
         if variant_info:
             # Generate additional sequence for full region with variants embedded
-            alt_seq = fullRegion.get_sequence(type='protein', variants=list(variant_info.values()))
+            try:
+                seq_info = fullRegion.get_alt_sequence(type='protein', variants=list(variant_info.values()))
+                alt_seq = seq_info.sequence
+                alt_info = SeqInfo(embedded_variants=seq_info.embedded_variants)
+            except InvalidatedOrfException:
+                logger.error(f'Embedding variants ({variant_ids}) into TranslatedSeqRegion {fullRegion} invalidated the ORF.')
 
             if alt_seq == '':
                 logger.error(f'No ORF found for TranslatedSeqRegion {fullRegion} with variants embedded ({variant_ids})')
     else:
         raise NotImplementedError(f"Output_type {output_type} is currently not implemented.")
 
-    # Print output
-    ref_name: str = name
-    alt_name: str
-
-    if variant_info:
-        ref_name = name + '_ref'
-        alt_name = name + alt_seq_name_suffix
-
-    click.echo('>' + ref_name)
-    click.echo(ref_seq)
-
-    if variant_info:
-        click.echo('>' + alt_name)
-        click.echo(alt_seq)
+    write_output(name=name, output_type=output_type, sequence_output_file=sequence_output_file, alt_seq_name_suffix=alt_seq_name_suffix,
+                 ref_seq=ref_seq, alt_seq=alt_seq or '', ref_info=ref_info, alt_info=alt_info, variants_flag=len(variant_info) > 0)
 
 
 if __name__ == '__main__':

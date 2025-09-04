@@ -29,6 +29,7 @@ run-integration-test-local: nextflow.sh
 	export NXF_SYNTAX_PARSER=v2 && \
 	./nextflow.sh run -profile local protein-msa.nf ${NF_TEST_PARAMS}
 	@diff -qs pipeline-results/alignment-output.aln ../../tests/resources/submit-workflow-success-output.aln
+	@diff -qs pipeline-results/aligned_seq_info.json ../../tests/resources/submit-workflow-success/aligned_seq_info.json
 
 run-integration-test-aws: nextflow.sh
 	@$(eval NEXTFLOW_OUT_DIR=s3://agr-pavi-pipeline-nextflow/${TAG_NAME}/)
@@ -39,4 +40,6 @@ run-integration-test-aws: nextflow.sh
 	./nextflow.sh run -profile aws -work-dir ${NEXTFLOW_WORK_DIR} protein-msa.nf ${NF_TEST_PARAMS} --image_tag ${TAG_NAME} \
 	 --publish_dir_prefix ${NEXTFLOW_RESULTS_DIR} --publish_dir ${PUBLISH_DIR}
 	aws s3 cp ${NEXTFLOW_RESULTS_DIR}${PUBLISH_DIR}/alignment-output.aln alignment-output.aln
+	aws s3 cp ${NEXTFLOW_RESULTS_DIR}${PUBLISH_DIR}/aligned_seq_info.json aligned_seq_info.json
 	@diff -qs alignment-output.aln ../../tests/resources/submit-workflow-success-output.aln
+	@diff -qs aligned_seq_info.json ../../tests/resources/submit-workflow-success/aligned_seq_info.json

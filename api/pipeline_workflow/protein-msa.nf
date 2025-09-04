@@ -14,7 +14,8 @@ process sequence_retrieval {
         val request_map
 
     output:
-        path "${request_map.name}-protein.fa"
+        path "${request_map.name}-protein.fa", emit: output_sequences
+        path "${request_map.name}-seqinfo.json", emit: seq_info
 
     script:
         encoded_exon_regions = groovy.json.JsonOutput.toJson(request_map.exon_seq_regions)
@@ -22,11 +23,10 @@ process sequence_retrieval {
         variant_ids = groovy.json.JsonOutput.toJson(request_map.variant_ids)
         alt_seq_name_suffix = request_map.alt_seq_name_suffix ?: '_alt'
         """
-        main.py --output_type protein \
+        seq_retrieval.py --output_type protein \
             --name ${request_map.name} --seq_id ${request_map.seq_id} --seq_strand ${request_map.seq_strand} \
             --fasta_file_url ${request_map.fasta_file_url} --exon_seq_regions '${encoded_exon_regions}' --cds_seq_regions '${encoded_cds_regions}' \
-            --variant_ids '${variant_ids}' --alt_seq_name_suffix ${alt_seq_name_suffix} \
-            > ${request_map.name}-protein.fa
+            --variant_ids '${variant_ids}' --alt_seq_name_suffix ${alt_seq_name_suffix}
         """
 }
 
@@ -49,6 +49,28 @@ process alignment {
         """
 }
 
+process collectAndAlignSeqInfo {
+    debug true
+    memory '500 MB'
+
+    container "${params.image_registry}agr_pavi/pipeline_seq_retrieval:${params.image_tag}"
+
+    publishDir "${params.publish_dir_prefix}${params.publish_dir}", mode: 'copy'
+
+    input:
+        path seq_info_files
+        path alignment_output_file
+
+    output:
+        stdout
+        path 'aligned_seq_info.json'
+
+    script:
+        """
+        seq_info_align.py --sequence-info-files '${seq_info_files}' --alignment-result-file '${alignment_output_file}'
+        """
+}
+
 workflow {
     def seq_regions_json = '[]'
     if (params.input_seq_regions_str) {
@@ -63,5 +85,12 @@ workflow {
 
     def seq_regions_channel = Channel.of(seq_regions_json).splitJson()
 
-    seq_regions_channel | sequence_retrieval | collectFile(name: 'alignment-input.fa', sort: { file -> file.name }) | alignment
+    // Retrieve sequences (w embedded variants)
+    sequence_retrieval(seq_regions_channel)
+
+    // Collect all sequences and align
+    alignment(sequence_retrieval.out.output_sequences.collectFile(name: 'alignment-input.fa', sort: { file -> file.name }))
+
+    // Merge seqinfo and add alignment positions
+    collectAndAlignSeqInfo(sequence_retrieval.out.seq_info.collect(), alignment.out)
 }

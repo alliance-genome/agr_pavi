@@ -100,6 +100,9 @@ run-tests: .venv/ install-test-deps nextflow.sh protein-msa.nf nextflow.config
 run-tests-dev: .venv/ install-test-deps nextflow.sh protein-msa.nf nextflow.config
 	.venv/bin/python -m pytest --cov --cov-report html -v
 
+run-unit-tests: .venv/ install-test-deps
+	.venv/bin/python -m pytest -v tests/a_unit/
+
 run-integration-test-container: .venv/ install-test-deps
 	$(MAKE) --no-print-directory run-container-dev
 	sleep 30 # Allow container some startup time before attempting to connect

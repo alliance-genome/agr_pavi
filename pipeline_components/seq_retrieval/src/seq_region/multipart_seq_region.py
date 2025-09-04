@@ -4,8 +4,8 @@ Module containing the MultiPartSeqRegion class.
 
 from typing import Any, Callable, Dict, List, override, Optional, Set, TypedDict
 
-from .seq_region import SeqRegion
-from .variant import Variant, variants_overlap
+from .seq_region import SeqRegion, AltSeqInfo
+from variant import SeqEmbeddedVariantsList, SeqSubstitutionType, Variant, variants_overlap
 
 from log_mgmt import get_logger
 
@@ -124,12 +124,13 @@ class MultiPartSeqRegion(SeqRegion):
             The fetched sequence as a string.
         """
 
-        seq = self.fetch_alt_seq(recursive_fetch=recursive_fetch, variants=[])
-        self.set_sequence(sequence=seq)
+        fetch_result = self.fetch_alt_seq(recursive_fetch=recursive_fetch, variants=[])
 
-        return seq
+        self.set_sequence(sequence=fetch_result.sequence)
 
-    def fetch_alt_seq(self, recursive_fetch: bool = True, variants: List[Variant] = []) -> str:
+        return fetch_result.sequence
+
+    def fetch_alt_seq(self, inframe_only: bool = False, recursive_fetch: bool = True, variants: List[Variant] = []) -> AltSeqInfo:
         """
         Fetch alternative genetic (DNA) sequence for MultiPartSeqRegion, \
         by applying the relevant variants to each of the consisting SeqRegions, \
@@ -138,6 +139,8 @@ class MultiPartSeqRegion(SeqRegion):
         Chains seqRegions in the order defined in the `ordered_seqRegions` attribute.
 
         Args:
+            inframe_only:    Flag to return only complete in-frame codons (start==frame, len(seq) % 3 == 0).\
+                             Default `False`.
             recursive_fetch: if True, fetch sequence for each SeqRegion part of the MultiPartSeqRegion first, before chaining the results.
             variants:        Optional list of variants to apply to the sequence before returning.
 
@@ -153,59 +156,61 @@ class MultiPartSeqRegion(SeqRegion):
         if len(variants) > 1 and variants_overlap(variants):
             raise ValueError('fetch_alt_seq method does not support overlapping variants.')
 
-        # Sort variants to relative position in `self` (MultiPartSeqRegion) (ascending)
-        class SortArgs(TypedDict):
-            key: Callable[[Variant], int]
-            reverse: bool
-
-        sort_kwargs: SortArgs
-        if self.strand == '-':
-            sort_kwargs = dict(key=lambda variant: variant.genomic_end_pos, reverse=True)
+        # If inframe_only, start from the inframe MultipartSeqRegion
+        region: 'MultiPartSeqRegion'
+        if inframe_only:
+            region = self.inframe_seq_region()
         else:
-            sort_kwargs = dict(key=lambda variant: variant.genomic_start_pos, reverse=False)
+            region = self
 
-        overlapping_variants: Dict[int, List[Variant]] = {}  # Key: idx of SeqRegion part in `ordered_seqRegions`, Value: list of overlapping variants
+        # Map variants to all region parts (SeqRegion's)
+        variants_overlap_map = region.map_vars_to_region_parts(variants=variants)
 
-        last_seq_region_overlap_idx: int | None = None  # `ordered_seqRegions` index of last SeqRegion part with overlapping variants
-
-        for variant in sorted(variants, **sort_kwargs):
-            last_variant_overlap_idx: int | None = None  # `ordered_seqRegions` index of last SeqRegion part overlapping this variant
-            # If variant is not in the MultipartSeqRegion boundaries, warn and skip
-            if variant.genomic_seq_id != self.seq_id or self.end < variant.genomic_start_pos or variant.genomic_end_pos < self.start:
-                logger.warning(f'Variant ({variant}) out of boundaries of MultipartSeqRegion ({self}).')
-                continue
-
-            # Determine the overlapping SeqRegion parts
-            for region_idx in range(last_seq_region_overlap_idx or 0, len(self.ordered_seqRegions)):
-                region = self.ordered_seqRegions[region_idx]
-
-                # Initiate empty list for each SeqRegion part
-                if region_idx not in overlapping_variants:
-                    overlapping_variants[region_idx] = []
-
-                # Store the respective overlaps
-                if variant.overlaps(region):
-                    overlapping_variants[region_idx].append(variant)
-                    last_seq_region_overlap_idx = region_idx
-                    last_variant_overlap_idx = region_idx
-                # Stop search for this variant if no more overlaps expected to be found
-                elif last_variant_overlap_idx is not None:
-                    break
-
+        # Loop through region.ordered_seqRegions and apply overlapping variants for each seqRegion as required
         complete_multipart_sequence = ''
-        # Loop through self.ordered_seqRegions and apply overlapping variants for each seqRegion as required
-        for region_idx, region in enumerate(self.ordered_seqRegions):
-            region_variants: List[Variant] = []
+        embedded_variants: SeqEmbeddedVariantsList = SeqEmbeddedVariantsList()
 
-            if region_idx in overlapping_variants:
-                region_variants = overlapping_variants[region_idx]
+        for region_part in region.ordered_seqRegions:
+            region_part_str = str(region_part)
+            if region_part_str in variants_overlap_map and len(variants_overlap_map[region_part_str]) > 0:
+                region_alt_seq = region_part.get_alt_sequence(autofetch=recursive_fetch, variants=variants_overlap_map[region_part_str])
 
-            if len(region_variants) > 0:
-                complete_multipart_sequence += region.get_alt_sequence(autofetch=recursive_fetch, variants=region_variants)
+                if len(region_alt_seq.embedded_variants) > 0:
+                    # Check if last embedded variant is overlapping with this region as well
+                    # if so, merge them
+                    if len(embedded_variants) > 0 and embedded_variants[-1].variant_id == region_alt_seq.embedded_variants[0].variant_id:
+                        # Extend the rel_end of the last embedded variant to include the end on this region
+                        embedded_variants[-1].seq_end_pos += region_alt_seq.embedded_variants[0].seq_end_pos
+
+                        # In case of deletions, rel_end on previous region would be at flanking base to the region end,
+                        # so must be adjusted.
+                        if embedded_variants[-1].seq_substitution_type == SeqSubstitutionType.DELETION:
+                            embedded_variants[-1].seq_end_pos -= 1
+
+                        region_alt_seq.embedded_variants.pop(0)
+
+                    # Bump rel_start and rel_end positions to include prior region parts
+                    region_alt_seq.embedded_variants.shift_rel_positions(len(complete_multipart_sequence))
+
+                    embedded_variants.extend(region_alt_seq.embedded_variants)
+
+                complete_multipart_sequence += region_alt_seq.sequence
             else:
-                complete_multipart_sequence += region.get_sequence(autofetch=recursive_fetch)
+                complete_multipart_sequence += region_part.get_sequence(autofetch=recursive_fetch)
 
-        return complete_multipart_sequence
+        if inframe_only and len(embedded_variants) > 0:
+            # Trim sequence to complete in-frame codons (possibly extended/shortened by embedded variants)
+            inframe_length = len(complete_multipart_sequence) // 3 * 3  # Floor the length to full codons
+            complete_multipart_sequence = complete_multipart_sequence[0:inframe_length]
+
+            # Remove embedded variants that are outside of in-frame window
+            # and trim rel_end for embedded variants partially outside of in-frame window
+            embedded_variants = SeqEmbeddedVariantsList.trimmed_on_rel_positions(embedded_variants, inframe_length)
+
+        return AltSeqInfo(
+            sequence=complete_multipart_sequence,
+            embedded_variants=embedded_variants
+        )
 
     @override
     def set_sequence(self, sequence: str) -> None:
@@ -229,7 +234,7 @@ class MultiPartSeqRegion(SeqRegion):
         self.sequence = sequence
 
     @override
-    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True, inframe_only: bool = False) -> str:
+    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True, inframe_only: bool = False) -> AltSeqInfo:
         """
         Get an alternative sequence of the MultipartSeqRegion by applying a list of variants to it.
 
@@ -246,7 +251,7 @@ class MultiPartSeqRegion(SeqRegion):
                           Default `False`.
 
         Returns:
-            The MultiPartSeqRegion's sequence as a string (empty string if `None`) with provided variants embedded.
+            `AltSeqInfo` object representing the MultiPartSeqRegion's alternative sequence.
 
         Raises:
             ValueError:
@@ -263,15 +268,85 @@ class MultiPartSeqRegion(SeqRegion):
         if self.sequence is None and autofetch:
             self.fetch_seq(recursive_fetch=True)
 
-        alt_sequence = self.fetch_alt_seq(variants=variants)
-
-        if inframe_only:
-            alt_sequence = self.inframe_sequence(alt_sequence)
+        alt_seq_info = self.fetch_alt_seq(variants=variants, inframe_only=inframe_only)
+        alt_sequence = alt_seq_info.sequence
 
         if unmasked:
             alt_sequence = alt_sequence.upper()
 
-        return alt_sequence
+        return AltSeqInfo(sequence=alt_sequence, embedded_variants=alt_seq_info.embedded_variants)
+
+    @override
+    def inframe_seq_region(self) -> 'MultiPartSeqRegion':
+        """
+        Return the subregion of the MultiPartSeqRegion within complete reading frames.
+
+        Skips the first n bases of the region where n is `self.frame` if `frame` is set.
+        Trims the end of the resulting region to a sequencelength that matches complete codons (a multiple of 3).
+
+        Returns:
+            The in-frame subregion of a seq region.
+        """
+
+        rel_start: int = self.frame or 0  # 0-based relative start of inframe region
+        length = (self.seq_length - rel_start) // 3 * 3  # Floor the length to full codons
+        rel_end: int = rel_start + length - 1  # 0-based relative end of inframe region
+        logger.debug(f'seq_length {self.seq_length}, frame "{self.frame}"')
+        logger.debug(f'Inframe region: start {rel_start}, end {rel_end}, length {length}')
+
+        return self.sub_region(rel_start + 1, rel_end + 1)
+
+    def map_vars_to_region_parts(self, variants: List[Variant]) -> Dict[str, List[Variant]]:
+        """
+        Map a list of variants to the SeqRegion parts of a MultipartSeqRegion.
+
+        Args:
+            variants: List of variants to map to the MultipartSeqRegion.
+
+        Returns:
+            Dict of lists of variants (values) overlapping each of the parts of the MultipartSeqRegion (keys).
+        """
+        # Sort variants to relative position in `self` (MultiPartSeqRegion) (ascending)
+        class SortArgs(TypedDict):
+            key: Callable[[Variant], int]
+            reverse: bool
+
+        sort_kwargs: SortArgs
+        if self.strand == '-':
+            sort_kwargs = dict(key=lambda variant: variant.genomic_end_pos, reverse=True)
+        else:
+            sort_kwargs = dict(key=lambda variant: variant.genomic_start_pos, reverse=False)
+
+        variant_overlap_map: Dict[str, List[Variant]] = {}  # Key: str of SeqRegion part in `ordered_seqRegions`, Value: list of overlapping variants
+
+        last_seq_region_overlap_idx: int | None = None  # `ordered_seqRegions` index of last SeqRegion part with overlapping variants
+
+        for variant in sorted(variants, **sort_kwargs):
+            last_variant_overlap_idx: int | None = None  # `ordered_seqRegions` index of last SeqRegion part overlapping this variant
+            # If variant is not in the MultipartSeqRegion boundaries, warn and skip
+            if variant.genomic_seq_id != self.seq_id or self.end < variant.genomic_start_pos or variant.genomic_end_pos < self.start:
+                logger.warning(f'Variant ({variant}) out of boundaries of MultipartSeqRegion ({self}).')
+                continue
+
+            # Determine the overlapping SeqRegion parts
+            for region_idx in range(last_seq_region_overlap_idx or 0, len(self.ordered_seqRegions)):
+                region_part = self.ordered_seqRegions[region_idx]
+                region_part_str = str(region_part)
+
+                # Initiate empty list for each SeqRegion part
+                if region_part_str not in variant_overlap_map:
+                    variant_overlap_map[region_part_str] = []
+
+                # Store the respective overlaps
+                if variant.overlaps(region_part):
+                    variant_overlap_map[region_part_str].append(variant)
+                    last_seq_region_overlap_idx = region_idx
+                    last_variant_overlap_idx = region_idx
+                # Stop search for this variant if no more overlaps expected to be found
+                elif last_variant_overlap_idx is not None:
+                    break
+
+        return variant_overlap_map
 
     @override
     def sub_region(self, rel_start: int, rel_end: int) -> 'MultiPartSeqRegion':

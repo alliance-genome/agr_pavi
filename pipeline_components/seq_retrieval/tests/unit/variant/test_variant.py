@@ -8,7 +8,7 @@ import pytest
 import responses  # requests mocking library
 from typing import Any
 
-from seq_region import Variant, variants_overlap
+from variant import SeqSubstitutionType, Variant, variants_overlap
 from log_mgmt import get_logger, set_log_level
 
 logger = get_logger(name=__name__)
@@ -35,6 +35,124 @@ def test_variant_from_id_initiation(wb_variant_yn10: Variant) -> None:
     variant = Variant.from_variant_id(VARIANT_ID)
     assert isinstance(variant, Variant)
     assert variant == wb_variant_yn10
+
+
+def test_variant_seq_substitution_type_deletion(wb_variant_kx29) -> None:
+    """Test seq_substitution_type calculation for deletion variant."""
+    assert isinstance(wb_variant_kx29, Variant)
+    assert wb_variant_kx29.seq_substitution_type == SeqSubstitutionType.DELETION
+
+
+def test_variant_seq_substitution_type_insertion(wb_variant_ce338) -> None:
+    """Test seq_substitution_type calculation for insertion variant."""
+    assert isinstance(wb_variant_ce338, Variant)
+    assert wb_variant_ce338.seq_substitution_type == SeqSubstitutionType.INSERTION
+
+
+def test_variant_seq_substitution_type_substitution(wb_variant_gk787530) -> None:
+    """Test seq_substitution_type calculation for substitution variant."""
+    assert isinstance(wb_variant_gk787530, Variant)
+    assert wb_variant_gk787530.seq_substitution_type == SeqSubstitutionType.SUBSTITUTION
+
+
+def test_variant_seq_substitution_type_indel(wb_variant_n1913) -> None:
+    """Test seq_substitution_type calculation for indel variant."""
+    assert isinstance(wb_variant_n1913, Variant)
+    assert wb_variant_n1913.seq_substitution_type == SeqSubstitutionType.INDEL
+
+
+def test_subsitution_variant_from_dict_initiation() -> None:
+    """
+    Test Variant class initiation from dict for substitution.
+    """
+    variant = Variant(variant_id='NC_003284.9:g.5114224C>T', seq_id='X', start=5114224, end=5114224,
+                      genomic_ref_seq='C', genomic_alt_seq='T')
+    variant_from_dict = Variant.from_dict({
+        'variant_id': 'NC_003284.9:g.5114224C>T',
+        'genomic_seq_id': 'X',
+        'genomic_start_pos': 5114224,
+        'genomic_end_pos': 5114224,
+        'genomic_ref_seq': 'C',
+        'genomic_alt_seq': 'T'
+    })
+
+    assert variant == variant_from_dict
+
+
+def test_deletion_variant_from_dict_initiation() -> None:
+    """
+    Test Variant class initiation from dict for deletion.
+    """
+    variant = Variant(variant_id='NC_003284.9:g.5114224delC', seq_id='X', start=5114224, end=5114224,
+                      genomic_ref_seq='C', genomic_alt_seq='')
+    variant_from_dict = Variant.from_dict({
+        'variant_id': 'NC_003284.9:g.5114224delC',
+        'genomic_seq_id': 'X',
+        'genomic_start_pos': 5114224,
+        'genomic_end_pos': 5114224,
+        'genomic_ref_seq': 'C',
+    })
+
+    assert variant == variant_from_dict
+
+
+def test_insertion_variant_from_dict_initiation() -> None:
+    """
+    Test Variant class initiation from dict for insertion.
+    """
+    variant = Variant(variant_id='NC_003284.9:g.5114224InsT', seq_id='X', start=5114224, end=5114225,
+                      genomic_ref_seq='', genomic_alt_seq='T')
+    variant_from_dict = Variant.from_dict({
+        'variant_id': 'NC_003284.9:g.5114224InsT',
+        'genomic_seq_id': 'X',
+        'genomic_start_pos': 5114224,
+        'genomic_end_pos': 5114225,
+        'genomic_alt_seq': 'T'
+    })
+
+    assert variant == variant_from_dict
+
+
+def test_variant_from_dict_initiation_errors() -> None:
+    """
+    Test Variant class initiation errors when initiating from dict.
+    """
+    # Missing variant_id
+    with pytest.raises(KeyError):
+        Variant.from_dict({
+            'genomic_seq_id': 'X',
+            'genomic_start_pos': 5114224,
+            'genomic_end_pos': 5114224,
+            'genomic_ref_seq': 'C',
+            'genomic_alt_seq': 'T'
+        })
+    # Missing genomic_seq_id
+    with pytest.raises(KeyError):
+        Variant.from_dict({
+            'variant_id': 'NC_003284.9:g.5114224C>T',
+            'genomic_start_pos': 5114224,
+            'genomic_end_pos': 5114224,
+            'genomic_ref_seq': 'C',
+            'genomic_alt_seq': 'T'
+        })
+    # Missing genomic_start_pos
+    with pytest.raises(KeyError):
+        Variant.from_dict({
+            'variant_id': 'NC_003284.9:g.5114224C>T',
+            'genomic_seq_id': 'X',
+            'genomic_end_pos': 5114224,
+            'genomic_ref_seq': 'C',
+            'genomic_alt_seq': 'T'
+        })
+    # Missing genomic_end_pos
+    with pytest.raises(KeyError):
+        Variant.from_dict({
+            'variant_id': 'NC_003284.9:g.5114224C>T',
+            'genomic_seq_id': 'X',
+            'genomic_start_pos': 5114224,
+            'genomic_ref_seq': 'C',
+            'genomic_alt_seq': 'T'
+        })
 
 
 def test_variant_initiation_errors() -> None:
