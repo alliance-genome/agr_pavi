@@ -9,6 +9,8 @@ import NightingaleManagerComponent from './nightingale/Manager';
 import NightingaleNavigationComponent, {NightingaleNavigationType} from './nightingale/Navigation';
 import { Dropdown } from 'primereact/dropdown';
 
+import { SeqInfoDict } from './types';
+
 interface ColorSchemeSelectItem {
     label: string;
     value: string;
@@ -20,7 +22,8 @@ interface ColorSchemeSelectGroup {
 }
 
 export interface InteractiveAlignmentProps {
-    readonly alignmentResult: string
+    readonly alignmentResult: string,
+    readonly seqInfoDict: SeqInfoDict
 }
 const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (props: InteractiveAlignmentProps) => {
 
@@ -102,11 +105,50 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
     };
 
     const parsedAlignment = parse(props.alignmentResult)
+    const seqInfoDict = props.seqInfoDict
 
     type alignmentDataType = {sequence: string, name: string}[]
     const alignmentData: alignmentDataType = parsedAlignment['alns'].map((aln: {id: string, seq: string}) => {
         return {sequence: aln.seq, name: aln.id}
     })
+
+    type alignmentFeatureType = {
+        residues: {
+            from: number,
+            to: number
+        },
+        sequences: {
+            from: number,
+            to: number
+        },
+        id: string,
+        borderColor: string,
+        fillColor: string,
+        mouseOverFillColor: string,
+        mouseOverBorderColor: string,
+    }[]
+    const alignmentFeatures: alignmentFeatureType = []
+    for (let i = 0; i < alignmentData.length; i++){
+        const alignment_seq_name = alignmentData[i].name
+        if(alignment_seq_name in seqInfoDict && 'embedded_variants' in seqInfoDict[alignment_seq_name]){
+            for(const embedded_variant of (seqInfoDict[alignment_seq_name]['embedded_variants'] || [])){
+                alignmentFeatures.push({
+                    residues: {
+                        from: embedded_variant.alignment_start_pos,
+                        to: embedded_variant.alignment_end_pos
+                    },
+                    sequences: {
+                        from: i,
+                        to: i
+                    },
+                    id: `feature_${alignment_seq_name}_${embedded_variant.variant_id}`,
+                    borderColor: 'black',
+                    fillColor: 'black',
+                    mouseOverBorderColor: 'black',
+                    mouseOverFillColor: 'transparent'})
+            }
+        }
+    }
 
     const maxLabelLength = alignmentData.reduce((maxLength, alignment) => {
         return Math.max(maxLength, alignment.name.length);
@@ -170,6 +212,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     <NightingaleMSAComponent
                         label-width={labelWidth}
                         data={alignmentData}
+                        features={alignmentFeatures}
                         height={alignmentData.length * 20}
                         display-start={displayStart}
                         display-end={displayEnd}
