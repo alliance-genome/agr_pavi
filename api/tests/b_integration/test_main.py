@@ -4,15 +4,18 @@ from src.main import app
 from os import environ, getcwd, getenv
 from typing import Any
 from uuid import UUID
+import logging
 
 from .helper_fns import poll_job_progress
 
 from httpx import Client, codes, ReadTimeout, Timeout
 
-from log_mgmt import get_logger
+from log_mgmt import get_logger, set_log_level
 
 
 logger = get_logger(name=__name__)
+set_log_level(logging.DEBUG)
+
 
 external_api_base_url = getenv('EXTERNAL_API_BASE_URL')
 
