@@ -5,14 +5,14 @@ import { PrimeReactProvider } from 'primereact/api';
 import { DarkModeToggle } from '../DarkModeToggle'
 
 describe('DarkModeToggle', () => {
-    it('renders a switch', () => {
+    it('renders a toggle element', () => {
         render(
             <PrimeReactProvider>
             <DarkModeToggle />
             </PrimeReactProvider>
         )
 
-        const element = screen.getByRole('switch')
+        const element = screen.getByRole('checkbox')
 
         expect(element).toBeInTheDocument()
     })
