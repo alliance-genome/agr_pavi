@@ -60,7 +60,7 @@ protein-msa.nf:
 nextflow.config:
 	ln -s ./pipeline_workflow/nextflow.config nextflow.config
 
-run-server-dev: install-deps nextflow.sh protein-msa.nf nextflow.config
+run-server-dev: .venv/ install-deps nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 export API_EXECUTION_ENV="local" && \
 	 .venv/bin/fastapi dev src/main.py
