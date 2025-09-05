@@ -20,6 +20,26 @@ def test_seq_to_alignment_position(wb_C42D8_8a_1_yn32_seq_record) -> None:
     assert seq_to_alignment_position(wb_C42D8_8a_1_yn32_seq_record, 377) == 590
 
 
+def test_end_boundary_seq_to_alignment_position(wb_C42D8_8a_1_yn29_seq_record) -> None:
+    '''
+    Test conversion of sequence positions that are 1 position beyond the end of the aligned sequence.
+    1 position beyond the end of the aligned sequence inicates a deletion or stop codon,
+    and should be considered as a valid position rather than an alignment gap that needs bridging.
+    '''
+    assert seq_to_alignment_position(wb_C42D8_8a_1_yn29_seq_record, 159) == 170
+
+
+def test_out_of_bound_seq_to_alignment_position(wb_C42D8_8a_1_yn29_seq_record) -> None:
+    """
+    Test conversion of out-of-bound sequence positions (< 1 or > (seq length + 1)).
+    Both should raise a ValueError
+    """
+    with pytest.raises(ValueError):
+        seq_to_alignment_position(wb_C42D8_8a_1_yn29_seq_record, 0)
+    with pytest.raises(ValueError):
+        seq_to_alignment_position(wb_C42D8_8a_1_yn29_seq_record, 160)
+
+
 def test_alignment_embedded_variant_initiation_with_SeqRecord(wb_variant_yn32_in_C42D8_8a_1_alignment) -> None:
     """
     Test AlignmentEmbeddedVariant class initiation using SeqRecord.
