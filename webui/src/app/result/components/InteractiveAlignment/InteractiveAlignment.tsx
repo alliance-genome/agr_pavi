@@ -208,6 +208,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     length={seqLength}
                     height={15}
                     layout='default'
+                    margin-left={0}
+                    margin-right={5}
                 />
             </div>
             <div>
@@ -217,6 +219,9 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     <div style={{paddingLeft: labelWidth.toString()+'px'}}>
                         <NightingaleNavigationComponent
                             ref={nightingaleNavigationRef}
+                            ruler-padding={0}
+                            margin-left={0}
+                            margin-right={5}
                             height={40}
                             length={seqLength}
                             display-start={displayStart}
@@ -231,6 +236,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                             display-start={displayStart}
                             display-end={displayEnd}
                             length={seqLength}
+                            margin-left={0}
+                            margin-right={5}
                             height={15}
                             layout='default'
                         />
@@ -240,6 +247,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                         data={alignmentData}
                         features={alignmentFeatures}
                         height={alignmentData.length * 20}
+                        margin-left={0}
+                        margin-right={5}
                         display-start={displayStart}
                         display-end={displayEnd}
                         length={seqLength}
