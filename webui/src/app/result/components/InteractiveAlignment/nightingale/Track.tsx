@@ -4,6 +4,7 @@ import { EventName, createComponent } from '@lit/react';
 import React from 'react';
 
 import NightingaleTrack, {Feature} from '@nightingale-elements/nightingale-track';
+import {Shapes as FeatureShapes} from '@nightingale-elements/nightingale-track/dist/FeatureShape';
 import { NightingaleChangeEvent } from './types';
 
 type NightingaleTrackType = NightingaleTrack
@@ -22,5 +23,5 @@ const NightingaleTrackReactComponent = createComponent({
 });
 
 export type { NightingaleTrackType }
-export type { dataPropType }
+export type { dataPropType, FeatureShapes }
 export default NightingaleTrackReactComponent

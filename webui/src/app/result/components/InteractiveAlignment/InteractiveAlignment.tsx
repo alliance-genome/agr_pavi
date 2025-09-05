@@ -7,7 +7,7 @@ import {parse} from 'clustal-js';
 import NightingaleMSAComponent, {dataPropType as MSADataProp, featuresPropType as MSAFeaturesProp} from './nightingale/MSA';
 import NightingaleManagerComponent from './nightingale/Manager';
 import NightingaleNavigationComponent, {NightingaleNavigationType} from './nightingale/Navigation';
-import NightingaleTrack, {dataPropType as TrackDataProp} from './nightingale/Track';
+import NightingaleTrack, {dataPropType as TrackDataProp, FeatureShapes} from './nightingale/Track';
 
 import { Dropdown } from 'primereact/dropdown';
 
@@ -136,12 +136,19 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     mouseOverFillColor: 'transparent'})
 
                 // Add variant to variant track
+                let variantShape: FeatureShapes = 'diamond'
+                if(embedded_variant.seq_substitution_type === 'deletion'){
+                    variantShape = 'triangle'
+                }
+                if(embedded_variant.seq_substitution_type === 'insertion'){
+                    variantShape = 'chevron'
+                }
                 variantTrackData.push({
                     accession: embedded_variant.variant_id,
                     start: embedded_variant.alignment_start_pos,
                     end: embedded_variant.alignment_end_pos,
                     color: 'gray',
-                    shape: 'diamond'
+                    shape: variantShape
                 })
             }
         }
