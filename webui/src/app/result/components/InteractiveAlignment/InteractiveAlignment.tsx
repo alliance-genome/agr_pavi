@@ -7,6 +7,8 @@ import {parse} from 'clustal-js';
 import NightingaleMSAComponent, {dataPropType as MSADataProp, featuresPropType as MSAFeaturesProp} from './nightingale/MSA';
 import NightingaleManagerComponent from './nightingale/Manager';
 import NightingaleNavigationComponent, {NightingaleNavigationType} from './nightingale/Navigation';
+import NightingaleTrack, {dataPropType as TrackDataProp} from './nightingale/Track';
+
 import { Dropdown } from 'primereact/dropdown';
 
 import { SeqInfoDict } from './types';
@@ -112,10 +114,12 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
     })
 
     const alignmentFeatures: MSAFeaturesProp = []
+    const variantTrackData: TrackDataProp = []
     for (let i = 0; i < alignmentData.length; i++){
         const alignment_seq_name = alignmentData[i].name
         if(alignment_seq_name in seqInfoDict && 'embedded_variants' in seqInfoDict[alignment_seq_name]){
             for(const embedded_variant of (seqInfoDict[alignment_seq_name]['embedded_variants'] || [])){
+                // Add variant to alignment features
                 alignmentFeatures.push({
                     residues: {
                         from: embedded_variant.alignment_start_pos,
@@ -130,6 +134,15 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     fillColor: 'black',
                     mouseOverBorderColor: 'black',
                     mouseOverFillColor: 'transparent'})
+
+                // Add variant to variant track
+                variantTrackData.push({
+                    accession: embedded_variant.variant_id,
+                    start: embedded_variant.alignment_start_pos,
+                    end: embedded_variant.alignment_end_pos,
+                    color: 'gray',
+                    shape: 'diamond'
+                })
             }
         }
     }
@@ -179,6 +192,17 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     optionGroupChildren='items' optionGroupLabel='groupLabel' optionGroupTemplate={itemGroupTemplate}
                 />
             </div>
+            <div style={{paddingLeft: labelWidth.toString()+'px'}}>
+                <NightingaleTrack
+                    id='variant-overview-track'
+                    data={variantTrackData}
+                    display-start={1}
+                    display-end={seqLength}
+                    length={seqLength}
+                    height={15}
+                    layout='default'
+                />
+            </div>
             <div>
                 <NightingaleManagerComponent
                     reflected-attributes='display-start,display-end'
@@ -191,6 +215,17 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                             display-start={displayStart}
                             display-end={displayEnd}
                             onChange={(e) => updateDisplayRange({displayStart: e.detail['display-start'], displayEnd: e.detail['display-end']})}
+                        />
+                    </div>
+                    <div style={{paddingLeft: labelWidth.toString()+'px'}}>
+                        <NightingaleTrack
+                            id='variant-zoom-track'
+                            data={variantTrackData}
+                            display-start={displayStart}
+                            display-end={displayEnd}
+                            length={seqLength}
+                            height={15}
+                            layout='default'
                         />
                     </div>
                     <NightingaleMSAComponent
