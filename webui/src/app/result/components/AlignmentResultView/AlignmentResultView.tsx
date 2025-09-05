@@ -75,7 +75,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
             console.log(`alignmentSeqInfo updated.`)
 
             if(alignmentSeqInfo){
-                console.log(`alignmentSeqInfo updated to: ${alignmentSeqInfo}`)
+                console.log(`alignmentSeqInfo updated to:`, alignmentSeqInfo)
             }
 
         }, [alignmentSeqInfo]
