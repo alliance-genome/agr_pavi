@@ -62,7 +62,7 @@ class AlignmentEmbeddedVariantsList(list[AlignmentEmbeddedVariant]):
         super().__init__(iterable)
 
 
-def seq_to_alignment_position(seqRecord: SeqRecord, pos: int) -> int:
+def seq_to_alignment_position(seq_record: SeqRecord, pos: int) -> int:
     """
     Convert a sequence position to its corresponding alignment position.
 
@@ -73,13 +73,13 @@ def seq_to_alignment_position(seqRecord: SeqRecord, pos: int) -> int:
     Returns:
         Alignment position of the sequence record.
     """
-    if seqRecord.seq is None:
-        raise ValueError(f"Sequence record '{seqRecord.id}' has no sequence.")
+    if seq_record.seq is None:
+        raise ValueError(f"Sequence record '{seq_record.id}' has no sequence.")
 
     tmp_alignment_pos = pos
-    gap_count: int = seqRecord.seq[:tmp_alignment_pos].count("-")
+    gap_count: int = seq_record.seq[:tmp_alignment_pos].count("-")
     while tmp_alignment_pos - gap_count < pos:
         tmp_alignment_pos = pos + gap_count
-        gap_count = seqRecord.seq[:tmp_alignment_pos].count("-")
+        gap_count = seq_record.seq[:tmp_alignment_pos].count("-")
 
     return pos + gap_count
