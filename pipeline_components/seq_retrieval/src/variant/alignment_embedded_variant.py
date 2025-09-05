@@ -76,10 +76,31 @@ def seq_to_alignment_position(seq_record: SeqRecord, pos: int) -> int:
     if seq_record.seq is None:
         raise ValueError(f"Sequence record '{seq_record.id}' has no sequence.")
 
-    tmp_alignment_pos = pos
-    gap_count: int = seq_record.seq[:tmp_alignment_pos].count("-")
-    while tmp_alignment_pos - gap_count < pos:
-        tmp_alignment_pos = pos + gap_count
-        gap_count = seq_record.seq[:tmp_alignment_pos].count("-")
+    no_gap_seq_len: int = len(seq_record.seq) - seq_record.seq.count('-')
+    '''The ungapped sequence length of the sequence record'''
 
-    return pos + gap_count
+    if pos < 1:
+        raise ValueError(f"Out of bounds: sequence position ({pos}) before start of sequence.")
+    elif pos > (no_gap_seq_len + 1):
+        raise ValueError(f"Out of bounds: sequence position ({pos}) after end of sequence (+1).")
+
+    covered_ungapped_seq_len: int = 0
+    alignment_pos = 0
+    for i in range(0, len(seq_record.seq)):
+        alignment_pos += 1
+
+        base = seq_record.seq[i]
+        if base != "-":
+            covered_ungapped_seq_len += 1
+
+        if pos == covered_ungapped_seq_len:
+            break
+
+        if covered_ungapped_seq_len == no_gap_seq_len:
+            # End of ungapped sequence reached, but pos not reached.
+            # Report alignment_pos as last ungapped position, +1 if trailing gap is present.
+            if len(seq_record.seq) > i + 1:
+                alignment_pos += 1
+            break
+
+    return alignment_pos
