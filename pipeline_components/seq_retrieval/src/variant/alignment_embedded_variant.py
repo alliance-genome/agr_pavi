@@ -82,7 +82,7 @@ def seq_to_alignment_position(seq_record: SeqRecord, pos: int) -> int:
     if pos < 1:
         raise ValueError(f"Out of bounds: sequence position ({pos}) before start of sequence.")
     elif pos > (no_gap_seq_len + 1):
-        raise ValueError(f"Out of bounds: sequence position ({pos}) after end of sequence (+1).")
+        raise ValueError(f"Out of bounds: sequence position ({pos}) after end of sequence (({no_gap_seq_len})+1).")
 
     covered_ungapped_seq_len: int = 0
     alignment_pos = 0
