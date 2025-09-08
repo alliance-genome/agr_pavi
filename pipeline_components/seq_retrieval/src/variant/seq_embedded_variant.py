@@ -1,3 +1,4 @@
+from math import ceil
 from typing import Any, Iterable, override
 
 from .variant import SeqSubstitutionType, Variant
@@ -38,6 +39,18 @@ class SeqEmbeddedVariant(Variant):
         del variant_dict['seq_end_pos']
 
         return cls(Variant.from_dict(variant_dict), seq_embedded_variant_dict['seq_start_pos'], seq_embedded_variant_dict['seq_end_pos'])
+
+    def translated_seq_positions(self) -> tuple[int, int]:
+        """
+        Converts variant's sequence embedment positions (`self.seq_start_pos` and `self.seq_end_pos`)
+        to it's corresponding position in the translated (protein) sequence.
+
+        Assumes positions are based on full (untranslated) coding sequence (no frameshift required, start of seq is start codon).
+
+        Returns:
+            Relative start and end positions in the translated sequence as a tuple (`start`, `end`).
+        """
+        return (ceil(self.seq_start_pos / 3), ceil(self.seq_end_pos / 3))
 
 
 class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):

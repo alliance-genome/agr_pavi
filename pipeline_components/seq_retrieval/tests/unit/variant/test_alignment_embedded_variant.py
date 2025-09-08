@@ -40,27 +40,27 @@ def test_out_of_bound_seq_to_alignment_position(wb_C42D8_8a_1_yn29_seq_record) -
         seq_to_alignment_position(wb_C42D8_8a_1_yn29_seq_record, 160)
 
 
-def test_alignment_embedded_variant_initiation_with_SeqRecord(wb_variant_yn32_in_C42D8_8a_1_alignment) -> None:
+def test_alignment_embedded_variant_initiation_with_SeqRecord(wb_variant_yn32_in_C42D8_8a_1_protein_alignment) -> None:
     """
     Test AlignmentEmbeddedVariant class initiation using SeqRecord.
     """
-    assert isinstance(wb_variant_yn32_in_C42D8_8a_1_alignment, AlignmentEmbeddedVariant)
-    assert wb_variant_yn32_in_C42D8_8a_1_alignment.alignment_start_pos == 590
-    assert wb_variant_yn32_in_C42D8_8a_1_alignment.alignment_end_pos == 590
+    assert isinstance(wb_variant_yn32_in_C42D8_8a_1_protein_alignment, AlignmentEmbeddedVariant)
+    assert wb_variant_yn32_in_C42D8_8a_1_protein_alignment.alignment_start_pos == 590
+    assert wb_variant_yn32_in_C42D8_8a_1_protein_alignment.alignment_end_pos == 590
 
 
-def test_alignment_embedded_variant_initiation_with_positions(wb_variant_yn32_in_C42D8_8a_1_seq) -> None:
+def test_alignment_embedded_variant_initiation_with_positions(wb_variant_yn32_in_C42D8_8a_1_protein_seq) -> None:
     """
     Test AlignmentEmbeddedVariant class initiation using positions.
     """
-    alignment_embedded_w_positions = AlignmentEmbeddedVariant(embedded_variant=wb_variant_yn32_in_C42D8_8a_1_seq, alignment_start_pos=590, alignment_end_pos=590)
+    alignment_embedded_w_positions = AlignmentEmbeddedVariant(embedded_variant=wb_variant_yn32_in_C42D8_8a_1_protein_seq, alignment_start_pos=590, alignment_end_pos=590)
 
     assert isinstance(alignment_embedded_w_positions, AlignmentEmbeddedVariant)
     assert alignment_embedded_w_positions.alignment_start_pos == 590
     assert alignment_embedded_w_positions.alignment_end_pos == 590
 
 
-def test_alignment_embedded_variant_from_dict(wb_variant_yn32_in_C42D8_8a_1_alignment) -> None:
+def test_alignment_embedded_variant_from_dict(wb_variant_yn32_in_C42D8_8a_1_protein_alignment) -> None:
     """
     Test AlignmentEmbeddedVariant class initiation using dict as input.
     """
@@ -78,7 +78,7 @@ def test_alignment_embedded_variant_from_dict(wb_variant_yn32_in_C42D8_8a_1_alig
     })
 
     assert isinstance(alignment_embedded_from_dict, AlignmentEmbeddedVariant)
-    assert alignment_embedded_from_dict == wb_variant_yn32_in_C42D8_8a_1_alignment
+    assert alignment_embedded_from_dict == wb_variant_yn32_in_C42D8_8a_1_protein_alignment
 
 
 def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> None:

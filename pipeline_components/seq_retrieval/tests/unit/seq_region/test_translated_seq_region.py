@@ -7,7 +7,7 @@ import pytest
 from Bio.Data import CodonTable
 
 from seq_region import SeqRegion, TranslatedSeqRegion, InvalidatedOrfException, InvalidatedTranslationException, OrfNotFoundException
-from seq_region.translated_seq_region import find_orfs, coding_to_protein_rel_position
+from seq_region.translated_seq_region import find_orfs
 
 from .fixtures.translated_seq_regions import TranscriptFixture
 
@@ -18,19 +18,6 @@ set_log_level(logging.DEBUG)
 
 
 FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
-
-
-def test_coding_to_protein_rel_position() -> None:
-    """
-    Test the coding_to_protein_rel_position() function
-    """
-    assert coding_to_protein_rel_position(1) == 1
-    assert coding_to_protein_rel_position(2) == 1
-    assert coding_to_protein_rel_position(3) == 1
-    assert coding_to_protein_rel_position(4) == 2
-    assert coding_to_protein_rel_position(5) == 2
-    assert coding_to_protein_rel_position(6) == 2
-    assert coding_to_protein_rel_position(7) == 3
 
 
 def test_translated_seq_region_class(WB_transcript1: TranscriptFixture) -> None:

@@ -11,12 +11,12 @@ logger = get_logger(name=__name__)
 set_log_level(logging.DEBUG)
 
 
-def test_seq_embedded_variants_list_initiation(wb_variant_yn32_in_C42D8_8a_1_seq) -> None:
-    embedded_variants_list = SeqEmbeddedVariantsList([wb_variant_yn32_in_C42D8_8a_1_seq])
+def test_seq_embedded_variants_list_initiation(wb_variant_yn32_in_C42D8_8a_1_coding_seq) -> None:
+    embedded_variants_list = SeqEmbeddedVariantsList([wb_variant_yn32_in_C42D8_8a_1_coding_seq])
 
     assert isinstance(embedded_variants_list, SeqEmbeddedVariantsList)
     assert len(embedded_variants_list) == 1
-    assert embedded_variants_list[0] == wb_variant_yn32_in_C42D8_8a_1_seq
+    assert embedded_variants_list[0] == wb_variant_yn32_in_C42D8_8a_1_coding_seq
 
 
 def test_shift_rel_positions_forwards(wb_variants_yn10_yn30_in_C42D8_8a_1_list) -> None:

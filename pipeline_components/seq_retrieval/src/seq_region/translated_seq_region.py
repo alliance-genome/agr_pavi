@@ -4,12 +4,11 @@ Module containing the translated MultiPartSeqRegion class.
 
 from Bio import Seq  # Bio.Seq biopython submodule
 from Bio.Data import CodonTable
-from math import ceil
 from typing import Dict, List, Literal, Optional, override, Set, TypedDict
 
 from .seq_region import SeqRegion, AltSeqInfo
 from .multipart_seq_region import MultiPartSeqRegion
-from variant import SeqEmbeddedVariantsList, Variant
+from variant import SeqEmbeddedVariant, SeqEmbeddedVariantsList, Variant
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
@@ -350,10 +349,10 @@ class TranslatedSeqRegion():
                         raise ValueError('No alternative coding sequence region found, so no translation possible.')
 
                     # Calculate embedded variants positions in protein sequence from embedded variants positions in coding sequence
-                    protein_embedded_variants = SeqEmbeddedVariantsList(alt_coding_seq_info.embedded_variants.copy())
-                    for variant in protein_embedded_variants:
-                        variant.seq_start_pos = coding_to_protein_rel_position(variant.seq_start_pos)
-                        variant.seq_end_pos = coding_to_protein_rel_position(variant.seq_end_pos)
+                    protein_embedded_variants = SeqEmbeddedVariantsList()
+                    for variant in alt_coding_seq_info.embedded_variants:
+                        (translated_start_pos, translated_end_pos) = variant.translated_seq_positions()
+                        protein_embedded_variants.append(SeqEmbeddedVariant(variant, translated_start_pos, translated_end_pos))
 
                     protein_alt_seq = self.translate(coding_sequence=alt_coding_seq_info.sequence) or ''
                     protein_alt_embedded_variants = protein_embedded_variants
@@ -516,15 +515,3 @@ def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, force_start
         return [orfs.pop()]
     else:
         raise ValueError(f"return_type {return_type} is not a valid value.")
-
-
-def coding_to_protein_rel_position(pos: int) -> int:
-    """
-    Converts relative position `pos` in coding sequence to it's corresponding relative position in protein sequence.
-
-    Assumes full coding-sequence translation (no frameshift, start of coding seq is start codon).
-
-    Returns:
-        Relative position in protein sequence
-    """
-    return ceil(pos / 3)
