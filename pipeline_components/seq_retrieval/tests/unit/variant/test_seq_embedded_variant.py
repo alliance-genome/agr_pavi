@@ -78,10 +78,44 @@ def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> No
         })
 
 
-def test_translated_seq_positions(wb_variant_yn32_in_C42D8_8a_1_coding_seq) -> None:
+def test_translated_seq_positions_substitution(wb_variant_yn32_in_C42D8_8a_1_coding_seq) -> None:
     """
     Test the SeqEmbeddedVariant.translated_seq_positions() method
     """
     assert wb_variant_yn32_in_C42D8_8a_1_coding_seq.seq_start_pos == 1129
     assert wb_variant_yn32_in_C42D8_8a_1_coding_seq.seq_end_pos == 1129
     assert wb_variant_yn32_in_C42D8_8a_1_coding_seq.translated_seq_positions() == (377, 377)
+
+
+def test_translated_seq_positions_insertion() -> None:
+    """
+    Test the SeqEmbeddedVariant.translated_seq_positions() method on insertions.
+    Translated seq positions for insertions should indicate the affected amino acid position(s)
+    (insertion site) + flanking amino acids on each side where a complete codon is inserted
+    (for insertions of >= 3 bps)
+    """
+    # TODO
+    pass
+
+
+# TODO: test variant position conversion for deletions.
+# Currently causing problems: WB yn10.
+def test_translated_seq_positions_deletion() -> None:
+    '''
+    Test the SeqEmbeddedVariant.translated_seq_positions() method on deletions.
+    Translated seq positions for deletions should indicate the affected amino acid position(s)
+    (ref amino acids overlapping the deletion site) + flanking AA on each side where deletion starts/ends
+    with a complete codon deletion (for deletions of >= 3 bps)
+    '''
+    # TODO
+    pass
+
+
+def test_translated_seq_positions_indel() -> None:
+    '''
+    Test the SeqEmbeddedVariant.translated_seq_positions() method on indels.
+    Translated seq positions for indels should indicate the affected amino acid position(s)
+    based on the longest sequence (ref or alt).
+    '''
+    # TODO
+    pass
