@@ -40,17 +40,59 @@ class SeqEmbeddedVariant(Variant):
 
         return cls(Variant.from_dict(variant_dict), seq_embedded_variant_dict['seq_start_pos'], seq_embedded_variant_dict['seq_end_pos'])
 
-    def translated_seq_positions(self) -> tuple[int, int]:
+    def translated_seq_positions(self, seq_length: int) -> tuple[int, int]:
         """
         Converts variant's sequence embedment positions (`self.seq_start_pos` and `self.seq_end_pos`)
         to it's corresponding position in the translated (protein) sequence.
 
         Assumes positions are based on full (untranslated) coding sequence (no frameshift required, start of seq is start codon).
+        To allow comparison between sequences with reference and with alternative variant sequences embedded, positions include
+        fanking bases or amino acids where the deletion/insertion would otherwise start/end in between bases or amino acids.
+        In practice this means:
+         * For substitutions:
+             - Untranslated seq positions are represented as the affected nucleotide position(s).
+             - Translated seq positions should represent the affected amino acid position(s) (= direct positional translation).
+         * For insertions:
+             - Untranslated seq positions are represented as the inserted nucleotide position(s) + flanking bases at both start & end.
+             - Translated seq positions should represent the affected amino acid position(s) (on insertion in middle of codon)
+                + flanking AA at start/end where a complete codon is inserted as start/end (for insertions of >= 3 bps)
+         * For deletions:
+             - Untranslated seq positions are represented as the flanking nucleotide positions to the deletion site (both start & end).
+             - Translated seq positions should indicate the affected amino acid position(s) (on partial codon deletions)
+                + flanking AA at start/end where deletion starts/ends with the deletion of a complete codon (for deletions of >= 3 bps)
+
+        Args:
+            seq_length: Length of the sequence (in nucleotides/amino acids)
 
         Returns:
             Relative start and end positions in the translated sequence as a tuple (`start`, `end`).
         """
-        return (ceil(self.seq_start_pos / 3), ceil(self.seq_end_pos / 3))
+        translated_start_pos: int
+        translated_end_pos: int
+        no_flank_start: int
+        no_flank_end: int
+
+        if self.seq_substitution_type == SeqSubstitutionType.SUBSTITUTION:
+            translated_start_pos = translate_seq_position(self.seq_start_pos)
+            translated_end_pos = translate_seq_position(self.seq_end_pos)
+        elif self.seq_substitution_type == SeqSubstitutionType.INSERTION:
+            no_flank_start = self.seq_start_pos + 1
+            no_flank_end = self.seq_end_pos - 1
+            translated_start_pos = translate_seq_position(no_flank_start)
+            translated_end_pos = translate_seq_position(no_flank_end)
+
+            if len(self.genomic_alt_seq) >= 3:
+                # For insertion of >= 3 bps starting between codons, include start-flanking AA
+                if no_flank_start % 3 == 1 and translated_start_pos > 1:
+                    translated_start_pos -= 1
+
+                # For insertion of >= 3 bps ending between codons (with full codon insertion), include end-flanking AA
+                if no_flank_end % 3 == 0 and translated_end_pos < seq_length:
+                    translated_end_pos += 1
+        else:
+            raise ValueError(f"Unsupported substitution type: {self.seq_substitution_type}")
+
+        return (translated_start_pos, translated_end_pos)
 
 
 class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):
@@ -104,3 +146,17 @@ class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):
                 continue
 
         return list_copy
+
+
+def translate_seq_position(pos: int) -> int:
+    """
+    Converts a sequence position to it's corresponding position in the translated (protein) sequence.
+    Assumes position is based on full (untranslated) coding sequence (no frameshift required, start of seq is start codon).
+
+    Args:
+        pos: The sequence position to convert.
+
+    Returns:
+        The corresponding position in the translated sequence.
+    """
+    return ceil(pos / 3)

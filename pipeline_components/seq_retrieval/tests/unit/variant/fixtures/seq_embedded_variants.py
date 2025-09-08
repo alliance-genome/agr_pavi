@@ -13,7 +13,7 @@ def wb_variant_yn32_in_C42D8_8a_1_coding_seq(wb_variant_yn32) -> SeqEmbeddedVari
 
 @pytest.fixture
 def wb_variant_yn32_in_C42D8_8a_1_protein_seq(wb_variant_yn32, wb_variant_yn32_in_C42D8_8a_1_coding_seq) -> SeqEmbeddedVariant:
-    (protein_start, protein_end) = wb_variant_yn32_in_C42D8_8a_1_coding_seq.translated_seq_positions()
+    (protein_start, protein_end) = wb_variant_yn32_in_C42D8_8a_1_coding_seq.translated_seq_positions(2061)
     return SeqEmbeddedVariant(variant=wb_variant_yn32, seq_start_pos=protein_start, seq_end_pos=protein_end)
 
 
