@@ -233,15 +233,163 @@ def test_translated_seq_positions_two_bp_in_codon_insertion() -> None:
 
 # TODO: test variant position conversion for deletions.
 # Currently causing problems: WB yn10.
-def test_translated_seq_positions_deletion() -> None:
+def test_translated_seq_positions_complete_inframe_codon_deletion() -> None:
+    """
+    Test the SeqEmbeddedVariant.translated_seq_positions() method on deletions of complete codons.
+    Translated seq positions should indicate the flanking AAs on both sides of the deletion,
+    as in-frame complete codon deletions cannot be visualised otherwise.
+    """
+    one_codon_deletion_variant = Variant('test-one-codon-deletion', 'X', 5116859, 5116861, genomic_ref_seq='CGT')
+    one_codon_deletion = SeqEmbeddedVariant(variant=one_codon_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert one_codon_deletion.translated_seq_positions(2061) == (1, 2)
+
+    two_codon_deletion_variant = Variant('test-two-codon-deletion', 'X', 5116856, 5116861, genomic_ref_seq='GTGCGT')
+    two_codon_deletion = SeqEmbeddedVariant(variant=two_codon_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert two_codon_deletion.translated_seq_positions(2061) == (1, 2)
+
+
+def test_translated_seq_positions_one_bp_in_codon_deletion() -> None:
     '''
-    Test the SeqEmbeddedVariant.translated_seq_positions() method on deletions.
-    Translated seq positions for deletions should indicate the affected amino acid position(s)
-    (ref amino acids overlapping the deletion site) + flanking AA on each side where deletion starts/ends
-    with a complete codon deletion (for deletions of >= 3 bps)
+    Test the SeqEmbeddedVariant.translated_seq_positions() method on deletions starting at one bp into a codon.
+    Translated seq positions for deletions of partial codons should indicate the affected amino acid position only
+    (single codon in which deletion started).
     '''
-    # TODO
-    pass
+    one_bp_deletion_variant = Variant('test-1bp-deletion', 'X', 5116861, 5116861, genomic_ref_seq='T')
+    one_bp_deletion = SeqEmbeddedVariant(variant=one_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert one_bp_deletion.translated_seq_positions(2060) == (2, 2)
+
+    two_bp_deletion_variant = Variant('test-2bp-deletion', 'X', 5116860, 5116861, genomic_ref_seq='GT')
+    two_bp_deletion = SeqEmbeddedVariant(variant=two_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert two_bp_deletion.translated_seq_positions(2059) == (2, 2)
+
+    three_bp_deletion_variant = Variant('test-3bp-deletion', 'X', 5116859, 5116861, genomic_ref_seq='CGT')
+    three_bp_deletion = SeqEmbeddedVariant(variant=three_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert three_bp_deletion.translated_seq_positions(2058) == (1, 2)
+
+    four_bp_deletion_variant = Variant('test-4bp-deletion', 'X', 5116858, 5116861, genomic_ref_seq='CCGT')
+    four_bp_deletion = SeqEmbeddedVariant(variant=four_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert four_bp_deletion.translated_seq_positions(2057) == (2, 2)
+
+    five_bp_deletion_variant = Variant('test-5bp-deletion', 'X', 5116857, 5116861, genomic_ref_seq='ACCGT')
+    five_bp_deletion = SeqEmbeddedVariant(variant=five_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert five_bp_deletion.translated_seq_positions(2056) == (2, 2)
+
+    six_bp_deletion_variant = Variant('test-6bp-deletion', 'X', 5116856, 5116861, genomic_ref_seq='CACCGT')
+    six_bp_deletion = SeqEmbeddedVariant(variant=six_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert six_bp_deletion.translated_seq_positions(2055) == (1, 2)
+
+    seven_bp_deletion_variant = Variant('test-1bp-deletion', 'X', 5116855, 5116861, genomic_ref_seq='CCACCGT')
+    seven_bp_deletion = SeqEmbeddedVariant(variant=seven_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert seven_bp_deletion.translated_seq_positions(2054) == (2, 2)
+
+    eight_bp_deletion_variant = Variant('test-1bp-deletion', 'X', 5116854, 5116861, genomic_ref_seq='CCCACCGT')
+    eight_bp_deletion = SeqEmbeddedVariant(variant=eight_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4)
+
+    assert eight_bp_deletion.translated_seq_positions(2053) == (2, 2)
+
+
+def test_translated_seq_positions_two_bp_in_codon_deletion() -> None:
+    '''
+    Test the SeqEmbeddedVariant.translated_seq_positions() method on deletions starting at two bp into a codon.
+    Translated seq positions for deletions of partial codons should indicate the affected amino acid position only
+    (single codon in which deletion started).
+    '''
+    one_bp_deletion_variant = Variant('test-1bp-deletion', 'X', 5116860, 5116860, genomic_ref_seq='G')
+    one_bp_deletion = SeqEmbeddedVariant(variant=one_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5)
+
+    assert one_bp_deletion.translated_seq_positions(2060) == (2, 2)
+
+    two_bp_deletion_variant = Variant('test-2bp-deletion', 'X', 5116859, 5116860, genomic_ref_seq='CG')
+    two_bp_deletion = SeqEmbeddedVariant(variant=two_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5)
+
+    assert two_bp_deletion.translated_seq_positions(2058) == (2, 2)
+
+    three_bp_deletion_variant = Variant('test-3bp-deletion', 'X', 5116858, 5116860, genomic_ref_seq='CCG')
+    three_bp_deletion = SeqEmbeddedVariant(variant=three_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5)
+
+    assert three_bp_deletion.translated_seq_positions(2057) == (2, 2)
+
+    four_bp_deletion_variant = Variant('test-4bp-deletion', 'X', 5116857, 5116860, genomic_ref_seq='ACCG')
+    four_bp_deletion = SeqEmbeddedVariant(variant=four_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5)
+
+    assert four_bp_deletion.translated_seq_positions(2056) == (2, 2)
+
+    five_bp_deletion_variant = Variant('test-5bp-deletion', 'X', 5116856, 5116860, genomic_ref_seq='CACCG')
+    five_bp_deletion = SeqEmbeddedVariant(variant=five_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5)
+
+    assert five_bp_deletion.translated_seq_positions(2055) == (2, 2)
+
+    six_bp_deletion_variant = Variant('test-6bp-deletion', 'X', 5116855, 5116860, genomic_ref_seq='CCACCG')
+    six_bp_deletion = SeqEmbeddedVariant(variant=six_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5)
+
+    assert six_bp_deletion.translated_seq_positions(2054) == (2, 2)
+
+    seven_bp_deletion_variant = Variant('test-7bp-deletion', 'X', 5116854, 5116860, genomic_ref_seq='CCCACCG')
+    seven_bp_deletion = SeqEmbeddedVariant(variant=seven_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5)
+
+    assert seven_bp_deletion.translated_seq_positions(2053) == (2, 2)
+
+    eight_bp_deletion_variant = Variant('test-8bp-deletion', 'X', 5116853, 5116860, genomic_ref_seq='ACCCACCG')
+    eight_bp_deletion = SeqEmbeddedVariant(variant=eight_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5)
+
+    assert eight_bp_deletion.translated_seq_positions(2053) == (2, 2)
+
+
+def test_translated_seq_positions_three_bp_in_codon_deletion() -> None:
+    '''
+    Test the SeqEmbeddedVariant.translated_seq_positions() method on deletions starting at three bp into a codon.
+    Translated seq positions for deletions of partial codons should indicate the affected amino acid position only
+    (single codon in which deletion started).
+    '''
+
+    one_bp_deletion_variant = Variant('test-1bp-deletion', 'X', 5116859, 5116859, genomic_ref_seq='C')
+    one_bp_deletion = SeqEmbeddedVariant(variant=one_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6)
+
+    assert one_bp_deletion.translated_seq_positions(2058) == (2, 2)
+
+    two_bp_deletion_variant = Variant('test-2bp-deletion', 'X', 5116858, 5116859, genomic_ref_seq='CC')
+    two_bp_deletion = SeqEmbeddedVariant(variant=two_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6)
+
+    assert two_bp_deletion.translated_seq_positions(2057) == (2, 2)
+
+    three_bp_deletion_variant = Variant('test-3bp-deletion', 'X', 5116857, 5116859, genomic_ref_seq='ACC')
+    three_bp_deletion = SeqEmbeddedVariant(variant=three_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6)
+
+    assert three_bp_deletion.translated_seq_positions(2056) == (2, 2)
+
+    four_bp_deletion_variant = Variant('test-4bp-deletion', 'X', 5116856, 5116859, genomic_ref_seq='CACC')
+    four_bp_deletion = SeqEmbeddedVariant(variant=four_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6)
+
+    assert four_bp_deletion.translated_seq_positions(2055) == (2, 2)
+
+    five_bp_deletion_variant = Variant('test-5bp-deletion', 'X', 5116855, 5116859, genomic_ref_seq='CCACC')
+    five_bp_deletion = SeqEmbeddedVariant(variant=five_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6)
+
+    assert five_bp_deletion.translated_seq_positions(2054) == (2, 2)
+
+    six_bp_deletion_variant = Variant('test-6bp-deletion', 'X', 5116854, 5116859, genomic_ref_seq='CCCACC')
+    six_bp_deletion = SeqEmbeddedVariant(variant=six_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6)
+
+    assert six_bp_deletion.translated_seq_positions(2053) == (2, 2)
+
+    seven_bp_deletion_variant = Variant('test-7bp-deletion', 'X', 5116853, 5116859, genomic_ref_seq='ACCCACC')
+    seven_bp_deletion = SeqEmbeddedVariant(variant=seven_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6)
+
+    assert seven_bp_deletion.translated_seq_positions(2053) == (2, 2)
+
+    eight_bp_deletion_variant = Variant('test-7bp-deletion', 'X', 5116853, 5116859, genomic_ref_seq='TACCCACC')
+    eight_bp_deletion = SeqEmbeddedVariant(variant=eight_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6)
+
+    assert eight_bp_deletion.translated_seq_positions(2053) == (2, 2)
 
 
 def test_translated_seq_positions_indel() -> None:

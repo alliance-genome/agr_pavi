@@ -59,7 +59,7 @@ class SeqEmbeddedVariant(Variant):
          * For deletions:
              - Untranslated seq positions are represented as the flanking nucleotide positions to the deletion site (both start & end).
              - Translated seq positions should indicate the affected amino acid position(s) (on partial codon deletions)
-                + flanking AA at start/end where deletion starts/ends with the deletion of a complete codon (for deletions of >= 3 bps)
+                + flanking AAs at start and end where the variant deletes complete codons, in-frame with reference (deletions of >= 3 bps)
 
         Args:
             seq_length: Length of the sequence (in nucleotides/amino acids)
@@ -89,6 +89,16 @@ class SeqEmbeddedVariant(Variant):
                 # For insertion of >= 3 bps ending between codons (with full codon insertion), include end-flanking AA
                 if no_flank_end % 3 == 0 and translated_end_pos < seq_length:
                     translated_end_pos += 1
+        elif self.seq_substitution_type == SeqSubstitutionType.DELETION:
+            no_flank_start = self.seq_start_pos + 1
+            no_flank_end = self.seq_end_pos
+            translated_start_pos = translate_seq_position(no_flank_start)
+            translated_end_pos = translate_seq_position(no_flank_end)
+
+            # For complete-codon deletion starting at codon start (in-frame with reference),
+            # include start-flanking AA (end-flanking AA is current translated_end_pos)
+            if len(self.genomic_ref_seq) >= 3 and len(self.genomic_ref_seq) % 3 == 0 and no_flank_start % 3 == 1:
+                translated_start_pos -= 1
         else:
             raise ValueError(f"Unsupported substitution type: {self.seq_substitution_type}")
 
