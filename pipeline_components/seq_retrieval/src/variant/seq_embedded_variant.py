@@ -55,7 +55,7 @@ class SeqEmbeddedVariant(Variant):
          * For insertions:
              - Untranslated seq positions are represented as the inserted nucleotide position(s) + flanking bases at both start & end.
              - Translated seq positions should represent the affected amino acid position(s) (on insertion in middle of codon)
-                + flanking AA at start/end where a complete codon is inserted as start/end (for insertions of >= 3 bps)
+                + flanking AA at start and end where the variant inserts complete codons, in-frame with reference (for insertions of >= 3 bps)
          * For deletions:
              - Untranslated seq positions are represented as the flanking nucleotide positions to the deletion site (both start & end).
              - Translated seq positions should indicate the affected amino acid position(s) (on partial codon deletions)
@@ -75,20 +75,22 @@ class SeqEmbeddedVariant(Variant):
         if self.seq_substitution_type == SeqSubstitutionType.SUBSTITUTION:
             translated_start_pos = translate_seq_position(self.seq_start_pos)
             translated_end_pos = translate_seq_position(self.seq_end_pos)
+
         elif self.seq_substitution_type == SeqSubstitutionType.INSERTION:
             no_flank_start = self.seq_start_pos + 1
             no_flank_end = self.seq_end_pos - 1
             translated_start_pos = translate_seq_position(no_flank_start)
             translated_end_pos = translate_seq_position(no_flank_end)
 
-            if len(self.genomic_alt_seq) >= 3:
-                # For insertion of >= 3 bps starting between codons, include start-flanking AA
-                if no_flank_start % 3 == 1 and translated_start_pos > 1:
+            # For complete-codon insertions starting between codons (in-frame with reference),
+            # include start- and end-flanking AA
+            if len(self.genomic_alt_seq) >= 3 and len(self.genomic_alt_seq) % 3 == 0 and no_flank_start % 3 == 1:
+                if translated_start_pos > 1:
                     translated_start_pos -= 1
 
-                # For insertion of >= 3 bps ending between codons (with full codon insertion), include end-flanking AA
-                if no_flank_end % 3 == 0 and translated_end_pos < seq_length:
+                if translated_end_pos < seq_length:
                     translated_end_pos += 1
+
         elif self.seq_substitution_type == SeqSubstitutionType.DELETION:
             no_flank_start = self.seq_start_pos + 1
             no_flank_end = self.seq_end_pos
@@ -99,6 +101,7 @@ class SeqEmbeddedVariant(Variant):
             # include start-flanking AA (end-flanking AA is current translated_end_pos)
             if len(self.genomic_ref_seq) >= 3 and len(self.genomic_ref_seq) % 3 == 0 and no_flank_start % 3 == 1:
                 translated_start_pos -= 1
+
         else:
             raise ValueError(f"Unsupported substitution type: {self.seq_substitution_type}")
 
