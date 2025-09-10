@@ -71,6 +71,7 @@ def test_alignment_embedded_variant_from_dict(wb_variant_yn32_in_C42D8_8a_1_prot
         'genomic_end_pos': 5114224,
         'genomic_ref_seq': 'C',
         'genomic_alt_seq': 'T',
+        'seq_substitution_type': 'substitution',
         'seq_start_pos': 377,
         'seq_end_pos': 377,
         'embedded_ref_seq_len': 1,

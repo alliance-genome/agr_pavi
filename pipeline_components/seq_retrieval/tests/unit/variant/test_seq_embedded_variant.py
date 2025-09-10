@@ -27,9 +27,9 @@ def test_seq_embedded_variant_initiation_from_dict(wb_variant_yn32_in_C42D8_8a_1
         'genomic_end_pos': wb_variant_yn32.genomic_end_pos,
         'genomic_ref_seq': wb_variant_yn32.genomic_ref_seq,
         'genomic_alt_seq': wb_variant_yn32.genomic_alt_seq,
-        'seq_substitution_type': wb_variant_yn32.seq_substitution_type.value,
-        'seq_start_pos': 377,
-        'seq_end_pos': 377
+        'seq_substitution_type': str(wb_variant_yn32.seq_substitution_type.value),
+        'seq_start_pos': 1129,
+        'seq_end_pos': 1129,
         'embedded_ref_seq_len': 1,
         'embedded_alt_seq_len': 1
     })
