@@ -84,9 +84,9 @@ def test_alignment_embedded_variant_from_dict(wb_variant_yn32_in_C42D8_8a_1_prot
     assert alignment_embedded_from_dict == wb_variant_yn32_in_C42D8_8a_1_protein_alignment
 
 
-def test_seq_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> None:
+def test_alignment_embedded_variant_from_dict_initiation_errors(wb_variant_yn32) -> None:
     """
-    Test SeqEmbeddedVariant class initiation errors when initiating from dict.
+    Test AlignmentEmbeddedVariant class initiation errors when initiating from dict.
     """
     # Missing alignment_start_pos
     with pytest.raises(KeyError):
