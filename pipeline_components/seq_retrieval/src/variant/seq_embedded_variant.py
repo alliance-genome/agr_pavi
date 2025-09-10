@@ -61,6 +61,40 @@ class SeqEmbeddedVariant(Variant):
                    seq_embedded_variant_dict['seq_start_pos'], seq_embedded_variant_dict['seq_end_pos'],
                    seq_embedded_variant_dict['embedded_ref_seq_len'], seq_embedded_variant_dict['embedded_alt_seq_len'])
 
+    def fuse_to_end(self, other: 'SeqEmbeddedVariant') -> 'SeqEmbeddedVariant':
+        '''
+        Fuses the `other` SeqEmbeddedVariant to the end of `self`.
+        Assumes that the two SeqEmbeddedVariants come from the same Variant,
+        are located on the adjacent edges of two disjoined regions of the sequence (with independent seq start and end positions) which are being joined into one sequence.
+
+        Args:
+            other: The other SeqEmbeddedVariant to fuse.
+
+        Returns:
+            The fused SeqEmbeddedVariant
+
+        Raises:
+            ValueError: If the two SeqEmbeddedVariants do not come from the same Variant
+        '''
+        if self.variant_id != other.variant_id:
+            raise ValueError('Fusion of SeqEmbeddedVariants from different variants is not supported')
+
+        if not (other.seq_start_pos == 1 or (self.seq_substitution_type == SeqSubstitutionType.DELETION and other.seq_start_pos == 0)):
+            raise ValueError(f'`other` SeqEmbeddedVariant must start at the start of its sequence to be fusable ({other.seq_start_pos} is not a start position for substitution type {self.seq_substitution_type}).')
+
+        fused_seq_embedded_variant: SeqEmbeddedVariant = deepcopy(self)
+
+        fused_seq_embedded_variant.seq_end_pos += other.seq_end_pos
+        fused_seq_embedded_variant.embedded_ref_seq_len += other.embedded_ref_seq_len
+        fused_seq_embedded_variant.embedded_alt_seq_len += other.embedded_alt_seq_len
+
+        # In case of deletions, seq_end_pos of first seq region would be at flanking base to the region end,
+        # so must be adjusted.
+        if fused_seq_embedded_variant.seq_substitution_type == SeqSubstitutionType.DELETION:
+            fused_seq_embedded_variant.seq_end_pos -= 1
+
+        return fused_seq_embedded_variant
+
     def to_translated(self, seq_length: int) -> 'SeqEmbeddedVariant':
         """
         Converts the SeqEmbeddedVariant to represent embedment in it's corresponding translated (protein) sequence.

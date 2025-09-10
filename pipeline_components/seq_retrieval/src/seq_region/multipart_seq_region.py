@@ -5,7 +5,7 @@ Module containing the MultiPartSeqRegion class.
 from typing import Any, Callable, Dict, List, override, Optional, Set, TypedDict
 
 from .seq_region import SeqRegion, AltSeqInfo
-from variant import SeqEmbeddedVariantsList, SeqSubstitutionType, Variant, variants_overlap
+from variant import SeqEmbeddedVariantsList, Variant, variants_overlap
 
 from log_mgmt import get_logger
 
@@ -179,14 +179,7 @@ class MultiPartSeqRegion(SeqRegion):
                     # Check if last embedded variant is overlapping with this region as well
                     # if so, merge them
                     if len(embedded_variants) > 0 and embedded_variants[-1].variant_id == region_alt_seq.embedded_variants[0].variant_id:
-                        # Extend the rel_end of the last embedded variant to include the end on this region
-                        embedded_variants[-1].seq_end_pos += region_alt_seq.embedded_variants[0].seq_end_pos
-
-                        # In case of deletions, rel_end on previous region would be at flanking base to the region end,
-                        # so must be adjusted.
-                        if embedded_variants[-1].seq_substitution_type == SeqSubstitutionType.DELETION:
-                            embedded_variants[-1].seq_end_pos -= 1
-
+                        embedded_variants[-1] = embedded_variants[-1].fuse_to_end(region_alt_seq.embedded_variants[0])
                         region_alt_seq.embedded_variants.pop(0)
 
                     # Bump rel_start and rel_end positions to include prior region parts
