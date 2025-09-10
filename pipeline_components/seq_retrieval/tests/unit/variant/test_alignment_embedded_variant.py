@@ -73,6 +73,8 @@ def test_alignment_embedded_variant_from_dict(wb_variant_yn32_in_C42D8_8a_1_prot
         'genomic_alt_seq': 'T',
         'seq_start_pos': 377,
         'seq_end_pos': 377,
+        'embedded_ref_seq_len': 1,
+        'embedded_alt_seq_len': 1,
         'alignment_start_pos': 590,
         'alignment_end_pos': 590
     })

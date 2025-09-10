@@ -71,7 +71,9 @@ def test_seq_info_initiation_from_dict_seq_embedded_variants():
                 'genomic_alt_seq': 'T',
                 'seq_substitution_type': 'substitution',
                 'seq_start_pos': 2,
-                'seq_end_pos': 2
+                'seq_end_pos': 2,
+                'embedded_ref_seq_len': 1,
+                'embedded_alt_seq_len': 1
             }
         ]
     })
@@ -101,7 +103,9 @@ def test_seq_info_initiation_from_dict_alignment_embedded_variants():
                 'seq_start_pos': 2,
                 'seq_end_pos': 2,
                 'alignment_start_pos': 2,
-                'alignment_end_pos': 2
+                'alignment_end_pos': 2,
+                'embedded_ref_seq_len': 1,
+                'embedded_alt_seq_len': 1
             }
         ]
     })

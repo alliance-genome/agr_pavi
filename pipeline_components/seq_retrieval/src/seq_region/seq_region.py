@@ -395,7 +395,9 @@ class SeqRegion():
             alt_embedded_variants.append(SeqEmbeddedVariant(
                 variant=positioned_variant['variant'],
                 seq_start_pos=alt_rel_start,
-                seq_end_pos=alt_rel_end
+                seq_end_pos=alt_rel_end,
+                embedded_ref_seq_len=len(positioned_variant['overlap_ref_seq']),
+                embedded_alt_seq_len=len(positioned_variant['overlap_alt_seq'])
             ))
 
             alt_seq_offset += alt_seq_len_diff

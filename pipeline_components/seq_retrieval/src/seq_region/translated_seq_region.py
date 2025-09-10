@@ -8,7 +8,7 @@ from typing import Dict, List, Literal, Optional, override, Set, TypedDict
 
 from .seq_region import SeqRegion, AltSeqInfo
 from .multipart_seq_region import MultiPartSeqRegion
-from variant import SeqEmbeddedVariant, SeqEmbeddedVariantsList, Variant
+from variant import SeqEmbeddedVariantsList, Variant
 from log_mgmt import get_logger
 
 logger = get_logger(name=__name__)
@@ -351,8 +351,8 @@ class TranslatedSeqRegion():
                     # Calculate embedded variants positions in protein sequence from embedded variants positions in coding sequence
                     protein_embedded_variants = SeqEmbeddedVariantsList()
                     for variant in alt_coding_seq_info.embedded_variants:
-                        (translated_start_pos, translated_end_pos) = variant.translated_seq_positions(len(alt_coding_seq_info.sequence))
-                        protein_embedded_variants.append(SeqEmbeddedVariant(variant, translated_start_pos, translated_end_pos))
+                        protein_embedded_variant = variant.to_translated(len(alt_coding_seq_info.sequence))
+                        protein_embedded_variants.append(protein_embedded_variant)
 
                     protein_alt_seq = self.translate(coding_sequence=alt_coding_seq_info.sequence) or ''
                     protein_alt_embedded_variants = protein_embedded_variants
