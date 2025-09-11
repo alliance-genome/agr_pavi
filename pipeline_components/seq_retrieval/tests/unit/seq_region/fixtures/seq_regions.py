@@ -274,3 +274,33 @@ def wb_b0334_8a_1_cds_regions() -> List[SeqRegion]:
         SeqRegion(seq_id='II', start=11520548, end=11520680, strand='-', frame=1, fasta_file_url=FASTA_FILE_URL),
         SeqRegion(seq_id='II', start=11519708, end=11519839, strand='-', frame=0, fasta_file_url=FASTA_FILE_URL)
     ]
+
+
+@pytest.fixture
+def wb_t09A5_10_1_exons() -> List[SeqRegion]:
+    '''
+    WB:WBGene00002994 (lin-5) - Transcript:T09A5.10.1
+    '''
+    return [
+        SeqRegion(seq_id='II', start=7860659, end=7860799, strand='+', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7860846, end=7861463, strand='+', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7861512, end=7862565, strand='+', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7862614, end=7862728, strand='+', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7862780, end=7862988, strand='+', fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7863097, end=7863557, strand='+', fasta_file_url=FASTA_FILE_URL)
+    ]
+
+
+@pytest.fixture
+def wb_t09A5_10_1_cds_regions() -> List[SeqRegion]:
+    '''
+    WB:WBGene00002994 (lin-5) - Transcript:T09A5.10.1
+    '''
+    return [
+        SeqRegion(seq_id='II', start=7860660, end=7860799, strand='+', frame=0, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7860846, end=7861463, strand='+', frame=1, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7861512, end=7862565, strand='+', frame=1, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7862614, end=7862728, strand='+', frame=0, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7862780, end=7862988, strand='+', frame=2, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='II', start=7863097, end=7863426, strand='+', frame=0, fasta_file_url=FASTA_FILE_URL)
+    ]

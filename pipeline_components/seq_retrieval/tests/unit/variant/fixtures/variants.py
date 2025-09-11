@@ -150,3 +150,14 @@ def wb_variant_mg305() -> Variant:
                    seq_id='II', start=11526137, end=11526138,
                    genomic_ref_seq='',
                    genomic_alt_seq='AATTTTTTCCGCTTTACGTTTTCTCCAAAACATCTGAAACATGAA')
+
+
+@pytest.fixture
+def wb_variant_ev571() -> Variant:
+    '''
+    WB:WBVar00145251 (ev571) - NC_003280.10:g.7861782_7861783insTATGAATAC - complete-codon insertion in lin-5 gene (between frames/codons)
+    '''
+    return Variant(variant_id='NC_003280.10:g.7861782_7861783insTATGAATAC',
+                   seq_id='II', start=7861782, end=7861783,
+                   genomic_ref_seq='',
+                   genomic_alt_seq='TATGAATAC')
