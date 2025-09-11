@@ -262,3 +262,35 @@ def test_coding_seq_retrieval_w_stop_gain(wb_transcript_zc506_4a_1_with_cds, wb_
     # Alt seq embedded variant should be positioned correctly
     assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == variant_alt_rel_start + 1
     assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == variant_alt_rel_end + 1
+
+
+def test_coding_seq_retrieval_w_in_frame_insertion(wb_transcript_b0334_8a_1_with_cds, wb_variant_mg305) -> None:
+    translatedSeqRegion = wb_transcript_b0334_8a_1_with_cds['translatedSeqRegion']
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=True)
+    alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mg305])
+
+    assert ref_coding_seq == wb_transcript_b0334_8a_1_with_cds['codingSeq'].upper()
+    assert alt_coding_seq_info.sequence != ref_coding_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_mg305.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 780
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 824
+
+
+def test_protein_seq_retrieval_w_framesize_insertion(wb_transcript_b0334_8a_1_with_cds, wb_variant_mg305) -> None:
+    translatedSeqRegion = wb_transcript_b0334_8a_1_with_cds['translatedSeqRegion']
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein')
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mg305])
+
+    assert ref_protein_seq == wb_transcript_b0334_8a_1_with_cds['proteinSeq']
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == wb_variant_mg305.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 260
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 275

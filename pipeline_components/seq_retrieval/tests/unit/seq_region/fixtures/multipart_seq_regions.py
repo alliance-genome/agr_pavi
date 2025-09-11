@@ -57,3 +57,19 @@ def wb_cds_k12g11_3_1(wb_k12g11_3_1_cds_regions) -> MultiPartSeqRegion:
     WB:WBGene00010790 (adh-1) - Transcript:K12G11.3.1
     '''
     return MultiPartSeqRegion(wb_k12g11_3_1_cds_regions)
+
+
+@pytest.fixture
+def wb_cdna_b0334_8a_1(wb_b0334_8a_1_exons) -> MultiPartSeqRegion:
+    '''
+    WB:WBGene00000090 (age-1) - Transcript:B0334.8a.1
+    '''
+    return MultiPartSeqRegion(wb_b0334_8a_1_exons)
+
+
+@pytest.fixture
+def wb_cds_b0334_8a_1(wb_b0334_8a_1_cds_regions) -> MultiPartSeqRegion:
+    '''
+    WB:WBGene00000090 (age-1) - Transcript:B0334.8a.1
+    '''
+    return MultiPartSeqRegion(wb_b0334_8a_1_cds_regions)
