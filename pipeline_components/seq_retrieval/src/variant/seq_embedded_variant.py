@@ -136,14 +136,18 @@ class SeqEmbeddedVariant(Variant):
             translated_start_pos = translate_seq_position(no_flank_start)
             translated_end_pos = translate_seq_position(no_flank_end)
 
-            # For complete-codon insertions starting between codons (in-frame with reference),
-            # include start- and end-flanking AA
-            if self.embedded_alt_seq_len >= 3 and self.embedded_alt_seq_len % 3 == 0 and no_flank_start % 3 == 1:
-                if translated_start_pos > 1:
-                    translated_start_pos -= 1
+            # TODO: re-enable below block when reference positioning is implemented,
+            # then flank-inclusion will be required to enable ref vs alt comparison.
+            # On in-frame insertions, no reference AAs would be affected, so only flanking AAs can be used for visualisation.
 
-                if translated_end_pos < seq_length:
-                    translated_end_pos += 1
+            # # For complete-codon insertions starting between codons (in-frame with reference),
+            # # include start- and end-flanking AA
+            # if self.embedded_alt_seq_len >= 3 and self.embedded_alt_seq_len % 3 == 0 and no_flank_start % 3 == 1:
+            #     if translated_start_pos > 1:
+            #         translated_start_pos -= 1
+
+            #     if translated_end_pos < seq_length:
+            #         translated_end_pos += 1
 
         elif self.seq_substitution_type == SeqSubstitutionType.DELETION:
             no_flank_start = self.seq_start_pos + 1

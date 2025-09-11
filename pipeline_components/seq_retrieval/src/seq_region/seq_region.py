@@ -380,6 +380,8 @@ class SeqRegion():
                 # should be marking the flanking bases (-1 start, +1 end)
                 alt_rel_start -= 1
                 alt_rel_end += 1
+            # TODO: when implementing reference sequence positioning in SeqEmbeddedVariant,
+            # drop insertion adaptation logic as to include flanking bases, as is done for deletions (to enable ref/alt comparison)
             elif positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.INSERTION:
                 # Relative position of insertions in the alternative sequence
                 # should only mark the inserted bases (reference positions indicate
