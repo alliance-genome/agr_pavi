@@ -121,7 +121,7 @@ def test_translation_of_substitution(wb_variant_yn32_in_C42D8_8a_1_coding_seq) -
     assert wb_variant_yn32_in_C42D8_8a_1_coding_seq.seq_start_pos == 1129
     assert wb_variant_yn32_in_C42D8_8a_1_coding_seq.seq_end_pos == 1129
 
-    translated_wb_variant_yn32_in_C42D8_8a_1_coding_seq = wb_variant_yn32_in_C42D8_8a_1_coding_seq.to_translated(2061)
+    translated_wb_variant_yn32_in_C42D8_8a_1_coding_seq = wb_variant_yn32_in_C42D8_8a_1_coding_seq.to_translated()
 
     assert translated_wb_variant_yn32_in_C42D8_8a_1_coding_seq.seq_start_pos == 377
     assert translated_wb_variant_yn32_in_C42D8_8a_1_coding_seq.seq_end_pos == 377
@@ -136,7 +136,7 @@ def test_translation_of_insertion_between_codons() -> None:
     one_bp_insertion_variant = Variant('test-1bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='G')
     one_bp_insertion = SeqEmbeddedVariant(variant=one_bp_insertion_variant, seq_start_pos=4, seq_end_pos=4,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=1)
-    translated_one_bp_insertion = one_bp_insertion.to_translated(2061)
+    translated_one_bp_insertion = one_bp_insertion.to_translated()
 
     assert translated_one_bp_insertion.seq_start_pos == 2
     assert translated_one_bp_insertion.seq_end_pos == 2
@@ -144,7 +144,7 @@ def test_translation_of_insertion_between_codons() -> None:
     two_bp_insertion_variant = Variant('test-2bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GG')
     two_bp_insertion = SeqEmbeddedVariant(variant=two_bp_insertion_variant, seq_start_pos=4, seq_end_pos=5,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=2)
-    translated_two_bp_insertion = two_bp_insertion.to_translated(2061)
+    translated_two_bp_insertion = two_bp_insertion.to_translated()
 
     assert translated_two_bp_insertion.seq_start_pos == 2
     assert translated_two_bp_insertion.seq_end_pos == 2
@@ -152,7 +152,7 @@ def test_translation_of_insertion_between_codons() -> None:
     three_bp_insertion_variant = Variant('test-3bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GGG')
     three_bp_insertion = SeqEmbeddedVariant(variant=three_bp_insertion_variant, seq_start_pos=4, seq_end_pos=6,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=3)
-    translated_three_bp_insertion = three_bp_insertion.to_translated(2061)
+    translated_three_bp_insertion = three_bp_insertion.to_translated()
 
     assert translated_three_bp_insertion.seq_start_pos == 2
     assert translated_three_bp_insertion.seq_end_pos == 2
@@ -160,7 +160,7 @@ def test_translation_of_insertion_between_codons() -> None:
     four_bp_insertion_variant = Variant('test-4bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GGGG')
     four_bp_insertion = SeqEmbeddedVariant(variant=four_bp_insertion_variant, seq_start_pos=4, seq_end_pos=7,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=4)
-    translated_four_bp_insertion = four_bp_insertion.to_translated(2061)
+    translated_four_bp_insertion = four_bp_insertion.to_translated()
 
     assert translated_four_bp_insertion.seq_start_pos == 2
     assert translated_four_bp_insertion.seq_end_pos == 3
@@ -168,7 +168,7 @@ def test_translation_of_insertion_between_codons() -> None:
     five_bp_insertion_variant = Variant('test-5bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GGGGG')
     five_bp_insertion = SeqEmbeddedVariant(variant=five_bp_insertion_variant, seq_start_pos=4, seq_end_pos=8,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=5)
-    translated_five_bp_insertion = five_bp_insertion.to_translated(2061)
+    translated_five_bp_insertion = five_bp_insertion.to_translated()
 
     assert translated_five_bp_insertion.seq_start_pos == 2
     assert translated_five_bp_insertion.seq_end_pos == 3
@@ -176,7 +176,7 @@ def test_translation_of_insertion_between_codons() -> None:
     six_bp_insertion_variant = Variant('test-6bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GGGGGG')
     six_bp_insertion = SeqEmbeddedVariant(variant=six_bp_insertion_variant, seq_start_pos=4, seq_end_pos=9,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=6)
-    translated_six_bp_insertion = six_bp_insertion.to_translated(2061)
+    translated_six_bp_insertion = six_bp_insertion.to_translated()
 
     assert translated_six_bp_insertion.seq_start_pos == 2
     assert translated_six_bp_insertion.seq_end_pos == 3
@@ -191,7 +191,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     one_bp_insertion = SeqEmbeddedVariant(variant=one_bp_insertion_variant, seq_start_pos=5, seq_end_pos=5,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=1)
 
-    translated_one_bp_insertion = one_bp_insertion.to_translated(2061)
+    translated_one_bp_insertion = one_bp_insertion.to_translated()
 
     assert translated_one_bp_insertion.seq_start_pos == 2
     assert translated_one_bp_insertion.seq_end_pos == 2
@@ -200,7 +200,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     two_bp_insertion = SeqEmbeddedVariant(variant=two_bp_insertion_variant, seq_start_pos=5, seq_end_pos=6,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=2)
 
-    translated_two_bp_insertion = two_bp_insertion.to_translated(2061)
+    translated_two_bp_insertion = two_bp_insertion.to_translated()
 
     assert translated_two_bp_insertion.seq_start_pos == 2
     assert translated_two_bp_insertion.seq_end_pos == 2
@@ -209,7 +209,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     three_bp_insertion = SeqEmbeddedVariant(variant=three_bp_insertion_variant, seq_start_pos=5, seq_end_pos=7,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=3)
 
-    translated_three_bp_insertion = three_bp_insertion.to_translated(2061)
+    translated_three_bp_insertion = three_bp_insertion.to_translated()
 
     assert translated_three_bp_insertion.seq_start_pos == 2
     assert translated_three_bp_insertion.seq_end_pos == 3
@@ -218,7 +218,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     four_bp_insertion = SeqEmbeddedVariant(variant=four_bp_insertion_variant, seq_start_pos=5, seq_end_pos=8,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=4)
 
-    translated_four_bp_insertion = four_bp_insertion.to_translated(2061)
+    translated_four_bp_insertion = four_bp_insertion.to_translated()
 
     assert translated_four_bp_insertion.seq_start_pos == 2
     assert translated_four_bp_insertion.seq_end_pos == 3
@@ -227,7 +227,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     five_bp_insertion = SeqEmbeddedVariant(variant=five_bp_insertion_variant, seq_start_pos=5, seq_end_pos=9,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=5)
 
-    translated_five_bp_insertion = five_bp_insertion.to_translated(2061)
+    translated_five_bp_insertion = five_bp_insertion.to_translated()
 
     assert translated_five_bp_insertion.seq_start_pos == 2
     assert translated_five_bp_insertion.seq_end_pos == 3
@@ -236,7 +236,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     six_bp_insertion = SeqEmbeddedVariant(variant=six_bp_insertion_variant, seq_start_pos=5, seq_end_pos=10,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=6)
 
-    translated_six_bp_insertion = six_bp_insertion.to_translated(2061)
+    translated_six_bp_insertion = six_bp_insertion.to_translated()
 
     assert translated_six_bp_insertion.seq_start_pos == 2
     assert translated_six_bp_insertion.seq_end_pos == 4
@@ -245,7 +245,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     seven_bp_insertion = SeqEmbeddedVariant(variant=seven_bp_insertion_variant, seq_start_pos=5, seq_end_pos=11,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=7)
 
-    translated_seven_bp_insertion = seven_bp_insertion.to_translated(2061)
+    translated_seven_bp_insertion = seven_bp_insertion.to_translated()
 
     assert translated_seven_bp_insertion.seq_start_pos == 2
     assert translated_seven_bp_insertion.seq_end_pos == 4
@@ -254,7 +254,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     eight_bp_insertion = SeqEmbeddedVariant(variant=eight_bp_insertion_variant, seq_start_pos=4, seq_end_pos=12,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=8)
 
-    translated_eight_bp_insertion = eight_bp_insertion.to_translated(2061)
+    translated_eight_bp_insertion = eight_bp_insertion.to_translated()
 
     assert translated_eight_bp_insertion.seq_start_pos == 2
     assert translated_eight_bp_insertion.seq_end_pos == 4
@@ -269,7 +269,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     one_bp_insertion = SeqEmbeddedVariant(variant=one_bp_insertion_variant, seq_start_pos=6, seq_end_pos=6,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=1)
 
-    translated_one_bp_insertion = one_bp_insertion.to_translated(2061)
+    translated_one_bp_insertion = one_bp_insertion.to_translated()
 
     assert translated_one_bp_insertion.seq_start_pos == 2
     assert translated_one_bp_insertion.seq_end_pos == 2
@@ -278,7 +278,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     two_bp_insertion = SeqEmbeddedVariant(variant=two_bp_insertion_variant, seq_start_pos=6, seq_end_pos=7,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=2)
 
-    translated_two_bp_insertion = two_bp_insertion.to_translated(2061)
+    translated_two_bp_insertion = two_bp_insertion.to_translated()
 
     assert translated_two_bp_insertion.seq_start_pos == 2
     assert translated_two_bp_insertion.seq_end_pos == 3
@@ -287,7 +287,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     three_bp_insertion = SeqEmbeddedVariant(variant=three_bp_insertion_variant, seq_start_pos=6, seq_end_pos=8,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=3)
 
-    translated_three_bp_insertion = three_bp_insertion.to_translated(2061)
+    translated_three_bp_insertion = three_bp_insertion.to_translated()
 
     assert translated_three_bp_insertion.seq_start_pos == 2
     assert translated_three_bp_insertion.seq_end_pos == 3
@@ -296,7 +296,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     four_bp_insertion = SeqEmbeddedVariant(variant=four_bp_insertion_variant, seq_start_pos=6, seq_end_pos=9,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=4)
 
-    translated_four_bp_insertion = four_bp_insertion.to_translated(2061)
+    translated_four_bp_insertion = four_bp_insertion.to_translated()
 
     assert translated_four_bp_insertion.seq_start_pos == 2
     assert translated_four_bp_insertion.seq_end_pos == 3
@@ -305,7 +305,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     five_bp_insertion = SeqEmbeddedVariant(variant=five_bp_insertion_variant, seq_start_pos=6, seq_end_pos=10,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=5)
 
-    translated_five_bp_insertion = five_bp_insertion.to_translated(2061)
+    translated_five_bp_insertion = five_bp_insertion.to_translated()
 
     assert translated_five_bp_insertion.seq_start_pos == 2
     assert translated_five_bp_insertion.seq_end_pos == 4
@@ -314,7 +314,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     six_bp_insertion = SeqEmbeddedVariant(variant=six_bp_insertion_variant, seq_start_pos=6, seq_end_pos=11,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=6)
 
-    translated_six_bp_insertion = six_bp_insertion.to_translated(2061)
+    translated_six_bp_insertion = six_bp_insertion.to_translated()
 
     assert translated_six_bp_insertion.seq_start_pos == 2
     assert translated_six_bp_insertion.seq_end_pos == 4
@@ -322,7 +322,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     seven_bp_insertion_variant = Variant('test-7bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='GGGGGGG')
     seven_bp_insertion = SeqEmbeddedVariant(variant=seven_bp_insertion_variant, seq_start_pos=6, seq_end_pos=12,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=7)
-    translated_seven_bp_insertion = seven_bp_insertion.to_translated(2061)
+    translated_seven_bp_insertion = seven_bp_insertion.to_translated()
 
     assert translated_seven_bp_insertion.seq_start_pos == 2
     assert translated_seven_bp_insertion.seq_end_pos == 4
@@ -330,7 +330,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     eight_bp_insertion_variant = Variant('test-8bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='GGGGGGGG')
     eight_bp_insertion = SeqEmbeddedVariant(variant=eight_bp_insertion_variant, seq_start_pos=6, seq_end_pos=13,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=8)
-    translated_eight_bp_insertion = eight_bp_insertion.to_translated(2061)
+    translated_eight_bp_insertion = eight_bp_insertion.to_translated()
 
     assert translated_eight_bp_insertion.seq_start_pos == 2
     assert translated_eight_bp_insertion.seq_end_pos == 5
@@ -346,7 +346,7 @@ def test_translation_of_complete_inframe_codon_deletion() -> None:
     one_codon_deletion = SeqEmbeddedVariant(variant=one_codon_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                             embedded_ref_seq_len=3, embedded_alt_seq_len=0)
 
-    translated_one_codon_deletion = one_codon_deletion.to_translated(2061)
+    translated_one_codon_deletion = one_codon_deletion.to_translated()
 
     assert translated_one_codon_deletion.seq_start_pos == 1
     assert translated_one_codon_deletion.seq_end_pos == 2
@@ -355,7 +355,7 @@ def test_translation_of_complete_inframe_codon_deletion() -> None:
     two_codon_deletion = SeqEmbeddedVariant(variant=two_codon_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                             embedded_ref_seq_len=6, embedded_alt_seq_len=0)
 
-    translated_two_codon_deletion = two_codon_deletion.to_translated(2061)
+    translated_two_codon_deletion = two_codon_deletion.to_translated()
 
     assert translated_two_codon_deletion.seq_start_pos == 1
     assert translated_two_codon_deletion.seq_end_pos == 2
@@ -367,7 +367,7 @@ def test_translation_of_cross_region_complete_inframe_codon_deletion(wb_variants
     Translated seq positions should indicate the flanking AAs on both sides of the deletion,
     as in-frame complete codon deletions cannot be visualised otherwise.
     '''
-    translated_embedded_variant: SeqEmbeddedVariant = wb_variants_ok2799_in_k12g11_3_1_coding_seq.to_translated(1050)
+    translated_embedded_variant: SeqEmbeddedVariant = wb_variants_ok2799_in_k12g11_3_1_coding_seq.to_translated()
 
     assert translated_embedded_variant.seq_start_pos == 80
     assert translated_embedded_variant.seq_end_pos == 81
@@ -383,7 +383,7 @@ def test_translation_of_deletion_one_bp_in_codon() -> None:
     one_bp_deletion = SeqEmbeddedVariant(variant=one_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                          embedded_ref_seq_len=1, embedded_alt_seq_len=0)
 
-    translated_one_bp_deletion = one_bp_deletion.to_translated(2060)
+    translated_one_bp_deletion = one_bp_deletion.to_translated()
 
     assert translated_one_bp_deletion.seq_start_pos == 2
     assert translated_one_bp_deletion.seq_end_pos == 2
@@ -392,7 +392,7 @@ def test_translation_of_deletion_one_bp_in_codon() -> None:
     two_bp_deletion = SeqEmbeddedVariant(variant=two_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                          embedded_ref_seq_len=2, embedded_alt_seq_len=0)
 
-    translated_two_bp_deletion = two_bp_deletion.to_translated(2059)
+    translated_two_bp_deletion = two_bp_deletion.to_translated()
 
     assert translated_two_bp_deletion.seq_start_pos == 2
     assert translated_two_bp_deletion.seq_end_pos == 2
@@ -401,7 +401,7 @@ def test_translation_of_deletion_one_bp_in_codon() -> None:
     three_bp_deletion = SeqEmbeddedVariant(variant=three_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                            embedded_ref_seq_len=3, embedded_alt_seq_len=0)
 
-    translated_three_bp_deletion = three_bp_deletion.to_translated(2058)
+    translated_three_bp_deletion = three_bp_deletion.to_translated()
 
     assert translated_three_bp_deletion.seq_start_pos == 1
     assert translated_three_bp_deletion.seq_end_pos == 2
@@ -410,7 +410,7 @@ def test_translation_of_deletion_one_bp_in_codon() -> None:
     four_bp_deletion = SeqEmbeddedVariant(variant=four_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                           embedded_ref_seq_len=4, embedded_alt_seq_len=0)
 
-    translated_four_bp_deletion = four_bp_deletion.to_translated(2057)
+    translated_four_bp_deletion = four_bp_deletion.to_translated()
 
     assert translated_four_bp_deletion.seq_start_pos == 2
     assert translated_four_bp_deletion.seq_end_pos == 2
@@ -419,7 +419,7 @@ def test_translation_of_deletion_one_bp_in_codon() -> None:
     five_bp_deletion = SeqEmbeddedVariant(variant=five_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                           embedded_ref_seq_len=5, embedded_alt_seq_len=0)
 
-    translated_five_bp_deletion = five_bp_deletion.to_translated(2056)
+    translated_five_bp_deletion = five_bp_deletion.to_translated()
 
     assert translated_five_bp_deletion.seq_start_pos == 2
     assert translated_five_bp_deletion.seq_end_pos == 2
@@ -427,7 +427,7 @@ def test_translation_of_deletion_one_bp_in_codon() -> None:
     six_bp_deletion_variant = Variant('test-6bp-deletion', 'X', 5116856, 5116861, genomic_ref_seq='CACCGT')
     six_bp_deletion = SeqEmbeddedVariant(variant=six_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                          embedded_ref_seq_len=6, embedded_alt_seq_len=0)
-    translated_six_bp_deletion = six_bp_deletion.to_translated(2055)
+    translated_six_bp_deletion = six_bp_deletion.to_translated()
 
     assert translated_six_bp_deletion.seq_start_pos == 1
     assert translated_six_bp_deletion.seq_end_pos == 2
@@ -436,7 +436,7 @@ def test_translation_of_deletion_one_bp_in_codon() -> None:
     seven_bp_deletion = SeqEmbeddedVariant(variant=seven_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                            embedded_ref_seq_len=7, embedded_alt_seq_len=0)
 
-    translated_seven_bp_deletion = seven_bp_deletion.to_translated(2054)
+    translated_seven_bp_deletion = seven_bp_deletion.to_translated()
 
     assert translated_seven_bp_deletion.seq_start_pos == 2
     assert translated_seven_bp_deletion.seq_end_pos == 2
@@ -445,7 +445,7 @@ def test_translation_of_deletion_one_bp_in_codon() -> None:
     eight_bp_deletion = SeqEmbeddedVariant(variant=eight_bp_deletion_variant, seq_start_pos=3, seq_end_pos=4,
                                            embedded_ref_seq_len=8, embedded_alt_seq_len=0)
 
-    translated_eight_bp_deletion = eight_bp_deletion.to_translated(2053)
+    translated_eight_bp_deletion = eight_bp_deletion.to_translated()
 
     assert translated_eight_bp_deletion.seq_start_pos == 2
     assert translated_eight_bp_deletion.seq_end_pos == 2
@@ -461,7 +461,7 @@ def test_translation_of_deletion_two_bp_in_codon() -> None:
     one_bp_deletion = SeqEmbeddedVariant(variant=one_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5,
                                          embedded_ref_seq_len=1, embedded_alt_seq_len=0)
 
-    translated_one_bp_deletion = one_bp_deletion.to_translated(2060)
+    translated_one_bp_deletion = one_bp_deletion.to_translated()
 
     assert translated_one_bp_deletion.seq_start_pos == 2
     assert translated_one_bp_deletion.seq_end_pos == 2
@@ -470,7 +470,7 @@ def test_translation_of_deletion_two_bp_in_codon() -> None:
     two_bp_deletion = SeqEmbeddedVariant(variant=two_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5,
                                          embedded_ref_seq_len=2, embedded_alt_seq_len=0)
 
-    translated_two_bp_deletion = two_bp_deletion.to_translated(2058)
+    translated_two_bp_deletion = two_bp_deletion.to_translated()
 
     assert translated_two_bp_deletion.seq_start_pos == 2
     assert translated_two_bp_deletion.seq_end_pos == 2
@@ -479,7 +479,7 @@ def test_translation_of_deletion_two_bp_in_codon() -> None:
     three_bp_deletion = SeqEmbeddedVariant(variant=three_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5,
                                            embedded_ref_seq_len=3, embedded_alt_seq_len=0)
 
-    translated_three_bp_deletion = three_bp_deletion.to_translated(2057)
+    translated_three_bp_deletion = three_bp_deletion.to_translated()
 
     assert translated_three_bp_deletion.seq_start_pos == 2
     assert translated_three_bp_deletion.seq_end_pos == 2
@@ -488,7 +488,7 @@ def test_translation_of_deletion_two_bp_in_codon() -> None:
     four_bp_deletion = SeqEmbeddedVariant(variant=four_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5,
                                           embedded_ref_seq_len=4, embedded_alt_seq_len=0)
 
-    translated_four_bp_deletion = four_bp_deletion.to_translated(2056)
+    translated_four_bp_deletion = four_bp_deletion.to_translated()
 
     assert translated_four_bp_deletion.seq_start_pos == 2
     assert translated_four_bp_deletion.seq_end_pos == 2
@@ -497,7 +497,7 @@ def test_translation_of_deletion_two_bp_in_codon() -> None:
     five_bp_deletion = SeqEmbeddedVariant(variant=five_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5,
                                           embedded_ref_seq_len=5, embedded_alt_seq_len=0)
 
-    translated_five_bp_deletion = five_bp_deletion.to_translated(2055)
+    translated_five_bp_deletion = five_bp_deletion.to_translated()
 
     assert translated_five_bp_deletion.seq_start_pos == 2
     assert translated_five_bp_deletion.seq_end_pos == 2
@@ -506,7 +506,7 @@ def test_translation_of_deletion_two_bp_in_codon() -> None:
     six_bp_deletion = SeqEmbeddedVariant(variant=six_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5,
                                          embedded_ref_seq_len=6, embedded_alt_seq_len=0)
 
-    translated_six_bp_deletion = six_bp_deletion.to_translated(2054)
+    translated_six_bp_deletion = six_bp_deletion.to_translated()
 
     assert translated_six_bp_deletion.seq_start_pos == 2
     assert translated_six_bp_deletion.seq_end_pos == 2
@@ -515,7 +515,7 @@ def test_translation_of_deletion_two_bp_in_codon() -> None:
     seven_bp_deletion = SeqEmbeddedVariant(variant=seven_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5,
                                            embedded_ref_seq_len=7, embedded_alt_seq_len=0)
 
-    translated_seven_bp_deletion = seven_bp_deletion.to_translated(2053)
+    translated_seven_bp_deletion = seven_bp_deletion.to_translated()
 
     assert translated_seven_bp_deletion.seq_start_pos == 2
     assert translated_seven_bp_deletion.seq_end_pos == 2
@@ -524,7 +524,7 @@ def test_translation_of_deletion_two_bp_in_codon() -> None:
     eight_bp_deletion = SeqEmbeddedVariant(variant=eight_bp_deletion_variant, seq_start_pos=4, seq_end_pos=5,
                                            embedded_ref_seq_len=8, embedded_alt_seq_len=0)
 
-    translated_eight_bp_deletion = eight_bp_deletion.to_translated(2053)
+    translated_eight_bp_deletion = eight_bp_deletion.to_translated()
 
     assert translated_eight_bp_deletion.seq_start_pos == 2
     assert translated_eight_bp_deletion.seq_end_pos == 2
@@ -541,7 +541,7 @@ def test_translation_of_deletion_three_bp_in_codon() -> None:
     one_bp_deletion = SeqEmbeddedVariant(variant=one_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6,
                                          embedded_ref_seq_len=1, embedded_alt_seq_len=0)
 
-    translated_one_bp_deletion = one_bp_deletion.to_translated(2058)
+    translated_one_bp_deletion = one_bp_deletion.to_translated()
 
     assert translated_one_bp_deletion.seq_start_pos == 2
     assert translated_one_bp_deletion.seq_end_pos == 2
@@ -550,7 +550,7 @@ def test_translation_of_deletion_three_bp_in_codon() -> None:
     two_bp_deletion = SeqEmbeddedVariant(variant=two_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6,
                                          embedded_ref_seq_len=2, embedded_alt_seq_len=0)
 
-    translated_two_bp_deletion = two_bp_deletion.to_translated(2057)
+    translated_two_bp_deletion = two_bp_deletion.to_translated()
 
     assert translated_two_bp_deletion.seq_start_pos == 2
     assert translated_two_bp_deletion.seq_end_pos == 2
@@ -559,7 +559,7 @@ def test_translation_of_deletion_three_bp_in_codon() -> None:
     three_bp_deletion = SeqEmbeddedVariant(variant=three_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6,
                                            embedded_ref_seq_len=3, embedded_alt_seq_len=0)
 
-    translated_three_bp_deletion = three_bp_deletion.to_translated(2056)
+    translated_three_bp_deletion = three_bp_deletion.to_translated()
 
     assert translated_three_bp_deletion.seq_start_pos == 2
     assert translated_three_bp_deletion.seq_end_pos == 2
@@ -568,7 +568,7 @@ def test_translation_of_deletion_three_bp_in_codon() -> None:
     four_bp_deletion = SeqEmbeddedVariant(variant=four_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6,
                                           embedded_ref_seq_len=4, embedded_alt_seq_len=0)
 
-    translated_four_bp_deletion = four_bp_deletion.to_translated(2055)
+    translated_four_bp_deletion = four_bp_deletion.to_translated()
 
     assert translated_four_bp_deletion.seq_start_pos == 2
     assert translated_four_bp_deletion.seq_end_pos == 2
@@ -577,7 +577,7 @@ def test_translation_of_deletion_three_bp_in_codon() -> None:
     five_bp_deletion = SeqEmbeddedVariant(variant=five_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6,
                                           embedded_ref_seq_len=5, embedded_alt_seq_len=0)
 
-    translated_five_bp_deletion = five_bp_deletion.to_translated(2054)
+    translated_five_bp_deletion = five_bp_deletion.to_translated()
 
     assert translated_five_bp_deletion.seq_start_pos == 2
     assert translated_five_bp_deletion.seq_end_pos == 2
@@ -586,7 +586,7 @@ def test_translation_of_deletion_three_bp_in_codon() -> None:
     six_bp_deletion = SeqEmbeddedVariant(variant=six_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6,
                                          embedded_ref_seq_len=6, embedded_alt_seq_len=0)
 
-    translated_six_bp_deletion = six_bp_deletion.to_translated(2053)
+    translated_six_bp_deletion = six_bp_deletion.to_translated()
 
     assert translated_six_bp_deletion.seq_start_pos == 2
     assert translated_six_bp_deletion.seq_end_pos == 2
@@ -595,7 +595,7 @@ def test_translation_of_deletion_three_bp_in_codon() -> None:
     seven_bp_deletion = SeqEmbeddedVariant(variant=seven_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6,
                                            embedded_ref_seq_len=7, embedded_alt_seq_len=0)
 
-    translated_seven_bp_deletion = seven_bp_deletion.to_translated(2053)
+    translated_seven_bp_deletion = seven_bp_deletion.to_translated()
 
     assert translated_seven_bp_deletion.seq_start_pos == 2
     assert translated_seven_bp_deletion.seq_end_pos == 2
@@ -604,7 +604,7 @@ def test_translation_of_deletion_three_bp_in_codon() -> None:
     eight_bp_deletion = SeqEmbeddedVariant(variant=eight_bp_deletion_variant, seq_start_pos=5, seq_end_pos=6,
                                            embedded_ref_seq_len=8, embedded_alt_seq_len=0)
 
-    translated_eight_bp_deletion = eight_bp_deletion.to_translated(2053)
+    translated_eight_bp_deletion = eight_bp_deletion.to_translated()
 
     assert translated_eight_bp_deletion.seq_start_pos == 2
     assert translated_eight_bp_deletion.seq_end_pos == 2

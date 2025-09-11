@@ -95,7 +95,7 @@ class SeqEmbeddedVariant(Variant):
 
         return fused_seq_embedded_variant
 
-    def to_translated(self, seq_length: int) -> 'SeqEmbeddedVariant':
+    def to_translated(self) -> 'SeqEmbeddedVariant':
         """
         Converts the SeqEmbeddedVariant to represent embedment in it's corresponding translated (protein) sequence.
 
@@ -114,9 +114,6 @@ class SeqEmbeddedVariant(Variant):
              - Untranslated seq positions are represented as the flanking nucleotide positions to the deletion site (both start & end).
              - Translated seq positions should indicate the affected amino acid position(s) (on partial codon deletions)
                 + flanking AAs at start and end where the variant deletes complete codons, in-frame with reference (deletions of >= 3 bps)
-
-        Args:
-            seq_length: Length of the sequence (in nucleotides/amino acids)
 
         Returns:
             SeqEmbeddedVariant with its attributes translated to the corresponding values for the translated (protein) sequence.

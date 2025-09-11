@@ -14,7 +14,7 @@ def wb_variant_yn32_in_C42D8_8a_1_coding_seq(wb_variant_yn32) -> SeqEmbeddedVari
 
 @pytest.fixture
 def wb_variant_yn32_in_C42D8_8a_1_protein_seq(wb_variant_yn32_in_C42D8_8a_1_coding_seq) -> SeqEmbeddedVariant:
-    translated_embedded_variant: SeqEmbeddedVariant = wb_variant_yn32_in_C42D8_8a_1_coding_seq.to_translated(2061)
+    translated_embedded_variant: SeqEmbeddedVariant = wb_variant_yn32_in_C42D8_8a_1_coding_seq.to_translated()
     return translated_embedded_variant
 
 
@@ -34,5 +34,5 @@ def wb_variants_ok2799_in_k12g11_3_1_coding_seq(wb_variant_ok2799) -> SeqEmbedde
 
 @pytest.fixture
 def wb_variants_ok2799_in_k12g11_3_1_protein_seq(wb_variants_ok2799_in_k12g11_3_1_coding_seq) -> SeqEmbeddedVariant:
-    translated_embedded_variant: SeqEmbeddedVariant = wb_variants_ok2799_in_k12g11_3_1_coding_seq.to_translated(1050)
+    translated_embedded_variant: SeqEmbeddedVariant = wb_variants_ok2799_in_k12g11_3_1_coding_seq.to_translated()
     return translated_embedded_variant
