@@ -5,7 +5,7 @@ from typing import NotRequired, TypedDict
 from seq_region import TranslatedSeqRegion
 
 
-FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
+FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_subset.fna.gz'
 
 
 class TranscriptFixture(TypedDict):

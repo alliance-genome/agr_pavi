@@ -17,7 +17,7 @@ logger = get_logger(name=__name__)
 set_log_level(logging.DEBUG)
 
 
-FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
+FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_subset.fna.gz'
 
 
 def test_translated_seq_region_class(WB_transcript1: TranscriptFixture) -> None:
