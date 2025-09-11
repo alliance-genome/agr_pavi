@@ -138,7 +138,7 @@ class SeqEmbeddedVariant(Variant):
 
             # For complete-codon insertions starting between codons (in-frame with reference),
             # include start- and end-flanking AA
-            if len(self.genomic_alt_seq) >= 3 and len(self.genomic_alt_seq) % 3 == 0 and no_flank_start % 3 == 1:
+            if self.embedded_alt_seq_len >= 3 and self.embedded_alt_seq_len % 3 == 0 and no_flank_start % 3 == 1:
                 if translated_start_pos > 1:
                     translated_start_pos -= 1
 

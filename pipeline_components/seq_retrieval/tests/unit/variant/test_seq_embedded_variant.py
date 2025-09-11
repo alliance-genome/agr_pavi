@@ -363,6 +363,18 @@ def test_translation_of_complete_inframe_codon_deletion() -> None:
     assert translated_two_codon_deletion.seq_end_pos == 2
 
 
+def test_translation_of_cross_region_complete_inframe_codon_deletion(wb_variants_ok2799_in_k12g11_3_1_coding_seq) -> None:
+    '''
+    Test the SeqEmbeddedVariant.to_translated() method on deletions of complete codons accross multiple sequence regions.
+    Translated seq positions should indicate the flanking AAs on both sides of the deletion,
+    as in-frame complete codon deletions cannot be visualised otherwise.
+    '''
+    translated_embedded_variant: SeqEmbeddedVariant = wb_variants_ok2799_in_k12g11_3_1_coding_seq.to_translated(1050)
+
+    assert translated_embedded_variant.seq_start_pos == 80
+    assert translated_embedded_variant.seq_end_pos == 81
+
+
 def test_translation_of_deletion_one_bp_in_codon() -> None:
     '''
     Test the SeqEmbeddedVariant.to_translated() method on deletions starting at one bp into a codon.

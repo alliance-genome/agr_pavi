@@ -69,3 +69,17 @@ def wb_C42D8_8a_1_yn29_seq_record() -> SeqRecord:
                              ------------------------------------------------------------
                              --
                              '''.split())))
+
+
+@pytest.fixture
+def wb_K12G11_3_1_ok2799_seq_record() -> SeqRecord:
+    return SeqRecord(id='adh-1_K12G11.3.1_ok2799',
+                     seq=Seq(data=''.join('''
+                             MTVELPS--TQRALVFDTWNGPLEVRQVPVPSPADDEILVKIEYSGICHSDLHVWLGDLK
+                             DMSVCPLVGGHEGAGSVVQIGK--------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ---------------------------VTFDTTPFIF-NAITIKGSIVGSRLDVDEAMEF
+                             VTRGIVKV------PLELVKLEDVPAVYQRMLDGKINSRAVVDFSL-
+                             '''.split())))

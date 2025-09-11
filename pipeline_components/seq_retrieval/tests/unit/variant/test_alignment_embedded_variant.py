@@ -158,3 +158,11 @@ def test_alignment_embedded_variant_from_dict_initiation_errors(wb_variant_yn32)
             'alignment_start_pos': 590,
             'alignment_end_pos': 590
         })
+
+
+def test_alignment_embedded_deletion_w_flanking_bases(wb_variants_ok2799_in_k12g11_3_1_protein_alignment) -> None:
+    """
+    Test AlignmentEmbeddedVariant class initiation for deletion with flanking bases.
+    """
+    assert wb_variants_ok2799_in_k12g11_3_1_protein_alignment.alignment_start_pos == 82
+    assert wb_variants_ok2799_in_k12g11_3_1_protein_alignment.alignment_end_pos == 328

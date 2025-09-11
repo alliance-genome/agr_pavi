@@ -41,3 +41,19 @@ def wb_cdna_c42d8_8b_1(wb_c42d8_8b_1_exons) -> MultiPartSeqRegion:
 def wb_cds_c42d8_8b_1(wb_c42d8_8b_1_cds_regions) -> MultiPartSeqRegion:
     # WB:WBGene00000149 - Transcript:C42D8.8b.1
     return MultiPartSeqRegion(wb_c42d8_8b_1_cds_regions)
+
+
+@pytest.fixture
+def wb_cdna_k12g11_3_1(wb_k12g11_3_1_exons) -> MultiPartSeqRegion:
+    '''
+    WB:WBGene00010790 (adh-1) - Transcript:K12G11.3.1
+    '''
+    return MultiPartSeqRegion(wb_k12g11_3_1_exons)
+
+
+@pytest.fixture
+def wb_cds_k12g11_3_1(wb_k12g11_3_1_cds_regions) -> MultiPartSeqRegion:
+    '''
+    WB:WBGene00010790 (adh-1) - Transcript:K12G11.3.1
+    '''
+    return MultiPartSeqRegion(wb_k12g11_3_1_cds_regions)
