@@ -168,7 +168,7 @@ def test_protein_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1
     ref_protein_seq = translatedSeqRegion.get_sequence(type='protein')
     # ATGGTA > TTGGTA
     with pytest.raises(InvalidatedTranslationException):
-        translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript_start_codon]).sequence
+        translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript_start_codon])
 
     assert ref_protein_seq == wb_transcript_zc506_4a_1_with_cds['proteinSeq']
 
@@ -179,7 +179,7 @@ def test_coding_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGGTA > TTGGTA
     with pytest.raises(InvalidatedOrfException):
-        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_start_codon]).sequence
+        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_start_codon])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
 
@@ -236,7 +236,7 @@ def test_coding_seq_retrieval_w_stop_loss_no_recovery(wb_transcript_zc506_4a_1_w
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGA > AAGA
     with pytest.raises(InvalidatedOrfException):
-        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss]).sequence
+        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
 

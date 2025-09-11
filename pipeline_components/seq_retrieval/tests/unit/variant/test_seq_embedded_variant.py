@@ -336,8 +336,6 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     assert translated_eight_bp_insertion.seq_end_pos == 5
 
 
-# TODO: test variant position conversion for deletions.
-# Currently causing problems: WB yn10.
 def test_translation_of_complete_inframe_codon_deletion() -> None:
     """
     Test the SeqEmbeddedVariant.to_translated() method on deletions of complete codons.
