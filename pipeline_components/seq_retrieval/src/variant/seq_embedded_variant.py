@@ -107,7 +107,7 @@ class SeqEmbeddedVariant(Variant):
              - Untranslated seq positions are represented as the affected nucleotide position(s).
              - Translated seq positions should represent the affected amino acid position(s) (= direct positional translation).
          * For insertions:
-             - Untranslated seq positions are represented as the inserted nucleotide position(s) + flanking bases at both start & end.
+             - Untranslated seq positions are represented as the inserted nucleotide position(s) (no flanking bases, to be changed when adding reference variant positioning display).
              - Translated seq positions should represent the affected amino acid position(s) (on insertion in middle of codon)
                 + flanking AA at start and end where the variant inserts complete codons, in-frame with reference (for insertions of >= 3 bps)
          * For deletions:
@@ -131,8 +131,8 @@ class SeqEmbeddedVariant(Variant):
             translated_end_pos = translate_seq_position(self.seq_end_pos)
 
         elif self.seq_substitution_type == SeqSubstitutionType.INSERTION:
-            no_flank_start = self.seq_start_pos + 1
-            no_flank_end = self.seq_end_pos - 1
+            no_flank_start = self.seq_start_pos
+            no_flank_end = self.seq_end_pos
             translated_start_pos = translate_seq_position(no_flank_start)
             translated_end_pos = translate_seq_position(no_flank_end)
 

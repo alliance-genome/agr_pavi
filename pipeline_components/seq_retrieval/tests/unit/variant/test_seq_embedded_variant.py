@@ -134,7 +134,7 @@ def test_translation_of_insertion_between_codons() -> None:
      + flanking amino acids on both sides where only complete in-frame codons are inserted (for insertions of >= 3 bps)
     """
     one_bp_insertion_variant = Variant('test-1bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='G')
-    one_bp_insertion = SeqEmbeddedVariant(variant=one_bp_insertion_variant, seq_start_pos=3, seq_end_pos=5,
+    one_bp_insertion = SeqEmbeddedVariant(variant=one_bp_insertion_variant, seq_start_pos=4, seq_end_pos=4,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=1)
     translated_one_bp_insertion = one_bp_insertion.to_translated(2061)
 
@@ -142,7 +142,7 @@ def test_translation_of_insertion_between_codons() -> None:
     assert translated_one_bp_insertion.seq_end_pos == 2
 
     two_bp_insertion_variant = Variant('test-2bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GG')
-    two_bp_insertion = SeqEmbeddedVariant(variant=two_bp_insertion_variant, seq_start_pos=3, seq_end_pos=6,
+    two_bp_insertion = SeqEmbeddedVariant(variant=two_bp_insertion_variant, seq_start_pos=4, seq_end_pos=5,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=2)
     translated_two_bp_insertion = two_bp_insertion.to_translated(2061)
 
@@ -150,7 +150,7 @@ def test_translation_of_insertion_between_codons() -> None:
     assert translated_two_bp_insertion.seq_end_pos == 2
 
     three_bp_insertion_variant = Variant('test-3bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GGG')
-    three_bp_insertion = SeqEmbeddedVariant(variant=three_bp_insertion_variant, seq_start_pos=3, seq_end_pos=7,
+    three_bp_insertion = SeqEmbeddedVariant(variant=three_bp_insertion_variant, seq_start_pos=4, seq_end_pos=6,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=3)
     translated_three_bp_insertion = three_bp_insertion.to_translated(2061)
 
@@ -158,7 +158,7 @@ def test_translation_of_insertion_between_codons() -> None:
     assert translated_three_bp_insertion.seq_end_pos == 3
 
     four_bp_insertion_variant = Variant('test-4bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GGGG')
-    four_bp_insertion = SeqEmbeddedVariant(variant=four_bp_insertion_variant, seq_start_pos=3, seq_end_pos=8,
+    four_bp_insertion = SeqEmbeddedVariant(variant=four_bp_insertion_variant, seq_start_pos=4, seq_end_pos=7,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=4)
     translated_four_bp_insertion = four_bp_insertion.to_translated(2061)
 
@@ -166,7 +166,7 @@ def test_translation_of_insertion_between_codons() -> None:
     assert translated_four_bp_insertion.seq_end_pos == 3
 
     five_bp_insertion_variant = Variant('test-5bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GGGGG')
-    five_bp_insertion = SeqEmbeddedVariant(variant=five_bp_insertion_variant, seq_start_pos=3, seq_end_pos=9,
+    five_bp_insertion = SeqEmbeddedVariant(variant=five_bp_insertion_variant, seq_start_pos=4, seq_end_pos=8,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=5)
     translated_five_bp_insertion = five_bp_insertion.to_translated(2061)
 
@@ -174,7 +174,7 @@ def test_translation_of_insertion_between_codons() -> None:
     assert translated_five_bp_insertion.seq_end_pos == 3
 
     six_bp_insertion_variant = Variant('test-6bp-insertion', 'X', 5116861, 5116862, genomic_alt_seq='GGGGGG')
-    six_bp_insertion = SeqEmbeddedVariant(variant=six_bp_insertion_variant, seq_start_pos=3, seq_end_pos=10,
+    six_bp_insertion = SeqEmbeddedVariant(variant=six_bp_insertion_variant, seq_start_pos=4, seq_end_pos=9,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=6)
     translated_six_bp_insertion = six_bp_insertion.to_translated(2061)
 
@@ -188,7 +188,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     Translated seq positions should indicate the affected amino acid position(s) only (insertion site)
     """
     one_bp_insertion_variant = Variant('test-1bp-insertion', 'X', 5116860, 5116861, genomic_alt_seq='G')
-    one_bp_insertion = SeqEmbeddedVariant(variant=one_bp_insertion_variant, seq_start_pos=4, seq_end_pos=6,
+    one_bp_insertion = SeqEmbeddedVariant(variant=one_bp_insertion_variant, seq_start_pos=5, seq_end_pos=5,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=1)
 
     translated_one_bp_insertion = one_bp_insertion.to_translated(2061)
@@ -197,7 +197,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     assert translated_one_bp_insertion.seq_end_pos == 2
 
     two_bp_insertion_variant = Variant('test-2bp-insertion', 'X', 5116860, 5116861, genomic_alt_seq='GG')
-    two_bp_insertion = SeqEmbeddedVariant(variant=two_bp_insertion_variant, seq_start_pos=4, seq_end_pos=7,
+    two_bp_insertion = SeqEmbeddedVariant(variant=two_bp_insertion_variant, seq_start_pos=5, seq_end_pos=6,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=2)
 
     translated_two_bp_insertion = two_bp_insertion.to_translated(2061)
@@ -206,7 +206,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     assert translated_two_bp_insertion.seq_end_pos == 2
 
     three_bp_insertion_variant = Variant('test-3bp-insertion', 'X', 5116860, 5116861, genomic_alt_seq='GGG')
-    three_bp_insertion = SeqEmbeddedVariant(variant=three_bp_insertion_variant, seq_start_pos=4, seq_end_pos=8,
+    three_bp_insertion = SeqEmbeddedVariant(variant=three_bp_insertion_variant, seq_start_pos=5, seq_end_pos=7,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=3)
 
     translated_three_bp_insertion = three_bp_insertion.to_translated(2061)
@@ -215,7 +215,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     assert translated_three_bp_insertion.seq_end_pos == 3
 
     four_bp_insertion_variant = Variant('test-4bp-insertion', 'X', 5116860, 5116861, genomic_alt_seq='GGGG')
-    four_bp_insertion = SeqEmbeddedVariant(variant=four_bp_insertion_variant, seq_start_pos=4, seq_end_pos=9,
+    four_bp_insertion = SeqEmbeddedVariant(variant=four_bp_insertion_variant, seq_start_pos=5, seq_end_pos=8,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=4)
 
     translated_four_bp_insertion = four_bp_insertion.to_translated(2061)
@@ -224,7 +224,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     assert translated_four_bp_insertion.seq_end_pos == 3
 
     five_bp_insertion_variant = Variant('test-5bp-insertion', 'X', 5116860, 5116861, genomic_alt_seq='GGGGG')
-    five_bp_insertion = SeqEmbeddedVariant(variant=five_bp_insertion_variant, seq_start_pos=4, seq_end_pos=10,
+    five_bp_insertion = SeqEmbeddedVariant(variant=five_bp_insertion_variant, seq_start_pos=5, seq_end_pos=9,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=5)
 
     translated_five_bp_insertion = five_bp_insertion.to_translated(2061)
@@ -233,7 +233,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     assert translated_five_bp_insertion.seq_end_pos == 3
 
     six_bp_insertion_variant = Variant('test-6bp-insertion', 'X', 5116860, 5116861, genomic_alt_seq='GGGGGG')
-    six_bp_insertion = SeqEmbeddedVariant(variant=six_bp_insertion_variant, seq_start_pos=4, seq_end_pos=11,
+    six_bp_insertion = SeqEmbeddedVariant(variant=six_bp_insertion_variant, seq_start_pos=5, seq_end_pos=10,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=6)
 
     translated_six_bp_insertion = six_bp_insertion.to_translated(2061)
@@ -242,7 +242,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     assert translated_six_bp_insertion.seq_end_pos == 4
 
     seven_bp_insertion_variant = Variant('test-7bp-insertion', 'X', 5116860, 5116861, genomic_alt_seq='GGGGGGG')
-    seven_bp_insertion = SeqEmbeddedVariant(variant=seven_bp_insertion_variant, seq_start_pos=4, seq_end_pos=12,
+    seven_bp_insertion = SeqEmbeddedVariant(variant=seven_bp_insertion_variant, seq_start_pos=5, seq_end_pos=11,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=7)
 
     translated_seven_bp_insertion = seven_bp_insertion.to_translated(2061)
@@ -251,7 +251,7 @@ def test_translation_of_insertion_one_bp_in_codon() -> None:
     assert translated_seven_bp_insertion.seq_end_pos == 4
 
     eight_bp_insertion_variant = Variant('test-8bp-insertion', 'X', 5116860, 5116861, genomic_alt_seq='GGGGGGGG')
-    eight_bp_insertion = SeqEmbeddedVariant(variant=eight_bp_insertion_variant, seq_start_pos=4, seq_end_pos=13,
+    eight_bp_insertion = SeqEmbeddedVariant(variant=eight_bp_insertion_variant, seq_start_pos=4, seq_end_pos=12,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=8)
 
     translated_eight_bp_insertion = eight_bp_insertion.to_translated(2061)
@@ -266,7 +266,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     Translated seq positions should indicate the affected amino acid position(s) only (insertion site)
     """
     one_bp_insertion_variant = Variant('test-1bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='G')
-    one_bp_insertion = SeqEmbeddedVariant(variant=one_bp_insertion_variant, seq_start_pos=5, seq_end_pos=7,
+    one_bp_insertion = SeqEmbeddedVariant(variant=one_bp_insertion_variant, seq_start_pos=6, seq_end_pos=6,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=1)
 
     translated_one_bp_insertion = one_bp_insertion.to_translated(2061)
@@ -275,7 +275,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     assert translated_one_bp_insertion.seq_end_pos == 2
 
     two_bp_insertion_variant = Variant('test-2bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='GG')
-    two_bp_insertion = SeqEmbeddedVariant(variant=two_bp_insertion_variant, seq_start_pos=5, seq_end_pos=8,
+    two_bp_insertion = SeqEmbeddedVariant(variant=two_bp_insertion_variant, seq_start_pos=6, seq_end_pos=7,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=2)
 
     translated_two_bp_insertion = two_bp_insertion.to_translated(2061)
@@ -284,7 +284,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     assert translated_two_bp_insertion.seq_end_pos == 3
 
     three_bp_insertion_variant = Variant('test-3bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='GGG')
-    three_bp_insertion = SeqEmbeddedVariant(variant=three_bp_insertion_variant, seq_start_pos=5, seq_end_pos=9,
+    three_bp_insertion = SeqEmbeddedVariant(variant=three_bp_insertion_variant, seq_start_pos=6, seq_end_pos=8,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=3)
 
     translated_three_bp_insertion = three_bp_insertion.to_translated(2061)
@@ -293,7 +293,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     assert translated_three_bp_insertion.seq_end_pos == 3
 
     four_bp_insertion_variant = Variant('test-4bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='GGGG')
-    four_bp_insertion = SeqEmbeddedVariant(variant=four_bp_insertion_variant, seq_start_pos=5, seq_end_pos=10,
+    four_bp_insertion = SeqEmbeddedVariant(variant=four_bp_insertion_variant, seq_start_pos=6, seq_end_pos=9,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=4)
 
     translated_four_bp_insertion = four_bp_insertion.to_translated(2061)
@@ -302,7 +302,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     assert translated_four_bp_insertion.seq_end_pos == 3
 
     five_bp_insertion_variant = Variant('test-5bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='GGGGG')
-    five_bp_insertion = SeqEmbeddedVariant(variant=five_bp_insertion_variant, seq_start_pos=5, seq_end_pos=11,
+    five_bp_insertion = SeqEmbeddedVariant(variant=five_bp_insertion_variant, seq_start_pos=6, seq_end_pos=10,
                                            embedded_ref_seq_len=0, embedded_alt_seq_len=5)
 
     translated_five_bp_insertion = five_bp_insertion.to_translated(2061)
@@ -311,7 +311,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     assert translated_five_bp_insertion.seq_end_pos == 4
 
     six_bp_insertion_variant = Variant('test-6bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='GGGGGG')
-    six_bp_insertion = SeqEmbeddedVariant(variant=six_bp_insertion_variant, seq_start_pos=5, seq_end_pos=12,
+    six_bp_insertion = SeqEmbeddedVariant(variant=six_bp_insertion_variant, seq_start_pos=6, seq_end_pos=11,
                                           embedded_ref_seq_len=0, embedded_alt_seq_len=6)
 
     translated_six_bp_insertion = six_bp_insertion.to_translated(2061)
@@ -320,7 +320,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     assert translated_six_bp_insertion.seq_end_pos == 4
 
     seven_bp_insertion_variant = Variant('test-7bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='GGGGGGG')
-    seven_bp_insertion = SeqEmbeddedVariant(variant=seven_bp_insertion_variant, seq_start_pos=5, seq_end_pos=13,
+    seven_bp_insertion = SeqEmbeddedVariant(variant=seven_bp_insertion_variant, seq_start_pos=6, seq_end_pos=12,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=7)
     translated_seven_bp_insertion = seven_bp_insertion.to_translated(2061)
 
@@ -328,7 +328,7 @@ def test_translation_of_insertion_two_bp_in_codon() -> None:
     assert translated_seven_bp_insertion.seq_end_pos == 4
 
     eight_bp_insertion_variant = Variant('test-8bp-insertion', 'X', 5116859, 5116860, genomic_alt_seq='GGGGGGGG')
-    eight_bp_insertion = SeqEmbeddedVariant(variant=eight_bp_insertion_variant, seq_start_pos=5, seq_end_pos=14,
+    eight_bp_insertion = SeqEmbeddedVariant(variant=eight_bp_insertion_variant, seq_start_pos=6, seq_end_pos=13,
                                             embedded_ref_seq_len=0, embedded_alt_seq_len=8)
     translated_eight_bp_insertion = eight_bp_insertion.to_translated(2061)
 
