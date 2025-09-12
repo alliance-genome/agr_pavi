@@ -123,7 +123,9 @@ class SeqEmbeddedVariant(Variant):
         no_flank_start: int
         no_flank_end: int
 
-        if self.seq_substitution_type == SeqSubstitutionType.SUBSTITUTION:
+        if self.seq_substitution_type == SeqSubstitutionType.SUBSTITUTION \
+           or self.seq_substitution_type == SeqSubstitutionType.INDEL:
+
             translated_start_pos = translate_seq_position(self.seq_start_pos)
             translated_end_pos = translate_seq_position(self.seq_end_pos)
 

@@ -610,11 +610,65 @@ def test_translation_of_deletion_three_bp_in_codon() -> None:
     assert translated_eight_bp_deletion.seq_end_pos == 2
 
 
-def test_translated_seq_positions_indel() -> None:
+def test_translation_of_indel_deletion_within_one_codon() -> None:
     '''
     Test the SeqEmbeddedVariant.to_translated() method on indels.
     Translated seq positions for indels should indicate the affected amino acid position(s)
     based on the longest sequence (ref or alt).
     '''
-    # TODO
-    pass
+    indel_deletion_variant = Variant('test-indel-deletion', 'X', 5116859, 5116860, genomic_ref_seq='CG', genomic_alt_seq='A')
+    indel_deletion = SeqEmbeddedVariant(variant=indel_deletion_variant, seq_start_pos=5, seq_end_pos=6,
+                                        embedded_ref_seq_len=2, embedded_alt_seq_len=1)
+
+    translated_indel_deletion = indel_deletion.to_translated()
+
+    assert translated_indel_deletion.seq_start_pos == 2
+    assert translated_indel_deletion.seq_end_pos == 2
+
+
+def test_translation_of_indel_insertion_within_one_codon() -> None:
+    '''
+    Test the SeqEmbeddedVariant.to_translated() method on indels.
+    Translated seq positions for indels should indicate the affected amino acid position(s)
+    based on the longest sequence (ref or alt).
+    '''
+    indel_deletion_variant = Variant('test-indel-insertion', 'X', 5116860, 5116860, genomic_ref_seq='G', genomic_alt_seq='AA')
+    indel_deletion = SeqEmbeddedVariant(variant=indel_deletion_variant, seq_start_pos=5, seq_end_pos=6,
+                                        embedded_ref_seq_len=1, embedded_alt_seq_len=2)
+
+    translated_indel_deletion = indel_deletion.to_translated()
+
+    assert translated_indel_deletion.seq_start_pos == 2
+    assert translated_indel_deletion.seq_end_pos == 2
+
+
+def test_translation_of_indel_deletion_crossing_codons() -> None:
+    '''
+    Test the SeqEmbeddedVariant.to_translated() method on indels.
+    Translated seq positions for indels should indicate the affected amino acid position(s)
+    based on the longest sequence (ref or alt).
+    '''
+    indel_deletion_variant = Variant('test-indel-deletion-crossing-codon', 'X', 5116858, 5116859, genomic_ref_seq='CC', genomic_alt_seq='A')
+    indel_deletion = SeqEmbeddedVariant(variant=indel_deletion_variant, seq_start_pos=6, seq_end_pos=7,
+                                        embedded_ref_seq_len=2, embedded_alt_seq_len=1)
+
+    translated_indel_deletion = indel_deletion.to_translated()
+
+    assert translated_indel_deletion.seq_start_pos == 2
+    assert translated_indel_deletion.seq_end_pos == 3
+
+
+def test_translation_of_indel_insertion_crossing_codons() -> None:
+    '''
+    Test the SeqEmbeddedVariant.to_translated() method on indels.
+    Translated seq positions for indels should indicate the affected amino acid position(s)
+    based on the longest sequence (ref or alt).
+    '''
+    indel_deletion_variant = Variant('test-indel-insertion', 'X', 5116859, 5116859, genomic_ref_seq='C', genomic_alt_seq='AA')
+    indel_deletion = SeqEmbeddedVariant(variant=indel_deletion_variant, seq_start_pos=6, seq_end_pos=7,
+                                        embedded_ref_seq_len=1, embedded_alt_seq_len=2)
+
+    translated_indel_deletion = indel_deletion.to_translated()
+
+    assert translated_indel_deletion.seq_start_pos == 2
+    assert translated_indel_deletion.seq_end_pos == 3

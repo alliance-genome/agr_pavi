@@ -345,8 +345,8 @@ class SeqRegion():
             rel_end = rel_start + abs(positioned_variant['boundary_end'] - positioned_variant['boundary_start'])
 
             # Replace variant sequence
-            if not positioned_variant['variant'].genomic_ref_seq:
-                # Insertions
+            if positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.INSERTION:
+                # Insertion variants are positioned on the reference sequence by their flanking positions
                 sequence = sequence[:rel_start] + positioned_variant['overlap_alt_seq'] + sequence[(rel_end - 1):]
             else:
                 # All other variants
@@ -368,18 +368,24 @@ class SeqRegion():
                 alt_seq_offset -= self.frame
 
         # Calculate the position of each variant in the new (alternative) sequence
-        # Loop through variants in relative positional order to include index changes due to indels
+        # Loop through variants in relative positional order to include index changes due to insertions, deletions and indels
         alt_embedded_variants: SeqEmbeddedVariantsList = SeqEmbeddedVariantsList()
         for rel_start, positioned_variant in sorted(positioned_variants.items(), reverse=False):
 
             alt_rel_start = positioned_variant['rel_start'] + alt_seq_offset
             alt_rel_end = positioned_variant['rel_end'] + alt_seq_offset
 
+            alt_seq_len_diff = len(positioned_variant['overlap_alt_seq']) - len(positioned_variant['overlap_ref_seq'])
+
             if positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.DELETION:
                 # Relative position of deletions in the alternative sequence
                 # should be marking the flanking bases (-1 start, +1 end)
                 alt_rel_start -= 1
                 alt_rel_end += 1
+
+                # Relative end position needs to be adjusted to account for deletion length
+                alt_rel_end -= len(positioned_variant['overlap_ref_seq'])
+
             # TODO: when implementing reference sequence positioning in SeqEmbeddedVariant,
             # drop insertion adaptation logic as to include flanking bases, as is done for deletions (to enable ref/alt comparison)
             elif positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.INSERTION:
@@ -389,10 +395,15 @@ class SeqRegion():
                 alt_rel_start += 1
                 alt_rel_end -= 1
 
-            alt_seq_len_diff = len(positioned_variant['overlap_alt_seq']) - len(positioned_variant['overlap_ref_seq'])
+                # Relative end position needs to be adjusted to account for insertion length
+                alt_rel_end += len(positioned_variant['overlap_alt_seq'])
 
-            # Adjust relative end position to account for insertions, deletions and indels
-            alt_rel_end += alt_seq_len_diff
+            elif positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.INDEL:
+                # Relative end position may need to be adjusted to account for indel alt vs ref length difference.
+                # Reported positions should account for the longest length (including flanking sequence at end of shorter one),
+                # to enable comparison between reference and alternative sequences
+                if len(positioned_variant['overlap_ref_seq']) < len(positioned_variant['overlap_alt_seq']):
+                    alt_rel_end += alt_seq_len_diff
 
             alt_embedded_variants.append(SeqEmbeddedVariant(
                 variant=positioned_variant['variant'],
