@@ -211,9 +211,22 @@ def wb_c42d8_8b_1_exons() -> List[SeqRegion]:
 
 
 @pytest.fixture
-def wb_c42d8_8b_1_cds_regions(wb_c42d8_8b_1_exons: List[SeqRegion]) -> List[SeqRegion]:
+def wb_c42d8_8b_1_cds_regions() -> List[SeqRegion]:
     # WB:WBGene00000149 - Transcript:C42D8.8b.1
-    return wb_c42d8_8b_1_exons
+    return [
+        SeqRegion(seq_id='X', start=5116799, end=5116864, strand='-', frame=0, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5116171, end=5116338, strand='-', frame=0, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5115556, end=5115682, strand='-', frame=0, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5115139, end=5115372, strand='-', frame=2, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5114910, end=5115002, strand='-', frame=2, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5114723, end=5114856, strand='-', frame=2, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5114374, end=5114583, strand='-', frame=0, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5114124, end=5114320, strand='-', frame=0, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5113898, end=5114080, strand='-', frame=1, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5113650, end=5113848, strand='-', frame=1, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5113469, end=5113591, strand='-', frame=0, fasta_file_url=FASTA_FILE_URL),
+        SeqRegion(seq_id='X', start=5113100, end=5113420, strand='-', frame=0, fasta_file_url=FASTA_FILE_URL)
+    ]
 
 
 @pytest.fixture
