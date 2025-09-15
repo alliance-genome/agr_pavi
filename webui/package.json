@@ -46,7 +46,7 @@
         "cypress": "^14.0.0",
         "cypress-image-diff-html-report": "^2.2.0",
         "cypress-image-diff-js": "^2.3.0",
-        "cypress-real-events": "^1.14.0",
+        "cypress-real-events": "^1.15.0",
         "eslint-config-next": "~15.5.2",
         "eslint-plugin-cypress": "^5.1.0",
         "eslint-plugin-jest": "^29.0.1",
