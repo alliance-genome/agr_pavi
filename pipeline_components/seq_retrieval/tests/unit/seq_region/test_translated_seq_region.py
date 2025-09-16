@@ -467,3 +467,38 @@ def test_translation_of_indel_insertion_crossing_codons(wb_transcript_c42d8_8b_1
     # Alt seq embedded variant should be positioned correctly
     assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 2
     assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 3
+
+
+def test_translation_of_insertion_introducing_stop_codon(wb_transcript_c42d8_8b_1_with_cds) -> None:
+    '''
+    SeqEmbeddedVariant positions are expected to represent the inserted sequence, until but including the stop codon
+    (end position should be length of sequence + 1, alignment position should indicate first gap position if a tailing gap is present)
+    '''
+    translatedSeqRegion = wb_transcript_c42d8_8b_1_with_cds['translatedSeqRegion']
+    stop_insertion_variant = Variant('test-insertion-introducing-stop', 'X', 5116858, 5116859, genomic_ref_seq='', genomic_alt_seq='GCCTCAGCG')
+
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
+    alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[stop_insertion_variant])
+
+    assert ref_coding_seq == wb_transcript_c42d8_8b_1_with_cds['codingSeq']
+    assert alt_coding_seq_info.sequence != ref_coding_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == stop_insertion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 7
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 12
+
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein', unmasked=False)
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[stop_insertion_variant])
+
+    assert ref_protein_seq == wb_transcript_c42d8_8b_1_with_cds['proteinSeq']
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == stop_insertion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 3
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 4
