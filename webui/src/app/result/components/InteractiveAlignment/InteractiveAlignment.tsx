@@ -199,20 +199,20 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                     optionGroupChildren='items' optionGroupLabel='groupLabel' optionGroupTemplate={itemGroupTemplate}
                 />
             </div>
-            <div style={{paddingLeft: labelWidth.toString()+'px'}}>
-                <NightingaleTrack
-                    id='variant-overview-track'
-                    data={variantTrackData}
-                    display-start={1}
-                    display-end={seqLength}
-                    length={seqLength}
-                    height={15}
-                    layout='default'
-                    margin-left={0}
-                    margin-right={5}
-                />
-            </div>
-            <div>
+            <div id='alignment-view-container'>
+                <div style={{paddingLeft: labelWidth.toString()+'px'}}>
+                    <NightingaleTrack
+                        id='variant-overview-track'
+                        data={variantTrackData}
+                        display-start={1}
+                        display-end={seqLength}
+                        length={seqLength}
+                        height={15}
+                        layout='default'
+                        margin-left={0}
+                        margin-right={5}
+                    />
+                </div>
                 <NightingaleManagerComponent
                     reflected-attributes='display-start,display-end'
                 >
