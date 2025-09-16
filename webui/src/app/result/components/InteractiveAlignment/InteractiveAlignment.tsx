@@ -159,7 +159,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         }
     }
 
-    const variantTrackHeight: int = Math.max(...positionalFeatureCount.values()) * 15
+    const variantTrackHeight: number = Math.max(...positionalFeatureCount.values()) * 15
 
     const maxLabelLength = alignmentData.reduce((maxLength, alignment) => {
         return Math.max(maxLength, alignment.name.length);
