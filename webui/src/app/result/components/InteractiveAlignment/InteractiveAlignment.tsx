@@ -115,10 +115,15 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
 
     const alignmentFeatures: MSAFeaturesProp = []
     const variantTrackData: TrackDataProp = []
+    const positionalFeatureCount: Map<number, number> = new Map([])
     for (let i = 0; i < alignmentData.length; i++){
         const alignment_seq_name = alignmentData[i].name
         if(alignment_seq_name in seqInfoDict && 'embedded_variants' in seqInfoDict[alignment_seq_name]){
             for(const embedded_variant of (seqInfoDict[alignment_seq_name]['embedded_variants'] || [])){
+                // Add variant to positional feature count
+                for (let j = embedded_variant.alignment_start_pos; j <= embedded_variant.alignment_end_pos; j++){
+                    positionalFeatureCount.set(j, (positionalFeatureCount.get(j) || 0) + 1)
+                }
                 // Add variant to alignment features
                 alignmentFeatures.push({
                     residues: {
@@ -153,6 +158,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
             }
         }
     }
+
+    const variantTrackHeight: int = Math.max(...positionalFeatureCount.values()) * 15
 
     const maxLabelLength = alignmentData.reduce((maxLength, alignment) => {
         return Math.max(maxLength, alignment.name.length);
@@ -207,8 +214,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                         display-start={1}
                         display-end={seqLength}
                         length={seqLength}
-                        height={15}
-                        layout='default'
+                        height={variantTrackHeight}
+                        layout='non-overlapping'
                         margin-left={0}
                         margin-right={5}
                     />
@@ -238,8 +245,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                             length={seqLength}
                             margin-left={0}
                             margin-right={5}
-                            height={15}
-                            layout='default'
+                            height={variantTrackHeight}
+                            layout='non-overlapping'
                         />
                     </div>
                     <NightingaleMSAComponent
