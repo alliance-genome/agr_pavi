@@ -43,7 +43,7 @@ describe('submit form behaviour', () => {
         // There should only be one cell with a inputgroup.
         // cy.get('table tbody tr td .p-inputgroup').should('have.length', 1)
 
-        // Should displays one alignmentEntry by default.
+        // Should display one alignmentEntry by default.
         cy.get('.p-inputgroup').should('have.length', 1)
 
         // There should be excactly one submit button
