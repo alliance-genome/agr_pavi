@@ -20,6 +20,27 @@
         "gene": "WB:WBGene00000149",
         "transcripts": [
             "C42D8.8b.1"
+        ],
+        "alleles": [
+            "WB:WBVar00275424"
+        ]
+    },
+    {
+        "gene": "WB:WBGene00006318",
+        "transcripts": [
+            "F34D6.3.1"
+        ],
+        "alleles": [
+            "WB:WBVar00090295"
+        ]
+    },
+    {
+        "gene": "WB:WBGene00011034",
+        "transcripts": [
+            "R05D11.6.1"
+        ],
+        "alleles": [
+            "WB:WBVar02145282"
         ]
     },
     {

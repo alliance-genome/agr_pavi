@@ -199,13 +199,19 @@ describe('submit form behaviour', () => {
         cy.get('@nightingaleSequenceLabels').should('be.visible')
         cy.get('@nightingaleSequenceLabels').shadow().find('ul > li').as('NightingaleLabels')
 
-        cy.get('@NightingaleLabels').should('have.length', 6)
+        cy.get('@NightingaleLabels').should('have.length', 11)
         cy.get('@NightingaleLabels').contains('Appl_Appl-RA')
         cy.get('@NightingaleLabels').contains('Appl_Appl-RB')
         cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_ref')
         cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_yn32')
-        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1_ref')
+        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8b.1_yn10')
         cy.get('@NightingaleLabels').contains('mgl-1_ZC506.4a.1')
+        cy.get('@NightingaleLabels').contains('sup-9_F34D6.3.1_ref')
+        cy.get('@NightingaleLabels').contains('sup-9_F34D6.3.1_n1913')
+        cy.get('@NightingaleLabels').contains('paxt-1_R05D11.6.1_ref')
+        cy.get('@NightingaleLabels').contains('paxt-1_R05D11.6.1_xe5')
+
 
         cy.get('@nightingaleSequenceLabels').parent('div').find('msa-sequence-viewer:visible').as('nightingaleSequenceView')
         cy.get('@nightingaleSequenceView').should('have.length', 1)
@@ -343,7 +349,7 @@ describe('submit form behaviour', () => {
         cy.get('@alignmentTextDisplay').should('be.visible')
 
         // Displayed alignment should match the expected output
-        cy.readFile('cypress/test-resources/submit-workflow-success-output.aln').then(function(txt){
+        cy.readFile('cypress/fixtures/submit-workflow-success-output.aln').then(function(txt){
             expect(txt).to.be.a('string')
 
             cy.get('textarea#alignment-result-text').should('have.text', txt)
