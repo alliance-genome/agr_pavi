@@ -18,6 +18,7 @@ API_BASE_URL ?= http://localhost:8080
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
+	@rm -rf .venv/ .venv-build/
 	@rm -f nextflow.sh
 	@rm -f protein-msa.nf
 	@rm -f nextflow.config
@@ -59,7 +60,7 @@ protein-msa.nf:
 nextflow.config:
 	ln -s ./pipeline_workflow/nextflow.config nextflow.config
 
-run-server-dev: install-deps nextflow.sh protein-msa.nf nextflow.config
+run-server-dev: .venv/ install-deps nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 export API_EXECUTION_ENV="local" && \
 	 .venv/bin/fastapi dev src/main.py

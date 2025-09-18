@@ -128,3 +128,36 @@ def wb_variant_n1913() -> Variant:
                    seq_id='II', start=2686968, end=2686968,
                    genomic_ref_seq='G',
                    genomic_alt_seq='ATC')
+
+
+@pytest.fixture
+def wb_variant_ok2799() -> Variant:
+    '''
+    WB:WBVar00093896 (ok2799) - NC_003283.11:g.11888536_11889172del - complete codon deletion in adh-1 gene
+    '''
+    return Variant(variant_id='NC_003280.10:g.2686968_2686968delinsATC',
+                   seq_id='V', start=11888536, end=11889172,
+                   genomic_ref_seq='AATGTTACTGGATGGCAACTTGGAGACAAAGCTGGAGTCAAGGTTTAAAACTGTTAAATTTCATTTCCAATTTCTTAAATTTAAGCTCATGAACTTCAACTGCCTCAACTGCGAATTCTGTAAGAAAGGCCACGAGCCACTCTGCCACCACATCCAGAACTATGGGTTCGATCGTTCTGGAACTTTCCAGGAGTACCTCACTATACGTGGAGTTGATGCCGCCAAAATCAACAAGGATACCAATCTCGCCGCTGCTGCTCCAATTCTCTGTGCAGGAGTCACAGTCTACAAGGCCCTGAAGGAGTCGAACGTTGCTCCAGGACAAATCATTGTGCTTACTGGAGCCGGAGGTGGTCTCGGATCTCTTGCTATTCAATATGCCTGTGCTATGGGAATGAGAGTTGTCGCAATGGATCACGGAAGCAAAGAAGCTCATTGCAAAGGACTTGGAGCTGAATGGTTCGTCGATGCATTTGAAACTCCAGATATTGTGTCTCACATTACCAAATTGACTGAGGGAGGACCACATGGAGTTATCAACTTTGCTGTTGCAAGAAAACCAATGGAACAAGCTGTTGAATACGTCAGAAAGCGTGGAACCGTTGTTTTCGTCGGTCTTCCAAAGGATTCAAAGGTG',
+                   genomic_alt_seq='')
+
+
+@pytest.fixture
+def wb_variant_mg305() -> Variant:
+    '''
+    WB:WBVar00088927 (mg305) - NC_003280.10:g.11526137_11526138insAATTTTTTCCGCTTTACGTTTTCTCCAAAACATCTGAAACATGAA - complete-codon insertion in age-1 gene (mid-frame, within one codon)
+    '''
+    return Variant(variant_id='NC_003280.10:g.11526137_11526138insAATTTTTTCCGCTTTACGTTTTCTCCAAAACATCTGAAACATGAA',
+                   seq_id='II', start=11526137, end=11526138,
+                   genomic_ref_seq='',
+                   genomic_alt_seq='AATTTTTTCCGCTTTACGTTTTCTCCAAAACATCTGAAACATGAA')
+
+
+@pytest.fixture
+def wb_variant_ev571() -> Variant:
+    '''
+    WB:WBVar00145251 (ev571) - NC_003280.10:g.7861782_7861783insTATGAATAC - complete-codon insertion in lin-5 gene (between frames/codons)
+    '''
+    return Variant(variant_id='NC_003280.10:g.7861782_7861783insTATGAATAC',
+                   seq_id='II', start=7861782, end=7861783,
+                   genomic_ref_seq='',
+                   genomic_alt_seq='TATGAATAC')

@@ -7,7 +7,8 @@ import pytest
 from Bio.Data import CodonTable
 
 from seq_region import SeqRegion, TranslatedSeqRegion, InvalidatedOrfException, InvalidatedTranslationException, OrfNotFoundException
-from seq_region.translated_seq_region import find_orfs, coding_to_protein_rel_position
+from seq_region.translated_seq_region import find_orfs
+from variant import Variant
 
 from .fixtures.translated_seq_regions import TranscriptFixture
 
@@ -17,20 +18,7 @@ logger = get_logger(name=__name__)
 set_log_level(logging.DEBUG)
 
 
-FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_X.fna.gz'
-
-
-def test_coding_to_protein_rel_position() -> None:
-    """
-    Test the coding_to_protein_rel_position() function
-    """
-    assert coding_to_protein_rel_position(1) == 1
-    assert coding_to_protein_rel_position(2) == 1
-    assert coding_to_protein_rel_position(3) == 1
-    assert coding_to_protein_rel_position(4) == 2
-    assert coding_to_protein_rel_position(5) == 2
-    assert coding_to_protein_rel_position(6) == 2
-    assert coding_to_protein_rel_position(7) == 3
+FASTA_FILE_URL = 'file://tests/resources/GCF_000002985.6_WBcel235_genomic_subset.fna.gz'
 
 
 def test_translated_seq_region_class(WB_transcript1: TranscriptFixture) -> None:
@@ -181,7 +169,7 @@ def test_protein_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1
     ref_protein_seq = translatedSeqRegion.get_sequence(type='protein')
     # ATGGTA > TTGGTA
     with pytest.raises(InvalidatedTranslationException):
-        translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript_start_codon]).sequence
+        translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript_start_codon])
 
     assert ref_protein_seq == wb_transcript_zc506_4a_1_with_cds['proteinSeq']
 
@@ -192,7 +180,7 @@ def test_coding_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGGTA > TTGGTA
     with pytest.raises(InvalidatedOrfException):
-        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_start_codon]).sequence
+        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_start_codon])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
 
@@ -249,7 +237,7 @@ def test_coding_seq_retrieval_w_stop_loss_no_recovery(wb_transcript_zc506_4a_1_w
     ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
     # ATGA > AAGA
     with pytest.raises(InvalidatedOrfException):
-        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss]).sequence
+        translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mgl_1_transcript_stop_loss, wb_variant_mgl_1_transcript_stop2_loss])
 
     assert ref_coding_seq == wb_transcript_zc506_4a_1_with_cds['codingSeq']
 
@@ -275,3 +263,242 @@ def test_coding_seq_retrieval_w_stop_gain(wb_transcript_zc506_4a_1_with_cds, wb_
     # Alt seq embedded variant should be positioned correctly
     assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == variant_alt_rel_start + 1
     assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == variant_alt_rel_end + 1
+
+
+def test_coding_seq_retrieval_w_framesize_insertion_midframe(wb_transcript_b0334_8a_1_with_cds, wb_variant_mg305) -> None:
+    translatedSeqRegion = wb_transcript_b0334_8a_1_with_cds['translatedSeqRegion']
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=True)
+    alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_mg305])
+
+    assert ref_coding_seq == wb_transcript_b0334_8a_1_with_cds['codingSeq'].upper()
+    assert alt_coding_seq_info.sequence != ref_coding_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_mg305.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 780
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 824
+
+
+def test_protein_seq_retrieval_w_framesize_insertion_midframe(wb_transcript_b0334_8a_1_with_cds, wb_variant_mg305) -> None:
+    translatedSeqRegion = wb_transcript_b0334_8a_1_with_cds['translatedSeqRegion']
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein')
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mg305])
+
+    assert ref_protein_seq == wb_transcript_b0334_8a_1_with_cds['proteinSeq']
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == wb_variant_mg305.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 260
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 275
+
+
+def test_coding_seq_retrieval_w_framesize_insertion_between_frames(wb_transcript_t09A5_10_1_with_cds, wb_variant_ev571) -> None:
+    translatedSeqRegion = wb_transcript_t09A5_10_1_with_cds['translatedSeqRegion']
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
+    alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[wb_variant_ev571])
+
+    assert ref_coding_seq == wb_transcript_t09A5_10_1_with_cds['codingSeq']
+    assert alt_coding_seq_info.sequence != ref_coding_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == wb_variant_ev571.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 1030
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 1038
+
+
+def test_protein_seq_retrieval_w_framesize_insertion_between_frames(wb_transcript_t09A5_10_1_with_cds, wb_variant_ev571) -> None:
+    translatedSeqRegion = wb_transcript_t09A5_10_1_with_cds['translatedSeqRegion']
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein')
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_ev571])
+
+    assert ref_protein_seq == wb_transcript_t09A5_10_1_with_cds['proteinSeq']
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == wb_variant_ev571.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 344
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 346
+
+
+def test_seq_retrieval_w_indel_deletion_within_one_codon(wb_transcript_c42d8_8b_1_with_cds) -> None:
+    '''
+    SeqEmbeddedVariant positions are expected to represent the longest embedded seq of alt/ref
+    on both ref and alt sequences.
+    '''
+    translatedSeqRegion = wb_transcript_c42d8_8b_1_with_cds['translatedSeqRegion']
+    indel_deletion_variant = Variant('test-indel-deletion', 'X', 5116859, 5116860, genomic_ref_seq='CG', genomic_alt_seq='A')
+
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
+    alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[indel_deletion_variant])
+
+    assert ref_coding_seq == wb_transcript_c42d8_8b_1_with_cds['codingSeq']
+    assert alt_coding_seq_info.sequence != ref_coding_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == indel_deletion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 5
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 6
+
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein', unmasked=False)
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[indel_deletion_variant])
+
+    assert ref_protein_seq == wb_transcript_c42d8_8b_1_with_cds['proteinSeq']
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == indel_deletion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 2
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 2
+
+
+def test_translation_of_indel_insertion_within_one_codon(wb_transcript_c42d8_8b_1_with_cds) -> None:
+    '''
+    SeqEmbeddedVariant positions are expected to represent the longest embedded seq of alt/ref
+    on both ref and alt sequences.
+    '''
+    translatedSeqRegion = wb_transcript_c42d8_8b_1_with_cds['translatedSeqRegion']
+    indel_insertion_variant = Variant('test-indel-insertion', 'X', 5116860, 5116860, genomic_ref_seq='G', genomic_alt_seq='AA')
+
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
+    alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[indel_insertion_variant])
+
+    assert ref_coding_seq == wb_transcript_c42d8_8b_1_with_cds['codingSeq']
+    assert alt_coding_seq_info.sequence != ref_coding_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == indel_insertion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 5
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 6
+
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein', unmasked=False)
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[indel_insertion_variant])
+
+    assert ref_protein_seq == wb_transcript_c42d8_8b_1_with_cds['proteinSeq']
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == indel_insertion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 2
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 2
+
+
+def test_translation_of_indel_deletion_crossing_codons(wb_transcript_c42d8_8b_1_with_cds) -> None:
+    '''
+    SeqEmbeddedVariant positions are expected to represent the longest embedded seq of alt/ref
+    on both ref and alt sequences.
+    '''
+    translatedSeqRegion = wb_transcript_c42d8_8b_1_with_cds['translatedSeqRegion']
+    indel_deletion_variant = Variant('test-indel-deletion-crossing-codon', 'X', 5116858, 5116859, genomic_ref_seq='CC', genomic_alt_seq='A')
+
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
+    alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[indel_deletion_variant])
+
+    assert ref_coding_seq == wb_transcript_c42d8_8b_1_with_cds['codingSeq']
+    assert alt_coding_seq_info.sequence != ref_coding_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == indel_deletion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 6
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 7
+
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein', unmasked=False)
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[indel_deletion_variant])
+
+    assert ref_protein_seq == wb_transcript_c42d8_8b_1_with_cds['proteinSeq']
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == indel_deletion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 2
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 3
+
+
+def test_translation_of_indel_insertion_crossing_codons(wb_transcript_c42d8_8b_1_with_cds) -> None:
+    '''
+    SeqEmbeddedVariant positions are expected to represent the longest embedded seq of alt/ref
+    on both ref and alt sequences.
+    '''
+    translatedSeqRegion = wb_transcript_c42d8_8b_1_with_cds['translatedSeqRegion']
+    indel_insertion_variant = Variant('test-indel-insertion', 'X', 5116859, 5116859, genomic_ref_seq='C', genomic_alt_seq='AA')
+
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
+    alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[indel_insertion_variant])
+
+    assert ref_coding_seq == wb_transcript_c42d8_8b_1_with_cds['codingSeq']
+    assert alt_coding_seq_info.sequence != ref_coding_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == indel_insertion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 6
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 7
+
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein', unmasked=False)
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[indel_insertion_variant])
+
+    assert ref_protein_seq == wb_transcript_c42d8_8b_1_with_cds['proteinSeq']
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == indel_insertion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 2
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 3
+
+
+def test_translation_of_insertion_introducing_stop_codon(wb_transcript_c42d8_8b_1_with_cds) -> None:
+    '''
+    SeqEmbeddedVariant positions are expected to represent the inserted sequence, until but including the stop codon
+    (end position should be length of sequence + 1, alignment position should indicate first gap position if a tailing gap is present)
+    '''
+    translatedSeqRegion = wb_transcript_c42d8_8b_1_with_cds['translatedSeqRegion']
+    stop_insertion_variant = Variant('test-insertion-introducing-stop', 'X', 5116858, 5116859, genomic_ref_seq='', genomic_alt_seq='GCCTCAGCG')
+
+    ref_coding_seq = translatedSeqRegion.get_sequence(type='coding', unmasked=False)
+    alt_coding_seq_info = translatedSeqRegion.get_alt_sequence(type='coding', variants=[stop_insertion_variant])
+
+    assert ref_coding_seq == wb_transcript_c42d8_8b_1_with_cds['codingSeq']
+    assert alt_coding_seq_info.sequence != ref_coding_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_coding_seq_info.embedded_variants) == 1
+    assert alt_coding_seq_info.embedded_variants[0].variant_id == stop_insertion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_coding_seq_info.embedded_variants[0].seq_start_pos == 7
+    assert alt_coding_seq_info.embedded_variants[0].seq_end_pos == 12
+
+    ref_protein_seq = translatedSeqRegion.get_sequence(type='protein', unmasked=False)
+    alt_protein_seq_info = translatedSeqRegion.get_alt_sequence(type='protein', variants=[stop_insertion_variant])
+
+    assert ref_protein_seq == wb_transcript_c42d8_8b_1_with_cds['proteinSeq']
+    assert alt_protein_seq_info.sequence != ref_protein_seq
+
+    # Alt seq should have one embedded variant
+    assert len(alt_protein_seq_info.embedded_variants) == 1
+    assert alt_protein_seq_info.embedded_variants[0].variant_id == stop_insertion_variant.variant_id
+    # Alt seq embedded variant should be positioned correctly
+    assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 3
+    assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 4

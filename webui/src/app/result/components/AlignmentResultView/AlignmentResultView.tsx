@@ -5,9 +5,10 @@ import React, { FunctionComponent, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Dropdown } from 'primereact/dropdown';
 
-import { fetchAlignmentResults } from './serverActions';
+import { fetchAlignmentResults, fetchAlignmentSeqInfo } from './serverActions';
 import { displayModeType } from './types';
 import { TextAlignment } from '../TextAlignment/TextAlignment';
+import { SeqInfoDict } from '../InteractiveAlignment/types';
 
 const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
 
@@ -26,7 +27,8 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         {label: 'Interactive', value: 'interactive'}
     ]
 
-    const [alignmentResult, setAlignmentResult] = useState(String)
+    const [alignmentResult, setAlignmentResult] = useState<string>('')
+    const [alignmentSeqInfo, setAlignmentSeqInfo] = useState<SeqInfoDict>({})
     function changeDisplayMode(displayMode: displayModeType) {
         console.log(`Changing display mode to ${displayMode}.`)
         setDisplayMode(displayMode)
@@ -40,12 +42,22 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     }
 
     async function getAlignmentResult(){
+        // Fetch alignment output
         const result = await fetchAlignmentResults(props.uuidStr)
         if(result){
             setAlignmentResult(result)
         }
         else{
             console.log('Failed to retrieve alignment results.')
+        }
+
+        // Fetch alignment seq-info
+        const seq_info_dict = await fetchAlignmentSeqInfo(props.uuidStr)
+        if(seq_info_dict){
+            setAlignmentSeqInfo(seq_info_dict)
+        }
+        else{
+            console.log('Failed to retrieve alignment seq-info.')
         }
     }
 
@@ -56,6 +68,17 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
             getAlignmentResult()
 
         }, [] // eslint-disable-line react-hooks/exhaustive-deps
+    )
+
+    useEffect(
+        () => {
+            console.log(`alignmentSeqInfo updated.`)
+
+            if(alignmentSeqInfo){
+                console.log(`alignmentSeqInfo updated to:`, alignmentSeqInfo)
+            }
+
+        }, [alignmentSeqInfo]
     )
 
     useEffect(
@@ -82,7 +105,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                 {alignmentResult ?
                     (
                         <>
-                            <div style={{display: interactiveDisplayStyle()}}><InteractiveAlignment alignmentResult={alignmentResult} /></div>
+                            <div style={{display: interactiveDisplayStyle()}}><InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} /></div>
                             <div style={{display: textDisplayStyle()}}><TextAlignment alignmentResult={alignmentResult} /></div>
                         </>
                     )

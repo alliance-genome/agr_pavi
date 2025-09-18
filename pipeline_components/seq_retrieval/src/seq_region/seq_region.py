@@ -108,6 +108,76 @@ class SeqRegion():
     def __repr__(self) -> str:  # pragma: no cover
         return self.__str__()
 
+    def calc_variant_overlap(self, variant: 'Variant') -> 'PositionedVariant':
+        """
+        Calculate the overlap of a variant with the sequence region.
+
+        Args:
+            variant: the variant to calculate overlap for
+
+        Returns:
+            a PositionedVariant object representing the overlapping variant
+
+        Raises:
+            ValueError: if the variant does not overlap the sequence region
+        """
+
+        # If variant is not in the SeqRegion boundaries, raise error
+        variant_seq_region = SeqRegion(seq_id=variant.genomic_seq_id, start=variant.genomic_start_pos, end=variant.genomic_end_pos,
+                                       fasta_file_url='file:' + self.fasta_file_path)
+        if self.overlaps(variant_seq_region) is not True:
+            raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
+                             + f'out of boundaries of SeqRegion {self}.')
+
+        # Calculate the variant's start position relative to the SeqRegion
+        start_overhang: int = 0
+        end_overhang: int = 0
+        boundary_start: int
+        boundary_end: int
+        if self.strand == "-":
+            boundary_start = min(variant.genomic_end_pos, self.end)
+            start_overhang = variant.genomic_end_pos - boundary_start
+            boundary_end = max(variant.genomic_start_pos, self.start)
+            end_overhang = boundary_end - variant.genomic_start_pos
+        else:
+            boundary_start = max(variant.genomic_start_pos, self.start)
+            start_overhang = boundary_start - variant.genomic_start_pos
+            boundary_end = min(variant.genomic_end_pos, self.end)
+            end_overhang = variant.genomic_end_pos - boundary_end
+
+        if (start_overhang > 0 or end_overhang > 0) and variant.genomic_alt_seq != '' \
+           and len(variant.genomic_ref_seq) != len(variant.genomic_alt_seq):
+            logger.error('Embedding of partially overlapping indels not supported. '
+                         + f'Variant {variant} only partially overlaps SeqRegion {self}.')
+            raise NotImplementedError('Embedding of partially overlapping indels not supported.')
+
+        rel_variant_start_pos = self.to_rel_position(boundary_start)
+
+        # Calculate the part of the variant's reference and alternative sequence that overlaps the SeqRegion
+        overlap_ref_seq = variant.genomic_ref_seq
+        overlap_alt_seq = variant.genomic_alt_seq
+
+        if self.strand == '-':
+            overlap_ref_seq = str(Seq.reverse_complement(overlap_ref_seq))
+            overlap_alt_seq = str(Seq.reverse_complement(overlap_alt_seq))
+
+        # Remove overhangs (for partial overlapping variants)
+        overlap_ref_seq = overlap_ref_seq[start_overhang:len(overlap_ref_seq) - end_overhang]
+        if overlap_alt_seq:
+            overlap_alt_seq = overlap_alt_seq[start_overhang:len(overlap_alt_seq) - end_overhang]
+
+        return {
+            'variant': variant,
+            'boundary_start': boundary_start,
+            'boundary_end': boundary_end,
+            'boundary_start_overhang': start_overhang,
+            'boundary_end_overhang': end_overhang,
+            'overlap_ref_seq': overlap_ref_seq,
+            'overlap_alt_seq': overlap_alt_seq,
+            'rel_start': rel_variant_start_pos,
+            'rel_end': rel_variant_start_pos + abs(boundary_end - boundary_start)
+        }
+
     def fetch_seq(self) -> str:
         """
         Fetch sequence found at `seq_id`:`start`-`end`(:`strand`)
@@ -261,82 +331,12 @@ class SeqRegion():
             raise ValueError('variants_alt_sequence method does not support overlapping variants.')
 
         # Position all variants relative to the SeqRegion
-        class PositionedVariant(TypedDict):
-            variant: 'Variant'
-            """The Variant object"""
-            boundary_start: int
-            boundary_end: int
-            rel_start: int
-            """The relative start position of the variant in the SeqRegion's sequence"""
-            rel_end: int
-            """The relative end position of the variant in the SeqRegion's sequence"""
-            boundary_start_overhang: int
-            """The number of bases the variant is overhanging the start of the SeqRegion (outside of the SeqRegion boundary)"""
-            boundary_end_overhang: int
-            """The number of bases the variant is overhanging the end of the SeqRegion (outside of the SeqRegion boundary)"""
-            overlap_ref_seq: str
-            """Strand-corrected part of the variant's reference sequence that overlaps the SeqRegion"""
-            overlap_alt_seq: str
-            """Strand-corrected part of the variant's alternative sequence that overlaps the SeqRegion"""
-
-        positioned_variants: Dict[int, PositionedVariant] = {}  # Variants indexed by relative position in SeqRegion
+        positioned_variants: Dict[int, 'PositionedVariant'] = {}  # Variants indexed by relative position in SeqRegion
 
         for variant in variants:
-            # If variant is not in the SeqRegion boundaries, raise error
-            variant_seq_region = SeqRegion(seq_id=variant.genomic_seq_id, start=variant.genomic_start_pos, end=variant.genomic_end_pos,
-                                           fasta_file_url='file:' + self.fasta_file_path)
-            if self.overlaps(variant_seq_region) is not True:
-                raise ValueError(f'Variant {variant.variant_id} ({variant.genomic_seq_id}:{variant.genomic_start_pos}-{variant.genomic_end_pos}) '
-                                 + f'out of boundaries of SeqRegion {self}.')
+            overlapping_variant = self.calc_variant_overlap(variant)
 
-            # Calculate the variant's start position relative to the SeqRegion
-            start_overhang: int = 0
-            end_overhang: int = 0
-            boundary_start: int
-            boundary_end: int
-            if self.strand == "-":
-                boundary_start = min(variant.genomic_end_pos, self.end)
-                start_overhang = variant.genomic_end_pos - boundary_start
-                boundary_end = max(variant.genomic_start_pos, self.start)
-                end_overhang = boundary_end - variant.genomic_start_pos
-            else:
-                boundary_start = max(variant.genomic_start_pos, self.start)
-                start_overhang = boundary_start - variant.genomic_start_pos
-                boundary_end = min(variant.genomic_end_pos, self.end)
-                end_overhang = variant.genomic_end_pos - boundary_end
-
-            if (start_overhang > 0 or end_overhang > 0) and variant.genomic_alt_seq != '' \
-               and len(variant.genomic_ref_seq) != len(variant.genomic_alt_seq):
-                logger.error('Embedding of partially overlapping indels not supported. '
-                             + f'Variant {variant} only partially overlaps SeqRegion {self}.')
-                raise NotImplementedError('Embedding of partially overlapping indels not supported.')
-
-            rel_variant_start_pos = self.to_rel_position(boundary_start)
-
-            # Calculate the part of the variant's reference and alternative sequence that overlaps the SeqRegion
-            overlap_ref_seq = variant.genomic_ref_seq
-            overlap_alt_seq = variant.genomic_alt_seq
-
-            if self.strand == '-':
-                overlap_ref_seq = str(Seq.reverse_complement(overlap_ref_seq))
-                overlap_alt_seq = str(Seq.reverse_complement(overlap_alt_seq))
-
-            # Remove overhangs (for partial overlapping variants)
-            overlap_ref_seq = overlap_ref_seq[start_overhang:len(overlap_ref_seq) - end_overhang]
-            if overlap_alt_seq:
-                overlap_alt_seq = overlap_alt_seq[start_overhang:len(overlap_alt_seq) - end_overhang]
-
-            positioned_variants[rel_variant_start_pos] = {
-                'variant': variant,
-                'boundary_start': boundary_start,
-                'boundary_end': boundary_end,
-                'boundary_start_overhang': start_overhang,
-                'boundary_end_overhang': end_overhang,
-                'overlap_ref_seq': overlap_ref_seq,
-                'overlap_alt_seq': overlap_alt_seq,
-                'rel_start': rel_variant_start_pos,
-                'rel_end': rel_variant_start_pos + abs(boundary_end - boundary_start)
-            }
+            positioned_variants[overlapping_variant['rel_start']] = overlapping_variant
 
         # Replace the reference sequence with the alternative sequence for each variant
         # Loop through variants in relative positional reverse order to avoid changes in indices due to indels
@@ -345,8 +345,8 @@ class SeqRegion():
             rel_end = rel_start + abs(positioned_variant['boundary_end'] - positioned_variant['boundary_start'])
 
             # Replace variant sequence
-            if not positioned_variant['variant'].genomic_ref_seq:
-                # Insertions
+            if positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.INSERTION:
+                # Insertion variants are positioned on the reference sequence by their flanking positions
                 sequence = sequence[:rel_start] + positioned_variant['overlap_alt_seq'] + sequence[(rel_end - 1):]
             else:
                 # All other variants
@@ -368,18 +368,26 @@ class SeqRegion():
                 alt_seq_offset -= self.frame
 
         # Calculate the position of each variant in the new (alternative) sequence
-        # Loop through variants in relative positional order to include index changes due to indels
+        # Loop through variants in relative positional order to include index changes due to insertions, deletions and indels
         alt_embedded_variants: SeqEmbeddedVariantsList = SeqEmbeddedVariantsList()
         for rel_start, positioned_variant in sorted(positioned_variants.items(), reverse=False):
 
             alt_rel_start = positioned_variant['rel_start'] + alt_seq_offset
             alt_rel_end = positioned_variant['rel_end'] + alt_seq_offset
 
+            alt_seq_len_diff = len(positioned_variant['overlap_alt_seq']) - len(positioned_variant['overlap_ref_seq'])
+
             if positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.DELETION:
                 # Relative position of deletions in the alternative sequence
                 # should be marking the flanking bases (-1 start, +1 end)
                 alt_rel_start -= 1
                 alt_rel_end += 1
+
+                # Relative end position needs to be adjusted to account for deletion length
+                alt_rel_end -= len(positioned_variant['overlap_ref_seq'])
+
+            # TODO: when implementing reference sequence positioning in SeqEmbeddedVariant,
+            # drop insertion adaptation logic as to include flanking bases, as is done for deletions (to enable ref/alt comparison)
             elif positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.INSERTION:
                 # Relative position of insertions in the alternative sequence
                 # should only mark the inserted bases (reference positions indicate
@@ -387,15 +395,22 @@ class SeqRegion():
                 alt_rel_start += 1
                 alt_rel_end -= 1
 
-            alt_seq_len_diff = len(positioned_variant['overlap_alt_seq']) - len(positioned_variant['overlap_ref_seq'])
+                # Relative end position needs to be adjusted to account for insertion length
+                alt_rel_end += len(positioned_variant['overlap_alt_seq'])
 
-            # Adjust relative end position to account for insertions, deletions and indels
-            alt_rel_end += alt_seq_len_diff
+            elif positioned_variant['variant'].seq_substitution_type == SeqSubstitutionType.INDEL:
+                # Relative end position may need to be adjusted to account for indel alt vs ref length difference.
+                # Reported positions should account for the longest length (including flanking sequence at end of shorter one),
+                # to enable comparison between reference and alternative sequences
+                if len(positioned_variant['overlap_ref_seq']) < len(positioned_variant['overlap_alt_seq']):
+                    alt_rel_end += alt_seq_len_diff
 
             alt_embedded_variants.append(SeqEmbeddedVariant(
                 variant=positioned_variant['variant'],
                 seq_start_pos=alt_rel_start,
-                seq_end_pos=alt_rel_end
+                seq_end_pos=alt_rel_end,
+                embedded_ref_seq_len=len(positioned_variant['overlap_ref_seq']),
+                embedded_alt_seq_len=len(positioned_variant['overlap_alt_seq'])
             ))
 
             alt_seq_offset += alt_seq_len_diff
@@ -484,6 +499,25 @@ class SeqRegion():
             rel_position = seq_position - self.start + 1
 
         return rel_position
+
+
+class PositionedVariant(TypedDict):
+    variant: 'Variant'
+    """The Variant object"""
+    boundary_start: int
+    boundary_end: int
+    rel_start: int
+    """The relative start position of the variant in the SeqRegion's sequence"""
+    rel_end: int
+    """The relative end position of the variant in the SeqRegion's sequence"""
+    boundary_start_overhang: int
+    """The number of bases the variant is overhanging the start of the SeqRegion (outside of the SeqRegion boundary)"""
+    boundary_end_overhang: int
+    """The number of bases the variant is overhanging the end of the SeqRegion (outside of the SeqRegion boundary)"""
+    overlap_ref_seq: str
+    """Strand-corrected part of the variant's reference sequence that overlaps the SeqRegion"""
+    overlap_alt_seq: str
+    """Strand-corrected part of the variant's alternative sequence that overlaps the SeqRegion"""
 
 
 def fetch_faidx_files(fasta_file_url: str) -> str:

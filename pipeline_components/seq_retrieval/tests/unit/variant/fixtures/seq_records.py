@@ -5,6 +5,7 @@ Biopython.SeqRecord fixtures for variant unit testing
 import pytest
 
 from Bio import AlignIO
+from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Align import MultipleSeqAlignment
 import logging
@@ -45,3 +46,40 @@ def wb_C42D8_8a_1_yn32_seq_record() -> SeqRecord:
         raise Exception(f"Failed to find alignment record for 'apl-1_C42D8.8a.1_yn32' in alignment result file '{ALIGNMENT_RESULT_FILE}'.")
 
     return return_record
+
+
+@pytest.fixture
+def wb_C42D8_8a_1_yn29_seq_record() -> SeqRecord:
+    return SeqRecord(id='apl-1_C42D8.8a.1_yn29',
+                     seq=Seq(data=''.join('''
+                             MTVGKLMIGLLIPILVATVYAEGSPAGSKRHEKFIPMVAFSC----GYRNQYMTEEGSWK
+                             TDDER---YATCFSGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEGS---PCKW
+                             TH-SVRPYHCIDGEFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGK-----------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             --
+                             '''.split())))
+
+
+@pytest.fixture
+def wb_K12G11_3_1_ok2799_seq_record() -> SeqRecord:
+    return SeqRecord(id='adh-1_K12G11.3.1_ok2799',
+                     seq=Seq(data=''.join('''
+                             MTVELPS--TQRALVFDTWNGPLEVRQVPVPSPADDEILVKIEYSGICHSDLHVWLGDLK
+                             DMSVCPLVGGHEGAGSVVQIGK--------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ------------------------------------------------------------
+                             ---------------------------VTFDTTPFIF-NAITIKGSIVGSRLDVDEAMEF
+                             VTRGIVKV------PLELVKLEDVPAVYQRMLDGKINSRAVVDFSL-
+                             '''.split())))
