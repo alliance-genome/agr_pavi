@@ -18,27 +18,27 @@ aws-cdk-asset-node-proxy-agent-v6==2.1.0 \
     --hash=sha256:1f292c0631f86708ba4ee328b3a2b229f7e46ea1c79fbde567ee9eb119c2b0e2 \
     --hash=sha256:24a388b69a44d03bae6dbf864c4e25ba650d4b61c008b4568b94ffbb9a69e40e
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==48.7.0 \
-    --hash=sha256:620a3851b6acd940454f9bca3186cc9b89041b592d7b6a48d125f2a4a545e1b7 \
-    --hash=sha256:d29ecc8b172581a1495a12f1e221014b70fdc9a51b6674069e9c1b6f10edf4be
+aws-cdk-cloud-assembly-schema==48.10.0 \
+    --hash=sha256:3eaddae345481fbdc0a24f618cdea2efefc3670308e2292be9ed8c039a965c1e \
+    --hash=sha256:c2c3836d5b1b5655a71226b8f6e1339b6db5f36e9c6533b8e572658d20676d9a
     # via aws-cdk-lib
-aws-cdk-lib==2.214.0 \
-    --hash=sha256:374dd3b6e412becfb77808e4d828efbee070e3400968360af16df856485c3ade \
-    --hash=sha256:90f3268218e020c641d634d74cff3376905824c80a572d7e2eabc219977d98ef
+aws-cdk-lib==2.215.0 \
+    --hash=sha256:82da916b55070f7fc8a11a28f47afb6f7e34b452be7d7a4d7fdbf8e4e77ea768 \
+    --hash=sha256:f609a88a6fe252dc5a0629393567942ec7f0c2aef1ef350c911cd9165b50bee5
     # via pavi_shared_aws (pyproject.toml)
-boto3==1.40.23 \
-    --hash=sha256:9826fb6abcdda2f016a939b81e94d1a9e1147ae897a523f366cf5a1558936356 \
-    --hash=sha256:ca5e2f767a7b759b0bb5c7e5c665effa1512799e763823e68d04e7c10b1399d5
+boto3==1.40.33 \
+    --hash=sha256:b9548f4cfb44dc9fb7f09741c7dce34350d4a9f904ff0f7f97d699d0586f6b9a \
+    --hash=sha256:dc8a37b25f43d458d830a5988283f0a5ac38a47dd2c46cccc5bc40e47fda97c9
     # via pavi_shared_aws (pyproject.toml)
-botocore==1.40.23 \
-    --hash=sha256:487cced8f9346f7d1038e9158c56b6ecf6d839dd43e345bc730053c8cf321ed3 \
-    --hash=sha256:de07cceaf9b142c183e165d303a0eee289c34d63f63e6b7a640406d6bacfb646
+botocore==1.40.33 \
+    --hash=sha256:307e0cb55f4b7307bfd2090fd1c9ca14e1febece5b928144ccc0f78adfd2d864 \
+    --hash=sha256:b9a33758913410ca0d81f30dfd9f00c4ff22c72c38fdf679864011afc73d99fd
     # via
     #   boto3
     #   s3transfer
-cattrs==25.1.1 \
-    --hash=sha256:1b40b2d3402af7be79a7e7e097a9b4cd16d4c06e6d526644b0b26a063a1cc064 \
-    --hash=sha256:c914b734e0f2d59e5b720d145ee010f1fd9a13ee93900922a2f3f9d593b8382c
+cattrs==25.2.0 \
+    --hash=sha256:539d7eedee7d2f0706e4e109182ad096d608ba84633c32c75ef3458f1d11e8f1 \
+    --hash=sha256:f46c918e955db0177be6aa559068390f71988e877c603ae2e56c71827165cc06
     # via jsii
 click==8.2.1 \
     --hash=sha256:27c491cc05d968d271d5a1db13e3b5a184636d9d930f148c50b038f0d0646202 \
@@ -58,9 +58,9 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jsii==1.113.0 \
-    --hash=sha256:2dedea9d6006af53467a7a67f1d35a56ab3f75a3d6ed4b4536fffc3e1d1fe476 \
-    --hash=sha256:62377c651554234ea945693f7c03cb96a969ba425a686950c88d43b0d4d76b07
+jsii==1.114.1 \
+    --hash=sha256:bd3a9ab7aa3f3971aea638e02ae079599f70ff2fe80a0bd8a6e38759f1235d78 \
+    --hash=sha256:e8e6a2fb6117af734803b709cbbb74745548e4d70248417f14724c9f6d4945dd
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6
@@ -83,9 +83,9 @@ python-dateutil==2.9.0.post0 \
     # via
     #   botocore
     #   jsii
-s3transfer==0.13.1 \
-    --hash=sha256:a981aa7429be23fe6dfc13e80e4020057cbab622b08c0315288758d67cabc724 \
-    --hash=sha256:c3fdba22ba1bd367922f27ec8032d6a1cf5f10c934fb5d68cf60fd5a23d936cf
+s3transfer==0.14.0 \
+    --hash=sha256:ea3b790c7077558ed1f02a3072fb3cb992bbbd253392f4b6e9e8976941c7d456 \
+    --hash=sha256:eff12264e7c8b4985074ccce27a3b38a485bb7f7422cc8046fee9be4983e4125
     # via boto3
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \

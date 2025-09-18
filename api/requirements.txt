@@ -15,13 +15,13 @@ anyio==4.10.0 \
     #   httpx
     #   starlette
     #   watchfiles
-boto3==1.40.23 \
-    --hash=sha256:9826fb6abcdda2f016a939b81e94d1a9e1147ae897a523f366cf5a1558936356 \
-    --hash=sha256:ca5e2f767a7b759b0bb5c7e5c665effa1512799e763823e68d04e7c10b1399d5
+boto3==1.40.33 \
+    --hash=sha256:b9548f4cfb44dc9fb7f09741c7dce34350d4a9f904ff0f7f97d699d0586f6b9a \
+    --hash=sha256:dc8a37b25f43d458d830a5988283f0a5ac38a47dd2c46cccc5bc40e47fda97c9
     # via smart-open
-botocore==1.40.23 \
-    --hash=sha256:487cced8f9346f7d1038e9158c56b6ecf6d839dd43e345bc730053c8cf321ed3 \
-    --hash=sha256:de07cceaf9b142c183e165d303a0eee289c34d63f63e6b7a640406d6bacfb646
+botocore==1.40.33 \
+    --hash=sha256:307e0cb55f4b7307bfd2090fd1c9ca14e1febece5b928144ccc0f78adfd2d864 \
+    --hash=sha256:b9a33758913410ca0d81f30dfd9f00c4ff22c72c38fdf679864011afc73d99fd
     # via
     #   boto3
     #   s3transfer
@@ -38,21 +38,21 @@ click==8.2.1 \
     #   rich-toolkit
     #   typer
     #   uvicorn
-dnspython==2.7.0 \
-    --hash=sha256:b4c34b7d10b51bcc3a5071e7b8dee77939f1e878477eeecc965e9835f63c6c86 \
-    --hash=sha256:ce9c432eda0dc91cf618a5cedf1a4e142651196bbcd2c80e89ed5a907e5cfaf1
+dnspython==2.8.0 \
+    --hash=sha256:01d9bbc4a2d76bf0db7c1f729812ded6d912bd318d3b1cf81d30c0f845dbf3af \
+    --hash=sha256:181d3c6996452cb1189c4046c61599b84a5a86e099562ffde77d26984ff26d0f
     # via email-validator
 email-validator==2.3.0 \
     --hash=sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4 \
     --hash=sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426
     # via fastapi
-fastapi[standard-no-fastapi-cloud-cli]==0.116.1 \
-    --hash=sha256:c46ac7c312df840f0c9e220f7964bada936781bc4e2e6eb71f1c4d7553786565 \
-    --hash=sha256:ed52cbf946abfd70c5a0dccb24673f0670deeb517a88b3544d03c2a6bf283143
+fastapi[standard-no-fastapi-cloud-cli]==0.116.2 \
+    --hash=sha256:231a6af2fe21cfa2c32730170ad8514985fc250bec16c9b242d3b94c835ef529 \
+    --hash=sha256:c3a7a8fb830b05f7e087d920e0d786ca1fc9892eb4e9a84b227be4c1bc7569db
     # via pavi-api (pyproject.toml)
-fastapi-cli[standard-no-fastapi-cloud-cli]==0.0.10 \
-    --hash=sha256:04bef56b49f7357c6c4acd4f793b4433ed3f511be431ed0af68db6d3f8bd44b3 \
-    --hash=sha256:85a93df72ff834c3d2a356164512cabaf8f093d50eddad9309065a9c9ac5193a
+fastapi-cli[standard-no-fastapi-cloud-cli]==0.0.12 \
+    --hash=sha256:09cbc2d171639ce9e489c78ad8a439328993a8f4c9005d78d58498327492aa3a \
+    --hash=sha256:ec8f8b12080b5a29a08c7f15ba50649f59b5cd28646cb1737c511b319d0408e4
     # via fastapi
 h11==0.16.0 \
     --hash=sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1 \
@@ -201,9 +201,9 @@ mdurl==0.1.2 \
     --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8 \
     --hash=sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba
     # via markdown-it-py
-pydantic==2.11.7 \
-    --hash=sha256:d989c3c6cb79469287b1569f7447a17848c998458d49ebe294e975b9baf0f0db \
-    --hash=sha256:dde5df002701f6de26248661f6835bbe296a47bf73990135c7d07ce741b9623b
+pydantic==2.11.9 \
+    --hash=sha256:6b8ffda597a14812a7975c90b82a8a2e777d9257aba3453f973acd3c032a18e2 \
+    --hash=sha256:c42dd626f5cfc1c6950ce6205ea58c93efa406da65f479dcb4029d5934857da2
     # via fastapi
 pydantic-core==2.33.2 \
     --hash=sha256:0069c9acc3f3981b9ff4cdfaf088e98d83440a4c7ea1bc07460af3d4dc22e72d \
@@ -387,9 +387,9 @@ rich-toolkit==0.15.1 \
     --hash=sha256:36a0b1d9a135d26776e4b78f1d5c2655da6e0ef432380b5c6b523c8d8ab97478 \
     --hash=sha256:6f9630eb29f3843d19d48c3bd5706a086d36d62016687f9d0efa027ddc2dd08a
     # via fastapi-cli
-s3transfer==0.13.1 \
-    --hash=sha256:a981aa7429be23fe6dfc13e80e4020057cbab622b08c0315288758d67cabc724 \
-    --hash=sha256:c3fdba22ba1bd367922f27ec8032d6a1cf5f10c934fb5d68cf60fd5a23d936cf
+s3transfer==0.14.0 \
+    --hash=sha256:ea3b790c7077558ed1f02a3072fb3cb992bbbd253392f4b6e9e8976941c7d456 \
+    --hash=sha256:eff12264e7c8b4985074ccce27a3b38a485bb7f7422cc8046fee9be4983e4125
     # via boto3
 shellingham==1.5.4 \
     --hash=sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686 \
@@ -399,21 +399,21 @@ six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
     # via python-dateutil
-smart-open[s3]==7.3.0.post1 \
-    --hash=sha256:c73661a2c24bf045c1e04e08fffc585b59af023fe783d57896f590489db66fb4 \
-    --hash=sha256:ce6a3d9bc1afbf6234ad13c010b77f8cd36d24636811e3c52c3b5160f5214d1e
+smart-open[s3]==7.3.1 \
+    --hash=sha256:b33fee8dffd206f189d5e704106a8723afb4210d2ff47e0e1f7fbe436187a990 \
+    --hash=sha256:e243b2e7f69d6c0c96dd763d6fbbedbb4e0e4fc6d74aa007acc5b018d523858c
     # via pavi-api (pyproject.toml)
 sniffio==1.3.1 \
     --hash=sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2 \
     --hash=sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc
     # via anyio
-starlette==0.47.3 \
-    --hash=sha256:6bc94f839cc176c4858894f1f8908f0ab79dfec1a6b8402f6da9be26ebea52e9 \
-    --hash=sha256:89c0778ca62a76b826101e7c709e70680a1699ca7da6b44d38eb0a7e61fe4b51
+starlette==0.48.0 \
+    --hash=sha256:0764ca97b097582558ecb498132ed0c7d942f233f365b86ba37770e026510659 \
+    --hash=sha256:7e8cee469a8ab2352911528110ce9088fdc6a37d9876926e73da7ce4aa4c7a46
     # via fastapi
-typer==0.17.3 \
-    --hash=sha256:0c600503d472bcf98d29914d4dcd67f80c24cc245395e2e00ba3603c9332e8ba \
-    --hash=sha256:643919a79182ab7ac7581056d93c6a2b865b026adf2872c4d02c72758e6f095b
+typer==0.17.4 \
+    --hash=sha256:015534a6edaa450e7007eba705d5c18c3349dcea50a6ad79a5ed530967575824 \
+    --hash=sha256:b77dc07d849312fd2bb5e7f20a7af8985c7ec360c45b051ed5412f64d8dc1580
     # via fastapi-cli
 typing-extensions==4.15.0 \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
