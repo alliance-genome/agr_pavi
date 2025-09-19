@@ -1,11 +1,12 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)/../../common_make
 
 TAG_NAME?=main
 
 NEXTFLOW_VERSION=25.04.6
 NF_TEST_PARAMS=--input_seq_regions_file '../../tests/resources/submit-workflow-success-API-payload.json'
 
-.PHONY: build-% clean registry-docker-login run-%
+.PHONY: build-% clean run-%
 
 clean:
 	@rm -f nextflow.sh || true
@@ -13,9 +14,6 @@ clean:
 	@rm -rf pipeline-results/ || true
 	@rm -rf .nextflow* || true
 	@rm -rf work/ || true
-
-registry-docker-login:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile registry-docker-login
 
 nextflow.sh:
 	curl --fail -L https://github.com/nextflow-io/nextflow/releases/download/v${NEXTFLOW_VERSION}/nextflow-${NEXTFLOW_VERSION}-dist -o nextflow.sh

@@ -1,18 +1,12 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)/../../common_make
 
 CONTAINER_NAME=agr_pavi/pipeline_seq_retrieval
 TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
-EXTRA_PIP_COMPILE_ARGS ?=
 
-AWS_DEFAULT_REGION := us-east-1
-AWS_ACCT_NR=100225593120
-REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-.PHONY: check-% clean container-image install-% push-% registry-docker-login run-% update-%
-
-registry-docker-login:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile registry-docker-login
+.PHONY: check-% clean container-image install-% push-% run-% update-%
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
@@ -25,29 +19,19 @@ push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
-requirements.txt:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) requirements.txt
+update-deps-lock: update-python-deps-lock
 
-tests/requirements.txt:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) tests/requirements.txt
-
-update-deps-lock:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-deps-lock
-
-update-test-deps-lock:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-test-deps-lock
+update-test-deps-lock: update-python-test-deps-lock
 
 update-deps-locks-all: update-deps-lock update-test-deps-lock
 	@:
 
-install-deps:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-deps
+install-deps: install-python-deps
 
 install-deps-update: update-deps-lock install-deps
 	@:
 
-install-test-deps:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-test-deps
+install-test-deps: install-python-test-deps
 	.venv/bin/pip install --editable .
 
 run-type-checks: .venv/ install-test-deps
@@ -65,6 +49,3 @@ run-unit-tests-dev: .venv/ install-test-deps
 run-code-checks: run-type-checks run-style-checks run-unit-tests
 
 run-build-checks: containter-image
-
-.venv/:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) .venv/
