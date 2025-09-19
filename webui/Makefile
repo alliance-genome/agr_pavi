@@ -52,7 +52,7 @@ open-cypress-image-diff-html-report: install-test-deps
 update-deps-lock: update-node-deps-lock
 
 cypress/test-resources/:
-	@cp -r $(mkfile_dir)../tests/resources/ $(mkfile_dir)/cypress/test-resources/
+	@cp -r ../tests/resources/ ./cypress/test-resources/
 
 update-deps-locks-all: update-deps-lock
 	@:
