@@ -1,17 +1,11 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)/../../common_make
 
 CONTAINER_NAME=agr_pavi/pipeline_alignment
 TAG_NAME?=latest
 ADDITIONAL_BUILD_ARGS=
 
-AWS_DEFAULT_REGION := us-east-1
-AWS_ACCT_NR=100225593120
-REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
-
-.PHONY: clean container-image push-% registry-docker-login run-%
-
-registry-docker-login:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile registry-docker-login
+.PHONY: clean container-image push-% run-%
 
 clean:
 	$(eval ADDITIONAL_BUILD_ARGS := --no-cache)
