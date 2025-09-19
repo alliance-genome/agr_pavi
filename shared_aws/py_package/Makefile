@@ -1,4 +1,5 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)/../../common_make
 
 .PHONY: check-% clean install install-% run-% update-%
 

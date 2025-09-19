@@ -1,5 +1,4 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-include $(mkfile_dir)/../../common_make
 
 TAG_NAME?=main
 
