@@ -31,9 +31,9 @@ certifi==2025.8.3 \
     # via
     #   httpcore
     #   httpx
-click==8.3.0 \
-    --hash=sha256:9b9f285302c6e3064f4330c05f05b81945b2a39544279343e6e7c5f27a9baddc \
-    --hash=sha256:e7b8232224eba16f4ebe410c25ced9f7875cb5f3263ffc93cc3e8da705e229c4
+click==8.2.1 \
+    --hash=sha256:27c491cc05d968d271d5a1db13e3b5a184636d9d930f148c50b038f0d0646202 \
+    --hash=sha256:61a3265b914e850b85317d0b3109c7f8cd35a670f963866005d6ef1d5175a12b
     # via
     #   rich-toolkit
     #   typer
@@ -604,9 +604,9 @@ starlette==0.48.0 \
     --hash=sha256:0764ca97b097582558ecb498132ed0c7d942f233f365b86ba37770e026510659 \
     --hash=sha256:7e8cee469a8ab2352911528110ce9088fdc6a37d9876926e73da7ce4aa4c7a46
     # via fastapi
-typer==0.17.4 \
-    --hash=sha256:015534a6edaa450e7007eba705d5c18c3349dcea50a6ad79a5ed530967575824 \
-    --hash=sha256:b77dc07d849312fd2bb5e7f20a7af8985c7ec360c45b051ed5412f64d8dc1580
+typer==0.17.5 \
+    --hash=sha256:45f2709d44be2f0d0f8bc70c9f845f60ef69d6cc80c6e6ae2cc2f29bae650cf6 \
+    --hash=sha256:a6fe2d187feb1b4a10322b910267b6339e4cc98257fae34d22299a47eac704f1
     # via fastapi-cli
 typing-extensions==4.15.0 \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
