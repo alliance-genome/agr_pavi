@@ -2,3 +2,4 @@
 # Changes to the following files require approval by the repository admins
 /.github/ @alliance-genome/role-pavi-admins
 **/Makefile @alliance-genome/role-pavi-admins
+/common_make @alliance-genome/role-pavi-admins

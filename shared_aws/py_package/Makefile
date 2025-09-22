@@ -1,11 +1,7 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-
-EXTRA_PIP_COMPILE_ARGS ?=
+include $(mkfile_dir)/../../common_make
 
 .PHONY: check-% clean install install-% run-% update-%
-
-.venv/:
-	python3.12 -m venv .venv/
 
 build: .venv/
 	.venv/bin/pip install build==1.*
@@ -26,32 +22,24 @@ clean:
 	rm -rf build/ || true
 	rm dist/* || true
 
-requirements.txt:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) requirements.txt
+update-deps-lock: update-python-deps-lock
 
-tests/requirements.txt:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) tests/requirements.txt
-
-update-deps-lock:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-deps-lock
-
-update-test-deps-lock:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-test-deps-lock
+update-test-deps-lock: update-python-test-deps-lock
 
 update-deps-locks-all: update-deps-lock update-test-deps-lock
 	@:
 
-install-deps:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-deps
+install-deps: install-python-deps
 
-install-test-deps:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-test-deps
+install-test-deps: install-python-test-deps
 
-install-deps-update-dev: update-deps-lock install-deps
-	@:
+install-deps-update-dev:
+	$(MAKE) --no-print-directory update-deps-lock
+	$(MAKE) --no-print-directory install-deps
 
-install-test-deps-update-dev: update-test-deps-lock install-test-deps
-	@:
+install-test-deps-update-dev:
+	$(MAKE) --no-print-directory update-test-deps-lock
+	$(MAKE) --no-print-directory install-test-deps
 
 run-unit-tests: .venv/ install-test-deps
 	.venv/bin/python -m pytest
