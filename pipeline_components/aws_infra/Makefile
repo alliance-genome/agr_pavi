@@ -1,72 +1,45 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)/../../common_make
 
 PAVI_COMPUTE_MIN_VCPU ?= 2
 CDK_STACK_NAME ?= PaviPipelineCdkStack
 ADD_CDK_ARGS ?=
-EXTRA_PIP_COMPILE_ARGS ?=
 
 .PHONY: deploy install-% run-% update-% validate validate-%
-
-.venv/:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) .venv/
-
-.nvmrc:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) .nvmrc
 
 clean:
 	rm -rf node_modules/ || true
 	rm -rf .venv/ || true
 
-requirements.txt:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) requirements.txt
+update-deps-lock: update-python-deps-lock
 
-tests/requirements.txt:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) tests/requirements.txt
+update-deps-lock-shared-aws-only: update-python-deps-lock-shared-aws-only
 
-package-lock.json:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) package-lock.json
+update-test-deps-lock: update-python-test-deps-lock
 
-update-deps-lock:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-deps-lock
+update-test-deps-lock-shared-aws-only: update-python-test-deps-lock-shared-aws-only
 
-update-test-deps-lock:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-test-deps-lock
+update-cdk-cli-lock: update-node-deps-lock
 
-update-deps-lock-shared-aws-only:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-deps-lock-shared-aws-only
+update-deps-locks-all:
+	@$(MAKE) --no-print-directory update-deps-lock
+	@$(MAKE) --no-print-directory update-test-deps-lock
+	@$(MAKE) --no-print-directory update-cdk-cli-lock
 
-update-test-deps-lock-shared-aws-only:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-python-test-deps-lock-shared-aws-only
-
-update-cdk-cli-lock: package-lock.json
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-node-deps-lock
-
-update-deps-locks-all: update-deps-lock update-test-deps-lock update-cdk-cli-lock
-	@:
-
-install-cdk-cli: package-lock.json
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-node-deps
+install-cdk-cli: install-node-deps
 
 install-cdk-cli-update-dev:
 	@$(MAKE) --no-print-directory update-cdk-cli-lock
 	@$(MAKE) --no-print-directory install-cdk-cli
 
-install-deps:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-deps
+install-deps: install-python-deps
 
 install-deps-update-dev: .venv/
 	.venv/bin/pip uninstall -y pavi_shared_aws
 	@$(MAKE) --no-print-directory update-deps-lock
 	@$(MAKE) --no-print-directory install-deps
 
-install-node:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-node
-
-update-install-node:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) update-install-node
-
-install-test-deps:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../../Makefile -C $(mkfile_dir) install-python-test-deps
+install-test-deps: install-python-test-deps
 
 install-test-deps-update-dev: .venv/
 	.venv/bin/pip uninstall -y pavi_shared_aws
@@ -97,7 +70,7 @@ run-style-checks: install-test-deps
 
 validate-stack: install-deps install-cdk-cli
 	$(eval NPX_EXEC:=)
-	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../../Makefile _vars-node-npx-exec))
+	$(eval $(shell $(MAKE) --no-print-directory _vars-node-npx-exec))
 # Validate production stack code
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
 	  . .venv/bin/activate && \
@@ -111,7 +84,7 @@ validate-dev: validate
 
 deploy: install-deps install-cdk-cli
 	$(eval NPX_EXEC:=)
-	$(eval $(shell $(MAKE) --no-print-directory -f $(mkfile_dir)../../Makefile _vars-node-npx-exec))
+	$(eval $(shell $(MAKE) --no-print-directory _vars-node-npx-exec))
 	export PAVI_COMPUTE_MIN_VCPU=${PAVI_COMPUTE_MIN_VCPU} && \
 	  . .venv/bin/activate && \
 	  ${NPX_EXEC} cdk deploy ${CDK_STACK_NAME} ${ADD_CDK_ARGS}

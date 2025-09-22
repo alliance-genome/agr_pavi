@@ -1,16 +1,12 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)/../common_make
 
 CONTAINER_NAME=agr_pavi/api
 TAG_NAME?=latest
 API_PIPELINE_IMAGE_TAG?=main
 ADDITIONAL_BUILD_ARGS=
-EXTRA_PIP_COMPILE_ARGS ?=
 
 AWS_PROFILE ?= default
-
-AWS_DEFAULT_REGION := us-east-1
-AWS_ACCT_NR=100225593120
-REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
 API_BASE_URL ?= http://localhost:8080
 
@@ -38,9 +34,6 @@ push-container-image: registry-docker-login
 	docker tag ${CONTAINER_NAME} ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 	docker push ${REG}/${CONTAINER_NAME}:${TAG_NAME}
 
-registry-docker-login:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile registry-docker-login
-
 run-container-dev:
 	$(eval API_NEXTFLOW_OUT_DIR?=s3://agr-pavi-pipeline-nextflow/${API_PIPELINE_IMAGE_TAG}/)
 	export API_PIPELINE_IMAGE_TAG=${API_PIPELINE_IMAGE_TAG} && \
@@ -65,29 +58,16 @@ run-server-dev: .venv/ install-deps nextflow.sh protein-msa.nf nextflow.config
 	 export API_EXECUTION_ENV="local" && \
 	 .venv/bin/fastapi dev src/main.py
 
-.venv/:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) .venv/
+update-deps-lock: update-python-deps-lock
 
-requirements.txt:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) requirements.txt
-
-tests/requirements.txt:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) tests/requirements.txt
-
-update-deps-lock:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-python-deps-lock
-
-update-test-deps-lock:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) update-python-test-deps-lock
+update-test-deps-lock: update-python-test-deps-lock
 
 update-deps-locks-all: update-deps-lock update-test-deps-lock
 	@:
 
-install-deps:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) install-python-deps
+install-deps: install-python-deps
 
-install-test-deps:
-	@$(MAKE) --no-print-directory -f $(mkfile_dir)/../Makefile -C $(mkfile_dir) install-python-test-deps
+install-test-deps: install-python-test-deps
 
 run-type-checks: .venv/ install-test-deps
 	.venv/bin/mypy --install-types --non-interactive --warn-unused-config ./

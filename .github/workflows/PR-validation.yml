@@ -58,7 +58,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             pipeline_components/seq_retrieval/
       - uses: actions/setup-python@v5
         with:
@@ -93,7 +93,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             api/
       - uses: actions/setup-python@v5
         with:
@@ -128,7 +128,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             webui/
       - uses: actions/setup-node@v4
         with:
@@ -157,7 +157,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             shared_aws/py_package/
       - uses: actions/setup-python@v5
         with:
@@ -193,7 +193,7 @@ jobs:
       with:
         fetch-depth: 0
         sparse-checkout: |
-          Makefile
+          common_make
           shared_aws/py_package/
     - name: Download updated shared_aws py-package prod dependencies lock file
       uses: actions/download-artifact@v5
@@ -231,7 +231,7 @@ jobs:
       with:
         fetch-depth: 0
         sparse-checkout: |
-          Makefile
+          common_make
           shared_aws/py_package/
     - name: Download updated shared_aws py-package prod dependencies lock file
       uses: actions/download-artifact@v5
@@ -270,7 +270,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             shared_aws/aws_infra/
       - uses: actions/setup-python@v5
         with:
@@ -311,7 +311,7 @@ jobs:
       with:
         fetch-depth: 0
         sparse-checkout: |
-          Makefile
+          common_make
           shared_aws/aws_infra/
     - name: Download shared AWS package
       uses: actions/download-artifact@v5
@@ -365,7 +365,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             pipeline_components/aws_infra/
       - uses: actions/setup-python@v5
         with:
@@ -404,7 +404,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             api/aws_infra/
       - uses: actions/setup-python@v5
         with:
@@ -443,7 +443,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             webui/aws_infra/
       - uses: actions/setup-python@v5
         with:
@@ -534,7 +534,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             pipeline_components/seq_retrieval/
             tests/resources/
       - name: Download updated seq_retrieval (main) dependencies lock file
@@ -620,7 +620,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             pipeline_components/alignment/
       - name: Download alignment image artifact (from previous job)
         uses: actions/download-artifact@v5
@@ -652,7 +652,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             api/pipeline_workflow/
             tests/resources/
       - name: Download seq_retrieval image artifact (from previous job)
@@ -702,7 +702,7 @@ jobs:
       with:
         fetch-depth: 0
         sparse-checkout: |
-          Makefile
+          common_make
           pipeline_components/aws_infra/
     - name: Download updated pipeline_components/aws_infra dependencies lock files bundle
       uses: actions/download-artifact@v5
@@ -757,7 +757,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             api/
       - name: Download updated api (main) dependencies lock file
         uses: actions/download-artifact@v5
@@ -908,7 +908,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             api/
             tests/resources/
       - name: Download updated api (main) dependencies lock file
@@ -960,7 +960,7 @@ jobs:
       with:
         fetch-depth: 0
         sparse-checkout: |
-          Makefile
+          common_make
           api/aws_infra/
     - name: Download updated api/aws_infra dependencies lock files bundle
       uses: actions/download-artifact@v5
@@ -1015,7 +1015,7 @@ jobs:
       with:
         fetch-depth: 0
         sparse-checkout: |
-          Makefile
+          common_make
           webui/aws_infra/
     - name: Download updated webui/aws_infra dependencies lock files bundle
       uses: actions/download-artifact@v5
@@ -1068,7 +1068,7 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            Makefile
+            common_make
             webui/
       - name: Download updated webui dependencies lock file
         uses: actions/download-artifact@v5
