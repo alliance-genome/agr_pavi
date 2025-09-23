@@ -171,7 +171,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
@@ -215,7 +215,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
@@ -258,7 +258,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
@@ -301,7 +301,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
@@ -330,7 +330,7 @@ jobs:
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-pipeline-seq-retrieval
@@ -369,7 +369,7 @@ jobs:
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-pipeline-seq-retrieval
@@ -408,7 +408,7 @@ jobs:
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-api
@@ -466,7 +466,7 @@ jobs:
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-webui
@@ -520,7 +520,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-app-cdk-deploy

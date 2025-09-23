@@ -343,7 +343,7 @@ jobs:
       with:
         node-version-file: "shared_aws/aws_infra/.nvmrc"
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
@@ -492,7 +492,7 @@ jobs:
       # This step will configure environment variables to be used by all steps
       # involving AWS interaction further down
       - name: AWS credentials configuration
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
           role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-seq-retrieval-image-upload
@@ -578,7 +578,7 @@ jobs:
       # This step will configure environment variables to be used by all steps
       # involving AWS interaction further down
       - name: AWS credentials configuration
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
           role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-alignment-image-upload
@@ -677,7 +677,7 @@ jobs:
       # This step will configure environment variables to be used by all steps
       # involving AWS interaction further down
       - name: AWS credentials configuration
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
           role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-workflow-aws-test
@@ -735,7 +735,7 @@ jobs:
       with:
         node-version-file: "pipeline_components/aws_infra/.nvmrc"
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
@@ -807,7 +807,7 @@ jobs:
       # Configure environment variables to be pass on to container build
       # (require to mount S3 volume before nextflow plugin download)
       - name: AWS credentials configuration
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
           role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-api-container-build
@@ -935,7 +935,7 @@ jobs:
       # This step will configure environment variables to be used by all steps
       # involving AWS interaction further down
       - name: AWS credentials configuration
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
           role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-api-aws-test
@@ -991,7 +991,7 @@ jobs:
       with:
         node-version-file: "api/aws_infra/.nvmrc"
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
@@ -1046,7 +1046,7 @@ jobs:
       with:
         node-version-file: "webui/aws_infra/.nvmrc"
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-test
@@ -1185,7 +1185,7 @@ jobs:
       # Configure environment variables used for AWS interaction,
       # required for API container interactions with pipeline resources
       - name: AWS credentials configuration
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.GH_ACTIONS_AWS_ROLE }}
           role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-e2e-testing
