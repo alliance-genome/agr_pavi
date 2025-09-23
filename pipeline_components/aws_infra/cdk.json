@@ -29,5 +29,6 @@
     "@aws-cdk/aws-iam:standardizedServicePrincipals": true,
     "@aws-cdk/aws-s3:createDefaultLoggingPolicy": true,
     "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true
-  }
+  },
+  "cli-telemetry": false
 }
