@@ -158,7 +158,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version-file: 'shared_aws/aws_infra/.nvmrc'
     - name: Setup Python
@@ -171,7 +171,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
@@ -202,7 +202,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version-file: "pipeline_components/aws_infra/.nvmrc"
     - name: Setup Python
@@ -215,7 +215,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
@@ -245,7 +245,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version-file: "api/aws_infra/.nvmrc"
     - name: Setup Python
@@ -258,7 +258,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
@@ -288,7 +288,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version-file: "webui/aws_infra/.nvmrc"
     - name: Setup Python
@@ -301,7 +301,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-cdk-deploy
@@ -330,7 +330,7 @@ jobs:
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-pipeline-seq-retrieval
@@ -369,7 +369,7 @@ jobs:
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-pipeline-seq-retrieval
@@ -408,7 +408,7 @@ jobs:
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-api
@@ -466,7 +466,7 @@ jobs:
     # This step will configure environment variables to be used by all steps
     # involving AWS interaction further down
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-build-image-webui
@@ -511,7 +511,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version-file: "shared_aws/aws_infra/.nvmrc"
     - name: Download shared AWS package
@@ -520,7 +520,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: AWS credentials configuration
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{secrets.GH_ACTIONS_AWS_ROLE}}
         role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-app-cdk-deploy
