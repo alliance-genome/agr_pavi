@@ -60,7 +60,7 @@ jobs:
           sparse-checkout: |
             common_make
             pipeline_components/seq_retrieval/
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "pipeline_components/seq_retrieval/pyproject.toml"
       - name: Update lock files
@@ -95,7 +95,7 @@ jobs:
           sparse-checkout: |
             common_make
             api/
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "api/pyproject.toml"
       - name: Update lock files
@@ -159,7 +159,7 @@ jobs:
           sparse-checkout: |
             common_make
             shared_aws/py_package/
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "shared_aws/py_package/pyproject.toml"
       - name: Update lock files
@@ -206,7 +206,7 @@ jobs:
         name: shared_aws_py_package_test_deps_lock
         path: shared_aws/py_package/tests
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version-file: "shared_aws/py_package/pyproject.toml"
     - name: Code typing test
@@ -244,7 +244,7 @@ jobs:
         name: shared_aws_py_package_test_deps_lock
         path: shared_aws/py_package/tests
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version-file: "shared_aws/py_package/pyproject.toml"
     - name: Build package
@@ -272,7 +272,7 @@ jobs:
           sparse-checkout: |
             common_make
             shared_aws/aws_infra/
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "shared_aws/aws_infra/pyproject.toml"
       - name: Download shared AWS package
@@ -327,7 +327,7 @@ jobs:
       run: |
         tar -xzv -f shared-aws-infra-deps-locks.tar.gz
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version-file: "shared_aws/aws_infra/pyproject.toml"
     - name: Code typing test
@@ -367,7 +367,7 @@ jobs:
           sparse-checkout: |
             common_make
             pipeline_components/aws_infra/
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "pipeline_components/aws_infra/pyproject.toml"
       - name: Download shared AWS package
@@ -406,7 +406,7 @@ jobs:
           sparse-checkout: |
             common_make
             api/aws_infra/
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "api/aws_infra/pyproject.toml"
       - name: Download shared AWS package
@@ -445,7 +445,7 @@ jobs:
           sparse-checkout: |
             common_make
             webui/aws_infra/
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "webui/aws_infra/pyproject.toml"
       - name: Download shared AWS package
@@ -547,7 +547,7 @@ jobs:
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline_components/seq_retrieval/tests
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "pipeline_components/seq_retrieval/pyproject.toml"
       - name: Code typing test
@@ -719,7 +719,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version-file: "pipeline_components/aws_infra/pyproject.toml"
     - name: Code typing test
@@ -769,7 +769,7 @@ jobs:
         with:
           name: api_tests_deps_lock
           path: api/tests
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "api/pyproject.toml"
       - name: Code typing test
@@ -881,7 +881,7 @@ jobs:
       - name: Load alignment Docker image
         run: |
           docker load --input /tmp/pavi_alignment_docker_image.tar
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "api/pyproject.toml"
       - name: Run unit and integration tests
@@ -929,7 +929,7 @@ jobs:
       - name: Load API Docker image
         run: |
           docker load --input /tmp/pavi_api_docker_image.tar
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: "api/pyproject.toml"
       # This step will configure environment variables to be used by all steps
@@ -977,7 +977,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version-file: "api/aws_infra/pyproject.toml"
     - name: Code typing test
@@ -1032,7 +1032,7 @@ jobs:
         name: shared_aws_py_package
         path: /tmp/
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version-file: "webui/aws_infra/pyproject.toml"
     - name: Code typing test
