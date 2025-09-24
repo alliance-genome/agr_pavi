@@ -28,5 +28,6 @@
     "@aws-cdk/aws-iam:minimizePolicies": true,
     "@aws-cdk/aws-iam:standardizedServicePrincipals": true,
     "@aws-cdk/aws-s3:createDefaultLoggingPolicy": true
-  }
+  },
+  "cli-telemetry": false
 }
