@@ -42,9 +42,9 @@ cattrs==25.2.0 \
     --hash=sha256:539d7eedee7d2f0706e4e109182ad096d608ba84633c32c75ef3458f1d11e8f1 \
     --hash=sha256:f46c918e955db0177be6aa559068390f71988e877c603ae2e56c71827165cc06
     # via jsii
-click==8.2.1 \
-    --hash=sha256:27c491cc05d968d271d5a1db13e3b5a184636d9d930f148c50b038f0d0646202 \
-    --hash=sha256:61a3265b914e850b85317d0b3109c7f8cd35a670f963866005d6ef1d5175a12b
+click==8.3.0 \
+    --hash=sha256:9b9f285302c6e3064f4330c05f05b81945b2a39544279343e6e7c5f27a9baddc \
+    --hash=sha256:e7b8232224eba16f4ebe410c25ced9f7875cb5f3263ffc93cc3e8da705e229c4
     # via pavi-shared-aws
 constructs==10.4.2 \
     --hash=sha256:1f0f59b004edebfde0f826340698b8c34611f57848139b7954904c61645f13c1 \
@@ -140,7 +140,7 @@ pathspec==0.12.1 \
     --hash=sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712
     # via mypy
 pavi-shared-aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl \
-    --hash=sha256:05c837f466a2239c4a5e067a1a46ead2972c499a8338c8608d57a8d24c93aa19
+    --hash=sha256:9db5f0d48cb126d30eb5c73bc612a20aeb8d632090122113fd16d7d16b3f1d7c
     # via webui-aws_infra (pyproject.toml)
 pluggy==1.6.0 \
     --hash=sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3 \
