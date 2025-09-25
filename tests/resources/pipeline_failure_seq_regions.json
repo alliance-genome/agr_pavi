@@ -1,6 +1,7 @@
 [
     {
-        "name": "C54H2.5.1",
+        "unique_entry_id": "C54H2.5.1",
+        "base_seq_name": "C54H2.5.1",
         "seq_id": "FAILURE_TEST_SEQ_ID",
         "seq_strand": "-",
         "exon_seq_regions": [
@@ -14,7 +15,8 @@
         "variant_ids": []
     },
     {
-        "name": "ERV29-S288C",
+        "unique_entry_id": "ERV29-S288C",
+        "base_seq_name": "ERV29-S288C",
         "seq_id": "chrVII",
         "seq_strand": "-",
         "exon_seq_regions": [

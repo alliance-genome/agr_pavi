@@ -23,7 +23,8 @@ api_pipeline_image_tag = getenv("API_PIPELINE_IMAGE_TAG", 'latest')
 
 
 class Pipeline_seq_region(BaseModel):
-    name: str
+    base_seq_name: str
+    unique_entry_id: str
     seq_id: str
     seq_strand: str
     exon_seq_regions: list[str | dict[str, str | int]]

@@ -141,35 +141,35 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
         return variants
 
 
-def write_output(name: str, output_type: str, variants_flag: bool, alt_seq_name_suffix: str,
+def write_output(unique_entry_id: str, base_seq_name: str, output_type: str, variants_flag: bool, alt_seq_name_suffix: str,
                  ref_seq: str, alt_seq: str, ref_info: SeqInfo, alt_info: Optional[SeqInfo], sequence_output_file: str | None = None) -> None:
     # Define sequence names
-    ref_name: str = name
-    alt_name: str
+    ref_seq_name: str = base_seq_name
+    alt_seq_name: str
 
     if variants_flag:
-        ref_name = name + '_ref'
-        alt_name = name + alt_seq_name_suffix
+        ref_seq_name = base_seq_name + '_ref'
+        alt_seq_name = base_seq_name + alt_seq_name_suffix
 
     # Print sequence output
     if sequence_output_file is None:
-        sequence_output_file = f'{name}-{output_type}.fa'
+        sequence_output_file = f'{unique_entry_id}-{output_type}.fa'
 
     with open(sequence_output_file, 'w') as output_file:
         logger.debug(f'Writing sequences to {sequence_output_file}...')
 
-        output_file.write(f'>{ref_name}\n{ref_seq}\n')
+        output_file.write(f'>{ref_seq_name}\n{ref_seq}\n')
 
         if variants_flag:
-            output_file.write(f'>{alt_name}\n{alt_seq}\n')
+            output_file.write(f'>{alt_seq_name}\n{alt_seq}\n')
 
     # Print seq info
     indexed_seq_info: dict[str, Any] = {}
-    indexed_seq_info[ref_name] = ref_info
+    indexed_seq_info[ref_seq_name] = ref_info
     if variants_flag:
-        indexed_seq_info[alt_name] = alt_info
+        indexed_seq_info[alt_seq_name] = alt_info
 
-    seq_info_output_file = f'{name}-seqinfo.json'
+    seq_info_output_file = f'{unique_entry_id}-seqinfo.json'
 
     jsonpickle.register(Enum, EnumValueHandler, base=True)
 
@@ -201,8 +201,10 @@ def write_output(name: str, output_type: str, variants_flag: bool, alt_seq_name_
                    Use "file://*" for local file or "http(s)://*" for remote files.""")
 @click.option("--output_type", type=click.Choice(['transcript', 'protein'], case_sensitive=False), required=True,
               help="""The output type to return.""")
-@click.option("--name", type=click.STRING, required=True,
-              help="The sequence name to use in the output fasta header.")
+@click.option("--base_seq_name", type=click.STRING, required=True,
+              help="The base name to use for the output sequence names.")
+@click.option("--unique_entry_id", type=click.STRING, required=True,
+              help="Unique name to identify the sequence pair by and used for output file names.")
 @click.option("--sequence_output_file", type=click.STRING, required=False,
               help="""The sequence output file to write to (default "`name`-`output_type`.fa").""")
 @click.option("--reuse_local_cache", is_flag=True,
@@ -213,8 +215,8 @@ def write_output(name: str, output_type: str, variants_flag: bool, alt_seq_name_
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
 def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict],
-         variant_ids: set[str], alt_seq_name_suffix: str, fasta_file_url: str, output_type: str, name: str, sequence_output_file: str,
-         reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
+         variant_ids: set[str], alt_seq_name_suffix: str, fasta_file_url: str, output_type: str, base_seq_name: str, unique_entry_id: str,
+         sequence_output_file: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
@@ -227,7 +229,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
     else:
         set_log_level(logging.INFO)
 
-    logger.info(f'Running seq_retrieval for {name}.')
+    logger.info(f'Running seq_retrieval for {unique_entry_id}.')
 
     data_file_mover.set_local_cache_reuse(reuse_local_cache)
 
@@ -291,7 +293,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
     else:
         raise NotImplementedError(f"Output_type {output_type} is currently not implemented.")
 
-    write_output(name=name, output_type=output_type, sequence_output_file=sequence_output_file, alt_seq_name_suffix=alt_seq_name_suffix,
+    write_output(unique_entry_id=unique_entry_id, base_seq_name=base_seq_name, output_type=output_type, sequence_output_file=sequence_output_file, alt_seq_name_suffix=alt_seq_name_suffix,
                  ref_seq=ref_seq, alt_seq=alt_seq or '', ref_info=ref_info, alt_info=alt_info, variants_flag=len(variant_info) > 0)
 
 

@@ -161,8 +161,15 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 }
             }
 
+            let unique_entry_id = `${gene_info.symbol}_${transcript.name}`
+            if(alleles_info.length > 0){
+                unique_entry_id += alt_seq_name_suffix
+            }
+            // TODO: enforce unique_entry_id to be unique across all alignment entries
+            // (including when no identifiable_suffix is used)
             portion.push({
-                name: `${gene_info.symbol}_${transcript.name}`,
+                unique_entry_id: unique_entry_id,
+                base_seq_name: `${gene_info.symbol}_${transcript.name}`,
                 fasta_file_url: fastaFileUrl!,
                 seq_id: getSingleGenomeLocation(gene_info.genomeLocations)['chromosome'],
                 seq_strand: getSingleGenomeLocation(gene_info.genomeLocations)['strand'],
