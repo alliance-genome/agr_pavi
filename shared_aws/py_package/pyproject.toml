@@ -12,7 +12,7 @@ dependencies = [
     "aws-cdk-lib==2.*",
     # Helper requirements
     "boto3==1.*",
-    "click==8.2.*",
+    "click==8.3.*",
 ]
 
 [project.optional-dependencies]
