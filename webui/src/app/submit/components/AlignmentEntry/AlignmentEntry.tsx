@@ -161,7 +161,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 }
             }
 
-            let unique_entry_id = `${gene_info.symbol}_${transcript.name}`
+            let unique_entry_id = `${String(props.index).padStart(3, '0')}_${gene_info.symbol}_${transcript.name}`
             if(alleles_info.length > 0){
                 unique_entry_id += alt_seq_name_suffix
             }
@@ -188,7 +188,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         });
 
         return portion
-    },[fastaFileUrl])
+    },[fastaFileUrl, props.index])
 
     // Convert relative positions (to parent feature)
     // to absolute positions (to chromosome/contig)
