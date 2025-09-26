@@ -7,7 +7,9 @@ export interface JobType {
 }
 
 export interface JobSumbissionPayloadRecord {
-    name: string,
+    /** Unique identifier for the alignment entry. */
+    unique_entry_id: string,
+    base_seq_name: string,
     seq_id: string,
     seq_strand: string,
     exon_seq_regions: Array<{
