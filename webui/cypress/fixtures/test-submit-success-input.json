@@ -35,6 +35,15 @@
         ]
     },
     {
+        "gene": "WB:WBGene00000149",
+        "transcripts": [
+            "C42D8.8a.1"
+        ],
+        "alleles": [
+            "NC_003284.9:g.5114519C>G"
+        ]
+    },
+    {
         "gene": "WB:WBGene00011034",
         "transcripts": [
             "R05D11.6.1"
