@@ -138,7 +138,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         const portion: JobSumbissionPayloadRecord[] = []
 
         transcripts_info.forEach(transcript => {
-            let alt_seq_name_suffix: string = '_alt'
+            let alt_seq_name_suffix: string = `_alt${props.index + 1}`
             if(alleles_info.length > 0){
                 let identifiable_suffix: string = ''
                 for ( const allele of alleles_info ) {
