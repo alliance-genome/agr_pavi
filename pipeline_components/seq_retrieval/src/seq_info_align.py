@@ -51,12 +51,10 @@ def process_sequence_info_files_param(ctx: click.Context, param: click.Parameter
 
 def process_alignment_result_file_param(ctx: click.Context, param: click.Parameter, value: str) -> str:  # noqa: U100
     """
-    Parse the value of click input parameter alignment_result_file and validate its content.
-
-    Value is expected to be a space-separated list of files containing json-formatted sequence info.
+    Validate the value of click input parameter alignment_result_file to be a readable file.
 
     Returns:
-        List of string representing the files containing sequence info
+        string representing the path to the alignment result file (=input value)
 
     Raises:
         click.BadParameter: If the provided value is not a valid readable file path.
@@ -64,11 +62,11 @@ def process_alignment_result_file_param(ctx: click.Context, param: click.Paramet
 
     # Validate the alignment result file exists and is a readable file
     if not path.exists(value):
-        raise click.BadParameter(f"Sequence info file '{value}' does not exist.")
+        raise click.BadParameter(f"Alignment result file '{value}' does not exist.")
     if not path.isfile(value):
-        raise click.BadParameter(f"Sequence info file '{value}' is not a regular file.")
+        raise click.BadParameter(f"Alignment result file '{value}' is not a regular file.")
     if not access(value, R_OK):
-        raise click.BadParameter(f"Sequence info file '{value}' is not readable.")
+        raise click.BadParameter(f"Alignment result file '{value}' is not readable.")
 
     return value
 

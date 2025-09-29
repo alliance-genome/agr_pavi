@@ -2,7 +2,7 @@ mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 TAG_NAME?=main
 
-NEXTFLOW_VERSION=25.04.6
+NEXTFLOW_VERSION=25.04.7
 NF_TEST_PARAMS=--input_seq_regions_file '../../tests/resources/submit-workflow-success-API-payload.json'
 
 .PHONY: build-% clean run-%
