@@ -6,7 +6,7 @@ params.publish_dir = 'pipeline-results/'
 params.publish_dir_prefix = ''
 
 process sequence_retrieval {
-    memory '200 MB'
+    memory '500 MB'
 
     container "${params.image_registry}agr_pavi/pipeline_seq_retrieval:${params.image_tag}"
 
