@@ -423,7 +423,7 @@ class TranslatedSeqRegion():
                 alt_seq_info = AltSeqInfo(sequence=protein_alt_seq, embedded_variants=protein_alt_embedded_variants)
 
             case _:
-                raise ValueError(f"type {type} not implemented yet in MultiPartSeqRegion.set_multipart_sequence method.")
+                raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.get_alt_sequence method.")
 
         return alt_seq_info
 

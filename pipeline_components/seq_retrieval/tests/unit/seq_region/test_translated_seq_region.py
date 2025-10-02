@@ -39,7 +39,7 @@ def test_translated_seq_region_class(WB_transcript1: TranscriptFixture) -> None:
 def test_incomplete_orf_translation() -> None:
 
     # Test translation of incomplete ORF
-    # WBGene00000149 Transcript:C54H2.5.1 5' UTR
+    # WB:WBGene00004788 Transcript:C54H2.5.1 5' UTR
     five_p_utr: SeqRegion = SeqRegion(seq_id='X', start=5780713, end=5780722, strand='-',
                                       fasta_file_url=FASTA_FILE_URL)
     UTR_SEQ = 'CTCTTGGAAA'
