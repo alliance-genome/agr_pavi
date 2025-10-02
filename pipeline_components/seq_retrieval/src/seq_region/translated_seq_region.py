@@ -6,6 +6,7 @@ from Bio import Seq  # Bio.Seq biopython submodule
 from Bio.Data import CodonTable
 from typing import Dict, List, Literal, Optional, override, Set, TypedDict
 
+from .exceptions import InvalidatedOrfException, OrfNotFoundException, OrfException, TranslationException, SequenceNotFoundException
 from .seq_region import SeqRegion, AltSeqInfo
 from .multipart_seq_region import MultiPartSeqRegion
 from variant import SeqEmbeddedVariantsList, Variant
@@ -25,30 +26,6 @@ class CalculatedOrf(TypedDict):
     """Relative sequence end position (1-based)"""
     complete: bool
     frameshift: int
-
-
-class InvalidatedOrfException(Exception):
-    """
-    Exception raised when an ORF in a sequence region becomes invalid (due to altering the sequence).
-    """
-    def __init__(self, message: str):
-        super().__init__(message)
-
-
-class InvalidatedTranslationException(Exception):
-    """
-    Exception raised when the translation of a sequence region was invalidated (due to altering the sequence).
-    """
-    def __init__(self, message: str):
-        super().__init__(message)
-
-
-class OrfNotFoundException(Exception):
-    """
-    Exception raised when finding ORFs in a sequence region fails.
-    """
-    def __init__(self, message: str):
-        super().__init__(message)
 
 
 class TranslatedSeqRegion():
@@ -150,6 +127,9 @@ class TranslatedSeqRegion():
               * 'coding': Fetch all cds_seq_regions' sequences
                            or define the ORF from transcript sequence if no cds_seq_regions are defined
             recursive_fetch: if True, fetch sequence for all subparts defining the requested sequence.
+
+        Raises:
+            OrfNotFoundException: if 'coding' sequence was requested and no open reading frames are found.
         """
 
         match type:
@@ -197,6 +177,10 @@ class TranslatedSeqRegion():
                        when not already available. Default `True` (enabled).
         Returns:
             The sequence of a translated seq region as a string (empty string if `None`).
+
+        Raises:
+            OrfException: if failure occured while determining open reading frames (or none were found) for coding and protein sequences
+            Exception: if an uncaught error occured during sequence retrieval
         """
 
         seq: str
@@ -204,18 +188,48 @@ class TranslatedSeqRegion():
             case 'transcript':
                 seq = self.exon_seq_region.get_sequence(unmasked=unmasked, autofetch=autofetch)
             case 'coding':
-                if self.coding_dna_sequence is None and autofetch:
-                    self.fetch_seq('coding', recursive_fetch=True)
+                if self.coding_dna_sequence is None:
+                    if autofetch:
+                        try:
+                            self.fetch_seq('coding', recursive_fetch=True)
+                        except OrfException as e:
+                            msg = 'Failed to determine open reading frames while retrieving coding sequence.'
+                            e.add_note(msg)
+                            logger.warning(msg)
+                            raise e
+                        except Exception as e:  # pragma: no cover
+                            msg = 'Unkown error occured while retrieving coding sequence.'
+                            logger.error(msg)
+                            raise e
+                    else:
+                        msg = 'Coding sequence not stored and autofetch is disabled.'
+                        logger.error(msg)
+                        raise SequenceNotFoundException(msg)
 
-                seq = str(self.coding_dna_sequence) if self.coding_dna_sequence is not None else ''
+                if self.coding_dna_sequence is None:  # pragma: no cover
+                    msg = 'Uncaught error while retrieving coding sequence: no coding sequence found.'
+                    logger.error(msg)
+                    raise Exception(msg)
+
+                seq = str(self.coding_dna_sequence)
 
                 if unmasked:
                     seq = seq.upper()
             case 'protein':
-                if self.protein_sequence is None and autofetch:
-                    self.translate()
+                if self.protein_sequence is None:
+                    if autofetch:
+                        self.translate()
+                    else:
+                        msg = 'Protein sequence not stored and autofetch is disabled.'
+                        logger.error(msg)
+                        raise SequenceNotFoundException(msg)
 
-                seq = str(self.protein_sequence) if self.protein_sequence is not None else ''
+                if self.protein_sequence is None:  # pragma: no cover
+                    msg = 'Uncaught error while retrieving protein sequence: no protein sequence found.'
+                    logger.error(msg)
+                    raise Exception(msg)
+
+                seq = str(self.protein_sequence)
 
             case _:
                 raise ValueError(f"type {type} not implemented yet in MultiPartSeqRegion.set_multipart_sequence method.")
@@ -239,37 +253,59 @@ class TranslatedSeqRegion():
             variants: List of variants to apply to the sequence
             autofetch: Flag to enable/disable automatic fetching of sequence \
                        when not already available. Default `True` (enabled).
+
         Returns:
             The sequence of a translated seq region as a string.
+
         Raises:
-            InvalidOrfException: if the ORF of the coding sequence became invalid due to the introduced variants,
-                                 when requesting coding or protein sequence.
+            OrfNotFoundException: if no open reading frame / coding sequence was found when requesting coding or protein sequence.
+            OrfException: if failure occured while determining open reading frames (or none were found) for coding and protein sequences
+            InvalidatedOrfException: if the ORF of the coding sequence became invalid due to the introduced variants
+                                     (when requesting coding or protein sequence).
+            Exception: on any other unexpected errors
         """
 
         alt_seq_info: AltSeqInfo
 
         match type:
             case 'transcript':
-                alt_seq_info = self.exon_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
+                try:
+                    alt_seq_info = self.exon_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch)
+                except Exception as e:  # pragma: no cover
+                    msg = 'Unkown error occured while retrieving alternative transcript sequence.'
+                    e.add_note(msg)
+                    logger.error(msg)
+                    raise e
             case 'coding':
                 coding_alt_seq: str
                 coding_alt_embedded_variants: SeqEmbeddedVariantsList
 
-                if self.coding_dna_sequence is None and autofetch:
-                    self.fetch_seq('coding', recursive_fetch=True)
+                coding_ref_seq: str
 
-                if self.coding_seq_region is None:
-                    raise ValueError('No reference coding sequence region found, so no variants can be applied to it.')
-                if self.coding_dna_sequence is None:
-                    raise ValueError('No reference coding sequence found, so no variants can be applied to it.')
+                try:
+                    coding_ref_seq = self.get_sequence('coding')
+                except OrfNotFoundException as e:
+                    msg = 'No open reading frames found while retrieving coding sequence.'
+                    e.add_note(msg)
+                    logger.warning(msg)
+                    raise e
+                except Exception as e:  # pragma: no cover
+                    msg = 'Unkown error occured while retrieving coding sequence.'
+                    e.add_note(msg)
+                    logger.warning(msg)
+                    raise e
 
-                ref_coding_seq = self.coding_dna_sequence
+                if self.coding_seq_region is None:  # pragma: no cover
+                    raise OrfNotFoundException('Unexpected error occured during coding sequence retrieval for alt sequence comparison.')
+                if self.coding_dna_sequence is None:  # pragma: no cover
+                    raise SequenceNotFoundException('Unexpected error occured during coding sequence retrieval for alt sequence comparison. No reference coding sequence found.')
+
                 alt_coding_seq_info = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)
 
                 ## Evaluate alternative coding sequence's ORF
                 # If the reference start codon is different from the alternative start codon,
                 # reject the alternative coding sequence and any further coding sequence searches
-                ref_start_codon = ref_coding_seq[0:CODON_SIZE]
+                ref_start_codon = coding_ref_seq[0:CODON_SIZE]
                 alt_start_codon = alt_coding_seq_info.sequence[0:CODON_SIZE]
 
                 if ref_start_codon != alt_start_codon:
@@ -342,11 +378,12 @@ class TranslatedSeqRegion():
                 if len(variants) > 0:
                     try:
                         alt_coding_seq_info = self.get_alt_sequence(type='coding', unmasked=unmasked, variants=variants, autofetch=autofetch)
-                    except InvalidatedOrfException:
-                        raise InvalidatedTranslationException('Translation invalidated due to variants invalidating the ORF.')
+                    except Exception as e:
+                        e.add_note('Cannot translate due to failures in alternative coding sequence retrieval.')
+                        raise e
 
-                    if alt_coding_seq_info.sequence == '':
-                        raise ValueError('No alternative coding sequence region found, so no translation possible.')
+                    if alt_coding_seq_info.sequence == '':  # pragma: no cover
+                        raise Exception('Uncaught error: no alternative coding sequence found, so no translation possible.')
 
                     # Calculate embedded variants positions in protein sequence from embedded variants positions in coding sequence
                     protein_embedded_variants = SeqEmbeddedVariantsList()
@@ -354,14 +391,34 @@ class TranslatedSeqRegion():
                         protein_embedded_variant = variant.to_translated()
                         protein_embedded_variants.append(protein_embedded_variant)
 
-                    protein_alt_seq = self.translate(coding_sequence=alt_coding_seq_info.sequence) or ''
-                    protein_alt_embedded_variants = protein_embedded_variants
+                    try:
+                        protein_alt_seq = self.translate(coding_sequence=alt_coding_seq_info.sequence)
+                    except TranslationException as e:
+                        e.add_note('Translation error occured during alternative coding sequence translation.')
+                        raise e
+                    except Exception as e:  # pragma: no cover
+                        e.add_note('Unexpected error occured during alternative coding sequence translation.')
+                        raise e
+                    else:
+                        protein_alt_embedded_variants = protein_embedded_variants
                 else:
-                    if self.protein_sequence is None and autofetch:
-                        self.translate()
-
-                    protein_alt_seq = str(self.protein_sequence) if self.protein_sequence is not None else ''
                     protein_alt_embedded_variants = SeqEmbeddedVariantsList()
+                    if self.protein_sequence is None:
+                        if autofetch:
+                            try:
+                                protein_alt_seq = self.translate()
+                            except TranslationException as e:
+                                e.add_note('Translation error occured during coding sequence translation.')
+                                raise e
+                            except Exception as e:  # pragma: no cover
+                                e.add_note('Unexpected error occured during coding sequence translation.')
+                                raise e
+                        else:
+                            msg = 'Protein sequence not stored and autofetch is disabled.'
+                            logger.error(msg)
+                            raise SequenceNotFoundException(msg)
+                    else:
+                        protein_alt_seq = str(self.protein_sequence)
 
                 alt_seq_info = AltSeqInfo(sequence=protein_alt_seq, embedded_variants=protein_alt_embedded_variants)
 
@@ -392,7 +449,7 @@ class TranslatedSeqRegion():
             case _:
                 raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.set_sequence method.")
 
-    def translate(self, coding_sequence: Optional[str] = None) -> str | None:
+    def translate(self, coding_sequence: Optional[str] = None) -> str:
         """
         Translate a coding (c)DNA sequence of this sequence region to protein sequence.
 
@@ -400,27 +457,38 @@ class TranslatedSeqRegion():
         Stores the resulting protein sequence as attribute in this object if no `coding_sequence` input was provided.
 
         Returns:
-            Protein sequence corresponding to the input `coding_sequence`, or to the region's coding sequence if undefined. \
-            `None` if no coding_sequence was provided or no open reading frame was found matching the input params.
+            Protein sequence corresponding to the input `coding_sequence`, or to the region's coding sequence if undefined.
+
+        Raises:
+            OrfException: if `coding_sequence` was not provided and no open reading frame was found.
+            TranslationException: if error was caught during translation
+            Exception: if unexpected error occured
         """
 
         store_protein: bool = False
 
         if coding_sequence is None:
-            coding_sequence = self.get_sequence('coding')
-            store_protein = True
+            try:
+                coding_sequence = self.get_sequence('coding')
+            except OrfException as e:
+                e.add_note('Cannot translate due to failures in coding sequence retrieval.')
+                raise e
+            except Exception as e:  # pragma: no cover
+                e.add_note('Unexpected error occured during coding sequence retrieval.')
+                raise e
+            else:
+                store_protein = True
 
-        if coding_sequence:
-            # Translate to protein
+        # Translate to protein
+        try:
             protein_sequence = str(Seq.translate(sequence=coding_sequence, table=self.codon_table, cds=False, to_stop=True))  # type: ignore
+        except Exception:  # pragma: no cover
+            raise TranslationException('Unexpected error occured during translation.')
 
-            if store_protein:
-                self.set_sequence('protein', protein_sequence)
+        if store_protein:
+            self.set_sequence('protein', protein_sequence)
 
-            return protein_sequence
-        else:
-            logger.warning('No coding sequence found, so no translation made.')
-            return None
+        return protein_sequence
 
 
 def find_orfs(dna_sequence: str, codon_table: CodonTable.CodonTable, force_start: Optional[int] = None, return_type: str = 'all') -> List[CalculatedOrf]:
