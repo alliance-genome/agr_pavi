@@ -28,6 +28,18 @@ def test_translated_seq_region_class(WB_transcript1: TranscriptFixture) -> None:
     # Assert successful transcript seq retrieval
     assert translatedSeqRegion.get_sequence(type='transcript') == WB_transcript1['transcriptSeq']
 
+    # Assert coding seq retrieval fails when not fetched
+    with pytest.raises(SequenceNotFoundException):
+        translatedSeqRegion.get_sequence(type='coding', autofetch=False)
+
+    # Assert coding sequence retrieval defaults to automatic fetching when not already fetched
+    coding_sequence = translatedSeqRegion.get_sequence(type='coding')
+    assert len(coding_sequence) > 0
+
+    # Assert protein seq retrieval fails when not fetched
+    with pytest.raises(SequenceNotFoundException):
+        translatedSeqRegion.get_sequence(type='protein', autofetch=False)
+
     ## Test translate method
     protein_seq = translatedSeqRegion.translate()
 
