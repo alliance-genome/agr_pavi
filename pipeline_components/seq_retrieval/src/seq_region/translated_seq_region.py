@@ -220,7 +220,14 @@ class TranslatedSeqRegion():
             case 'protein':
                 if self.protein_sequence is None:
                     if autofetch:
-                        seq = self.translate()
+                        try:
+                            seq = self.translate()
+                        except TranslationException as e:  # pragma: no cover
+                            e.add_note('Translation error occured during coding sequence translation.')
+                            raise e
+                        except Exception as e:  # pragma: no cover
+                            e.add_note('Unexpected error occured during coding sequence translation.')
+                            raise e
                     else:
                         msg = 'Protein sequence not stored and autofetch is disabled.'
                         logger.error(msg)
@@ -378,9 +385,6 @@ class TranslatedSeqRegion():
                     except Exception as e:
                         e.add_note('Cannot translate due to failures in alternative coding sequence retrieval.')
                         raise e
-
-                    if alt_coding_seq_info.sequence == '':  # pragma: no cover
-                        raise Exception('Uncaught error: no alternative coding sequence found, so no translation possible.')
 
                     # Calculate embedded variants positions in protein sequence from embedded variants positions in coding sequence
                     protein_embedded_variants = SeqEmbeddedVariantsList()

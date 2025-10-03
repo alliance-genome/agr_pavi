@@ -265,13 +265,22 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
 
     # Retrieve relevant sequence info
     if output_type == 'transcript':
-        ref_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
+        try:
+            ref_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
+        except Exception as e:  # pragma: no cover
+            logger.error(f'Failed to retrieve transcript sequence for TranslatedSeqRegion {fullRegion}: {e}')
+            exit(1)
 
         if variant_info:
             # Generate additional sequence for full region with variants embedded
-            seq_info = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
-            alt_seq = seq_info.sequence
-            alt_info = SeqInfo(embedded_variants=seq_info.embedded_variants)
+            try:
+                seq_info = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
+            except Exception as e:  # pragma: no cover
+                logger.error(f'Failed to retrieve alternative transcript sequence for TranslatedSeqRegion {fullRegion} with variants ({variant_ids}): {e}')
+                exit(1)
+            else:
+                alt_seq = seq_info.sequence
+                alt_info = SeqInfo(embedded_variants=seq_info.embedded_variants)
 
     elif output_type == 'protein':
         ref_seq = fullRegion.get_sequence(type='protein')
