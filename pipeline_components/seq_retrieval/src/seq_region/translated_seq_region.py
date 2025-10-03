@@ -396,7 +396,7 @@ class TranslatedSeqRegion():
 
                     try:
                         protein_alt_seq = self.translate(coding_sequence=alt_coding_seq_info.sequence)
-                    except TranslationException as e:
+                    except TranslationException as e:  # pragma: no cover
                         e.add_note('Translation error occured during alternative coding sequence translation.')
                         raise e
                     except Exception as e:  # pragma: no cover
@@ -410,7 +410,7 @@ class TranslatedSeqRegion():
                         if autofetch:
                             try:
                                 protein_alt_seq = self.translate()
-                            except TranslationException as e:
+                            except TranslationException as e:  # pragma: no cover
                                 e.add_note('Translation error occured during coding sequence translation.')
                                 raise e
                             except Exception as e:  # pragma: no cover
