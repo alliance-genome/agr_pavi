@@ -117,7 +117,7 @@ class TranslatedSeqRegion():
     def __str__(self) -> str:  # pragma: no cover
         return self.exon_seq_region.__str__() + self.coding_seq_region.__str__()
 
-    def fetch_seq(self, type: Literal['transcript', 'coding'], recursive_fetch: bool = False) -> None:
+    def fetch_seq(self, type: Literal['transcript', 'coding'], recursive_fetch: bool = False) -> str:
         """
         Fetch TranslatedSeqRegion the object sequences and store in object properties.
 
@@ -128,17 +128,21 @@ class TranslatedSeqRegion():
                            or define the ORF from transcript sequence if no cds_seq_regions are defined
             recursive_fetch: if True, fetch sequence for all subparts defining the requested sequence.
 
+        Returns:
+            the fetched sequence
+
         Raises:
             OrfNotFoundException: if 'coding' sequence was requested and no open reading frames are found.
         """
+        fetched_seq: str
 
         match type:
             case 'transcript':
-                self.exon_seq_region.fetch_seq(recursive_fetch=recursive_fetch)
+                fetched_seq = self.exon_seq_region.fetch_seq(recursive_fetch=recursive_fetch)
             case 'coding':
                 if self.coding_seq_region:
-                    coding_sequence = self.coding_seq_region.get_sequence(inframe_only=True)
-                    self.set_sequence(type='coding', sequence=coding_sequence)
+                    fetched_seq = self.coding_seq_region.get_sequence(inframe_only=True)
+                    self.set_sequence(type='coding', sequence=fetched_seq)
                 else:
                     dna_sequence = self.exon_seq_region.get_sequence(unmasked=True)
 
@@ -155,12 +159,15 @@ class TranslatedSeqRegion():
                         self.coding_seq_region.set_sequence(sequence=orf['sequence'])
 
                         self.set_sequence(type='coding', sequence=orf['sequence'])
+                        fetched_seq = orf['sequence']
                     else:
                         msg = 'No open reading frames found in transcript sequence.'
                         logger.warning(msg)
                         raise OrfNotFoundException(msg)
             case _:
                 raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.fetch_seq method.")
+
+        return fetched_seq
 
     def get_sequence(self, type: Literal['transcript', 'coding', 'protein'], unmasked: bool = False, autofetch: bool = True) -> str:
         """
@@ -191,7 +198,7 @@ class TranslatedSeqRegion():
                 if self.coding_dna_sequence is None:
                     if autofetch:
                         try:
-                            self.fetch_seq('coding', recursive_fetch=True)
+                            seq = self.fetch_seq('coding', recursive_fetch=True)
                         except OrfException as e:
                             msg = 'Failed to determine open reading frames while retrieving coding sequence.'
                             e.add_note(msg)
@@ -205,31 +212,21 @@ class TranslatedSeqRegion():
                         msg = 'Coding sequence not stored and autofetch is disabled.'
                         logger.error(msg)
                         raise SequenceNotFoundException(msg)
-
-                if self.coding_dna_sequence is None:  # pragma: no cover
-                    msg = 'Uncaught error while retrieving coding sequence: no coding sequence found.'
-                    logger.error(msg)
-                    raise Exception(msg)
-
-                seq = str(self.coding_dna_sequence)
+                else:
+                    seq = str(self.coding_dna_sequence)
 
                 if unmasked:
                     seq = seq.upper()
             case 'protein':
                 if self.protein_sequence is None:
                     if autofetch:
-                        self.translate()
+                        seq = self.translate()
                     else:
                         msg = 'Protein sequence not stored and autofetch is disabled.'
                         logger.error(msg)
                         raise SequenceNotFoundException(msg)
-
-                if self.protein_sequence is None:  # pragma: no cover
-                    msg = 'Uncaught error while retrieving protein sequence: no protein sequence found.'
-                    logger.error(msg)
-                    raise Exception(msg)
-
-                seq = str(self.protein_sequence)
+                else:
+                    seq = self.protein_sequence
 
             case _:
                 raise ValueError(f"type {type} not implemented yet in MultiPartSeqRegion.set_multipart_sequence method.")
