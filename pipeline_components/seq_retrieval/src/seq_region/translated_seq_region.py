@@ -183,11 +183,13 @@ class TranslatedSeqRegion():
             autofetch: Flag to enable/disable automatic fetching of sequence \
                        when not already available. Default `True` (enabled).
         Returns:
-            The sequence of a translated seq region as a string (empty string if `None`).
+            The sequence of a translated seq region as a string.
 
         Raises:
             OrfException: if failure occured while determining open reading frames (or none were found) for coding and protein sequences
-            Exception: if an uncaught error occured during sequence retrieval
+            SequenceNotFoundException: if a sequence was not prefetched and autofetch is disabled
+            ValueError: if an unsupported `type` was requested
+            Exception: if an expected error occured during sequence retrieval
         """
 
         seq: str
