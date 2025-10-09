@@ -14,7 +14,7 @@ from typing import Any, get_args, List, TypedDict, Optional
 
 from data_mover import data_file_mover
 from seq_info import EnumValueHandler, SeqInfo
-from seq_region import InvalidatedOrfException, SeqRegion, TranslatedSeqRegion
+from seq_region import SeqRegion, TranslatedSeqRegion
 from variant import Variant
 from log_mgmt import set_log_level, get_logger
 
@@ -142,7 +142,7 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
 
 
 def write_output(unique_entry_id: str, base_seq_name: str, output_type: str, variants_flag: bool, alt_seq_name_suffix: str,
-                 ref_seq: str, alt_seq: str, ref_info: SeqInfo, alt_info: Optional[SeqInfo], sequence_output_file: str | None = None) -> None:
+                 ref_seq: Optional[str], alt_seq: Optional[str], ref_info: SeqInfo, alt_info: Optional[SeqInfo], sequence_output_file: str | None = None) -> None:
     # Define sequence names
     ref_seq_name: str = base_seq_name
     alt_seq_name: str
@@ -155,13 +155,15 @@ def write_output(unique_entry_id: str, base_seq_name: str, output_type: str, var
     if sequence_output_file is None:
         sequence_output_file = f'{unique_entry_id}-{output_type}.fa'
 
-    with open(sequence_output_file, 'w') as output_file:
-        logger.debug(f'Writing sequences to {sequence_output_file}...')
+    if ref_seq is not None or alt_seq is not None:
+        with open(sequence_output_file, 'w') as output_file:
+            logger.debug(f'Writing sequences to {sequence_output_file}...')
 
-        output_file.write(f'>{ref_seq_name}\n{ref_seq}\n')
+            if ref_seq is not None:
+                output_file.write(f'>{ref_seq_name}\n{ref_seq}\n')
 
-        if variants_flag:
-            output_file.write(f'>{alt_seq_name}\n{alt_seq}\n')
+            if alt_seq is not None:
+                output_file.write(f'>{alt_seq_name}\n{alt_seq}\n')
 
     # Print seq info
     indexed_seq_info: dict[str, Any] = {}
@@ -262,6 +264,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
     alt_seq: str | None = None
     ref_info: SeqInfo = SeqInfo()
     alt_info: SeqInfo | None = None
+    error_msg: str
 
     # Retrieve relevant sequence info
     if output_type == 'transcript':
@@ -269,7 +272,11 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
             ref_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
         except Exception as e:  # pragma: no cover
             logger.error(f'Failed to retrieve transcript sequence for TranslatedSeqRegion {fullRegion}: {e}')
-            exit(1)
+            if len(e.__notes__) > 0:
+                error_msg = str(e.__notes__[-1])
+            else:
+                error_msg = f'Failed to retrieve reference transcript sequence for "{base_seq_name}".'
+            ref_info = SeqInfo(error=error_msg)
 
         if variant_info:
             # Generate additional sequence for full region with variants embedded
@@ -277,25 +284,39 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
                 seq_info = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
             except Exception as e:  # pragma: no cover
                 logger.error(f'Failed to retrieve alternative transcript sequence for TranslatedSeqRegion {fullRegion} with variants ({variant_ids}): {e}')
-                exit(1)
+                if len(e.__notes__) > 0:
+                    error_msg = str(e.__notes__[-1])
+                else:
+                    error_msg = f'Failed to retrieve alternative transcript sequence for "{base_seq_name}_{alt_seq_name_suffix}".'
+                ref_info = SeqInfo(error=error_msg)
             else:
                 alt_seq = seq_info.sequence
                 alt_info = SeqInfo(embedded_variants=seq_info.embedded_variants)
 
     elif output_type == 'protein':
-        ref_seq = fullRegion.get_sequence(type='protein')
-
-        if ref_seq == '':
-            logger.error(f'No ORF found for TranslatedSeqRegion {fullRegion}')
+        try:
+            ref_seq = fullRegion.get_sequence(type='protein')
+        except Exception as e:
+            if len(e.__notes__) > 0:
+                error_msg = str(e.__notes__[-1])
+            else:
+                error_msg = f'Failed to retrieve reference protein sequence for "{base_seq_name}".'
+            ref_info = SeqInfo(error=error_msg)
 
         if variant_info:
             # Generate additional sequence for full region with variants embedded
             try:
                 seq_info = fullRegion.get_alt_sequence(type='protein', variants=list(variant_info.values()))
+            except Exception as e:
+                logger.error(f'Failed to retrieve alternative protein sequence for TranslatedSeqRegion {fullRegion} with variants ({variant_ids}): {e}')
+                if len(e.__notes__) > 0:
+                    error_msg = str(e.__notes__[-1])
+                else:
+                    error_msg = f'Failed to retrieve alternative protein sequence for "{base_seq_name}_{alt_seq_name_suffix}".'
+                alt_info = SeqInfo(error=error_msg)
+            else:
                 alt_seq = seq_info.sequence
                 alt_info = SeqInfo(embedded_variants=seq_info.embedded_variants)
-            except InvalidatedOrfException:
-                logger.error(f'Embedding variants ({variant_ids}) into TranslatedSeqRegion {fullRegion} invalidated the ORF.')
 
             if alt_seq == '':
                 logger.error(f'No ORF found for TranslatedSeqRegion {fullRegion} with variants embedded ({variant_ids})')
@@ -303,7 +324,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
         raise NotImplementedError(f"Output_type {output_type} is currently not implemented.")
 
     write_output(unique_entry_id=unique_entry_id, base_seq_name=base_seq_name, output_type=output_type, sequence_output_file=sequence_output_file, alt_seq_name_suffix=alt_seq_name_suffix,
-                 ref_seq=ref_seq, alt_seq=alt_seq or '', ref_info=ref_info, alt_info=alt_info, variants_flag=len(variant_info) > 0)
+                 ref_seq=ref_seq, alt_seq=alt_seq, ref_info=ref_info, alt_info=alt_info, variants_flag=len(variant_info) > 0)
 
 
 if __name__ == '__main__':
