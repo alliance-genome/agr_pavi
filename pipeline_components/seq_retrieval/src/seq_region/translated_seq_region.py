@@ -163,7 +163,9 @@ class TranslatedSeqRegion():
                     else:
                         msg = 'No open reading frames found in transcript sequence.'
                         logger.warning(msg)
-                        raise OrfNotFoundException(msg)
+                        exception = OrfNotFoundException(msg)
+                        exception.add_note(msg)
+                        raise exception
             case _:
                 raise ValueError(f"type {type} not implemented yet in TranslatedSeqRegion.fetch_seq method.")
 
@@ -213,7 +215,9 @@ class TranslatedSeqRegion():
                     else:
                         msg = 'Coding sequence not stored and autofetch is disabled.'
                         logger.error(msg)
-                        raise SequenceNotFoundException(msg)
+                        exception = SequenceNotFoundException(msg)
+                        exception.add_note(msg)
+                        raise exception
                 else:
                     seq = str(self.coding_dna_sequence)
 
@@ -233,7 +237,9 @@ class TranslatedSeqRegion():
                     else:
                         msg = 'Protein sequence not stored and autofetch is disabled.'
                         logger.error(msg)
-                        raise SequenceNotFoundException(msg)
+                        exception = SequenceNotFoundException(msg)
+                        exception.add_note(msg)
+                        raise exception
                 else:
                     seq = self.protein_sequence
 
@@ -302,9 +308,15 @@ class TranslatedSeqRegion():
                     raise e
 
                 if self.coding_seq_region is None:  # pragma: no cover
-                    raise OrfNotFoundException('Unexpected error occured during coding sequence retrieval for alt sequence comparison.')
+                    msg = 'Unexpected error occured during coding sequence retrieval for alt sequence comparison.'
+                    region_exception = OrfNotFoundException(msg)
+                    region_exception.add_note(msg)
+                    raise region_exception
                 if self.coding_dna_sequence is None:  # pragma: no cover
-                    raise SequenceNotFoundException('Unexpected error occured during coding sequence retrieval for alt sequence comparison. No reference coding sequence found.')
+                    msg = 'Unexpected error occured during coding sequence retrieval for alt sequence comparison. No reference coding sequence found.'
+                    seq_exception = SequenceNotFoundException(msg)
+                    seq_exception.add_note(msg)
+                    raise seq_exception
 
                 alt_coding_seq_info = self.coding_seq_region.get_alt_sequence(unmasked=unmasked, variants=variants, autofetch=autofetch, inframe_only=True)
 
@@ -318,7 +330,9 @@ class TranslatedSeqRegion():
                     err_msg = 'Reference start codon is different from alternative start codon. '\
                               'Alternative coding sequence rejected. No alternatives searched.'
                     logger.info(err_msg)
-                    raise InvalidatedOrfException(err_msg)
+                    exception = InvalidatedOrfException(err_msg)
+                    exception.add_note(err_msg)
+                    raise exception
 
                 # Check if stop codon in current coding region changed
                 # * If an early stop was gained or previous stop maintained, accept alternative coding sequence
@@ -363,7 +377,9 @@ class TranslatedSeqRegion():
                         err_msg = 'Stop codon lost and no alternative found in extended alternative coding sequence. '\
                                   'Alternative coding sequence rejected.'
                         logger.info(err_msg)
-                        raise InvalidatedOrfException(err_msg)
+                        stop_exception = InvalidatedOrfException(err_msg)
+                        stop_exception.add_note(err_msg)
+                        raise stop_exception
 
                     # Otherwise, accept alternative ORF sequence of extended region
                     # seq = extended_region_alt_orfs[0]['sequence']
@@ -419,7 +435,9 @@ class TranslatedSeqRegion():
                         else:
                             msg = 'Protein sequence not stored and autofetch is disabled.'
                             logger.error(msg)
-                            raise SequenceNotFoundException(msg)
+                            autofetch_exception = SequenceNotFoundException(msg)
+                            autofetch_exception.add_note(msg)
+                            raise autofetch_exception
                     else:
                         protein_alt_seq = str(self.protein_sequence)
 
@@ -486,7 +504,10 @@ class TranslatedSeqRegion():
         try:
             protein_sequence = str(Seq.translate(sequence=coding_sequence, table=self.codon_table, cds=False, to_stop=True))  # type: ignore
         except Exception:  # pragma: no cover
-            raise TranslationException('Unexpected error occured during translation.')
+            msg = 'Unexpected error occured during translation.'
+            translation_exception = TranslationException(msg)
+            translation_exception.add_note(msg)
+            raise translation_exception
 
         if store_protein:
             self.set_sequence('protein', protein_sequence)

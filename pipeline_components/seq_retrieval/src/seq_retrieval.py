@@ -15,6 +15,7 @@ from typing import Any, get_args, List, TypedDict, Optional
 from data_mover import data_file_mover
 from seq_info import EnumValueHandler, SeqInfo
 from seq_region import SeqRegion, TranslatedSeqRegion
+from seq_region.exceptions import exception_description
 from variant import Variant
 from log_mgmt import set_log_level, get_logger
 
@@ -272,10 +273,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
             ref_seq = fullRegion.get_sequence(type='transcript', unmasked=unmasked)
         except Exception as e:  # pragma: no cover
             logger.error(f'Failed to retrieve transcript sequence for TranslatedSeqRegion {fullRegion}: {e}')
-            if len(e.__notes__) > 0:
-                error_msg = str(e.__notes__[-1])
-            else:
-                error_msg = f'Failed to retrieve reference transcript sequence for "{base_seq_name}".'
+            error_msg = exception_description(e)
             ref_info = SeqInfo(error=error_msg)
 
         if variant_info:
@@ -284,10 +282,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
                 seq_info = fullRegion.get_alt_sequence(type='transcript', unmasked=unmasked, variants=list(variant_info.values()))
             except Exception as e:  # pragma: no cover
                 logger.error(f'Failed to retrieve alternative transcript sequence for TranslatedSeqRegion {fullRegion} with variants ({variant_ids}): {e}')
-                if len(e.__notes__) > 0:
-                    error_msg = str(e.__notes__[-1])
-                else:
-                    error_msg = f'Failed to retrieve alternative transcript sequence for "{base_seq_name}_{alt_seq_name_suffix}".'
+                error_msg = exception_description(e)
                 ref_info = SeqInfo(error=error_msg)
             else:
                 alt_seq = seq_info.sequence
@@ -297,10 +292,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
         try:
             ref_seq = fullRegion.get_sequence(type='protein')
         except Exception as e:
-            if len(e.__notes__) > 0:
-                error_msg = str(e.__notes__[-1])
-            else:
-                error_msg = f'Failed to retrieve reference protein sequence for "{base_seq_name}".'
+            error_msg = exception_description(e)
             ref_info = SeqInfo(error=error_msg)
 
         if variant_info:
@@ -309,10 +301,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
                 seq_info = fullRegion.get_alt_sequence(type='protein', variants=list(variant_info.values()))
             except Exception as e:
                 logger.error(f'Failed to retrieve alternative protein sequence for TranslatedSeqRegion {fullRegion} with variants ({variant_ids}): {e}')
-                if len(e.__notes__) > 0:
-                    error_msg = str(e.__notes__[-1])
-                else:
-                    error_msg = f'Failed to retrieve alternative protein sequence for "{base_seq_name}_{alt_seq_name_suffix}".'
+                error_msg = exception_description(e)
                 alt_info = SeqInfo(error=error_msg)
             else:
                 alt_seq = seq_info.sequence

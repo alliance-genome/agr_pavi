@@ -26,3 +26,12 @@ class InvalidatedOrfException(OrfException):
     """
     Exception raised when an ORF in a sequence region becomes invalid (due to altering the sequence).
     """
+
+
+def exception_description(e: Exception) -> str:
+    descr: str
+    if len(e.__notes__) > 0:
+        descr = str(e.__notes__[0])
+    else:
+        descr = str(e)
+    return descr
