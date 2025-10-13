@@ -7,6 +7,7 @@ apl-1_C42D8.8a.1_ref       MTVGKLMIGLLIPILVATVYAEGSPAGSKRHEKFIPMVAFSC----GYRNQYM
 apl-1_C42D8.8a.1_yn32      MTVGKLMIGLLIPILVATVYAEGSPAGSKRHEKFIPMVAFSC----GYRNQYMTEEGSWK	56
 apl-1_C42D8.8b.1           MTVGKLMIGLLIPILVATVYAEGSPAGSKRHEKFIPMVAFSC----GYRNQYMTEEGSWK	56
 mgl-1_ZC506.4a.1           ------------------------------------------------------------	0
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
                                                                                        
 
 Appl_Appl-RA               TDLSKKTTGPTCLRDKMDLLDYCKKAYPNRDITNIVESSHYQKIGGWCRQGALNAAKCKG	118
@@ -15,6 +16,7 @@ apl-1_C42D8.8a.1_ref       TDDER---YATCFSGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEGS
 apl-1_C42D8.8a.1_yn32      TDDER---YATCFSGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEGS---PCKW	110
 apl-1_C42D8.8b.1           TDDER---YATCFSGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEGS---PCKW	110
 mgl-1_ZC506.4a.1           ------------------------------------------------------------	0
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
                                                                                        
 
 Appl_Appl-RA               SHRWIKPFRCL-GPFQSDALLVPEGCLFDHIHNASRCWPFVRWNQTGAAACQE------R	171
@@ -23,31 +25,35 @@ apl-1_C42D8.8a.1_ref       TH-SVRPYHCIDGEFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKT
 apl-1_C42D8.8a.1_yn32      TH-SVRPYHCIDGEFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNK	169
 apl-1_C42D8.8b.1           TH-SVRPYHCIDGEFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNK	169
 mgl-1_ZC506.4a.1           --------------------MVP-----------------------------------KP	5
-                                                **                                     
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
+                                                                                       
 
-Appl_Appl-RA               GMQMRSFAMLLPCGISVFSGVEFVCCPKHFK-----------------------------	202
-Appl_Appl-RB               GMQMRSFAMLLPCGISVFSGVEFVCCPKHFK-----------------------------	202
-apl-1_C42D8.8a.1_ref       DMIVRSFAVLEPCALDMFTGVEFVCCPNDQT-----------------------------	200
-apl-1_C42D8.8a.1_yn32      DMIVRSFAVLEPCALDMFTGVEFVCCPNDQT-----------------------------	200
-apl-1_C42D8.8b.1           DMIVRSFAVLEPCALDMFTGVEFVCCPNDQT-----------------------------	200
+Appl_Appl-RA               GMQMRSFAMLLPCGISVFSGVEFVCCPKHFKT----------------------------	203
+Appl_Appl-RB               GMQMRSFAMLLPCGISVFSGVEFVCCPKHFKT----------------------------	203
+apl-1_C42D8.8a.1_ref       DMIVRSFAVLEPCALDMFTGVEFVCCPNDQTN----------------------------	201
+apl-1_C42D8.8a.1_yn32      DMIVRSFAVLEPCALDMFTGVEFVCCPNDQTN----------------------------	201
+apl-1_C42D8.8b.1           DMIVRSFAVLEPCALDMFTGVEFVCCPNDQTN----------------------------	201
 mgl-1_ZC506.4a.1           PSIIRHMFSVLALAIQILANVNVVAQTTEAVDLAPPPKVRQIRIPGDILIGGVFPVHSKS	65
-                              :* :  :   .:.:::.*:.*.  ..                               
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
+                                                                                       
 
-Appl_Appl-RA               --TD--------EIHVKKTDLPVMPAAQINSANDELVMND-----EDDSNDSNYSKDANE	247
-Appl_Appl-RB               --TD--------EIHVKKTDLPVMPAAQINSANDELVMND-----EDDSNDSNYSKDANE	247
-apl-1_C42D8.8a.1_ref       --NK--------TD-VQKT------------------KE-------------------DE	212
-apl-1_C42D8.8a.1_yn32      --NK--------TD-VQKT------------------KE-------------------DE	212
-apl-1_C42D8.8b.1           --NK--------TD-VQKT------------------KE-------------------DE	212
+Appl_Appl-RA               ---D--------EIHVKKTDLPVMPAAQINSANDELVMND-----EDDSNDSNYSKDANE	247
+Appl_Appl-RB               ---D--------EIHVKKTDLPVMPAAQINSANDELVMND-----EDDSNDSNYSKDANE	247
+apl-1_C42D8.8a.1_ref       ---K--------TD-VQKT------------------KE-------------------DE	212
+apl-1_C42D8.8a.1_yn32      ---K--------TD-VQKT------------------KE-------------------DE	212
+apl-1_C42D8.8b.1           ---K--------TD-VQKT------------------KE-------------------DE	212
 mgl-1_ZC506.4a.1           LNGDEPCGEIAETRGVHRVEAMLYALDQINSQNDFLRGYKLGALILDSCSNPAYA---LN	122
-                              .           *::.                                        :
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
+                                                                                       
 
 Appl_Appl-RA               DDLDDEDDLMGDDEEDDMVADEAATAGGSPNTGSSGDSNSGSLDDINAEYDSGEEGDNYE	307
 Appl_Appl-RB               DDLDDEDDLMGDDEEDDMVADEAATAGGSPNTGSSGDSNSGSLDDINAEYDSGEEGDNYE	307
 apl-1_C42D8.8a.1_ref       DDDDDEDDAYED---------------------------------------------DYS	227
 apl-1_C42D8.8a.1_yn32      DDDDDEDDAYED---------------------------------------------DYS	227
 apl-1_C42D8.8b.1           DDDDDEDDAYED---------------------------------------------DYS	227
-mgl-1_ZC506.4a.1           QSLDFVRDMIGSSEASDYVCL----DGSDPNLK---------------------------	151
-                           :. *   *   .                                                
+mgl-1_ZC506.4a.1           QSLDFVRDMIGSSEASDYVC----LDGSDPNLK---------------------------	151
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
+                                                                                       
 
 Appl_Appl-RA               EDGAGSESEAEVEASWDQSGGAKVVSLKSDSSSPSSAPVAPAPEKAPVKSESVTSTPQLS	367
 Appl_Appl-RB               EDGAGSESEAEVEASWDQSGGAKVVSLKSDSSSPSSAPVAPAPEKAPVKSESVTSTPQLS	367
@@ -55,7 +61,8 @@ apl-1_C42D8.8a.1_ref       EESDE------------------------------------------------
 apl-1_C42D8.8a.1_yn32      EESDE-------------------------------------------------------	232
 apl-1_C42D8.8b.1           EESDE-------------------------------------------------------	232
 mgl-1_ZC506.4a.1           KQSQKKNVAAVVGGSYSS------V------------------------------SVQLA	175
-                           ::.                                                         
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
+                                                                                       
 
 Appl_Appl-RA               ASAAAFVAANSGNSGTGAGAPPST-AQPTSDPYFTHFDPHYEHQSYKVSQKRLEESHREK	426
 Appl_Appl-RB               ASAAAFVAANSGNSGTGAGAPPST-AQPTSDPYFTHFDPHYEHQSYKVSQKRLEESHREK	426
@@ -63,15 +70,17 @@ apl-1_C42D8.8a.1_ref       --------------------KDEE-EPSSQDPYFKIANWTNEHDDFKKAEMRM
 apl-1_C42D8.8a.1_yn32      --------------------KDEE-EPSSQDPYFKIANWTNEHDDFKKAEMRMDEKHRKK	271
 apl-1_C42D8.8b.1           --------------------KDEE-EPSSQDPYFKIANWTNEHDDFKKAEMRMDEKHRKK	271
 mgl-1_ZC506.4a.1           NLLRLFRIAQVS--------PASTNADLSDKNRFEYFARTVPSDDYQAMAMV--------	219
-                                                 .     :..  *         :.::             
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
+                                                                                       
 
 Appl_Appl-RA               VTRVMKDWSDLEEKYQDMRLADPKAAQSFKQRMTARFQTSVQALEEEGNAEKHQLAAMHQ	486
 Appl_Appl-RB               VTRVMKDWSDLEEKYQDMRLADPKAAQSFKQRMTARFQTSVQALEEEGNAEKHQLAAMHQ	486
 apl-1_C42D8.8a.1_ref       VDKVMKEWGDLETRYNEQKAKDPKGAEKFKSQMNARFQKTVSSLEEEHKRMRKEIEAVHE	331
 apl-1_C42D8.8a.1_yn32      VDKVMKEWGDLETRYNEQKAKDPKGAEKFKSQMNARFQKTVSSLEEEHKRMRKEIEAVHE	331
 apl-1_C42D8.8b.1           VDKVMKEWGDLETRYNEQKAKDPKGAEKFKSQMNARFQKTVSSLEEEHKRMRKEIEAVHE	331
-mgl-1_ZC506.4a.1           EIAVKFKWSYVSLVYSADEYGE-LGADAFKKEA--RKKGICIALEERIQN----------	266
-                              *  .*. :.  *.  .  :  .*: **..   * :    :***. :           
+mgl-1_ZC506.4a.1           EIAVKFKWSYVSLVYSADEYG-ELGADAFKKEA--RKKGICIALEERIQN----------	266
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
+                                                                                       
 
 Appl_Appl-RA               QRVLAHINQRKREAMTCYTQALTE--QPPNAHH----VEKCLQKLLRALHKDRAHALAHY	540
 Appl_Appl-RB               QRVLAHINQRKREAMTCYTQALTE--QPPNAHH----VEKCLQKLLRALHKDRAHALAHY	540
@@ -79,86 +88,88 @@ apl-1_C42D8.8a.1_ref       ERVQAMLNEKKRDATHDYRQALATHVNKPNKHS----VLQSLKAYIRAEEKDR
 apl-1_C42D8.8a.1_yn32      ERVQAMLNEKKRDATHDYRQALATHVNKPNKHS----VLQSLKAYIRAEKKDRMHTLNRY	387
 apl-1_C42D8.8b.1           ERVQAMLNEKKRDATHDYRQALATHVNKPNKHS----VLQSLKAYIRAEEKDRMHTLNRY	387
 mgl-1_ZC506.4a.1           ----------KKESFTESINNLVQKLQPEKNVGATVVVLFVGTEYIPDIL-----RYTAE	311
-                                     *:::     : *.   :  :       *       :              
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
+                                                                                       
 
-Appl_Appl-RA               RHLLNSGGPGGLEAAASER-PRTLERLID--IDRAVNQSMT---MLKRYPELSAKIAQL-	593
-Appl_Appl-RB               RHLLNSGGPGGLEAAASER-PRTLERLID--IDRAVNQSMT---MLKRYPELSAKIAQL-	593
-apl-1_C42D8.8a.1_ref       RHLLKADSK----EAAAYK-PTVIHRLRY--IDLRINGTLA---MLRDFPDLEKYVRPI-	436
-apl-1_C42D8.8a.1_yn32      RHLLKADSK----EAAAYK-PTVIHRLRY--IDLRINGTLA---MLRDFPDLEKYVRPI-	436
-apl-1_C42D8.8b.1           RHLLKADSK----EAAAYK-PTVIHRLRY--IDLRINGTLA---MLRDFPDLEKYVRPI-	436
+Appl_Appl-RA               RHLLNSGGPGGLEAAASER-PRTLERLI--DIDRAVNQSMT---MLKRYPELSAKIAQLM	594
+Appl_Appl-RB               RHLLNSGGPGGLEAAASER-PRTLERLI--DIDRAVNQSMT---MLKRYPELSAKIAQLM	594
+apl-1_C42D8.8a.1_ref       RHLLKADSK----EAAAYK-PTVIHRLR--YIDLRINGTLA---MLRDFPDLEKYVRPIA	437
+apl-1_C42D8.8a.1_yn32      RHLLKADSK----EAAAYK-PTVIHRLR--YIDLRINGTLA---MLRDFPDLEKYVRPIA	437
+apl-1_C42D8.8b.1           RHLLKADSK----EAAAYK-PTVIHRLR--YIDLRINGTLA---MLRDFPDLEKYVRPIA	437
 mgl-1_ZC506.4a.1           RMKLTSGAKKRIIWLASESWDRNNDKYTAGDNRLAAQGAIVLMLASQKVPSFEEYFMSLH	371
-                           *  *.:..       *:       .:          : ::.     :  *.:.  .  : 
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	0
+                                                                                       
 
-Appl_Appl-RA               ------MN------DYILALRSKDDIP-GSSLGMSEEA---EAGIL--DKYRVEIERKVA	635
-Appl_Appl-RB               ------MN------DYILALRSKDDIP-GSSLGMSEEA---EAGIL--DKYRVEIERKVA	635
-apl-1_C42D8.8a.1_ref       ------AV------TYWKDYRDEVS-P-DISVE--DSE---LTPII--HDDEFSKNAKLD	475
-apl-1_C42D8.8a.1_yn32      ------AV------TYWKDYRDEVS-P-DISVE--DSE---LTPII--HDDEFSKNAKLD	475
-apl-1_C42D8.8b.1           ------AV------TYWKDYRDEVS-P-DISVE--DSE---LTPII--HDDEFSKNAKLD	475
+Appl_Appl-RA               -------------NDYILALRSKDDIPGSSLG-MSEE---AEAGIL--DKYRVEIERKVA	635
+Appl_Appl-RB               -------------NDYILALRSKDDIPGSSLG-MSEE---AEAGIL--DKYRVEIERKVA	635
+apl-1_C42D8.8a.1_ref       -------------VTYWKDYRDEVS-PDISVE---DS---ELTPII--HDDEFSKNAKLD	475
+apl-1_C42D8.8a.1_yn32      -------------VTYWKDYRDEVS-PDISVE---DS---ELTPII--HDDEFSKNAKLD	475
+apl-1_C42D8.8b.1           -------------VTYWKDYRDEVS-PDISVE---DS---ELTPII--HDDEFSKNAKLD	475
 mgl-1_ZC506.4a.1           PGTEAFERNKWLRELWQVKYKCEFDTPPGSTASRCEDIKQSTEGFNADDKVQFVIDAVYA	431
-                                          :    : : . * . :    :.       :   .. ..  :    
+hyls-1_C05C8.9b.1_ref      ----------------MANFTT-------------EN---ELEDIL--HQMGHHIHD---	23
+                                                              :.       :   ..     .    
 
-Appl_Appl-RA               EKERLRLAEKQRKEQRAAEREKL-----REEK-LRLEAKKVDDMLKSQV-----AEQQSQ	684
-Appl_Appl-RB               EKERLRLAEKQRKEQRAAEREKL-----REEK-LRLEAKKVDDMLKSQV-----AEQQSQ	684
-apl-1_C42D8.8a.1_ref       VKAPTTTA-KPVKE---TDNAKV-----LPTE-ASDSEEEADEYYEDED-----DEQVKK	520
-apl-1_C42D8.8a.1_yn32      VKAPTTTA-KPVKE---TDNAKV-----LPTE-ASDSEEEADEYYEDED-----DEQVKK	520
-apl-1_C42D8.8b.1           VKAPTTTA-KPVKE---TDNAKV-----LPTE-ASDSEEEADEYYEDED-----DEQVKK	520
+Appl_Appl-RA               EKERLRLAEKQRKEQRAAEREK----LREEKLRLEAK--KVDDMLKS-----QVAEQQSQ	684
+Appl_Appl-RB               EKERLRLAEKQRKEQRAAEREK----LREEKLRLEAK--KVDDMLKS-----QVAEQQSQ	684
+apl-1_C42D8.8a.1_ref       VKAPTTTA-KPVKE---TDNAK----VLPTEASDSEE--EADEYYED-----EDDEQVKK	520
+apl-1_C42D8.8a.1_yn32      VKAPTTTA-KPVKE---TDNAK----VLPTEASDSEE--EADEYYED-----EDDEQVKK	520
+apl-1_C42D8.8b.1           VKAPTTTA-KPVKE---TDNAK----VLPTEASDSEE--EADEYYED-----EDDEQVKK	520
 mgl-1_ZC506.4a.1           IAHGLQSMKQAICPDDAIENHWISRYSKQPEICHAMQNIDGSDFYQNYLLKVNFTDIVGK	491
-                                    :        :.  :             .  . .:  :.        :   :
+hyls-1_C05C8.9b.1_ref      -KNQFAT--------FKNEIDN----LLDRELCLSDA--DEDVMNES-----LFASLSV-	62
+                                             :           :        . .   :.        .    
 
-Appl_Appl-RA               PTQSSTQSQAQQQQQEKSLPGKELGPDAALVTAA----NPNLETTK-SEKDL--SDTEYG	737
-Appl_Appl-RB               PTQSSTQSQAQQQQQEKSLPGKELGPDAALVTAA----NPNLETTK-SEKDL--SDTEYG	737
-apl-1_C42D8.8a.1_ref       -----------TPDMKKKVKVVDIKPKEIKVTIEEEKKAPKLVETS-VQTDD--EDD--D	564
-apl-1_C42D8.8a.1_yn32      -----------TPDMKKKVKVVDIKPKEIKVTIEEEKKAPKLVETS-VQTDD--EDD--D	564
-apl-1_C42D8.8b.1           -----------TPDMKKKVKVVDIKPKEV--TIEEEKKAPKLVETS-VQTDD--EDD--D	562
-mgl-1_ZC506.4a.1           RFR---------------FSPQGDGPASYTILTY----KPKSMDKKRRMTDDESSPSDYV	532
-                                             .      *             *:   ..   .*   .     
+Appl_Appl-RA               PTQSSTQSQAQQQQQEKSLPGKELGPDAALVTAA----NPNLETTKSEKDLS---DTEYG	737
+Appl_Appl-RB               PTQSSTQSQAQQQQQEKSLPGKELGPDAALVTAA----NPNLETTKSEKDLS---DTEYG	737
+apl-1_C42D8.8a.1_ref       -----------TPDMKKKVKVVDIKPKEIKVTIEEEKKAPKLVETSVQTDDE---DD--D	564
+apl-1_C42D8.8a.1_yn32      -----------TPDMKKKVKVVDIKPKEIKVTIEEEKKAPKLVETSVQTDDE---DD--D	564
+apl-1_C42D8.8b.1           -----------TPDMKKKVKVVDIKPKEV--TIEEEKKAPKLVETSVQTDDE---DD--D	562
+mgl-1_ZC506.4a.1           RF---------------RFSPQGDGPASYTILTY----KPKSMDKKRRMTDDESSPSDYV	532
+hyls-1_C05C8.9b.1_ref      ------DPAAQFIRQERNFPTENLNIQSPIVSRKRQGKRFIYENVELQSDFDDESSNEYP	116
+                                             .                          . .   .        
 
-Appl_Appl-RA               EATVSSTKV------------------QTVLPTVDDDAVQRAVEDVAAAVAH---QEAEP	776
-Appl_Appl-RB               EATVS-TKV------------------QTVLPTVDDDAVQRAVEDVAAAVAH---QEAEP	775
-apl-1_C42D8.8a.1_ref       EDSSSSTSS------------------------ESDEDEDKNIKELRV--------DIEP	592
-apl-1_C42D8.8a.1_yn32      EDSSSSTSS------------------------ESDEDEDKNIKELRV--------DIEP	592
-apl-1_C42D8.8b.1           EDSSSSTSS------------------------ESDEDEDKNIKELRV--------DIEP	590
-mgl-1_ZC506.4a.1           EIGHWSENNLTIYEKNLWWDPDHTPVSVCSLPCKIG-FRKQLIKDEQCCWACSKCEDYEY	591
-                           *      .                           .   .: :::           : * 
+Appl_Appl-RA               EATVSSTKVQTVLPTVDDDAVQRAVEDVAAAVAHQEAEPQV-------------------	778
+Appl_Appl-RB               EATVS-TKVQTVLPTVDDDAVQRAVEDVAAAVAHQEAEPQV-------------------	777
+apl-1_C42D8.8a.1_ref       EDSSSSTSS------ESDEDEDKNIKELRV-----DIEPII-------------------	594
+apl-1_C42D8.8a.1_yn32      EDSSSSTSS------ESDEDEDKNIKELRV-----DIEPII-------------------	594
+apl-1_C42D8.8b.1           EDSSSSTSS------ESDEDEDKNIKELRV-----DIEPII-------------------	592
+mgl-1_ZC506.4a.1           EIGHWSENNLTIYE------KNLWWDPDHTPVSVCSLPCKIGFRKQLIKDEQCCWACSKC	586
+hyls-1_C05C8.9b.1_ref      ERNLL---------------VDRAWRSIHRAMETCNGATEV-------------------	142
+                           *                    :             .    :                   
 
-Appl_Appl-RA               QVQHFMTHDLGH---------RESSFSLRREFAQHAHAAKEGRNVYFTLSFAGIALMAAV	827
-Appl_Appl-RB               QVQHFMTHDLGH---------RESSFSLRREFAQHAHAAKEGRNVYFTLSFAGIALMAAV	826
-apl-1_C42D8.8a.1_ref       II---------D---------EPASFYRHDKLIQSPEVERSASSVFQPYVLASAMFITAI	634
-apl-1_C42D8.8a.1_yn32      II---------D---------EPASFYRHDKLIQSPEVERSASSVFQPYVLASAMFITAI	634
-apl-1_C42D8.8b.1           II---------D---------EPASFYRHDKLIQSPEVERSASSVFQPYVLASAMFITAI	632
-mgl-1_ZC506.4a.1           LIN--ETHCVGCEQGWWPTKDRKGCFDLSL--SQLKYMRWRSMYSLVPTILAVFGIIATL	647
-                            :                   . ..*       *       .        :*   :::::
+Appl_Appl-RA               -----QHFMTHDLGHRE---------SSFSLRREFAQHAHAAKEGRNVYFTLSFAGIALM	824
+Appl_Appl-RB               -----QHFMTHDLGHRE---------SSFSLRREFAQHAHAAKEGRNVYFTLSFAGIALM	823
+apl-1_C42D8.8a.1_ref       --------------DEP---------ASFYRHDKLIQSPEVERSASSVFQPYVLASAMFI	631
+apl-1_C42D8.8a.1_yn32      --------------DEP---------ASFYRHDKLIQSPEVERSASSVFQPYVLASAMFI	631
+apl-1_C42D8.8b.1           --------------DEP---------ASFYRHDKLIQSPEVERSASSVFQPYVLASAMFI	629
+mgl-1_ZC506.4a.1           EDYEYLINETHCVGCEQGWWPTKDRKGCFDLSL--SQLKYMRWRSMYSLVPTILAVFGII	644
+hyls-1_C05C8.9b.1_ref      -----L----------------------------------------TFSFFFLLKNADFH	157
+                                                                                :    : 
 
-Appl_Appl-RA               FVGVAVAKWRTSRSPHAQG-----FIEVDQ----NVTTH---------------------	857
-Appl_Appl-RB               FVGVAVAKWRTSRSPHAQG-----FIEVDQVGCQNVTTH---------------------	860
-apl-1_C42D8.8a.1_ref       -CIIAFAITNARRRRAMRG-----FIEVDVY-----------------------------	659
-apl-1_C42D8.8a.1_yn32      -CIIAFAITNARRRRAMRG-----FIEVDVY-----------------------------	659
-apl-1_C42D8.8b.1           -CIIAFAITNARRRRAMRG-----FIEVDVY-----------------------------	657
-mgl-1_ZC506.4a.1           FVIVVYVIYNETPVVKASGRELSYILLISMIMCYCMTFVLLSKPSAIVCAIKRTGIGFAF	707
-                              :. .  .        *     :: :.                               
+Appl_Appl-RA               AAVFVGVAVAKWRTSRSPHAQG-----FIEVDQ----NVTTHH-----------------	858
+Appl_Appl-RB               AAVFVGVAVAKWRTSRSPHAQG-----FIEVDQVGCQNVTTHH-----------------	861
+apl-1_C42D8.8a.1_ref       TAI-CIIAFAITNARRRRAMRG-----FIEVDVY--------------------------	659
+apl-1_C42D8.8a.1_yn32      TAI-CIIAFAITNARRRRAMRG-----FIEVDVY--------------------------	659
+apl-1_C42D8.8b.1           TAI-CIIAFAITNARRRRAMRG-----FIEVDVY--------------------------	657
+mgl-1_ZC506.4a.1           ATLFVIVVYVIYNETPVVKASGRELSYILLISMIMCYCMTFVLLSKPSAIVCAIKRTGIG	704
+hyls-1_C05C8.9b.1_ref      SRFFP-------------------------------------------------------	162
+                           : .                                                         
 
-Appl_Appl-RA               ------------------------------------------------------------	857
-Appl_Appl-RB               ------------------------------------------------------------	860
+Appl_Appl-RA               ------------------------------------------------------------	858
+Appl_Appl-RB               ------------------------------------------------------------	861
 apl-1_C42D8.8a.1_ref       ------------------------------------------------------------	659
 apl-1_C42D8.8a.1_yn32      ------------------------------------------------------------	659
 apl-1_C42D8.8b.1           ------------------------------------------------------------	657
-mgl-1_ZC506.4a.1           SCLYSAMFVKTNRIFRIFSTRSAQRPRFISPISQVVMTAMLAGVQLIGSLIWLSVVPPGW	767
+mgl-1_ZC506.4a.1           FAFSCLYSAMFVKTNRIFRIFSTRSAQRPRFISPISQVVMTAMLAGVQLIGSLIWLSVVP	764
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	162
                                                                                        
 
-Appl_Appl-RA               --H-P---------IVREEKIVPNMQINGYENPTYKYFEVKE------------------	887
-Appl_Appl-RB               --H-P---------IVREEKIVPNMQINGYENPTYKYFEVKE------------------	890
-apl-1_C42D8.8a.1_ref       ---------------TPEERHVAGMQVNGYENPTYSFFDSKA------------------	686
-apl-1_C42D8.8a.1_yn32      ---------------TPEERHVAGMQVNGYENPTYSFFDSKA------------------	686
-apl-1_C42D8.8b.1           ---------------TPEERHVAGMQVNGYENPTYSFFDSKA------------------	684
-mgl-1_ZC506.4a.1           RHHYPTRDQVVLTCNVPDHHFLYSLAYDGFLIVLCTTYAVKTRKVPENFNETKFIGFSMY	827
-                                          . :.: : .:  :*:     . :  *                   
-
-Appl_Appl-RA               ------------------------------------------------------------	887
-Appl_Appl-RB               ------------------------------------------------------------	890
-apl-1_C42D8.8a.1_ref       ------------------------------------------------------------	686
-apl-1_C42D8.8a.1_yn32      ------------------------------------------------------------	686
-apl-1_C42D8.8b.1           ------------------------------------------------------------	684
-mgl-1_ZC506.4a.1           TTCVVWLSWIFFFFGTGSDFQIQTSSLCISISMSANVALACIFSPKLWIILFEKHKNVRK	887
+Appl_Appl-RA               -------P---------IVREEKIVPNMQINGYENPTYKYFEVKE---------------	887
+Appl_Appl-RB               -------P---------IVREEKIVPNMQINGYENPTYKYFEVKE---------------	890
+apl-1_C42D8.8a.1_ref       ------------------TPEERHVAGMQVNGYENPTYSFFDSKA---------------	686
+apl-1_C42D8.8a.1_yn32      ------------------TPEERHVAGMQVNGYENPTYSFFDSKA---------------	686
+apl-1_C42D8.8b.1           ------------------TPEERHVAGMQVNGYENPTYSFFDSKA---------------	684
+mgl-1_ZC506.4a.1           PGWRHHYPTRDQVVLTCNVPDHHFLYSLAYDGFLIVLCTTYAVKTRKVPENFNETKFIGF	824
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	162
                                                                                        
 
 Appl_Appl-RA               ------------------------------------------------------------	887
@@ -166,13 +177,24 @@ Appl_Appl-RB               -----------------------------------------------------
 apl-1_C42D8.8a.1_ref       ------------------------------------------------------------	686
 apl-1_C42D8.8a.1_yn32      ------------------------------------------------------------	686
 apl-1_C42D8.8b.1           ------------------------------------------------------------	684
-mgl-1_ZC506.4a.1           QEGESMLNKSSRSLGNCSSRLCANSIDEPNQYTALLTDSTRRRSSRKTSQPTSTSSAHDT	947
+mgl-1_ZC506.4a.1           SMYTTCVVWLSWIFFFFGTGSDFQIQTSSLCISISMSANVALACIFSPKLWIILFEKHKN	884
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	162
                                                                                        
 
-Appl_Appl-RA               --	887
-Appl_Appl-RB               --	890
-apl-1_C42D8.8a.1_ref       --	686
-apl-1_C42D8.8a.1_yn32      --	686
-apl-1_C42D8.8b.1           --	684
-mgl-1_ZC506.4a.1           FL	949
-                             
+Appl_Appl-RA               ------------------------------------------------------------	887
+Appl_Appl-RB               ------------------------------------------------------------	890
+apl-1_C42D8.8a.1_ref       ------------------------------------------------------------	686
+apl-1_C42D8.8a.1_yn32      ------------------------------------------------------------	686
+apl-1_C42D8.8b.1           ------------------------------------------------------------	684
+mgl-1_ZC506.4a.1           VRKQEGESMLNKSSRSLGNCSSRLCANSIDEPNQYTALLTDSTRRRSSRKTSQPTSTSSA	944
+hyls-1_C05C8.9b.1_ref      ------------------------------------------------------------	162
+                                                                                       
+
+Appl_Appl-RA               -----	887
+Appl_Appl-RB               -----	890
+apl-1_C42D8.8a.1_ref       -----	686
+apl-1_C42D8.8a.1_yn32      -----	686
+apl-1_C42D8.8b.1           -----	684
+mgl-1_ZC506.4a.1           HDTFL	949
+hyls-1_C05C8.9b.1_ref      -----	162
+                                

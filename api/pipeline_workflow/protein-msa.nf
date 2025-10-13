@@ -67,7 +67,7 @@ process collectAndAlignSeqInfo {
 
     script:
         """
-        seq_info_align.py --sequence-info-files '${seq_info_files.collect{it.name}.join(' ')}' --alignment-result-file '${alignment_output_file}'
+        seq_info_align.py --sequence-info-files '${seq_info_files.collect{it.name}.sort{it}.join(' ')}' --alignment-result-file '${alignment_output_file}'
         """
 }
 

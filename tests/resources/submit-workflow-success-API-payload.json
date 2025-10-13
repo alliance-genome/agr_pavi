@@ -1,6 +1,6 @@
 [
     {
-        "unique_entry_id": "apl-1_C42D8.8a.1_yn32",
+        "unique_entry_id": "002_apl-1_C42D8.8a.1_yn32",
         "base_seq_name": "apl-1_C42D8.8a.1",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
         "seq_id": "X",
@@ -117,11 +117,13 @@
                 "frame": 0
             }
         ],
-        "variant_ids": ["NC_003284.9:g.5114224C>T"],
+        "variant_ids": [
+            "NC_003284.9:g.5114224C>T"
+        ],
         "alt_seq_name_suffix": "_yn32"
     },
     {
-        "unique_entry_id": "apl-1_C42D8.8b.1",
+        "unique_entry_id": "003_apl-1_C42D8.8b.1",
         "base_seq_name": "apl-1_C42D8.8b.1",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
         "seq_id": "X",
@@ -241,7 +243,7 @@
         "variant_ids": []
     },
     {
-        "unique_entry_id": "Appl_Appl-RA",
+        "unique_entry_id": "000_Appl_Appl-RA",
         "base_seq_name": "Appl_Appl-RA",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz",
         "seq_id": "X",
@@ -356,7 +358,7 @@
         "variant_ids": []
     },
     {
-        "unique_entry_id": "Appl_Appl-RB",
+        "unique_entry_id": "001_Appl_Appl-RB",
         "base_seq_name": "Appl_Appl-RB",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz",
         "seq_id": "X",
@@ -471,7 +473,7 @@
         "variant_ids": []
     },
     {
-        "unique_entry_id": "mgl-1_ZC506.4a.1",
+        "unique_entry_id": "004_mgl-1_ZC506.4a.1",
         "base_seq_name": "mgl-1_ZC506.4a.1",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
         "seq_id": "X",
@@ -661,5 +663,51 @@
             }
         ],
         "variant_ids": []
+    },
+    {
+        "unique_entry_id": "005_hyls-1_C05C8.9b.1_tm3067",
+        "base_seq_name": "hyls-1_C05C8.9b.1",
+        "seq_id": "V",
+        "seq_strand": "+",
+        "exon_seq_regions": [
+            {
+                "start": 7237413,
+                "end": 7237654
+            },
+            {
+                "start": 7237710,
+                "end": 7237880
+            },
+            {
+                "start": 7237931,
+                "end": 7238511
+            },
+            {
+                "start": 7239391,
+                "end": 7239644
+            }
+        ],
+        "cds_seq_regions": [
+            {
+                "start": 7237558,
+                "end": 7237654,
+                "frame": 0
+            },
+            {
+                "start": 7237710,
+                "end": 7237880,
+                "frame": 2
+            },
+            {
+                "start": 7237931,
+                "end": 7238151,
+                "frame": 2
+            }
+        ],
+        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+        "variant_ids": [
+            "NC_003283.11:g.7237515_7238007del"
+        ],
+        "alt_seq_name_suffix": "_tm3067"
     }
 ]

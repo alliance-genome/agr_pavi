@@ -6,7 +6,7 @@ import logging
 import pytest
 from Bio.Data import CodonTable
 
-from seq_region import SeqRegion, TranslatedSeqRegion, InvalidatedOrfException, InvalidatedTranslationException, OrfNotFoundException
+from seq_region import SeqRegion, TranslatedSeqRegion, InvalidatedOrfException, OrfNotFoundException, SequenceNotFoundException
 from seq_region.translated_seq_region import find_orfs
 from variant import Variant
 
@@ -28,6 +28,18 @@ def test_translated_seq_region_class(WB_transcript1: TranscriptFixture) -> None:
     # Assert successful transcript seq retrieval
     assert translatedSeqRegion.get_sequence(type='transcript') == WB_transcript1['transcriptSeq']
 
+    # Assert coding seq retrieval fails when not fetched
+    with pytest.raises(SequenceNotFoundException):
+        translatedSeqRegion.get_sequence(type='coding', autofetch=False)
+
+    # Assert coding sequence retrieval defaults to automatic fetching when not already fetched
+    coding_sequence = translatedSeqRegion.get_sequence(type='coding')
+    assert len(coding_sequence) > 0
+
+    # Assert protein seq retrieval fails when not fetched
+    with pytest.raises(SequenceNotFoundException):
+        translatedSeqRegion.get_sequence(type='protein', autofetch=False)
+
     ## Test translate method
     protein_seq = translatedSeqRegion.translate()
 
@@ -39,7 +51,7 @@ def test_translated_seq_region_class(WB_transcript1: TranscriptFixture) -> None:
 def test_incomplete_orf_translation() -> None:
 
     # Test translation of incomplete ORF
-    # WBGene00000149 Transcript:C54H2.5.1 5' UTR
+    # WB:WBGene00004788 Transcript:C54H2.5.1 5' UTR
     five_p_utr: SeqRegion = SeqRegion(seq_id='X', start=5780713, end=5780722, strand='-',
                                       fasta_file_url=FASTA_FILE_URL)
     UTR_SEQ = 'CTCTTGGAAA'
@@ -51,9 +63,21 @@ def test_incomplete_orf_translation() -> None:
     assert isinstance(chained_utr_seq, str)
     assert chained_utr_seq == UTR_SEQ
 
-    # Assert failed translation
+    # Assert ORF retrieval failure reporting
+    with pytest.raises(OrfNotFoundException):
+        incomplete_multipart_seq_region.get_sequence(type='coding')
+
     with pytest.raises(OrfNotFoundException):
         incomplete_multipart_seq_region.translate()
+
+    with pytest.raises(OrfNotFoundException):
+        incomplete_multipart_seq_region.get_sequence(type='protein')
+
+    with pytest.raises(OrfNotFoundException):
+        incomplete_multipart_seq_region.get_alt_sequence(type='coding', variants=[Variant('test_variant', 'X', 5780719, 5780719, 'A', 'C')])
+
+    with pytest.raises(OrfNotFoundException):
+        incomplete_multipart_seq_region.get_alt_sequence(type='protein', variants=[Variant('test_variant', 'X', 5780719, 5780719, 'A', 'C')])
 
 
 def test_orf_detection() -> None:
@@ -167,11 +191,12 @@ def test_protein_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1
     # Translation through alternative ORFs is currently not supported, so variants in start codon are not supported
     translatedSeqRegion = wb_transcript_zc506_4a_1_with_cds['translatedSeqRegion']
     ref_protein_seq = translatedSeqRegion.get_sequence(type='protein')
-    # ATGGTA > TTGGTA
-    with pytest.raises(InvalidatedTranslationException):
-        translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript_start_codon])
 
     assert ref_protein_seq == wb_transcript_zc506_4a_1_with_cds['proteinSeq']
+
+    # ATGGTA > TTGGTA
+    with pytest.raises(InvalidatedOrfException):
+        translatedSeqRegion.get_alt_sequence(type='protein', variants=[wb_variant_mgl_1_transcript_start_codon])
 
 
 def test_coding_seq_retrieval_w_variants_in_startcodon(wb_transcript_zc506_4a_1_with_cds, wb_variant_mgl_1_transcript_start_codon) -> None:

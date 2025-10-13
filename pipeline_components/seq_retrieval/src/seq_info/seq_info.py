@@ -15,19 +15,27 @@ class SeqInfo():
     """List of the variants embedded in the sequence or aligned sequence."""
     sequence: Optional[str]
     """The sequence as a string."""
+    error: Optional[str]
+    """An error message, if any occured during sequence retrieval."""
 
-    def __init__(self, sequence: Optional[str] = None, embedded_variants: Optional[SeqEmbeddedVariantsList | AlignmentEmbeddedVariantsList] = None):
+    def __init__(self, sequence: Optional[str] = None, embedded_variants: Optional[SeqEmbeddedVariantsList | AlignmentEmbeddedVariantsList] = None,
+                 error: Optional[str] = None):
         if sequence is not None:
             self.sequence = sequence
 
         if embedded_variants is not None:
             self.embedded_variants = embedded_variants
 
+        if error is not None:
+            self.error = error
+
     @classmethod
     def from_dict(cls, seq_info_dict: dict[str, Any]) -> 'SeqInfo':
         """Loads a SeqInfo object from a dictionary."""
         sequence: Optional[str] = None
         embedded_variants: Optional[SeqEmbeddedVariantsList | AlignmentEmbeddedVariantsList] = None
+        error: Optional[str] = None
+
         if 'sequence' in seq_info_dict:
             if not isinstance(seq_info_dict['sequence'], str):
                 raise TypeError('sequence must be a string')
@@ -49,8 +57,12 @@ class SeqInfo():
                     embedded_variants.append(AlignmentEmbeddedVariant.from_dict(dct))
                 else:
                     embedded_variants.append(SeqEmbeddedVariant.from_dict(dct))
+        if 'error' in seq_info_dict:
+            if not isinstance(seq_info_dict['error'], str):
+                raise TypeError('error must be a string')
+            error = seq_info_dict['error']
 
-        return cls(sequence=sequence, embedded_variants=embedded_variants)
+        return cls(sequence=sequence, embedded_variants=embedded_variants, error=error)
 
     @override
     def __repr__(self) -> str:
