@@ -9,6 +9,7 @@ import { fetchAlignmentResults, fetchAlignmentSeqInfo } from './serverActions';
 import { displayModeType } from './types';
 import { TextAlignment } from '../TextAlignment/TextAlignment';
 import { SeqInfoDict } from '../InteractiveAlignment/types';
+import { FailureDisplay } from '../FailureDisplay/FailureDisplay';
 
 const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
 
@@ -29,6 +30,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
 
     const [alignmentResult, setAlignmentResult] = useState<string>('')
     const [alignmentSeqInfo, setAlignmentSeqInfo] = useState<SeqInfoDict>({})
+    const [seqFailures, setSeqFailures] = useState<Map<string, string>>(new Map<string, string>())
     function changeDisplayMode(displayMode: displayModeType) {
         console.log(`Changing display mode to ${displayMode}.`)
         setDisplayMode(displayMode)
@@ -58,6 +60,21 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         }
         else{
             console.log('Failed to retrieve alignment seq-info.')
+        }
+
+        // Store failures
+        if(seq_info_dict !== undefined && Object.keys(seq_info_dict).length > 0 ){
+            const failures: Map<string, string> = new Map<string, string>()
+            for (const [seq_name, seq_info] of Object.entries(seq_info_dict)){
+                if (seq_info.error){
+                    failures.set(seq_name, seq_info.error)
+                }
+            }
+
+            setSeqFailures(failures)
+        }
+        else{
+            setSeqFailures(new Map<string, string>())
         }
     }
 
@@ -101,7 +118,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                     options={displayModeOptions}
                     optionLabel='label'/>
             </div>
-            <div>
+            <div style={{paddingBottom: '20px'}}>
                 {alignmentResult ?
                     (
                         <>
@@ -112,6 +129,9 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                  :
                     (<p>Fetching alignment results...</p>)}
             </div>
+            {seqFailures ? (
+                <FailureDisplay failureList={seqFailures} />
+            ): <></>}
         </>
     )
 }
