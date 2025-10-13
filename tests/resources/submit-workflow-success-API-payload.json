@@ -1,6 +1,6 @@
 [
     {
-        "unique_entry_id": "apl-1_C42D8.8a.1_yn32",
+        "unique_entry_id": "002_apl-1_C42D8.8a.1_yn32",
         "base_seq_name": "apl-1_C42D8.8a.1",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
         "seq_id": "X",
@@ -121,7 +121,7 @@
         "alt_seq_name_suffix": "_yn32"
     },
     {
-        "unique_entry_id": "apl-1_C42D8.8b.1",
+        "unique_entry_id": "003_apl-1_C42D8.8b.1",
         "base_seq_name": "apl-1_C42D8.8b.1",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
         "seq_id": "X",
@@ -241,7 +241,7 @@
         "variant_ids": []
     },
     {
-        "unique_entry_id": "Appl_Appl-RA",
+        "unique_entry_id": "000_Appl_Appl-RA",
         "base_seq_name": "Appl_Appl-RA",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz",
         "seq_id": "X",
@@ -356,7 +356,7 @@
         "variant_ids": []
     },
     {
-        "unique_entry_id": "Appl_Appl-RB",
+        "unique_entry_id": "001_Appl_Appl-RB",
         "base_seq_name": "Appl_Appl-RB",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz",
         "seq_id": "X",
@@ -471,7 +471,7 @@
         "variant_ids": []
     },
     {
-        "unique_entry_id": "mgl-1_ZC506.4a.1",
+        "unique_entry_id": "004_mgl-1_ZC506.4a.1",
         "base_seq_name": "mgl-1_ZC506.4a.1",
         "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
         "seq_id": "X",
