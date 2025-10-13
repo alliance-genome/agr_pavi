@@ -117,7 +117,9 @@
                 "frame": 0
             }
         ],
-        "variant_ids": ["NC_003284.9:g.5114224C>T"],
+        "variant_ids": [
+            "NC_003284.9:g.5114224C>T"
+        ],
         "alt_seq_name_suffix": "_yn32"
     },
     {
