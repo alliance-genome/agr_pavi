@@ -4,9 +4,9 @@
 #
 #    pip-compile --cert=None --client-cert=None --extra=test --generate-hashes --index-url=None --output-file=tests/requirements.txt --pip-args=None
 #
-attrs==25.3.0 \
-    --hash=sha256:427318ce031701fea540783410126f03899a97ffc6f61596ad581ac2e40e3bc3 \
-    --hash=sha256:75d7cefc7fb576747b2c81b4442d4d4a1ce0900973527c011d1030fd3bf4af1b
+attrs==25.4.0 \
+    --hash=sha256:16d5969b87f0859ef33a48b35d55ac1be6e42ae49d5e853b597db70c35c57e11 \
+    --hash=sha256:adcf7e2a1fb3b36ac48d97835bb6d8ade15b8dcce26aba8bf1d14847b57a3373
     # via
     #   cattrs
     #   jsii
@@ -18,31 +18,31 @@ aws-cdk-asset-node-proxy-agent-v6==2.1.0 \
     --hash=sha256:1f292c0631f86708ba4ee328b3a2b229f7e46ea1c79fbde567ee9eb119c2b0e2 \
     --hash=sha256:24a388b69a44d03bae6dbf864c4e25ba650d4b61c008b4568b94ffbb9a69e40e
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==48.11.0 \
-    --hash=sha256:334d69fcbf6d77c3f91c389e534de5825e742a4fa630534e6ac53aeda33b25e4 \
-    --hash=sha256:64cb9beff9677578ff63f50403aeeb0530c9ea27db3121a57247f1a6fa1afeb2
+aws-cdk-cloud-assembly-schema==48.14.0 \
+    --hash=sha256:4a8935ea780defeac79227d02bfefc5454ee0cfffeba5046915c2a56b663ac54 \
+    --hash=sha256:bbe8e0dc10d08d75dd1c39a9774805cbbd313b7db9721a94dc4d76dd224af2d5
     # via aws-cdk-lib
-aws-cdk-lib==2.218.0 \
-    --hash=sha256:5f8344b8bc47dc9cdbd97379e6bbb517171cf55deaa0384804a72c145a087a9c \
-    --hash=sha256:9c3fa757d410856c8ffda55043a82cf31eb655f8aaea9440db2c6a8e509b987d
+aws-cdk-lib==2.219.0 \
+    --hash=sha256:7ca5ff88c7a9aa32590e38d1083d1fea4ced173c88c18ffd38e3feda8337de3b \
+    --hash=sha256:fbaf9b02ed38eba796ad0a05ad29c17b0d7a607da972053636076cfa91ca13ad
     # via pavi_shared_aws (pyproject.toml)
-boto3==1.40.40 \
-    --hash=sha256:385904de68623e1c341bdc095d94a30006843032c912adeb1e0752a343632ec6 \
-    --hash=sha256:f384d3a0410d0f1a4d4ae7aa69c41d0549c6ca5a76667dc25fc97d50ad6db740
+boto3==1.40.50 \
+    --hash=sha256:62901bc616c64236700001f530fc66b659ecd1acb4f541ddac6fcae3a1d37ea6 \
+    --hash=sha256:ae34363e8f34a49ab130d10c507a611926c1101d5d14d70be5598ca308e13266
     # via pavi_shared_aws (pyproject.toml)
-boto3-stubs==1.40.40 \
-    --hash=sha256:68a49cb1d11280b9b0443766af32c5aa7f71d1ef4ddff8dfdbf6fd64c12283bf \
-    --hash=sha256:b52d9491a0f701c60d6d54ba310019d4293afc5929710e4c9d69c11d02a01344
+boto3-stubs==1.40.50 \
+    --hash=sha256:01b9c67df62f26371a4a7473c616eece988a5305e7f7cb3fbc014d178685ac4e \
+    --hash=sha256:29828adfcb8629b5e285468eb89610f1fc71f964ad0913de3049a0a9d5de0be1
     # via pavi_shared_aws (pyproject.toml)
-botocore==1.40.40 \
-    --hash=sha256:68506142b3cde93145ef3ee0268f2444f2b68ada225a151f714092bbd3d6516a \
-    --hash=sha256:78eb121a16a6481ed0f6e1aebe53a4f23aa121f34466846c13a5ca48fa980e31
+botocore==1.40.50 \
+    --hash=sha256:1d3d5b5759c9cb30202cd5ad231ec8afb1abe5be0c088a1707195c2cbae0e742 \
+    --hash=sha256:53126c153fae0670dc54f03d01c89b1af144acedb1020199b133dedb309e434d
     # via
     #   boto3
     #   s3transfer
-botocore-stubs==1.40.33 \
-    --hash=sha256:89c51ae0b28d9d79fde8c497cf908ddf872ce027d2737d4d4ba473fde9cdaa82 \
-    --hash=sha256:ad21fee32cbdc7ad4730f29baf88424c7086bf88a745f8e43660ca3e9a7e5f89
+botocore-stubs==1.40.50 \
+    --hash=sha256:7cb8d636e061e600929cd03339c3bbc162c21435b4bfeb6413cf7b0b612e7de0 \
+    --hash=sha256:d772b2d3aea6b4e464963fe45b2d504eee7bc3842f047cebbae5492b3993e0fd
     # via boto3-stubs
 cattrs==25.2.0 \
     --hash=sha256:539d7eedee7d2f0706e4e109182ad096d608ba84633c32c75ef3458f1d11e8f1 \
@@ -199,13 +199,13 @@ typeguard==2.13.3 \
     #   aws-cdk-lib
     #   constructs
     #   jsii
-types-awscrt==0.27.6 \
-    --hash=sha256:18aced46da00a57f02eb97637a32e5894dc5aa3dc6a905ba3e5ed85b9f3c526b \
-    --hash=sha256:9d3f1865a93b8b2c32f137514ac88cb048b5bc438739945ba19d972698995bfb
+types-awscrt==0.28.1 \
+    --hash=sha256:66d77ec283e1dc907526a44511a12624118723a396c36d3f3dd9855cb614ce14 \
+    --hash=sha256:d88f43ef779f90b841ba99badb72fe153077225a4e426ae79e943184827b4443
     # via botocore-stubs
-types-s3transfer==0.13.1 \
-    --hash=sha256:4ff730e464a3fd3785b5541f0f555c1bd02ad408cf82b6b7a95429f6b0d26b4a \
-    --hash=sha256:ce488d79fdd7d3b9d39071939121eca814ec65de3aa36bdce1f9189c0a61cc80
+types-s3transfer==0.14.0 \
+    --hash=sha256:108134854069a38b048e9b710b9b35904d22a9d0f37e4e1889c2e6b58e5b3253 \
+    --hash=sha256:17f800a87c7eafab0434e9d87452c809c290ae906c2024c24261c564479e9c95
     # via boto3-stubs
 typing-extensions==4.15.0 \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
