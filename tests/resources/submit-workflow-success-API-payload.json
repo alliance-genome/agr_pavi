@@ -661,5 +661,51 @@
             }
         ],
         "variant_ids": []
+    },
+    {
+        "unique_entry_id": "005_hyls-1_C05C8.9b.1_tm3067",
+        "base_seq_name": "hyls-1_C05C8.9b.1",
+        "seq_id": "V",
+        "seq_strand": "+",
+        "exon_seq_regions": [
+            {
+                "start": 7237413,
+                "end": 7237654
+            },
+            {
+                "start": 7237710,
+                "end": 7237880
+            },
+            {
+                "start": 7237931,
+                "end": 7238511
+            },
+            {
+                "start": 7239391,
+                "end": 7239644
+            }
+        ],
+        "cds_seq_regions": [
+            {
+                "start": 7237558,
+                "end": 7237654,
+                "frame": 0
+            },
+            {
+                "start": 7237710,
+                "end": 7237880,
+                "frame": 2
+            },
+            {
+                "start": 7237931,
+                "end": 7238151,
+                "frame": 2
+            }
+        ],
+        "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+        "variant_ids": [
+            "NC_003283.11:g.7237515_7238007del"
+        ],
+        "alt_seq_name_suffix": "_tm3067"
     }
 ]
