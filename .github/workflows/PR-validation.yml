@@ -7,6 +7,9 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
+defaults:
+  run:
+    shell: bash
 jobs:
   skip-validation-on-closed:
     name: Skip PR-validations for closed PR (validation on closed PRs are irrelevant)
@@ -42,7 +45,6 @@ jobs:
     steps:
     - name: Store image tag in env
       id: store_tagname
-      shell: bash
       run: |
         echo "tagname=PR-${{ github.event.pull_request.number }}-validation" >> $GITHUB_OUTPUT
   pipeline-seq-retrieval-update-dependency-lock-files:
@@ -50,7 +52,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./pipeline_components/seq_retrieval/
     steps:
       - name: Check out repository code
@@ -65,7 +66,6 @@ jobs:
           python-version-file: "pipeline_components/seq_retrieval/pyproject.toml"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
         run: |
           make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
@@ -85,7 +85,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./api/
     steps:
       - name: Check out repository code
@@ -100,7 +99,6 @@ jobs:
           python-version-file: "api/pyproject.toml"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
         run: |
           make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
@@ -120,7 +118,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./webui/
     steps:
       - name: Check out repository code
@@ -135,7 +132,6 @@ jobs:
           node-version-file: "webui/.nvmrc"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
         run: |
           make update-deps-lock
       - name: Upload updated lock file as artifact
@@ -149,7 +145,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./shared_aws/py_package/
     steps:
       - name: Check out repository code
@@ -164,7 +159,6 @@ jobs:
           python-version-file: "shared_aws/py_package/pyproject.toml"
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
         run: |
           make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
@@ -262,7 +256,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./shared_aws/aws_infra/
     steps:
       - name: Check out repository code
@@ -282,7 +275,6 @@ jobs:
           path: /tmp/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
         run: |
           make update-deps-locks-all
       - name: Bundle all deps lock files
@@ -357,7 +349,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./pipeline_components/aws_infra/
     steps:
       - name: Check out repository code
@@ -377,7 +368,6 @@ jobs:
           path: /tmp/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
         run: |
           make update-deps-locks-all
       - name: Bundle all deps lock files
@@ -396,7 +386,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./api/aws_infra/
     steps:
       - name: Check out repository code
@@ -416,7 +405,6 @@ jobs:
           path: /tmp/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
         run: |
           make update-deps-locks-all
       - name: Bundle all deps lock files
@@ -435,7 +423,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./webui/aws_infra/
     steps:
       - name: Check out repository code
@@ -455,7 +442,6 @@ jobs:
           path: /tmp/
       - name: Update lock files
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
-        shell: bash
         run: |
           make update-deps-locks-all
       - name: Bundle all deps lock files
@@ -526,7 +512,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./pipeline_components/seq_retrieval/
     steps:
       - name: Check out repository code
@@ -612,7 +597,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./pipeline_components/alignment/
     steps:
       - name: Check out repository code
@@ -644,7 +628,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./api/pipeline_workflow/
     steps:
       - name: Check out repository code
@@ -749,7 +732,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./api/
     steps:
       - name: Check out repository code
@@ -848,7 +830,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./api/
     steps:
       - name: Check out repository code
@@ -900,7 +881,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./api/
     steps:
       - name: Check out repository code
@@ -1060,7 +1040,6 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: bash
         working-directory: ./webui/
     steps:
       - name: Check out repository code

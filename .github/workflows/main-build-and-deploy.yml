@@ -4,6 +4,9 @@ on:
     types: [closed]
     branches:
       - main
+defaults:
+  run:
+    shell: bash
 jobs:
   cancel-incomplete-validations:
     name: Cancel all incomplete PR-validations for closed PR (further validation on closed PRs are irrelevant)
@@ -24,7 +27,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Confirm execution
-      shell: bash
       run: |
         echo "PR merge detected and deployment wanted."
   on-deploy:
@@ -34,7 +36,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Confirm execution
-      shell: bash
       run: |
         echo "PR merge detected and deployment wanted."
   commit-deps-lock-updates:
@@ -103,7 +104,7 @@ jobs:
         if: steps.deps-lock-commit.outputs.commit_hash
         run: |
           echo "latest_commit_sha=${{ steps.deps-lock-commit.outputs.commit_hash }}" >> "$GITHUB_ENV"
-      - name: store latest_commit_sha job output
+      - name: store job output
         id: store-output
         run: |
           echo "latest-commit-sha=${{ env.latest_commit_sha }}" >> "$GITHUB_OUTPUT"
