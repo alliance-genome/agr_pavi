@@ -62,7 +62,9 @@ jobs:
           private-key: ${{ secrets.GH_ACTIONS_APP_PRIVATE_KEY }}
       - name: Get GitHub App User ID
         id: app-user-id
-        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        run: |
+          user_id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)
+          echo "user-id=${user_id}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
       - uses: actions/checkout@v5
@@ -72,7 +74,8 @@ jobs:
           persist-credentials: true
       - name: Store checkout sha in env variable
         run: |
-          echo "latest_commit_sha=$(git log -1 --format=%H)" >> "$GITHUB_ENV"
+          latest_commit_sha=$(git log -1 --format=%H)
+          echo "latest_commit_sha=${latest_commit_sha}" >> "$GITHUB_ENV"
       - name: Download updated dependencies lock files bundle
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         uses: dawidd6/action-download-artifact@v11
@@ -108,7 +111,8 @@ jobs:
         id: store-output
         run: |
           echo "latest-commit-sha=${{ env.latest_commit_sha }}" >> "$GITHUB_OUTPUT"
-          echo "git-describe=$(git describe --tags)" >> $GITHUB_OUTPUT
+          git-description=$(git describe --tags)
+          echo "git-describe=${git-description}" >> $GITHUB_OUTPUT
   build-pavi-shared-aws-module:
     name: Build pavi_shared_aws package
     runs-on: ubuntu-24.04
