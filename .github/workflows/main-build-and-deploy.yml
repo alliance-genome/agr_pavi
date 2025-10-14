@@ -158,7 +158,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6
       with:
         node-version-file: 'shared_aws/aws_infra/.nvmrc'
     - name: Setup Python
@@ -202,7 +202,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6
       with:
         node-version-file: "pipeline_components/aws_infra/.nvmrc"
     - name: Setup Python
@@ -245,7 +245,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6
       with:
         node-version-file: "api/aws_infra/.nvmrc"
     - name: Setup Python
@@ -288,7 +288,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6
       with:
         node-version-file: "webui/aws_infra/.nvmrc"
     - name: Setup Python
@@ -511,7 +511,7 @@ jobs:
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6
       with:
         node-version-file: "shared_aws/aws_infra/.nvmrc"
     - name: Download shared AWS package
