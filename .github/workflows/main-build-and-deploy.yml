@@ -111,8 +111,8 @@ jobs:
         id: store-output
         run: |
           echo "latest-commit-sha=${{ env.latest_commit_sha }}" >> "$GITHUB_OUTPUT"
-          git-description=$(git describe --tags)
-          echo "git-describe=${git-description}" >> $GITHUB_OUTPUT
+          git_description=$(git describe --tags)
+          echo "git-describe=${git_description}" >> $GITHUB_OUTPUT
   build-pavi-shared-aws-module:
     name: Build pavi_shared_aws package
     runs-on: ubuntu-24.04
