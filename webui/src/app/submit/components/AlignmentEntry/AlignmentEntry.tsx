@@ -48,27 +48,37 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [alleleListLoading, setAlleleListLoading] = useState(false)
     const [fastaFileUrl, setFastaFileUrl] = useState<string>()
 
-    const alleleOptionTemplate = (option: any) => {
-        const alleleInfo = option.allele as AlleleInfo
-
-        let alleleText = alleleInfo.id
+    const alleleDisplayText = (alleleInfo: AlleleInfo) => {
+        let text = alleleInfo.id
         if( alleleInfo.id !== alleleInfo.displayName ){
             // Add allele displayName if not identical to ID
-            alleleText += ` - ${alleleInfo.displayName}`
+            text += ` - ${alleleInfo.displayName}`
         }
+        return text
+    };
 
-        let variantText = ''
+    const variantsDisplayText = (alleleInfo: AlleleInfo) => {
+        let text = ''
         if( alleleInfo.variants.size > 1 ){
             // Add variant count if allele has multiple variants
-            variantText = `(${alleleInfo.variants.size} variants)`
+            text = `(${alleleInfo.variants.size} variants)`
         }
         else {
             // Add variant displayName if allele has one variant and name is not identical to Allele's
             const variant = Array.from(alleleInfo.variants.values()).pop()
             if( variant?.displayName !== alleleInfo.displayName ){
-                variantText += `(${variant?.displayName})`
+                text += `(${variant?.displayName})`
             }
         }
+        return text
+    };
+
+    const alleleOptionTemplate = (option: any) => {
+        const alleleInfo = option.allele as AlleleInfo
+
+        const alleleText = alleleDisplayText(alleleInfo)
+
+        const variantText = variantsDisplayText(alleleInfo)
 
         return (
             <div className="flex align-items-left">
@@ -76,6 +86,14 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 <p dangerouslySetInnerHTML={{__html: variantText}} />
             </div>
         );
+    };
+
+    const alleleOptionFilterValue = (alleleInfo: AlleleInfo) => {
+        const alleleText = alleleDisplayText(alleleInfo)
+
+        const variantText = variantsDisplayText(alleleInfo)
+
+        return `${alleleText} | ${variantText}`;
     };
 
     const updateInputPayloadPart = useCallback((newProperties: Partial<InputPayloadPart>) => {
@@ -468,9 +486,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 {/* TODO: Enable filtering on all text represented in label, not just the allele ID */}
                 <MultiSelect id="alleles" loading={alleleListLoading} ref={alleleMultiselectRef}
                     appendTo={"self"}
-                    display='chip' filter maxSelectedLabels={3} className="w-full md:w-20rem"
-                    value={selectedAlleleIds} onChange={(e) => setSelectedAlleleIds(e.value)}
-                    itemTemplate={alleleOptionTemplate} optionLabel='key'
+                    display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
+                    filter filterBy='filterValue'
+                    value={selectedAlleleIds} onChange={(e) => setSelectedAlleleIds(e.target.value)}
+                    itemTemplate={alleleOptionTemplate} optionLabel='chipLabel' optionValue='key'
                     onFocus={ () => setAlleleListFocused(true) }
                     onBlur={ () => setAlleleListFocused(false) }
                     onHide={ () => setAlleleListOpened(false) }
@@ -479,7 +498,8 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     alleleList.map(r => (
                         {
                             key: r['id'],
-                            value: r['id'],
+                            chipLabel: r['id'],
+                            filterValue: alleleOptionFilterValue(r),
                             allele: r
                         } ))} />
                 <label htmlFor="alleles">Alleles</label>
