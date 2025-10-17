@@ -31,6 +31,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [setupCompleted, setSetupCompleted] = useState<boolean>(false)
     const geneMessageRef: React.RefObject<Message | null> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
+    const [geneFieldFocused, setGeneFieldFocused] = useState<boolean>(false)
     const [geneSuggestionList, setGeneSuggestionList] = useState<GeneSuggestion[]>([])
     const [selectedGeneSuggestion, setSelectedGeneSuggestion] = useState<GeneSuggestion>()
     const [geneQuery, setGeneQuery] = useState<string|GeneSuggestion>()
@@ -121,7 +122,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         }
     }
 
-    const evaluateGeneQuery = useCallback(() => {
+    const autoSelectSingleGeneSuggestion = useCallback(() => {
         // Autoselect single gene suggestion if no prior selection was made
         console.log('Evaluating autoselecting single gene suggestion...')
         if(selectedGeneSuggestion === undefined && geneSuggestionList.length == 1){
@@ -359,6 +360,14 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     }, [gene, alleleList])
 
+    // When a new geneAutocompleteList is received but the gene field is not focused,
+    // evaluate the geneAutocompleteList to determine if an autoSelection should be made
+    useEffect(() => {
+        if(!geneFieldFocused){
+            autoSelectSingleGeneSuggestion()
+        }
+    }, [autoSelectSingleGeneSuggestion])  // eslint-disable-line react-hooks/exhaustive-deps
+
     // Process gene entry on gene selection
     useEffect(() => {
         if(selectedGeneSuggestion){
@@ -515,7 +524,9 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     value={geneQuery}
                     onChange={ (e) => setGeneQuery(e.value) }
                     onSelect={ (e) => {setSelectedGeneSuggestion(e.value); setGeneQuery(e.value)} }
-                    onHide={() => evaluateGeneQuery()}
+                    onHide={() => autoSelectSingleGeneSuggestion()}
+                    onFocus={() => setGeneFieldFocused(true)}
+                    onBlur={() => setGeneFieldFocused(false)}
                     field="displayName" />
                 <label htmlFor="gene">Gene</label>
             </FloatLabel>
