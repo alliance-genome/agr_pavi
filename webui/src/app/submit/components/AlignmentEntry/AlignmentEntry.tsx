@@ -369,7 +369,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     // Process gene entry on gene selection
     useEffect(() => {
-        if(selectedGeneSuggestion){
+        if(selectedGeneSuggestion !== undefined){
             processGeneEntry(selectedGeneSuggestion.id)
         }
     }, [selectedGeneSuggestion, processGeneEntry])
