@@ -67,7 +67,7 @@ describe('submit form behaviour', () => {
         for(let i = 0, len = formInput.length; i < len; ++i){
 
             // Form should be able to receive gene as user input.
-            cy.get('.p-inputgroup').eq(i).find('input#gene').as('geneInputField')
+            cy.get('.p-inputgroup').eq(i).find('#gene > input').as('geneInputField')
             cy.get('@geneInputField').focus()
             cy.get('@geneInputField').type(formInput[i].gene)
 
