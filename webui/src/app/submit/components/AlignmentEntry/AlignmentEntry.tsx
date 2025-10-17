@@ -336,7 +336,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     }, [transcriptList, updateInputPayloadPart])
 
     const processAlleleEntry = useCallback(async(alleleIds: string[]) => {
-        //TODO: implement function body
         console.log(`Processing selected alleles for gene ${gene?.id}: ${alleleIds}`)
 
         // Convert alleleList into map keyed by allele ID
@@ -533,7 +532,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
                             text="Failed to find gene, correct input and try again." />
             <FloatLabel>
-                {/* TODO: Enable filtering on all text represented in label, not just the allele ID */}
                 <MultiSelect id="alleles" loading={alleleListLoading} ref={alleleMultiselectRef}
                     appendTo={"self"}
                     display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
