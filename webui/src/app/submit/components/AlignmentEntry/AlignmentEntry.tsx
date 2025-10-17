@@ -33,6 +33,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
     const [geneSuggestionList, setGeneSuggestionList] = useState<GeneSuggestion[]>([])
     const [selectedGeneSuggestion, setSelectedGeneSuggestion] = useState<GeneSuggestion>()
+    const [geneQuery, setGeneQuery] = useState<string|GeneSuggestion>()
     const [gene, setGene] = useState<GeneInfo>()
     const [selectedAllelesInfo, setSelectedAllelesInfo] = useState<AlleleInfo[]>([])
     const [selectedTranscriptsInfo, setSelectedTranscriptsInfo] = useState<TranscriptInfo[]>([])
@@ -119,6 +120,16 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             return
         }
     }
+
+    const evaluateGeneQuery = useCallback(() => {
+        // Autoselect single gene suggestion if no prior selection was made
+        console.log('Evaluating autoselecting single gene suggestion...')
+        if(selectedGeneSuggestion === undefined && geneSuggestionList.length == 1){
+            console.log('Autoselecting single gene suggestion:', geneSuggestionList[0])
+            setSelectedGeneSuggestion(geneSuggestionList[0])
+            setGeneQuery(geneSuggestionList[0])
+        }
+    }, [geneSuggestionList, selectedGeneSuggestion])
 
     const processGeneEntry = useCallback(async(geneId: string) => {
         if(geneId === gene?.id){
@@ -501,8 +512,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                 <AutoComplete id="gene" placeholder='e.g. HGNC:620'
                     appendTo={"self"}
                     suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
-                    value={selectedGeneSuggestion}
-                    onChange={ (e) => setSelectedGeneSuggestion(e.value) }
+                    value={geneQuery}
+                    onChange={ (e) => setGeneQuery(e.value) }
+                    onSelect={ (e) => {setSelectedGeneSuggestion(e.value); setGeneQuery(e.value)} }
+                    onHide={() => evaluateGeneQuery()}
                     field="displayName" />
                 <label htmlFor="gene">Gene</label>
             </FloatLabel>
