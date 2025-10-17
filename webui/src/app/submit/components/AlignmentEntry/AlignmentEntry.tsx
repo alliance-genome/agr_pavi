@@ -5,14 +5,14 @@ import { Feature } from '@jbrowse/core/util';
 import { fetchTranscripts } from 'generic-sequence-panel';
 import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
 import { FloatLabel } from 'primereact/floatlabel';
-import { InputText } from 'primereact/inputtext';
+import { AutoComplete } from 'primereact/autocomplete';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import React, { createRef, FunctionComponent, useCallback, useEffect, useState } from 'react';
 
-import { fetchGeneInfo, fetchAlleles } from './serverActions';
+import { fetchGeneInfo, fetchGeneSuggestions, fetchAlleles } from './serverActions';
 
-import { AlignmentEntryStatus, GeneInfo, TranscriptInfo, FeatureStrand, AlleleInfo } from './types';
+import { AlignmentEntryStatus, GeneInfo, TranscriptInfo, FeatureStrand, AlleleInfo, GeneSuggestion } from './types';
 import { JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
@@ -31,6 +31,8 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [setupCompleted, setSetupCompleted] = useState<boolean>(false)
     const geneMessageRef: React.RefObject<Message | null> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
+    const [geneSuggestionList, setGeneSuggestionList] = useState<GeneSuggestion[]>([])
+    const [selectedGeneSuggestion, setSelectedGeneSuggestion] = useState<GeneSuggestion>()
     const [gene, setGene] = useState<GeneInfo>()
     const [selectedAllelesInfo, setSelectedAllelesInfo] = useState<AlleleInfo[]>([])
     const [selectedTranscriptsInfo, setSelectedTranscriptsInfo] = useState<TranscriptInfo[]>([])
@@ -105,7 +107,20 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         props.dispatchInputPayloadPart(dispatchAction)
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const processGeneEntry = async(geneId: string) => {
+    const searchGene = async(geneQuery: string) => {
+        console.log('Searching for gene:', geneQuery)
+        try {
+            const geneAutocompleteList: GeneSuggestion[] = await fetchGeneSuggestions(geneQuery)
+            console.log(`${geneAutocompleteList.length} gene suggestions received.`)
+            setGeneSuggestionList(geneAutocompleteList)
+        }
+        catch (e) {
+            console.error(e)
+            return
+        }
+    }
+
+    const processGeneEntry = useCallback(async(geneId: string) => {
         if(geneId === gene?.id){
             // Prevent processing the same gene twice
             console.log(`Gene field value unchanged, skipping processing for ${geneId}.`)
@@ -150,7 +165,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             })
             setGene(undefined)
         }
-    }
+    }, [gene, updateInputPayloadPart])
 
     const payloadPortion = useCallback((gene_info: GeneInfo, transcripts_info: TranscriptInfo[], alleles_info: AlleleInfo[]) => {
         const portion: JobSumbissionPayloadRecord[] = []
@@ -333,6 +348,13 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     }, [gene, alleleList])
 
+    // Process gene entry on gene selection
+    useEffect(() => {
+        if(selectedGeneSuggestion){
+            processGeneEntry(selectedGeneSuggestion.id)
+        }
+    }, [selectedGeneSuggestion, processGeneEntry])
+
     // Handle transcriptList and alleleList updates once gene object has been saved
     useEffect(() => {
         async function updateTranscriptList() {
@@ -476,8 +498,12 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     return (
         <div className='p-inputgroup'>
             <FloatLabel>
-                <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
-                            onBlur={ (e) => processGeneEntry(e.currentTarget.value) } />
+                <AutoComplete id="gene" placeholder='e.g. HGNC:620'
+                    appendTo={"self"}
+                    suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
+                    value={selectedGeneSuggestion}
+                    onChange={ (e) => setSelectedGeneSuggestion(e.value) }
+                    field="displayName" />
                 <label htmlFor="gene">Gene</label>
             </FloatLabel>
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
