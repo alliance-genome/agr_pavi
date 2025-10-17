@@ -5,14 +5,14 @@ import { Feature } from '@jbrowse/core/util';
 import { fetchTranscripts } from 'generic-sequence-panel';
 import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
 import { FloatLabel } from 'primereact/floatlabel';
-import { InputText } from 'primereact/inputtext';
+import { AutoComplete } from 'primereact/autocomplete';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import React, { createRef, FunctionComponent, useCallback, useEffect, useState } from 'react';
 
-import { fetchGeneInfo, fetchAlleles } from './serverActions';
+import { fetchGeneInfo, fetchGeneSuggestions, fetchAlleles } from './serverActions';
 
-import { AlignmentEntryStatus, GeneInfo, TranscriptInfo, FeatureStrand, AlleleInfo } from './types';
+import { AlignmentEntryStatus, GeneInfo, TranscriptInfo, FeatureStrand, AlleleInfo, GeneSuggestion } from './types';
 import { JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
@@ -31,6 +31,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [setupCompleted, setSetupCompleted] = useState<boolean>(false)
     const geneMessageRef: React.RefObject<Message | null> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
+    const [geneFieldFocused, setGeneFieldFocused] = useState<boolean>(false)
+    const [geneSuggestionList, setGeneSuggestionList] = useState<GeneSuggestion[]>([])
+    const [selectedGeneSuggestion, setSelectedGeneSuggestion] = useState<GeneSuggestion>()
+    const [geneQuery, setGeneQuery] = useState<string|GeneSuggestion>()
     const [gene, setGene] = useState<GeneInfo>()
     const [selectedAllelesInfo, setSelectedAllelesInfo] = useState<AlleleInfo[]>([])
     const [selectedTranscriptsInfo, setSelectedTranscriptsInfo] = useState<TranscriptInfo[]>([])
@@ -105,7 +109,30 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         props.dispatchInputPayloadPart(dispatchAction)
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const processGeneEntry = async(geneId: string) => {
+    const searchGene = async(geneQuery: string) => {
+        console.log('Searching for gene:', geneQuery)
+        try {
+            const geneAutocompleteList: GeneSuggestion[] = await fetchGeneSuggestions(geneQuery)
+            console.log(`${geneAutocompleteList.length} gene suggestions received.`)
+            setGeneSuggestionList(geneAutocompleteList)
+        }
+        catch (e) {
+            console.error(e)
+            return
+        }
+    }
+
+    const autoSelectSingleGeneSuggestion = useCallback(() => {
+        // Autoselect single gene suggestion if no prior selection was made
+        console.log('Evaluating autoselecting single gene suggestion...')
+        if(selectedGeneSuggestion === undefined && geneSuggestionList.length == 1){
+            console.log('Autoselecting single gene suggestion:', geneSuggestionList[0])
+            setSelectedGeneSuggestion(geneSuggestionList[0])
+            setGeneQuery(geneSuggestionList[0])
+        }
+    }, [geneSuggestionList, selectedGeneSuggestion])
+
+    const processGeneEntry = useCallback(async(geneId: string) => {
         if(geneId === gene?.id){
             // Prevent processing the same gene twice
             console.log(`Gene field value unchanged, skipping processing for ${geneId}.`)
@@ -150,7 +177,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             })
             setGene(undefined)
         }
-    }
+    }, [gene, updateInputPayloadPart])
 
     const payloadPortion = useCallback((gene_info: GeneInfo, transcripts_info: TranscriptInfo[], alleles_info: AlleleInfo[]) => {
         const portion: JobSumbissionPayloadRecord[] = []
@@ -309,7 +336,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     }, [transcriptList, updateInputPayloadPart])
 
     const processAlleleEntry = useCallback(async(alleleIds: string[]) => {
-        //TODO: implement function body
         console.log(`Processing selected alleles for gene ${gene?.id}: ${alleleIds}`)
 
         // Convert alleleList into map keyed by allele ID
@@ -332,6 +358,21 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         setSelectedAllelesInfo(alleleEntryInfo)
 
     }, [gene, alleleList])
+
+    // When a new geneAutocompleteList is received but the gene field is not focused,
+    // evaluate the geneAutocompleteList to determine if an autoSelection should be made
+    useEffect(() => {
+        if(!geneFieldFocused){
+            autoSelectSingleGeneSuggestion()
+        }
+    }, [autoSelectSingleGeneSuggestion])  // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Process gene entry on gene selection
+    useEffect(() => {
+        if(selectedGeneSuggestion !== undefined){
+            processGeneEntry(selectedGeneSuggestion.id)
+        }
+    }, [selectedGeneSuggestion, processGeneEntry])
 
     // Handle transcriptList and alleleList updates once gene object has been saved
     useEffect(() => {
@@ -476,14 +517,21 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     return (
         <div className='p-inputgroup'>
             <FloatLabel>
-                <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
-                            onBlur={ (e) => processGeneEntry(e.currentTarget.value) } />
+                <AutoComplete id="gene" placeholder='e.g. HGNC:620'
+                    appendTo={"self"}
+                    suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
+                    value={geneQuery}
+                    onChange={ (e) => setGeneQuery(e.value) }
+                    onSelect={ (e) => {setSelectedGeneSuggestion(e.value); setGeneQuery(e.value)} }
+                    onHide={() => autoSelectSingleGeneSuggestion()}
+                    onFocus={() => setGeneFieldFocused(true)}
+                    onBlur={() => setGeneFieldFocused(false)}
+                    field="displayName" />
                 <label htmlFor="gene">Gene</label>
             </FloatLabel>
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
                             text="Failed to find gene, correct input and try again." />
             <FloatLabel>
-                {/* TODO: Enable filtering on all text represented in label, not just the allele ID */}
                 <MultiSelect id="alleles" loading={alleleListLoading} ref={alleleMultiselectRef}
                     appendTo={"self"}
                     display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"

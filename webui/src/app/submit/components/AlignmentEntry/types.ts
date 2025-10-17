@@ -5,6 +5,19 @@ export interface GeneInfo {
     readonly genomeLocations: Array<any>
 }
 
+export interface GeneAutocompleteApiResponse {
+    readonly symbol: string,
+    readonly name_key: string,
+    readonly name: string,
+    readonly category: string,
+    readonly primaryKey: string
+}
+
+export interface GeneSuggestion {
+    readonly id: string,
+    readonly displayName: string,
+}
+
 export interface TranscriptInfo {
     readonly id: string,
     readonly curie: string,
