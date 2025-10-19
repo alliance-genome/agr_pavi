@@ -125,6 +125,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const autoSelectSingleGeneSuggestion = useCallback(() => {
         // Autoselect single gene suggestion if no prior selection was made
         console.log('Evaluating autoselecting single gene suggestion...')
+        if( geneQuery === undefined || geneQuery === '' ){
+            console.log('No gene query detected. Skipping autoselecting single gene suggestion.')
+            return
+        }
         if(selectedGeneSuggestion === undefined && geneSuggestionList.length == 1){
             console.log('Autoselecting single gene suggestion:', geneSuggestionList[0])
             setSelectedGeneSuggestion(geneSuggestionList[0])
@@ -563,7 +567,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
                     value={geneQuery}
                     onChange={ (e) => setGeneQuery(e.value) }
-                    onClear={ () => setSelectedGeneSuggestion(undefined) }
+                    onClear={ () => {setSelectedGeneSuggestion(undefined); setGeneSuggestionList([])} }
                     onSelect={ (e) => {setSelectedGeneSuggestion(e.value); setGeneQuery(e.value)} }
                     onHide={() => autoSelectSingleGeneSuggestion()}
                     onFocus={() => setGeneFieldFocused(true)}
