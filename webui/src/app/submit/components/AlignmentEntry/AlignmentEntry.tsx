@@ -559,6 +559,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             <FloatLabel>
                 <AutoComplete id="gene" placeholder='e.g. HGNC:620'
                     appendTo={"self"}
+                    delay={700}
                     suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
                     value={geneQuery}
                     onChange={ (e) => setGeneQuery(e.value) }
