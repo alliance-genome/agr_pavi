@@ -166,7 +166,7 @@ describe('AlignmentEntry', () => {
 
         // test unkown gene input
         fireEvent.focusIn(geneInputElement!)
-        fireEvent.input(geneInputElement!, {target: {value: 'UNKNOWN'}})
+        fireEvent.input(geneInputElement!, {target: {value: 'INVALID-GENE-NAME'}})
         fireEvent.focusOut(geneInputElement!)
 
         // Wait for unkown gene error message to appear
