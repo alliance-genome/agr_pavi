@@ -148,6 +148,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             if(gene !== undefined){
                 // Clear prior gene selection
                 console.log(`Clearing prior gene selection.`)
+                updateInputPayloadPart({
+                    status: AlignmentEntryStatus.PENDING_INPUT
+                })
+                setgeneMessageDisplay('none')
                 setGene(undefined)
             }
             return
