@@ -130,7 +130,13 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             setSelectedGeneSuggestion(geneSuggestionList[0])
             setGeneQuery(geneSuggestionList[0])
         }
-    }, [geneSuggestionList, selectedGeneSuggestion])
+        // Reset gene autocomplete text to prior selection if prior selection was made and field is not in focus
+        else if(selectedGeneSuggestion !== undefined && geneQuery !== selectedGeneSuggestion.displayName
+            && !geneFieldFocused
+        ){
+            setGeneQuery(selectedGeneSuggestion)
+        }
+    }, [geneSuggestionList, selectedGeneSuggestion, geneQuery, geneFieldFocused])
 
     const processGeneEntry = useCallback(async(geneId: string) => {
         if(geneId === gene?.id){
