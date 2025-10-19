@@ -138,8 +138,17 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         }
     }, [geneSuggestionList, selectedGeneSuggestion, geneQuery, geneFieldFocused])
 
-    const processGeneEntry = useCallback(async(geneId: string) => {
-        if(geneId === gene?.id){
+    const processGeneEntry = useCallback(async(geneId: string|undefined) => {
+        if( geneId === undefined ){
+            console.log(`Processing undefined gene entry.`)
+            if(gene !== undefined){
+                // Clear prior gene selection
+                console.log(`Clearing prior gene selection.`)
+                setGene(undefined)
+            }
+            return
+        }
+        else if(geneId === gene?.id){
             // Prevent processing the same gene twice
             console.log(`Gene field value unchanged, skipping processing for ${geneId}.`)
             return
@@ -268,17 +277,23 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             status: AlignmentEntryStatus.PROCESSING,
             payloadPart: undefined
         })
-        console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
-        console.log('Fetching exon info for selected transcripts...')
 
         const transcriptsInfo: Array<TranscriptInfo> = []
 
         if(transcriptIds.length < 1){
+            console.log('No transcripts selected, pending input.')
             updateInputPayloadPart({
                 status: AlignmentEntryStatus.PENDING_INPUT
             })
+            setSelectedTranscriptsInfo([])
+        }
+        else if( transcriptList.length < 1){
+            console.log('Transcript list is empty, clearing prior selected transcripts info.')
+            setSelectedTranscriptsInfo([])
         }
         else{
+            console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
+            console.log('Fetching exon info for selected transcripts...')
             transcriptIds.forEach((transcriptId) => {
                 console.log(`Finding transcript for ID ${transcriptId}...`)
 
@@ -342,28 +357,33 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     }, [transcriptList, updateInputPayloadPart])
 
     const processAlleleEntry = useCallback(async(alleleIds: string[]) => {
-        console.log(`Processing selected alleles for gene ${gene?.id}: ${alleleIds}`)
+        if( alleleList.length > 0 ){
+            console.log(`Processing selected alleles: ${alleleIds}`)
+            // Convert alleleList into map keyed by allele ID
+            const allelesMap = new Map<string, AlleleInfo>()
+            alleleList.forEach((allele) => {
+                allelesMap.set(allele.id, allele)
+            })
 
-        // Convert alleleList into map keyed by allele ID
-        const allelesMap = new Map<string, AlleleInfo>()
-        alleleList.forEach((allele) => {
-            allelesMap.set(allele.id, allele)
-        })
+            const alleleEntryInfo: AlleleInfo[] = []
+            alleleIds.forEach((alleleId) => {
+                const allele = allelesMap.get(alleleId)
+                if(allele){
+                    alleleEntryInfo.push(allele)
+                }
+                else{
+                    console.error(`Selected allele not found: ${alleleId}`)
+                }
+            })
 
-        const alleleEntryInfo: AlleleInfo[] = []
-        alleleIds.forEach((alleleId) => {
-            const allele = allelesMap.get(alleleId)
-            if(allele){
-                alleleEntryInfo.push(allele)
-            }
-            else{
-                console.error(`Selected allele not found: ${alleleId}`)
-            }
-        })
+            setSelectedAllelesInfo(alleleEntryInfo)
+        }
+        else{
+            console.log('Alele list is empty, clearing prior selected alleles info.')
+            setSelectedAllelesInfo([])
+        }
 
-        setSelectedAllelesInfo(alleleEntryInfo)
-
-    }, [gene, alleleList])
+    }, [alleleList])
 
     // When a new geneAutocompleteList is received but the gene field is not focused,
     // evaluate the geneAutocompleteList to determine if an autoSelection should be made
@@ -375,9 +395,9 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     // Process gene entry on gene selection
     useEffect(() => {
-        if(selectedGeneSuggestion !== undefined){
-            processGeneEntry(selectedGeneSuggestion.id)
-        }
+        // Process and store gene object if gene input was selected
+        console.log('Processing gene selection:', selectedGeneSuggestion)
+        processGeneEntry(selectedGeneSuggestion!==undefined?selectedGeneSuggestion.id:undefined)
     }, [selectedGeneSuggestion, processGeneEntry])
 
     // Handle transcriptList and alleleList updates once gene object has been saved
@@ -426,14 +446,24 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             }
         }
 
-        updateTranscriptList()
-        updateAlleleList()
+        if (gene !== undefined) {
+            updateTranscriptList()
+            updateAlleleList()
+        }
+        else{
+            setTranscriptList([])
+            setAlleleList([])
+        }
     }, [gene]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Update transcriptList loading status and open selection panel once transcriptList object has been saved
     useEffect(
         () => {
             console.log(`New transcript list loaded.`)
+            if(selectedTranscriptIds.length > 0){
+                console.log('Clearing prior selected transcript ids.')
+                setSelectedTranscriptIds([])
+            }
             setTranscriptListLoading(false)
             if(transcriptList.length > 0){
                 const select_menu = transcriptMultiselectRef.current
@@ -450,6 +480,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     useEffect(
         () => {
             console.log(`New allele list loaded.`)
+            if(selectedAlleleIds.length > 0){
+                console.log('Clearing prior selected allele ids.')
+                setSelectedAlleleIds([])
+            }
             setAlleleListLoading(false)
             if(alleleList.length > 0){
                 const select_menu = alleleMultiselectRef.current
@@ -528,6 +562,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
                     value={geneQuery}
                     onChange={ (e) => setGeneQuery(e.value) }
+                    onClear={ () => setSelectedGeneSuggestion(undefined) }
                     onSelect={ (e) => {setSelectedGeneSuggestion(e.value); setGeneQuery(e.value)} }
                     onHide={() => autoSelectSingleGeneSuggestion()}
                     onFocus={() => setGeneFieldFocused(true)}
