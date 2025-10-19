@@ -114,10 +114,14 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         try {
             const geneAutocompleteList: GeneSuggestion[] = await fetchGeneSuggestions(geneQuery)
             console.log(`${geneAutocompleteList.length} gene suggestions received.`)
+            if( geneAutocompleteList.length === 0 ){
+                setgeneMessageDisplay('initial')
+            }
             setGeneSuggestionList(geneAutocompleteList)
         }
         catch (e) {
             console.error(e)
+            setgeneMessageDisplay('initial')
             return
         }
     }
