@@ -21,7 +21,7 @@ test = [
     "flake8-unused-arguments==0.0.*",
     "mypy==1.18.*",
     "pytest==8.4.*",
-    "boto3-stubs==1.*"
+    "boto3-stubs[boto3,elasticbeanstalk,sts]==1.*"
 ]
 
 [build-system]
