@@ -127,3 +127,12 @@ def test_eb_app_environment_output() -> None:
             }
         }
     )
+    eb_env_template.has_output(
+        logical_id='ebEnvironmentName',
+        props={
+            "Export": {
+                "Name": "pytest-testcomponent-env-stack:ebEnvironmentName"
+            },
+            "Value": "PAVI-testcomponent-pytest"
+        }
+    )

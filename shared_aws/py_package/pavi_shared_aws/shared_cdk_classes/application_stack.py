@@ -185,4 +185,12 @@ def defineEbEnvironmentCdkConstructs(
         export_name=f'{stack.stack_name}:endpointUrl'
     )
 
+    # Output the environment name (for monitoring)
+    CfnOutput(
+        stack, 'cfn-output-eb-environment-name',
+        key='ebEnvironmentName',
+        value=env_name,
+        export_name=f'{stack.stack_name}:ebEnvironmentName'
+    )
+
     return EbEnvironmentCdkConstructs(eb_env=eb_env)
