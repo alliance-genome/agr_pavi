@@ -131,7 +131,7 @@ describe('AlignmentEntry', () => {
             <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
-        const geneInputElement = result.container.querySelector('#gene')
+        const geneInputElement = result.container.querySelector('#gene > input')
         expect(geneInputElement).not.toBe(null)  // Expect gene input element to be found
         expect(geneInputElement).toHaveClass('p-inputtext') // Expect element to be inputtext box
     })
