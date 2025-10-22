@@ -15,6 +15,7 @@ ADD_CDK_ARGS ?=
 clean:
 	rm -rf .venv/ || true
 	rm -rf node_modules/ || true
+	rm -rf eb_app.zip environment-deployment-outputs.json cdk.out/ || true
 
 update-deps-lock: update-python-deps-lock
 
