@@ -5,6 +5,12 @@ Note: these functions are calling AWS synchronously (so will search/modify AWS r
 
 import boto3
 from botocore.exceptions import ClientError
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mypy_boto3_elasticbeanstalk.type_defs import S3LocationTypeDef
+else:
+    S3LocationTypeDef = object
 
 aws_account_nr = boto3.client('sts').get_caller_identity().get('Account')
 AWS_REGION = 'us-east-1'
@@ -15,7 +21,7 @@ s3_resources = boto3.resource('s3')
 eb_s3_bucket = s3_resources.Bucket(eb_s3_bucket_name)
 
 
-def upload_application_bundle(eb_app_name: str, version_label: str, bundle_path: str) -> dict[str, str]:
+def upload_application_bundle(eb_app_name: str, version_label: str, bundle_path: str) -> S3LocationTypeDef:
     '''
     Uploads an EB application bundle to S3 for use with EB.
 

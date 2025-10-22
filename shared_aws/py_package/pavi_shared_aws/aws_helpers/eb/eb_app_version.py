@@ -5,12 +5,19 @@ Note: these functions are calling AWS synchronously (so will search/modify AWS r
 
 from boto3 import client
 from time import sleep
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mypy_boto3_elasticbeanstalk.type_defs import ApplicationVersionDescriptionTypeDef, S3LocationTypeDef, TagTypeDef
+else:
+    ApplicationVersionDescriptionTypeDef = object
+    S3LocationTypeDef = object
+    TagTypeDef = object
 
 boto3_eb_client = client('elasticbeanstalk')
 
 
-def describe_app_version(version_label: str, eb_app_name: str) -> dict[Any, Any] | None:
+def describe_app_version(version_label: str, eb_app_name: str) -> ApplicationVersionDescriptionTypeDef | None:
     '''
     Describe EB app version with given label.
 
@@ -26,12 +33,12 @@ def describe_app_version(version_label: str, eb_app_name: str) -> dict[Any, Any]
     '''
 
     ## Search Application version by label
-    search_app_version_response: dict[Any, Any] = boto3_eb_client.describe_application_versions(
+    search_app_version_response = boto3_eb_client.describe_application_versions(
         ApplicationName=eb_app_name,
         VersionLabels=[version_label]
     )
 
-    found_app_versions: list[dict[Any, Any]] = search_app_version_response['ApplicationVersions']
+    found_app_versions: list[ApplicationVersionDescriptionTypeDef] = search_app_version_response['ApplicationVersions']
 
     if len(found_app_versions) > 1:
         raise Exception(f'Unexpected number of version ({len(found_app_versions)} > 1) matching label {version_label} in application {eb_app_name}.')
@@ -88,7 +95,7 @@ def get_eb_app_version_status(version_label: str, eb_app_name: str) -> str:
 
 
 def create_eb_app_version(version_label: str, eb_app_name: str,
-                          source_bundle: dict[str, str], tags: list[dict[str, str]] = []) -> dict[Any, Any] | None:
+                          source_bundle: S3LocationTypeDef, tags: list[TagTypeDef] = []) -> ApplicationVersionDescriptionTypeDef | None:
     '''
     Create EB app version with given label.
 
@@ -106,7 +113,7 @@ def create_eb_app_version(version_label: str, eb_app_name: str,
     '''
 
     ## Create new application version with label
-    create_app_version_response: dict[Any, Any] = boto3_eb_client.create_application_version(
+    create_app_version_response = boto3_eb_client.create_application_version(
         ApplicationName=eb_app_name,
         VersionLabel=version_label,
         SourceBundle=source_bundle,
