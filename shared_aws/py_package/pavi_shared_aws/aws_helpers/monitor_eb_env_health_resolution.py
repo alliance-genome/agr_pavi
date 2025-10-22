@@ -21,7 +21,7 @@ def main(eb_env_name: str, timeout: int, interval: int) -> None:
     prior_health_status = ''
     while attempt_count * interval < timeout:
         eb_env_health = get_eb_environment_health(environment_name=eb_env_name)
-        if eb_env_health['Status'] == 'OK':
+        if eb_env_health['Status'] == 'Ok':
             print(f'Environment {eb_env_name} became healthy with no operations in progress (status {eb_env_health["Status"]}), stopping monitor.')
             break
         elif eb_env_health['Color'] == 'Red':
