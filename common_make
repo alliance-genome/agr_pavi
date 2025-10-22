@@ -7,7 +7,7 @@ mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 # AWS vars
 AWS_DEFAULT_REGION := us-east-1
 AWS_ACCT_NR=100225593120
-REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/
+REG=${AWS_ACCT_NR}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
 # Python vars
 EXTRA_PIP_COMPILE_ARGS ?=
