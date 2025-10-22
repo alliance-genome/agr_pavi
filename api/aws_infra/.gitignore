@@ -9,6 +9,9 @@ node_modules/
 ## Deploy artefacts
 eb_app.zip
 
+## CDK outputs
+environment-deployment-outputs.json
+
 # Python files
 ## Byte-compiled / optimized / DLL files
 __pycache__/
