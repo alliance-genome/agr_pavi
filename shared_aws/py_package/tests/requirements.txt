@@ -46,9 +46,9 @@ botocore-stubs==1.40.56 \
     --hash=sha256:aa9535b8a0f7135b062504e39e7cbc83fb3f00b2d4dc2baba6170436b494b696 \
     --hash=sha256:e6494eef30a5979e8f270f058bd81bc803641fa0ea97414b53c7f0e52d82d227
     # via boto3-stubs
-cattrs==25.2.0 \
-    --hash=sha256:539d7eedee7d2f0706e4e109182ad096d608ba84633c32c75ef3458f1d11e8f1 \
-    --hash=sha256:f46c918e955db0177be6aa559068390f71988e877c603ae2e56c71827165cc06
+cattrs==25.3.0 \
+    --hash=sha256:1ac88d9e5eda10436c4517e390a4142d88638fe682c436c93db7ce4a277b884a \
+    --hash=sha256:9896e84e0a5bf723bc7b4b68f4481785367ce07a8a02e7e9ee6eb2819bc306ff
     # via jsii
 click==8.3.0 \
     --hash=sha256:9b9f285302c6e3064f4330c05f05b81945b2a39544279343e6e7c5f27a9baddc \
@@ -82,9 +82,9 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jsii==1.116.0 \
-    --hash=sha256:b160b6d784a15d971b3318b66ed5d71e8a6a13422ef335b48c7f88a168e74354 \
-    --hash=sha256:e2874d29a0c77540f76114ad331eeb8b41d7165fb1af6fe331a5d2d62a2250d6
+jsii==1.117.0 \
+    --hash=sha256:55c6863fc7245b9b885bc4bcb17ca117958f686e34a0f401ddc31c1d90452611 \
+    --hash=sha256:a715084779aa14be06a3ba1a8c9ca0abb1d0f208da7f8dd6e9cf2e68df23b7ce
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6
