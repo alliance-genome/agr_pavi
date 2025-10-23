@@ -1,9 +1,15 @@
 import click
 from os import getcwd, listdir, path
+from typing import TYPE_CHECKING
 from zipfile import ZipFile
 
 from .eb.eb_app_version import eb_app_version_exists, create_eb_app_version
 from .s3.eb_assets import upload_application_bundle
+
+if TYPE_CHECKING:
+    from mypy_boto3_elasticbeanstalk.type_defs import S3LocationTypeDef
+else:
+    S3LocationTypeDef = object
 
 
 @click.command(context_settings={'show_default': True})
@@ -39,7 +45,7 @@ def main(eb_app_name: str, version_label: str) -> None:
                     zipObj.write(full_file_path, path.join('.ebextensions/', filename))
 
         # Upload app zip as s3 source bundle
-        source_bundle = upload_application_bundle(
+        source_bundle: S3LocationTypeDef = upload_application_bundle(
             eb_app_name=eb_app_name,
             version_label=version_label,
             bundle_path=app_zip_path)

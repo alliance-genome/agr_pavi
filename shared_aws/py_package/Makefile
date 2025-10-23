@@ -32,6 +32,7 @@ update-deps-locks-all: update-deps-lock update-test-deps-lock
 install-deps: install-python-deps
 
 install-test-deps: install-python-test-deps
+	.venv/bin/pip install --editable .
 
 install-deps-update-dev:
 	$(MAKE) --no-print-directory update-deps-lock

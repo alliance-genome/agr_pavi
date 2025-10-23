@@ -14,6 +14,7 @@ ADD_CDK_ARGS ?=
 clean:
 	rm -rf .venv/ || true
 	rm -rf node_modules/ || true
+	rm -rf eb_app.zip environment-deployment-outputs.json cdk.out/ || true
 
 update-deps-lock: update-python-deps-lock
 
@@ -123,7 +124,10 @@ deploy-environment: install-deps install-cdk-cli
 	  export PAVI_IMAGE_TAG=${PAVI_IMAGE_TAG} && \
 	  export PAVI_IMAGE_REGISTRY=${REG} && \
 	  . .venv/bin/activate && \
-	  ${NPX_EXEC} cdk deploy ${EB_ENV_CDK_STACK_NAME} ${ADD_CDK_ARGS}
+	  ${NPX_EXEC} cdk deploy ${EB_ENV_CDK_STACK_NAME} -O environment-deployment-outputs.json ${ADD_CDK_ARGS}
+# Monitor EB environment after deployment until health is "ok" (pass) or unhealthy (fail)
+	 .venv/bin/python -m pavi_shared_aws.aws_helpers.monitor_eb_env_health_resolution \
+	   --eb_env_name $$(jq -r .${EB_ENV_CDK_STACK_NAME}.ebEnvironmentName environment-deployment-outputs.json)
 
 destroy-environment: install-deps install-cdk-cli
 	$(eval NPX_EXEC:=)
