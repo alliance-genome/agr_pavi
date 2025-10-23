@@ -1,12 +1,12 @@
 'use client';
 
-import React, { FunctionComponent, useEffect, useState, useRef } from 'react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
 
 import {parse} from 'clustal-js';
 
 import NightingaleMSAComponent, {dataPropType as MSADataProp, featuresPropType as MSAFeaturesProp} from './nightingale/MSA';
 import NightingaleManagerComponent from './nightingale/Manager';
-import NightingaleNavigationComponent, {NightingaleNavigationType} from './nightingale/Navigation';
+import NightingaleNavigationComponent from './nightingale/Navigation';
 import NightingaleTrack, {dataPropType as TrackDataProp, FeatureShapes} from './nightingale/Track';
 
 import { Dropdown } from 'primereact/dropdown';
@@ -120,8 +120,6 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
 
     const [displayStart, setDisplayStart] = useState<number>(1);
     const [displayEnd, setDisplayEnd] = useState<number>(-1);
-
-    const nightingaleNavigationRef = useRef<NightingaleNavigationType>(null);
 
     useEffect(() => {
         console.log('InteractiveAlignment rendered.')
@@ -246,7 +244,6 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                 >
                     <div style={{paddingLeft: labelWidth.toString()+'px'}}>
                         <NightingaleNavigationComponent
-                            ref={nightingaleNavigationRef}
                             ruler-padding={0}
                             margin-left={0}
                             margin-right={5}
