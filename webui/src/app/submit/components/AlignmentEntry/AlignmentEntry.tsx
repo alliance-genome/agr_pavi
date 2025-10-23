@@ -423,7 +423,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         if(!geneFieldStateRef.current?.focused){
             autoSelectSingleGeneSuggestion()
         }
-    }, [autoSelectSingleGeneSuggestion])  // eslint-disable-line react-hooks/exhaustive-deps
+    }, [geneSuggestionList])  // eslint-disable-line react-hooks/exhaustive-deps
 
     // Process gene entry on gene selection
     useEffect(() => {
