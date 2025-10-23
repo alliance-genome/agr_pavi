@@ -46,34 +46,6 @@ export async function fetchGeneInfo (geneId: string): Promise<GeneInfo|undefined
     return jobResponse
 }
 
-export async function fetchGeneSuggestions (query: string): Promise<GeneSuggestion[]> {
-    const geneSuggestions: GeneSuggestion[] = []
-
-    // Try exact matching on ID
-    const idMatch = await fetchGeneInfo(query)
-    if(idMatch){
-        geneSuggestions.push({
-            id: idMatch.id,
-            displayName: `${idMatch.symbol} (${idMatch.species.shortName})`
-        })
-    }
-
-    // Add autocomplete suggestions
-    let autocompleteSuggestions: GeneSuggestion[] = []
-    try {
-        autocompleteSuggestions = await fetchGeneSuggestionsAutocomplete(query)
-    }
-    catch (e) {
-        console.error(`Error received while requesting autocomplete suggestions: ${e}.`)
-    }
-
-    if(autocompleteSuggestions && autocompleteSuggestions.length > 0){
-        geneSuggestions.push(...autocompleteSuggestions)
-    }
-
-    return Promise.resolve(geneSuggestions)
-}
-
 export async function fetchGeneSuggestionsAutocomplete (query: string): Promise<GeneSuggestion[]> {
 
     console.log(`New gene suggestion search request received.`)

@@ -10,7 +10,7 @@ import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import React, { createRef, FunctionComponent, useCallback, useEffect, useState } from 'react';
 
-import { fetchGeneInfo, fetchGeneSuggestions, fetchAlleles } from './serverActions';
+import { fetchGeneInfo, fetchGeneSuggestionsAutocomplete, fetchAlleles } from './serverActions';
 
 import { AlignmentEntryStatus, GeneInfo, TranscriptInfo, FeatureStrand, AlleleInfo, GeneSuggestion } from './types';
 import { JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
@@ -111,19 +111,37 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
     const searchGene = async(geneQuery: string) => {
         console.log('Searching for gene:', geneQuery)
+        const geneSuggestions: GeneSuggestion[] = []
+
+        // Try exact matching on ID
+        const idMatch = await fetchGeneInfo(geneQuery)
+        if(idMatch){
+            geneSuggestions.push({
+                id: idMatch.id,
+                displayName: `${idMatch.symbol} (${idMatch.species.shortName})`
+            })
+        }
+
+        // Add autocomplete suggestions
+        let autocompleteSuggestions: GeneSuggestion[] = []
         try {
-            const geneAutocompleteList: GeneSuggestion[] = await fetchGeneSuggestions(geneQuery)
-            console.log(`${geneAutocompleteList.length} gene suggestions received.`)
-            if( geneAutocompleteList.length === 0 ){
-                setgeneMessageDisplay('initial')
-            }
-            setGeneSuggestionList(geneAutocompleteList)
+            autocompleteSuggestions = await fetchGeneSuggestionsAutocomplete(geneQuery)
         }
         catch (e) {
-            console.error(e)
+            console.error(`Error received while requesting autocomplete suggestions: ${e}.`)
             setgeneMessageDisplay('initial')
             return
         }
+
+        if(autocompleteSuggestions && autocompleteSuggestions.length > 0){
+            geneSuggestions.push(...autocompleteSuggestions)
+        }
+
+        console.log(`${geneSuggestions.length} gene suggestions received.`)
+        if( geneSuggestions.length === 0 ){
+            setgeneMessageDisplay('initial')
+        }
+        setGeneSuggestionList(geneSuggestions)
     }
 
     const autoSelectSingleGeneSuggestion = useCallback(() => {
