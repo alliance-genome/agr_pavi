@@ -31,6 +31,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [setupCompleted, setSetupCompleted] = useState<boolean>(false)
     const geneMessageRef: React.RefObject<Message | null> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
+    const geneFieldRef = createRef<AutoComplete>()
     const geneFieldStateRef = createRef<AutoCompleteState>()
     const [geneSuggestionList, setGeneSuggestionList] = useState<GeneSuggestion[]>([])
     const [selectedGeneSuggestion, setSelectedGeneSuggestion] = useState<GeneSuggestion>()
@@ -155,6 +156,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             console.log('Autoselecting single gene suggestion:', geneSuggestionList[0])
             setSelectedGeneSuggestion(geneSuggestionList[0])
             setGeneQuery(geneSuggestionList[0])
+            geneFieldRef.current?.hide()
         }
         // Reset gene autocomplete text to prior selection if prior selection was made and field is not in focus
         else if(selectedGeneSuggestion !== undefined && geneQuery !== selectedGeneSuggestion.displayName
@@ -162,7 +164,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         ){
             setGeneQuery(selectedGeneSuggestion)
         }
-    }, [geneSuggestionList, selectedGeneSuggestion, geneQuery, geneFieldStateRef])
+    }, [geneSuggestionList, selectedGeneSuggestion, geneQuery, geneFieldRef, geneFieldStateRef])
 
     const processGeneEntry = useCallback(async(geneId: string|undefined) => {
         if( geneId === undefined ){
@@ -588,6 +590,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         <div className='p-inputgroup'>
             <FloatLabel>
                 <AutoComplete id="gene" placeholder='e.g. HGNC:620'
+                    ref={geneFieldRef}
                     pt={{
                         root: (options: AutoCompletePassThroughMethodOptions) => {
                             geneFieldStateRef.current = options.state
