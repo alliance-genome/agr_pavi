@@ -5,7 +5,7 @@ import { Feature } from '@jbrowse/core/util';
 import { fetchTranscripts } from 'generic-sequence-panel';
 import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
 import { FloatLabel } from 'primereact/floatlabel';
-import { AutoComplete } from 'primereact/autocomplete';
+import { AutoComplete, AutoCompleteState, AutoCompletePassThroughMethodOptions } from 'primereact/autocomplete';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import React, { createRef, FunctionComponent, useCallback, useEffect, useState } from 'react';
@@ -31,7 +31,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [setupCompleted, setSetupCompleted] = useState<boolean>(false)
     const geneMessageRef: React.RefObject<Message | null> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
-    const [geneFieldFocused, setGeneFieldFocused] = useState<boolean>(false)
+    const geneFieldStateRef = createRef<AutoCompleteState>()
     const [geneSuggestionList, setGeneSuggestionList] = useState<GeneSuggestion[]>([])
     const [selectedGeneSuggestion, setSelectedGeneSuggestion] = useState<GeneSuggestion>()
     const [geneQuery, setGeneQuery] = useState<string|GeneSuggestion>()
@@ -158,11 +158,11 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         }
         // Reset gene autocomplete text to prior selection if prior selection was made and field is not in focus
         else if(selectedGeneSuggestion !== undefined && geneQuery !== selectedGeneSuggestion.displayName
-            && !geneFieldFocused
+            && !geneFieldStateRef.current?.focused
         ){
             setGeneQuery(selectedGeneSuggestion)
         }
-    }, [geneSuggestionList, selectedGeneSuggestion, geneQuery, geneFieldFocused])
+    }, [geneSuggestionList, selectedGeneSuggestion, geneQuery, geneFieldStateRef])
 
     const processGeneEntry = useCallback(async(geneId: string|undefined) => {
         if( geneId === undefined ){
@@ -418,7 +418,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     // When a new geneAutocompleteList is received but the gene field is not focused,
     // evaluate the geneAutocompleteList to determine if an autoSelection should be made
     useEffect(() => {
-        if(!geneFieldFocused){
+        if(!geneFieldStateRef.current?.focused){
             autoSelectSingleGeneSuggestion()
         }
     }, [autoSelectSingleGeneSuggestion])  // eslint-disable-line react-hooks/exhaustive-deps
@@ -588,6 +588,11 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         <div className='p-inputgroup'>
             <FloatLabel>
                 <AutoComplete id="gene" placeholder='e.g. HGNC:620'
+                    pt={{
+                        root: (options: AutoCompletePassThroughMethodOptions) => {
+                            geneFieldStateRef.current = options.state
+                        }
+                    }}
                     appendTo={"self"}
                     delay={700}
                     suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
@@ -596,8 +601,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     onClear={ () => {setSelectedGeneSuggestion(undefined); setGeneSuggestionList([])} }
                     onSelect={ (e) => {setSelectedGeneSuggestion(e.value); setGeneQuery(e.value)} }
                     onHide={() => autoSelectSingleGeneSuggestion()}
-                    onFocus={() => setGeneFieldFocused(true)}
-                    onBlur={() => setGeneFieldFocused(false)}
                     field="displayName" />
                 <label htmlFor="gene">Gene</label>
             </FloatLabel>
