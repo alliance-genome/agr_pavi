@@ -1,6 +1,9 @@
 type testInputType = {
     "gene": {
-        "type": string
+        /* text to be typed into the search box */
+        "type": string,
+        /* selecting either the options matching the select string, or the nth option when a number. */
+        "select"?: string|number
     },
     "transcripts": string[],
     "delete"?: boolean
@@ -20,7 +23,8 @@ const formInputData: testInputType[] = [
     },
     {
         "gene": {
-            "type": "WB:WBGene00000149"
+            "type": "apl-1",
+            "select": "apl-1 (Cel)"
         },
         "transcripts": [
             "C42D8.8a.1"
