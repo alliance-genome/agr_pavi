@@ -1,6 +1,6 @@
 'use server';
 
-import { GeneInfo, AlleleInfo } from "./types";
+import { GeneInfo, AlleleInfo, GeneSuggestion, GeneAutocompleteApiResponse } from "./types";
 import { fetchAllPages } from "@/app/helper_fns";
 
 export async function fetchGeneInfo (geneId: string): Promise<GeneInfo|undefined> {
@@ -44,6 +44,57 @@ export async function fetchGeneInfo (geneId: string): Promise<GeneInfo|undefined
     });
 
     return jobResponse
+}
+
+export async function fetchGeneSuggestionsAutocomplete (query: string): Promise<GeneSuggestion[]> {
+
+    console.log(`New gene suggestion search request received.`)
+
+    const endpointUrl = `https://www.alliancegenome.org/api/search_autocomplete/`
+    const jobResponse = fetch(`${endpointUrl}?category=gene&q=${query}`, {
+        method: 'GET',
+        headers: {
+            'accept': 'application/json'
+        }
+    })
+    .then((response: Response) => {
+        if ( 500 <= response.status && response.status <= 599 ){
+            // No point in attempting to process the body, as no body is expected.
+            throw new Error('Server error received.', {cause: 'server error'})
+        }
+
+        return Promise.all([Promise.resolve(response), response.json()]);
+    })
+    .then(([response, body]) => {
+        if (response.ok) {
+            console.log(`Gene suggestions for query '${query}' received successfully: ${JSON.stringify(body)}`)
+            return body['results'] as GeneAutocompleteApiResponse[];
+        } else {
+            const errMsg = 'Failure response received from gene autocomplete API.'
+            console.error(errMsg)
+            if( 400 <= response.status && response.status <= 499 ){
+                throw new Error(errMsg, {cause: 'user error'})
+            }
+            else{
+                console.log('Non user-error response received:', response)
+                throw new Error(errMsg, {cause: 'unkown'})
+            }
+
+        }
+    })
+    .catch((e: Error) => {
+        console.error('Error caught while requesting gene autocomplete:', e)
+        throw e;
+    });
+
+    const suggestions: GeneSuggestion[] = (await jobResponse)?.map(autocompleteResponse => {
+        return {
+            id: autocompleteResponse.primaryKey,
+            displayName: autocompleteResponse.name_key
+        }
+    })
+
+    return suggestions
 }
 
 export async function fetchAlleles (geneId: string): Promise<AlleleInfo[]> {

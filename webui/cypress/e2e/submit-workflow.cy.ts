@@ -4,7 +4,7 @@
 // please read our getting started guide:
 // https://on.cypress.io/introduction-to-cypress
 
-import formInput from '../fixtures/test-submit-success-input.json'
+import formInput from '../fixtures/test-submit-success-input'
 
 describe('submit form behaviour', () => {
     beforeEach(() => {
@@ -64,12 +64,34 @@ describe('submit form behaviour', () => {
         cy.get('.p-inputgroup').should('have.length', formInput.length)
 
         // Input all data into form
+        // TODO: update test data and flow to include incomplete gene input autocompletion and selection
         for(let i = 0, len = formInput.length; i < len; ++i){
 
-            // Form should be able to receive gene as user input.
-            cy.get('.p-inputgroup').eq(i).find('input#gene').as('geneInputField')
+            // Form should be able to receive gene query as user input.
+            cy.get('.p-inputgroup').eq(i).find('#gene > input').as('geneInputField')
             cy.get('@geneInputField').focus()
-            cy.get('@geneInputField').type(formInput[i].gene)
+            cy.get('@geneInputField').type(formInput[i].gene.type)
+
+            const gene_selection = formInput[i].gene.select
+            if( gene_selection !== undefined ) {
+                // Wait for gene autocompletion list to load
+                cy.get('@geneInputField').parent().find('ul.p-autocomplete-items').as('geneAutoCompleteList')
+                cy.get('@geneInputField').should('be.visible')
+
+                // A list of genes should be available
+                cy.get('@geneAutoCompleteList').find('li').as('openGenesList')
+                cy.get('@openGenesList').should('have.length.at.least', 1)
+
+                if( typeof(gene_selection) === 'string' ) {
+                    // Find the entry matching the select string and click it
+                    cy.get('@openGenesList').contains(gene_selection).click()
+                }
+                else if( typeof(gene_selection) === 'number' ) {
+                    cy.get('@openGenesList').should('have.length.at.least', gene_selection)
+                    // Find the nth entry and click it
+                    cy.get('@openGenesList').eq(gene_selection).click()
+                }
+            }
 
             // Once the transcript list loaded, form should enable selecting the relevant transcripts.
             cy.get('.p-inputgroup').eq(i).find('#transcripts').find('input').focus()

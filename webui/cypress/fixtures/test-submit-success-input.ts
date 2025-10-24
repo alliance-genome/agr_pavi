@@ -1,6 +1,20 @@
-[
+type testInputType = {
+    "gene": {
+        /* text to be typed into the search box */
+        "type": string,
+        /* selecting either the options matching the select string, or the nth option when a number. */
+        "select"?: string|number
+    },
+    "transcripts": string[],
+    "delete"?: boolean
+    "alleles"?: string[]
+}
+
+const formInputData: testInputType[] = [
     {
-        "gene": "HGNC:620",
+        "gene": {
+            "type": "HGNC:620"
+        },
         "transcripts": [
             "ENST00000346798.8",
             "ENST00000357903.7"
@@ -8,7 +22,10 @@
         "delete": true
     },
     {
-        "gene": "WB:WBGene00000149",
+        "gene": {
+            "type": "apl-1",
+            "select": "apl-1 (Cel)"
+        },
         "transcripts": [
             "C42D8.8a.1"
         ],
@@ -17,7 +34,9 @@
         ]
     },
     {
-        "gene": "WB:WBGene00000149",
+        "gene": {
+            "type": "WB:WBGene00000149"
+        },
         "transcripts": [
             "C42D8.8a.1"
         ],
@@ -26,7 +45,9 @@
         ]
     },
     {
-        "gene": "WB:WBGene00006318",
+        "gene": {
+            "type": "WB:WBGene00006318"
+        },
         "transcripts": [
             "F34D6.3.1"
         ],
@@ -35,7 +56,9 @@
         ]
     },
     {
-        "gene": "WB:WBGene00000149",
+        "gene": {
+            "type": "WB:WBGene00000149"
+        },
         "transcripts": [
             "C42D8.8a.1"
         ],
@@ -44,7 +67,9 @@
         ]
     },
     {
-        "gene": "WB:WBGene00011034",
+        "gene": {
+            "type": "WB:WBGene00011034"
+        },
         "transcripts": [
             "R05D11.6.1"
         ],
@@ -53,16 +78,22 @@
         ]
     },
     {
-        "gene": "FB:FBgn0000108",
+        "gene": {
+            "type": "FB:FBgn0000108"
+        },
         "transcripts": [
             "Appl-RA",
             "Appl-RB"
         ]
     },
     {
-        "gene": "WB:WBGene00003232",
+        "gene": {
+            "type": "WB:WBGene00003232"
+        },
         "transcripts": [
             "ZC506.4a.1"
         ]
     }
 ]
+
+export default formInputData

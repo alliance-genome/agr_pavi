@@ -131,7 +131,7 @@ describe('AlignmentEntry', () => {
             <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
-        const geneInputElement = result.container.querySelector('#gene')
+        const geneInputElement = result.container.querySelector('#gene > input')
         expect(geneInputElement).not.toBe(null)  // Expect gene input element to be found
         expect(geneInputElement).toHaveClass('p-inputtext') // Expect element to be inputtext box
     })
@@ -161,12 +161,12 @@ describe('AlignmentEntry', () => {
             <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
-        const geneInputElement = result.container.querySelector('input#gene')
+        const geneInputElement = result.container.querySelector('#gene > input')
         expect(geneInputElement).not.toBe(null)  // Expect gene input element to be found
 
         // test unkown gene input
         fireEvent.focusIn(geneInputElement!)
-        fireEvent.input(geneInputElement!, {target: {value: 'UNKNOWN'}})
+        fireEvent.input(geneInputElement!, {target: {value: 'INVALID-GENE-NAME'}})
         fireEvent.focusOut(geneInputElement!)
 
         // Wait for unkown gene error message to appear
@@ -181,13 +181,16 @@ describe('AlignmentEntry', () => {
         fireEvent.input(geneInputElement!, {target: {value: 'MOCK:GENE1'}})
         fireEvent.focusOut(geneInputElement!)
 
-        // Find transcripts and alleles loading spinner
+        // Wait for gene query autocomplete processing to start
+        const geneLoadingSpinnerQuery = '#gene > svg.p-autocomplete-loader'
         await waitFor(() => {
-            // const transcriptsLoadingSpinner = result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-icon-spin')
-            expect(result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
-
-            expect(result.container.querySelector('div#alleles > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
+            expect(result.container.querySelector(geneLoadingSpinnerQuery)).not.toBeNull()
         })
+
+        // Wait for gene query autocomplete processing to finish
+        await waitFor(() => {
+            expect(result.container.querySelector(geneLoadingSpinnerQuery)).toBeNull()
+        }, {timeout: 5000})
 
         // Wait for unkown gene error message to disappear
         await waitFor(() => {
@@ -196,13 +199,21 @@ describe('AlignmentEntry', () => {
             expect(result.container.querySelector('div.p-inline-message-error')).not.toBeVisible()
         })
 
-        // Wait for transcripts loading spinner to disappear
+        // Wait for transcripts and alleles fields to start loading new lists
+        await waitFor(() => {
+            // const transcriptsLoadingSpinner = result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-icon-spin')
+            expect(result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
+
+            expect(result.container.querySelector('div#alleles > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
+        })
+
+        // Wait for transcripts list to finish loading
         await waitFor(() => {
             // const transcriptsLoadingSpinner = result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-icon-spin')
             expect(result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon:not(.p-icon-spin)')).not.toBeNull()
         })
 
-        // Wait for alleles loading spinner to disappear
+        // Wait for alleles list to finish loading
         await waitFor(() => {
             // const transcriptsLoadingSpinner = result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-icon-spin')
             expect(result.container.querySelector('div#alleles > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon:not(.p-icon-spin)')).not.toBeNull()

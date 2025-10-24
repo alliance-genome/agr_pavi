@@ -5,14 +5,14 @@ import { Feature } from '@jbrowse/core/util';
 import { fetchTranscripts } from 'generic-sequence-panel';
 import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
 import { FloatLabel } from 'primereact/floatlabel';
-import { InputText } from 'primereact/inputtext';
+import { AutoComplete, AutoCompleteState, AutoCompletePassThroughMethodOptions } from 'primereact/autocomplete';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import React, { createRef, FunctionComponent, useCallback, useEffect, useState } from 'react';
 
-import { fetchGeneInfo, fetchAlleles } from './serverActions';
+import { fetchGeneInfo, fetchGeneSuggestionsAutocomplete, fetchAlleles } from './serverActions';
 
-import { AlignmentEntryStatus, GeneInfo, TranscriptInfo, FeatureStrand, AlleleInfo } from './types';
+import { AlignmentEntryStatus, GeneInfo, TranscriptInfo, FeatureStrand, AlleleInfo, GeneSuggestion } from './types';
 import { JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
 //Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
@@ -31,6 +31,11 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     const [setupCompleted, setSetupCompleted] = useState<boolean>(false)
     const geneMessageRef: React.RefObject<Message | null> = createRef();
     const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
+    const geneFieldRef = createRef<AutoComplete>()
+    const geneFieldStateRef = createRef<AutoCompleteState>()
+    const [geneSuggestionList, setGeneSuggestionList] = useState<GeneSuggestion[]>([])
+    const [selectedGeneSuggestion, setSelectedGeneSuggestion] = useState<GeneSuggestion>()
+    const [geneQuery, setGeneQuery] = useState<string|GeneSuggestion>()
     const [gene, setGene] = useState<GeneInfo>()
     const [selectedAllelesInfo, setSelectedAllelesInfo] = useState<AlleleInfo[]>([])
     const [selectedTranscriptsInfo, setSelectedTranscriptsInfo] = useState<TranscriptInfo[]>([])
@@ -105,8 +110,77 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         props.dispatchInputPayloadPart(dispatchAction)
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const processGeneEntry = async(geneId: string) => {
-        if(geneId === gene?.id){
+    const searchGene = async(geneQuery: string) => {
+        console.log('Searching for gene:', geneQuery)
+        const geneSuggestions: GeneSuggestion[] = []
+
+        // Try exact matching on ID
+        const idMatch = await fetchGeneInfo(geneQuery)
+        if(idMatch){
+            geneSuggestions.push({
+                id: idMatch.id,
+                displayName: `${idMatch.symbol} (${idMatch.species.shortName})`
+            })
+        }
+
+        // Add autocomplete suggestions
+        let autocompleteSuggestions: GeneSuggestion[] = []
+        try {
+            autocompleteSuggestions = await fetchGeneSuggestionsAutocomplete(geneQuery)
+        }
+        catch (e) {
+            console.error(`Error received while requesting autocomplete suggestions: ${e}.`)
+            setgeneMessageDisplay('initial')
+            return
+        }
+
+        if(autocompleteSuggestions && autocompleteSuggestions.length > 0){
+            geneSuggestions.push(...autocompleteSuggestions)
+        }
+
+        console.log(`${geneSuggestions.length} gene suggestions received.`)
+        if( geneSuggestions.length === 0 ){
+            setgeneMessageDisplay('initial')
+        }
+        setGeneSuggestionList(geneSuggestions)
+    }
+
+    const autoSelectSingleGeneSuggestion = useCallback(() => {
+        // Autoselect single gene suggestion if no prior selection was made
+        console.log('Evaluating autoselecting single gene suggestion...')
+        if( geneQuery === undefined || geneQuery === '' ){
+            console.log('No gene query detected. Skipping autoselecting single gene suggestion.')
+            return
+        }
+        if(selectedGeneSuggestion === undefined && geneSuggestionList.length == 1){
+            console.log('Autoselecting single gene suggestion:', geneSuggestionList[0])
+            setSelectedGeneSuggestion(geneSuggestionList[0])
+            setGeneQuery(geneSuggestionList[0])
+            geneFieldRef.current?.hide()
+        }
+        // Reset gene autocomplete text to prior selection if prior selection was made and field is not in focus
+        else if(selectedGeneSuggestion !== undefined && geneQuery !== selectedGeneSuggestion.displayName
+            && !geneFieldStateRef.current?.focused
+        ){
+            setGeneQuery(selectedGeneSuggestion)
+        }
+    }, [geneSuggestionList, selectedGeneSuggestion, geneQuery, geneFieldRef, geneFieldStateRef])
+
+    const processGeneEntry = useCallback(async(geneId: string|undefined) => {
+        if( geneId === undefined ){
+            console.log(`Processing undefined gene entry.`)
+            if(gene !== undefined){
+                // Clear prior gene selection
+                console.log(`Clearing prior gene selection.`)
+                updateInputPayloadPart({
+                    status: AlignmentEntryStatus.PENDING_INPUT
+                })
+                setgeneMessageDisplay('none')
+                setGene(undefined)
+            }
+            return
+        }
+        else if(geneId === gene?.id){
             // Prevent processing the same gene twice
             console.log(`Gene field value unchanged, skipping processing for ${geneId}.`)
             return
@@ -150,7 +224,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             })
             setGene(undefined)
         }
-    }
+    }, [gene, updateInputPayloadPart])
 
     const payloadPortion = useCallback((gene_info: GeneInfo, transcripts_info: TranscriptInfo[], alleles_info: AlleleInfo[]) => {
         const portion: JobSumbissionPayloadRecord[] = []
@@ -235,17 +309,23 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             status: AlignmentEntryStatus.PROCESSING,
             payloadPart: undefined
         })
-        console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
-        console.log('Fetching exon info for selected transcripts...')
 
         const transcriptsInfo: Array<TranscriptInfo> = []
 
         if(transcriptIds.length < 1){
+            console.log('No transcripts selected, pending input.')
             updateInputPayloadPart({
                 status: AlignmentEntryStatus.PENDING_INPUT
             })
+            setSelectedTranscriptsInfo([])
+        }
+        else if( transcriptList.length < 1){
+            console.log('Transcript list is empty, clearing prior selected transcripts info.')
+            setSelectedTranscriptsInfo([])
         }
         else{
+            console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
+            console.log('Fetching exon info for selected transcripts...')
             transcriptIds.forEach((transcriptId) => {
                 console.log(`Finding transcript for ID ${transcriptId}...`)
 
@@ -309,29 +389,48 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     }, [transcriptList, updateInputPayloadPart])
 
     const processAlleleEntry = useCallback(async(alleleIds: string[]) => {
-        //TODO: implement function body
-        console.log(`Processing selected alleles for gene ${gene?.id}: ${alleleIds}`)
+        if( alleleList.length > 0 ){
+            console.log(`Processing selected alleles: ${alleleIds}`)
+            // Convert alleleList into map keyed by allele ID
+            const allelesMap = new Map<string, AlleleInfo>()
+            alleleList.forEach((allele) => {
+                allelesMap.set(allele.id, allele)
+            })
 
-        // Convert alleleList into map keyed by allele ID
-        const allelesMap = new Map<string, AlleleInfo>()
-        alleleList.forEach((allele) => {
-            allelesMap.set(allele.id, allele)
-        })
+            const alleleEntryInfo: AlleleInfo[] = []
+            alleleIds.forEach((alleleId) => {
+                const allele = allelesMap.get(alleleId)
+                if(allele){
+                    alleleEntryInfo.push(allele)
+                }
+                else{
+                    console.error(`Selected allele not found: ${alleleId}`)
+                }
+            })
 
-        const alleleEntryInfo: AlleleInfo[] = []
-        alleleIds.forEach((alleleId) => {
-            const allele = allelesMap.get(alleleId)
-            if(allele){
-                alleleEntryInfo.push(allele)
-            }
-            else{
-                console.error(`Selected allele not found: ${alleleId}`)
-            }
-        })
+            setSelectedAllelesInfo(alleleEntryInfo)
+        }
+        else{
+            console.log('Alele list is empty, clearing prior selected alleles info.')
+            setSelectedAllelesInfo([])
+        }
 
-        setSelectedAllelesInfo(alleleEntryInfo)
+    }, [alleleList])
 
-    }, [gene, alleleList])
+    // When a new geneAutocompleteList is received but the gene field is not focused,
+    // evaluate the geneAutocompleteList to determine if an autoSelection should be made
+    useEffect(() => {
+        if(!geneFieldStateRef.current?.focused){
+            autoSelectSingleGeneSuggestion()
+        }
+    }, [geneSuggestionList])  // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Process gene entry on gene selection
+    useEffect(() => {
+        // Process and store gene object if gene input was selected
+        console.log('Processing gene selection:', selectedGeneSuggestion)
+        processGeneEntry(selectedGeneSuggestion!==undefined?selectedGeneSuggestion.id:undefined)
+    }, [selectedGeneSuggestion, processGeneEntry])
 
     // Handle transcriptList and alleleList updates once gene object has been saved
     useEffect(() => {
@@ -379,14 +478,24 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             }
         }
 
-        updateTranscriptList()
-        updateAlleleList()
+        if (gene !== undefined) {
+            updateTranscriptList()
+            updateAlleleList()
+        }
+        else{
+            setTranscriptList([])
+            setAlleleList([])
+        }
     }, [gene]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Update transcriptList loading status and open selection panel once transcriptList object has been saved
     useEffect(
         () => {
             console.log(`New transcript list loaded.`)
+            if(selectedTranscriptIds.length > 0){
+                console.log('Clearing prior selected transcript ids.')
+                setSelectedTranscriptIds([])
+            }
             setTranscriptListLoading(false)
             if(transcriptList.length > 0){
                 const select_menu = transcriptMultiselectRef.current
@@ -403,6 +512,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     useEffect(
         () => {
             console.log(`New allele list loaded.`)
+            if(selectedAlleleIds.length > 0){
+                console.log('Clearing prior selected allele ids.')
+                setSelectedAlleleIds([])
+            }
             setAlleleListLoading(false)
             if(alleleList.length > 0){
                 const select_menu = alleleMultiselectRef.current
@@ -476,14 +589,27 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
     return (
         <div className='p-inputgroup'>
             <FloatLabel>
-                <InputText id="gene" className="p-inputtext-sm" placeholder='e.g. HGNC:620'
-                            onBlur={ (e) => processGeneEntry(e.currentTarget.value) } />
+                <AutoComplete id="gene" placeholder='e.g. HGNC:620'
+                    ref={geneFieldRef}
+                    pt={{
+                        root: (options: AutoCompletePassThroughMethodOptions) => {
+                            geneFieldStateRef.current = options.state
+                        }
+                    }}
+                    appendTo={"self"}
+                    delay={700}
+                    suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
+                    value={geneQuery}
+                    onChange={ (e) => setGeneQuery(e.value) }
+                    onClear={ () => {setSelectedGeneSuggestion(undefined); setGeneSuggestionList([])} }
+                    onSelect={ (e) => {setSelectedGeneSuggestion(e.value); setGeneQuery(e.value)} }
+                    onHide={() => autoSelectSingleGeneSuggestion()}
+                    field="displayName" />
                 <label htmlFor="gene">Gene</label>
             </FloatLabel>
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
                             text="Failed to find gene, correct input and try again." />
             <FloatLabel>
-                {/* TODO: Enable filtering on all text represented in label, not just the allele ID */}
                 <MultiSelect id="alleles" loading={alleleListLoading} ref={alleleMultiselectRef}
                     appendTo={"self"}
                     display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
