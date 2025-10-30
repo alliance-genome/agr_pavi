@@ -4,6 +4,10 @@
 #
 #    pip-compile --cert=None --client-cert=None --generate-hashes --index-url=None --output-file=requirements.txt --pip-args=None
 #
+annotated-doc==0.0.3 \
+    --hash=sha256:348ec6664a76f1fd3be81f43dffbee4c7e8ce931ba71ec67cc7f4ade7fbbb580 \
+    --hash=sha256:e18370014c70187422c33e945053ff4c286f453a984eba84d0dbfa0c935adeda
+    # via fastapi
 annotated-types==0.7.0 \
     --hash=sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53 \
     --hash=sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89
@@ -46,9 +50,9 @@ email-validator==2.3.0 \
     --hash=sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4 \
     --hash=sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426
     # via fastapi
-fastapi[standard-no-fastapi-cloud-cli]==0.119.1 \
-    --hash=sha256:0b8c2a2cce853216e150e9bd4faaed88227f8eb37de21cb200771f491586a27f \
-    --hash=sha256:a5e3426edce3fe221af4e1992c6d79011b247e3b03cc57999d697fe76cbf8ae0
+fastapi[standard-no-fastapi-cloud-cli]==0.120.2 \
+    --hash=sha256:4c5ab43e2a90335bbd8326d1b659eac0f3dbcc015e2af573c4f5de406232c4ac \
+    --hash=sha256:bedcf2c14240e43d56cb9a339b32bcf15104fe6b5897c0222603cb7ec416c8eb
     # via pavi-api (pyproject.toml)
 fastapi-cli[standard-no-fastapi-cloud-cli]==0.0.14 \
     --hash=sha256:ddfb5de0a67f77a8b3271af1460489bd4d7f4add73d11fbfac613827b0275274 \
