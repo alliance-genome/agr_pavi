@@ -4,6 +4,10 @@
 #
 #    pip-compile --cert=None --client-cert=None --extra=test --generate-hashes --index-url=None --output-file=tests/requirements.txt --pip-args=None
 #
+annotated-doc==0.0.3 \
+    --hash=sha256:348ec6664a76f1fd3be81f43dffbee4c7e8ce931ba71ec67cc7f4ade7fbbb580 \
+    --hash=sha256:e18370014c70187422c33e945053ff4c286f453a984eba84d0dbfa0c935adeda
+    # via fastapi
 annotated-types==0.7.0 \
     --hash=sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53 \
     --hash=sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89
@@ -15,13 +19,13 @@ anyio==4.11.0 \
     #   httpx
     #   starlette
     #   watchfiles
-boto3==1.40.57 \
-    --hash=sha256:4ceeac741b04cd5d9193c85d1707597a30f7482682733437454408ea755ee151 \
-    --hash=sha256:717605170cb167e07462b7f033b26bc9c0fee34b78b5eac52edcd6149915e23f
+boto3==1.40.62 \
+    --hash=sha256:3dbe7e1e7dc9127a4b1f2020a14f38ffe64fad84df00623e8ab6a5d49a82ea28 \
+    --hash=sha256:f422d4ae3b278832ba807059aafa553164bce2c464cd65b24c9ea8fb8a6c4192
     # via smart-open
-botocore==1.40.57 \
-    --hash=sha256:39bb0570e10eb7a5d518974865aeebafe275498c8f132b23e3021b957babaf8a \
-    --hash=sha256:95dfd35e0863c3e33d458b0e74eb5a82d73521347c25651e1a0e18cf921ee010
+botocore==1.40.62 \
+    --hash=sha256:1e8e57c131597dc234d67428bda1323e8f0a687ea13ea570253159ab9256fa28 \
+    --hash=sha256:780f1d476d4b530ce3b12fd9f7112156d97d99ebdbbd9ef60635b0432af9d3a5
     # via
     #   boto3
     #   s3transfer
@@ -140,9 +144,9 @@ email-validator==2.3.0 \
     --hash=sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4 \
     --hash=sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426
     # via fastapi
-fastapi[standard-no-fastapi-cloud-cli]==0.119.1 \
-    --hash=sha256:0b8c2a2cce853216e150e9bd4faaed88227f8eb37de21cb200771f491586a27f \
-    --hash=sha256:a5e3426edce3fe221af4e1992c6d79011b247e3b03cc57999d697fe76cbf8ae0
+fastapi[standard-no-fastapi-cloud-cli]==0.120.2 \
+    --hash=sha256:4c5ab43e2a90335bbd8326d1b659eac0f3dbcc015e2af573c4f5de406232c4ac \
+    --hash=sha256:bedcf2c14240e43d56cb9a339b32bcf15104fe6b5897c0222603cb7ec416c8eb
     # via pavi-api (pyproject.toml)
 fastapi-cli[standard-no-fastapi-cloud-cli]==0.0.14 \
     --hash=sha256:ddfb5de0a67f77a8b3271af1460489bd4d7f4add73d11fbfac613827b0275274 \
@@ -154,9 +158,9 @@ flake8==7.3.0 \
     # via
     #   flake8-unused-arguments
     #   pavi-api (pyproject.toml)
-flake8-unused-arguments==0.0.13 \
-    --hash=sha256:c5894d294424bf7915e44dff0917222c454151016f96edc55b9f847bf307f3f7 \
-    --hash=sha256:df6a76b73a6ce67720332182a80f2f0a80783cab1ccae8175f39787cd3a74b31
+flake8-unused-arguments==0.0.14 \
+    --hash=sha256:5b6cac6ecb325c0d5460edc6c52e2861c146eca03ddedc36dcb32beafeacbbec \
+    --hash=sha256:6c0b7ce7236a156f4bd90adec67ad0e5d0139efcd15c2a1fc0fb3a6ffd7e435e
     # via pavi-api (pyproject.toml)
 h11==0.16.0 \
     --hash=sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1 \
@@ -557,9 +561,9 @@ python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
     # via botocore
-python-dotenv==1.1.1 \
-    --hash=sha256:31f23644fe2602f88ff55e1f5c79ba497e01224ee7737937930c448e4d0e24dc \
-    --hash=sha256:a8a6399716257f45be6a007360200409fce5cda2661e3dec71d23dc15f6189ab
+python-dotenv==1.2.1 \
+    --hash=sha256:42667e897e16ab0d66954af0e60a9caa94f0fd4ecf3aaf6d2d260eec1aa36ad6 \
+    --hash=sha256:b81ee9561e9ca4004139c6cbba3a238c32b03e4894671e181b671e8cb8425d61
     # via uvicorn
 python-multipart==0.0.20 \
     --hash=sha256:8a62d3a8335e06589fe01f2a3e178cdcc632f3fbe0d492ad9ee0ec35aab1f104 \
@@ -670,9 +674,9 @@ sniffio==1.3.1 \
     --hash=sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2 \
     --hash=sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc
     # via anyio
-starlette==0.48.0 \
-    --hash=sha256:0764ca97b097582558ecb498132ed0c7d942f233f365b86ba37770e026510659 \
-    --hash=sha256:7e8cee469a8ab2352911528110ce9088fdc6a37d9876926e73da7ce4aa4c7a46
+starlette==0.49.1 \
+    --hash=sha256:481a43b71e24ed8c43b11ea02f5353d77840e01480881b8cb5a26b8cae64a8cb \
+    --hash=sha256:d92ce9f07e4a3caa3ac13a79523bd18e3bc0042bb8ff2d759a8e7dd0e1859875
     # via fastapi
 typer==0.20.0 \
     --hash=sha256:1aaf6494031793e4876fb0bacfa6a912b551cf43c1e63c800df8b1a866720c37 \
