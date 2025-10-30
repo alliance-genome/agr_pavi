@@ -261,9 +261,9 @@ flake8==7.3.0 \
     # via
     #   flake8-unused-arguments
     #   seq-retrieval (pyproject.toml)
-flake8-unused-arguments==0.0.13 \
-    --hash=sha256:c5894d294424bf7915e44dff0917222c454151016f96edc55b9f847bf307f3f7 \
-    --hash=sha256:df6a76b73a6ce67720332182a80f2f0a80783cab1ccae8175f39787cd3a74b31
+flake8-unused-arguments==0.0.14 \
+    --hash=sha256:5b6cac6ecb325c0d5460edc6c52e2861c146eca03ddedc36dcb32beafeacbbec \
+    --hash=sha256:6c0b7ce7236a156f4bd90adec67ad0e5d0139efcd15c2a1fc0fb3a6ffd7e435e
     # via seq-retrieval (pyproject.toml)
 idna==3.11 \
     --hash=sha256:771a87f49d9defaf64091e6e6fe9c18d4833f140bd19464795bc32d966ca37ea \

@@ -18,33 +18,33 @@ aws-cdk-asset-node-proxy-agent-v6==2.1.0 \
     --hash=sha256:1f292c0631f86708ba4ee328b3a2b229f7e46ea1c79fbde567ee9eb119c2b0e2 \
     --hash=sha256:24a388b69a44d03bae6dbf864c4e25ba650d4b61c008b4568b94ffbb9a69e40e
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==48.16.0 \
-    --hash=sha256:8c426c23371caec1aad355c77c96073ac5e89c7856fd3c89165d57bba0bc0efd \
-    --hash=sha256:cb24fdf9f755af7fc7f1248847d1cc208a8a5162c5ac73aabff83e950c1f89d1
+aws-cdk-cloud-assembly-schema==48.17.0 \
+    --hash=sha256:06bb2eef3db71288517ad308159174143612b22989258c80a7023808c72152fb \
+    --hash=sha256:566211e080139aa2790a94fcbc00e6ef758bc2f95d130ff604e9bc61e786027c
     # via aws-cdk-lib
-aws-cdk-lib==2.220.0 \
-    --hash=sha256:0c5242dd740e5c0f31cf7f65f6f7b4fecada0d5e4054570944c5308230d797ae \
-    --hash=sha256:2f69bae74529142a8decb3d1591cf54c8ed9fc033e503a09bfbdd534509a6785
+aws-cdk-lib==2.221.1 \
+    --hash=sha256:0ad4c31eb77848b4a8bd1644a3cc4c2f4bad627e2a24bc5f6bace0747379fa46 \
+    --hash=sha256:adfa5634cd9ab7b1c36ea07338b5cb7ac35d89e1dce09a4d92759e3c377e46a3
     # via pavi_shared_aws (pyproject.toml)
-boto3==1.40.57 \
-    --hash=sha256:4ceeac741b04cd5d9193c85d1707597a30f7482682733437454408ea755ee151 \
-    --hash=sha256:717605170cb167e07462b7f033b26bc9c0fee34b78b5eac52edcd6149915e23f
+boto3==1.40.62 \
+    --hash=sha256:3dbe7e1e7dc9127a4b1f2020a14f38ffe64fad84df00623e8ab6a5d49a82ea28 \
+    --hash=sha256:f422d4ae3b278832ba807059aafa553164bce2c464cd65b24c9ea8fb8a6c4192
     # via
     #   boto3-stubs
     #   pavi_shared_aws (pyproject.toml)
-boto3-stubs[boto3,elasticbeanstalk,sts]==1.40.57 \
-    --hash=sha256:697ec2b7fa4c636ec93ad7a2a5f0cf62a4027e51817897762d7611e355fe88e4 \
-    --hash=sha256:fe98f6be9af14bdfb5edf449cb938da68c48c697d6858c3497396bae6cf526a3
+boto3-stubs[boto3,elasticbeanstalk,sts]==1.40.62 \
+    --hash=sha256:5c8e4458441d4207502c282727f02030755767a311f768b4f8ac3c4af2dfaf7b \
+    --hash=sha256:ef78587b6cb0c8b9e82a8ab9d910daf296a00bca765ade9e34cc6e8f9d1b0efa
     # via pavi_shared_aws (pyproject.toml)
-botocore==1.40.57 \
-    --hash=sha256:39bb0570e10eb7a5d518974865aeebafe275498c8f132b23e3021b957babaf8a \
-    --hash=sha256:95dfd35e0863c3e33d458b0e74eb5a82d73521347c25651e1a0e18cf921ee010
+botocore==1.40.62 \
+    --hash=sha256:1e8e57c131597dc234d67428bda1323e8f0a687ea13ea570253159ab9256fa28 \
+    --hash=sha256:780f1d476d4b530ce3b12fd9f7112156d97d99ebdbbd9ef60635b0432af9d3a5
     # via
     #   boto3
     #   s3transfer
-botocore-stubs==1.40.57 \
-    --hash=sha256:2a0c382d42b8847adb58552d3bc36dd10eef1b8a4f81ae89713076a3fa377be1 \
-    --hash=sha256:d82ccae25ddbfee9521fbeb64c3c1f1d8716a6fd76c2e0bb589df90958536e3c
+botocore-stubs==1.40.62 \
+    --hash=sha256:419654feb3928b06f5cb6459b9ad978939e07db22d4680118b3c7af202edc309 \
+    --hash=sha256:7d95c7d6411f94243f237729e0d27c5bae39183a077183e05b63e529110917a2
     # via boto3-stubs
 cattrs==25.3.0 \
     --hash=sha256:1ac88d9e5eda10436c4517e390a4142d88638fe682c436c93db7ce4a277b884a \
@@ -64,9 +64,9 @@ flake8==7.3.0 \
     # via
     #   flake8-unused-arguments
     #   pavi_shared_aws (pyproject.toml)
-flake8-unused-arguments==0.0.13 \
-    --hash=sha256:c5894d294424bf7915e44dff0917222c454151016f96edc55b9f847bf307f3f7 \
-    --hash=sha256:df6a76b73a6ce67720332182a80f2f0a80783cab1ccae8175f39787cd3a74b31
+flake8-unused-arguments==0.0.14 \
+    --hash=sha256:5b6cac6ecb325c0d5460edc6c52e2861c146eca03ddedc36dcb32beafeacbbec \
+    --hash=sha256:6c0b7ce7236a156f4bd90adec67ad0e5d0139efcd15c2a1fc0fb3a6ffd7e435e
     # via pavi_shared_aws (pyproject.toml)
 importlib-resources==6.5.2 \
     --hash=sha256:185f87adef5bcc288449d98fb4fba07cea78bc036455dd44c5fc4a2fe78fed2c \
@@ -82,9 +82,9 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jsii==1.117.0 \
-    --hash=sha256:55c6863fc7245b9b885bc4bcb17ca117958f686e34a0f401ddc31c1d90452611 \
-    --hash=sha256:a715084779aa14be06a3ba1a8c9ca0abb1d0f208da7f8dd6e9cf2e68df23b7ce
+jsii==1.118.0 \
+    --hash=sha256:2f772d423ccf107193ba39a7ade7e43e6b5a063cad734009d1b4b0f80c5e7456 \
+    --hash=sha256:711131f84a9e968e12b8a09449c734907ca53faa51bf5b85685976dff9faf554
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6
@@ -135,9 +135,9 @@ mypy==1.18.2 \
     --hash=sha256:ed4482847168439651d3feee5833ccedbf6657e964572706a2adb1f7fa4dfe2e \
     --hash=sha256:f9e171c465ad3901dc652643ee4bffa8e9fef4d7d0eece23b428908c77a76a66
     # via pavi_shared_aws (pyproject.toml)
-mypy-boto3-elasticbeanstalk==1.40.15 \
-    --hash=sha256:4cc7d0b77acae1a4fb0e794909b263eec16b0cbf4da907389104bcb1d4dd0d2d \
-    --hash=sha256:91a841ced1d8892bc0e935789afbf728ad1521b54017daa6d3719217f3438d2c
+mypy-boto3-elasticbeanstalk==1.40.60 \
+    --hash=sha256:579446d7d6e1e97ffa43bda2e5993440ed38bb16d0770a3b3ceeb234bd52b669 \
+    --hash=sha256:e4b6a388b5e6acfde8adef50155d7cc1ff96f1bc0e142de020ff6ebb3a8b0402
     # via boto3-stubs
 mypy-boto3-sts==1.40.0 \
     --hash=sha256:eb55e50960ae6194d09488464c302196392df712a6a5f4308b6a0e24244cfd5c \
