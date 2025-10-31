@@ -1,7 +1,7 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 include $(mkfile_dir)/../../common_make
 
-PAVI_COMPUTE_MIN_VCPU ?= 2
+PAVI_COMPUTE_MIN_VCPU ?= 0
 CDK_STACK_NAME ?= PaviPipelineCdkStack
 ADD_CDK_ARGS ?=
 
