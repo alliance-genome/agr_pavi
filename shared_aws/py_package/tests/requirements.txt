@@ -26,25 +26,25 @@ aws-cdk-lib==2.221.1 \
     --hash=sha256:0ad4c31eb77848b4a8bd1644a3cc4c2f4bad627e2a24bc5f6bace0747379fa46 \
     --hash=sha256:adfa5634cd9ab7b1c36ea07338b5cb7ac35d89e1dce09a4d92759e3c377e46a3
     # via pavi_shared_aws (pyproject.toml)
-boto3==1.40.62 \
-    --hash=sha256:3dbe7e1e7dc9127a4b1f2020a14f38ffe64fad84df00623e8ab6a5d49a82ea28 \
-    --hash=sha256:f422d4ae3b278832ba807059aafa553164bce2c464cd65b24c9ea8fb8a6c4192
+boto3==1.40.63 \
+    --hash=sha256:3bf4b034900c87a6a9b3b3b44c4aec26e96fc73bff2505f0766224b7295178ce \
+    --hash=sha256:f15d4abf1a6283887c336f660cdfc2162a210d2d8f4d98dbcbcef983371c284d
     # via
     #   boto3-stubs
     #   pavi_shared_aws (pyproject.toml)
-boto3-stubs[boto3,elasticbeanstalk,sts]==1.40.62 \
-    --hash=sha256:5c8e4458441d4207502c282727f02030755767a311f768b4f8ac3c4af2dfaf7b \
-    --hash=sha256:ef78587b6cb0c8b9e82a8ab9d910daf296a00bca765ade9e34cc6e8f9d1b0efa
+boto3-stubs[boto3,elasticbeanstalk,sts]==1.40.63 \
+    --hash=sha256:5da77d037310c0ea21a9258de438f4a2a2b04a4dd5684b8ac83020ff361274ac \
+    --hash=sha256:bd1f1b5a083b2bffd9e6d162380acbef90ee15acb8d79404f76d44ca3baabcfa
     # via pavi_shared_aws (pyproject.toml)
-botocore==1.40.62 \
-    --hash=sha256:1e8e57c131597dc234d67428bda1323e8f0a687ea13ea570253159ab9256fa28 \
-    --hash=sha256:780f1d476d4b530ce3b12fd9f7112156d97d99ebdbbd9ef60635b0432af9d3a5
+botocore==1.40.63 \
+    --hash=sha256:0324552c3c800e258cbcb8c22b495a2e2e0260a7408d08016196e46fa0d1b587 \
+    --hash=sha256:83657b3ee487268fccc9ba022cba572ba657b9ece8cddd1fa241e2c6a49c8c14
     # via
     #   boto3
     #   s3transfer
-botocore-stubs==1.40.62 \
-    --hash=sha256:419654feb3928b06f5cb6459b9ad978939e07db22d4680118b3c7af202edc309 \
-    --hash=sha256:7d95c7d6411f94243f237729e0d27c5bae39183a077183e05b63e529110917a2
+botocore-stubs==1.40.63 \
+    --hash=sha256:36ab49bbdfed615c78120c78575f3931b9d6af5a3927d7bf92a6747e30057535 \
+    --hash=sha256:b531771c673efa9b507097f6d67ffa3b5aff435ba3f26838e918fe12cd89b299
     # via boto3-stubs
 cattrs==25.3.0 \
     --hash=sha256:1ac88d9e5eda10436c4517e390a4142d88638fe682c436c93db7ce4a277b884a \
@@ -139,9 +139,9 @@ mypy-boto3-elasticbeanstalk==1.40.60 \
     --hash=sha256:579446d7d6e1e97ffa43bda2e5993440ed38bb16d0770a3b3ceeb234bd52b669 \
     --hash=sha256:e4b6a388b5e6acfde8adef50155d7cc1ff96f1bc0e142de020ff6ebb3a8b0402
     # via boto3-stubs
-mypy-boto3-sts==1.40.0 \
-    --hash=sha256:eb55e50960ae6194d09488464c302196392df712a6a5f4308b6a0e24244cfd5c \
-    --hash=sha256:fff731694cab2474bf7e7d3344b049b4ac0272d76b72fc4f7e4ae543ead8a5e6
+mypy-boto3-sts==1.40.63 \
+    --hash=sha256:16f1635bb0995c09bb4fe101bff7296d520310814b77c0fd5cd5b6736f875d44 \
+    --hash=sha256:3b74ecc506700eb0502993f624caaa286559e35ec7e05ad38ee3f1751e0a0a24
     # via boto3-stubs
 mypy-extensions==1.1.0 \
     --hash=sha256:1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505 \
