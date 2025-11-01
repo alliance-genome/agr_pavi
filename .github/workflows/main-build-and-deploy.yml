@@ -140,7 +140,7 @@ jobs:
         run: |
           make clean build
       - name: Upload package as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: shared_aws_py_package
           path: shared_aws/py_package/dist/pavi_shared_aws-0.0.0-py3-none-any.whl
