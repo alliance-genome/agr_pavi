@@ -34,7 +34,7 @@
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3.2.0",
-        "@eslint/js": "^9.17.0",
+        "@eslint/js": "^9.39.0",
         "@jest/globals": "^30.0.5",
         "@testing-library/dom": "^10.4.0",
         "@testing-library/jest-dom": "^6.4.8",
