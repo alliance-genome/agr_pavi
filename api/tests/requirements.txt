@@ -148,9 +148,9 @@ fastapi[standard-no-fastapi-cloud-cli]==0.120.3 \
     --hash=sha256:17db50718ee86c9e01e54f9d8600abf130f6f762711cd0d8f02eb392668271ba \
     --hash=sha256:bfee21c98db9128dc425a686eafd14899e26e4471aab33076bff2427fd6dcd22
     # via pavi-api (pyproject.toml)
-fastapi-cli[standard-no-fastapi-cloud-cli]==0.0.14 \
-    --hash=sha256:ddfb5de0a67f77a8b3271af1460489bd4d7f4add73d11fbfac613827b0275274 \
-    --hash=sha256:e66b9ad499ee77a4e6007545cde6de1459b7f21df199d7f29aad2adaab168eca
+fastapi-cli[standard-no-fastapi-cloud-cli]==0.0.16 \
+    --hash=sha256:addcb6d130b5b9c91adbbf3f2947fe115991495fdb442fe3e51b5fc6327df9f4 \
+    --hash=sha256:e8a2a1ecf7a4e062e3b2eec63ae34387d1e142d4849181d936b23c4bdfe29073
     # via fastapi
 flake8==7.3.0 \
     --hash=sha256:b9696257b9ce8beb888cdbe31cf885c90d31928fe202be0889a7cdafad32f01e \
