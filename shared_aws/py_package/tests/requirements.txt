@@ -139,9 +139,9 @@ mypy-boto3-elasticbeanstalk==1.41.0 \
     --hash=sha256:764422fbe56595ef9c62c7221e7571b46acdff75a4fa9b59f6f618b15ac3a111 \
     --hash=sha256:8d6428e88f1a55c1a865971fedb2b0d53203c50131b462c1378119a040b4e600
     # via boto3-stubs
-mypy-boto3-sts==1.41.0 \
-    --hash=sha256:5d6dd24e3fbebbc82f8c7d22400bfeb4561a5f71c1e5f59c00da364ab590d933 \
-    --hash=sha256:b6043349bddc7cb82956c4851d728bafc21a6f2b0043b6ccae1e0e049b34fa9a
+mypy-boto3-sts==1.42.3 \
+    --hash=sha256:0e02603e0867da61acfe4d01422ac1ea9687313036001ea89d4ee2fcd33d352d \
+    --hash=sha256:3857c5ba3f3a5c0417edc47f5ad4e45891e3babc32d56c6b27c5d4167f9f5ba7
     # via boto3-stubs
 mypy-extensions==1.1.0 \
     --hash=sha256:1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505 \
