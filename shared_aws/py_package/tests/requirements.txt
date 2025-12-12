@@ -135,9 +135,9 @@ mypy==1.18.2 \
     --hash=sha256:ed4482847168439651d3feee5833ccedbf6657e964572706a2adb1f7fa4dfe2e \
     --hash=sha256:f9e171c465ad3901dc652643ee4bffa8e9fef4d7d0eece23b428908c77a76a66
     # via pavi_shared_aws (pyproject.toml)
-mypy-boto3-elasticbeanstalk==1.41.0 \
-    --hash=sha256:764422fbe56595ef9c62c7221e7571b46acdff75a4fa9b59f6f618b15ac3a111 \
-    --hash=sha256:8d6428e88f1a55c1a865971fedb2b0d53203c50131b462c1378119a040b4e600
+mypy-boto3-elasticbeanstalk==1.42.3 \
+    --hash=sha256:1e0827032c35ed294b787d3a24f28ed9359258df89faa37562f80daa1027ea22 \
+    --hash=sha256:6dd90c97b95935ef5a7ff57beea99244ff6f505abc7a61bf8ba95f6f973f6e49
     # via boto3-stubs
 mypy-boto3-sts==1.41.0 \
     --hash=sha256:5d6dd24e3fbebbc82f8c7d22400bfeb4561a5f71c1e5f59c00da364ab590d933 \
