@@ -190,12 +190,12 @@ jobs:
           common_make
           shared_aws/py_package/
     - name: Download updated shared_aws py-package prod dependencies lock file
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: shared_aws_py_package_deps_lock
         path: shared_aws/py_package
     - name: Download updated shared_aws py-package test dependencies lock file
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: shared_aws_py_package_test_deps_lock
         path: shared_aws/py_package/tests
@@ -228,12 +228,12 @@ jobs:
           common_make
           shared_aws/py_package/
     - name: Download updated shared_aws py-package prod dependencies lock file
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: shared_aws_py_package_deps_lock
         path: shared_aws/py_package
     - name: Download updated shared_aws py-package test dependencies lock file
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: shared_aws_py_package_test_deps_lock
         path: shared_aws/py_package/tests
@@ -269,7 +269,7 @@ jobs:
         with:
           python-version-file: "shared_aws/aws_infra/pyproject.toml"
       - name: Download shared AWS package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: shared_aws_py_package
           path: /tmp/
@@ -306,12 +306,12 @@ jobs:
           common_make
           shared_aws/aws_infra/
     - name: Download shared AWS package
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: shared_aws_py_package
         path: /tmp/
     - name: Download updated shared_aws/aws_infra dependencies lock files bundle
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: shared_aws_infra_deps_locks_bundle
         path: shared_aws/aws_infra
@@ -362,7 +362,7 @@ jobs:
         with:
           python-version-file: "pipeline_components/aws_infra/pyproject.toml"
       - name: Download shared AWS package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: shared_aws_py_package
           path: /tmp/
@@ -399,7 +399,7 @@ jobs:
         with:
           python-version-file: "api/aws_infra/pyproject.toml"
       - name: Download shared AWS package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: shared_aws_py_package
           path: /tmp/
@@ -436,7 +436,7 @@ jobs:
         with:
           python-version-file: "webui/aws_infra/pyproject.toml"
       - name: Download shared AWS package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: shared_aws_py_package
           path: /tmp/
@@ -469,7 +469,7 @@ jobs:
           sparse-checkout: |
             pipeline_components/seq_retrieval/
       - name: Download updated seq_retrieval (main) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: pipeline_seq_retrieval_deps_lock
           path: pipeline_components/seq_retrieval
@@ -523,12 +523,12 @@ jobs:
             pipeline_components/seq_retrieval/
             tests/resources/
       - name: Download updated seq_retrieval (main) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: pipeline_seq_retrieval_deps_lock
           path: pipeline_components/seq_retrieval
       - name: Download updated seq_retrieval (test) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline_components/seq_retrieval/tests
@@ -607,7 +607,7 @@ jobs:
             common_make
             pipeline_components/alignment/
       - name: Download alignment image artifact (from previous job)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: alignment_image
           path: /tmp
@@ -639,12 +639,12 @@ jobs:
             api/pipeline_workflow/
             tests/resources/
       - name: Download seq_retrieval image artifact (from previous job)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: seq_retrieval_image
           path: /tmp
       - name: Download alignment image artifact (from previous job)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: alignment_image
           path: /tmp
@@ -688,7 +688,7 @@ jobs:
           common_make
           pipeline_components/aws_infra/
     - name: Download updated pipeline_components/aws_infra dependencies lock files bundle
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: pipeline_aws_infra_deps_locks_bundle
         path: pipeline_components/aws_infra
@@ -697,7 +697,7 @@ jobs:
       run: |
         tar -xzv -f pipeline-aws-infra-deps-locks.tar.gz
     - name: Download shared AWS package
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: shared_aws_py_package
         path: /tmp/
@@ -742,12 +742,12 @@ jobs:
             common_make
             api/
       - name: Download updated api (main) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_deps_lock
           path: api
       - name: Download updated api (test) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_tests_deps_lock
           path: api/tests
@@ -775,12 +775,12 @@ jobs:
           sparse-checkout: |
             api/
       - name: Download updated api (main) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_deps_lock
           path: api
       - name: Download updated api (test) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_tests_deps_lock
           path: api/tests
@@ -837,22 +837,22 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download updated api (main) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_deps_lock
           path: api
       - name: Download updated api (test) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_tests_deps_lock
           path: api/tests
       - name: Download seq_retrieval image artifact (from previous job)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: seq_retrieval_image
           path: /tmp
       - name: Download alignment image artifact (from previous job)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: alignment_image
           path: /tmp
@@ -892,17 +892,17 @@ jobs:
             api/
             tests/resources/
       - name: Download updated api (main) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_deps_lock
           path: api
       - name: Download updated api (test) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_tests_deps_lock
           path: api/tests
       - name: Download API image artifact (from previous job)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_image
           path: /tmp
@@ -943,7 +943,7 @@ jobs:
           common_make
           api/aws_infra/
     - name: Download updated api/aws_infra dependencies lock files bundle
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: api_aws_infra_deps_locks_bundle
         path: api/aws_infra
@@ -952,7 +952,7 @@ jobs:
       run: |
         tar -xzv -f api-aws-infra-deps-locks.tar.gz
     - name: Download shared AWS package
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: shared_aws_py_package
         path: /tmp/
@@ -998,7 +998,7 @@ jobs:
           common_make
           webui/aws_infra/
     - name: Download updated webui/aws_infra dependencies lock files bundle
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: webui_aws_infra_deps_locks_bundle
         path: webui/aws_infra
@@ -1007,7 +1007,7 @@ jobs:
       run: |
         tar -xzv -f webui-aws-infra-deps-locks.tar.gz
     - name: Download shared AWS package
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: shared_aws_py_package
         path: /tmp/
@@ -1050,7 +1050,7 @@ jobs:
             common_make
             webui/
       - name: Download updated webui dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: webui_deps_lock
           path: webui
@@ -1076,7 +1076,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download updated webui dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: webui_deps_lock
           path: webui
@@ -1117,7 +1117,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download updated webui dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: webui_deps_lock
           path: webui
@@ -1172,7 +1172,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v5
       - name: Download API image artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_image
           path: /tmp
@@ -1184,7 +1184,7 @@ jobs:
         run: |
           API_PIPELINE_IMAGE_TAG=${{needs.container-build-context.outputs.tagname}} make run-container-dev
       - name: Download webUI image artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: webui_image
           path: /tmp
@@ -1196,7 +1196,7 @@ jobs:
         run: |
           PAVI_API_PORT=8080 make run-container-dev
       - name: Download cypress testing image artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: cypress_testing_image
           path: /tmp
@@ -1263,27 +1263,27 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Download updated seq_retrieval (main) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: pipeline_seq_retrieval_deps_lock
           path: pipeline_components/seq_retrieval
       - name: Download updated seq_retrieval (test) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline_components/seq_retrieval/tests
       - name: Download updated api (main) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_deps_lock
           path: api
       - name: Download updated api (test) dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_tests_deps_lock
           path: api/tests
       - name: Download updated pipeline_components/aws_infra dependencies lock files bundle
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: pipeline_aws_infra_deps_locks_bundle
           path: pipeline_components/aws_infra
@@ -1292,17 +1292,17 @@ jobs:
         run: |
           tar -xzv -f pipeline-aws-infra-deps-locks.tar.gz
       - name: Download updated shared_aws py-package prod dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: shared_aws_py_package_deps_lock
           path: shared_aws/py_package
       - name: Download updated shared_aws py-package test dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: shared_aws_py_package_test_deps_lock
           path: shared_aws/py_package/tests
       - name: Download updated shared_aws/aws_infra dependencies lock files bundle
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: shared_aws_infra_deps_locks_bundle
           path: shared_aws/aws_infra
@@ -1311,7 +1311,7 @@ jobs:
         run: |
           tar -xzv -f shared-aws-infra-deps-locks.tar.gz
       - name: Download updated api/aws_infra dependencies lock files bundle
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: api_aws_infra_deps_locks_bundle
           path: api/aws_infra
@@ -1320,7 +1320,7 @@ jobs:
         run: |
           tar -xzv -f api-aws-infra-deps-locks.tar.gz
       - name: Download updated webui/aws_infra dependencies lock files bundle
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: webui_aws_infra_deps_locks_bundle
           path: webui/aws_infra
@@ -1329,7 +1329,7 @@ jobs:
         run: |
           tar -xzv -f webui-aws-infra-deps-locks.tar.gz
       - name: Download updated webui dependencies lock file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: webui_deps_lock
           path: webui
