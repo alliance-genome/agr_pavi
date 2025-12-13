@@ -69,13 +69,13 @@ jobs:
         run: |
           make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pipeline_seq_retrieval_deps_lock
           path: pipeline_components/seq_retrieval/requirements.txt
           if-no-files-found: error
       - name: Upload updated (test) lock file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline_components/seq_retrieval/tests/requirements.txt
@@ -102,13 +102,13 @@ jobs:
         run: |
           make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: api_deps_lock
           path: api/requirements.txt
           if-no-files-found: error
       - name: Upload updated (test) lock file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: api_tests_deps_lock
           path: api/tests/requirements.txt
@@ -135,7 +135,7 @@ jobs:
         run: |
           make update-deps-lock
       - name: Upload updated lock file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: webui_deps_lock
           path: webui/package-lock.json
@@ -162,13 +162,13 @@ jobs:
         run: |
           make update-deps-locks-all
       - name: Upload updated (main) lock file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: shared_aws_py_package_deps_lock
           path: shared_aws/py_package/requirements.txt
           if-no-files-found: error
       - name: Upload updated (test) lock file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: shared_aws_py_package_test_deps_lock
           path: shared_aws/py_package/tests/requirements.txt
@@ -245,7 +245,7 @@ jobs:
       run: |
         make clean build
     - name: Upload package as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: shared_aws_py_package
         path: shared_aws/py_package/dist/pavi_shared_aws-0.0.0-py3-none-any.whl
@@ -281,7 +281,7 @@ jobs:
         run: |
           tar -czv -f shared-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
       - name: Upload deps-lock-files bundle as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: shared_aws_infra_deps_locks_bundle
           path: shared_aws/aws_infra/shared-aws-infra-deps-locks.tar.gz
@@ -374,7 +374,7 @@ jobs:
         run: |
           tar -czv -f pipeline-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
       - name: Upload deps-lock-files bundle as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pipeline_aws_infra_deps_locks_bundle
           path: pipeline_components/aws_infra/pipeline-aws-infra-deps-locks.tar.gz
@@ -411,7 +411,7 @@ jobs:
         run: |
           tar -czv -f api-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
       - name: Upload deps-lock-files bundle as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: api_aws_infra_deps_locks_bundle
           path: api/aws_infra/api-aws-infra-deps-locks.tar.gz
@@ -448,7 +448,7 @@ jobs:
         run: |
           tar -czv -f webui-aws-infra-deps-locks.tar.gz requirements.txt tests/requirements.txt package-lock.json
       - name: Upload deps-lock-files bundle as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: webui_aws_infra_deps_locks_bundle
           path: webui/aws_infra/webui-aws-infra-deps-locks.tar.gz
@@ -496,7 +496,7 @@ jobs:
           tags: agr_pavi/pipeline_seq_retrieval:latest
           outputs: type=docker,dest=/tmp/pavi_seq_retrieval_docker_image.tar
       - name: Upload image as artifact (share between jobs)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: seq_retrieval_image
           path: /tmp/pavi_seq_retrieval_docker_image.tar
@@ -581,7 +581,7 @@ jobs:
           tags: agr_pavi/pipeline_alignment:latest
           outputs: type=docker,dest=/tmp/pavi_alignment_docker_image.tar
       - name: Upload image as artifact (share between jobs)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: alignment_image
           path: /tmp/pavi_alignment_docker_image.tar
@@ -817,7 +817,7 @@ jobs:
           tags: agr_pavi/api:latest
           outputs: type=docker,dest=/tmp/pavi_api_docker_image.tar
       - name: Upload image as artifact (share between jobs)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: api_image
           path: /tmp/pavi_api_docker_image.tar
@@ -1102,7 +1102,7 @@ jobs:
           tags: agr_pavi/webui:latest
           outputs: type=docker,dest=/tmp/pavi_webui_docker_image.tar
       - name: Upload image as artifact (share between jobs)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: webui_image
           path: /tmp/pavi_webui_docker_image.tar
@@ -1143,7 +1143,7 @@ jobs:
           tags: agr_pavi/cypress_testing:latest
           outputs: type=docker,dest=/tmp/pavi_cypress_testing_docker_image.tar
       - name: Upload image as artifact (share between jobs)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cypress_testing_image
           path: /tmp/pavi_cypress_testing_docker_image.tar
@@ -1339,7 +1339,7 @@ jobs:
           tar -czv -f deps-lock-files.tar.gz --files-from -
       # Upload the deps-lock-files bundle as workflow artifact (to be downloaded on PR merge)
       - name: Upload deps-lock-files bundle as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: deps_lock_files_bundle
           path: deps-lock-files.tar.gz
