@@ -67,7 +67,7 @@ jobs:
           echo "user-id=${user_id}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
@@ -124,7 +124,7 @@ jobs:
     needs: [commit-deps-lock-updates, on-deploy]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
           fetch-depth: 0
@@ -161,7 +161,7 @@ jobs:
         working-directory: shared_aws/aws_infra
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
@@ -205,7 +205,7 @@ jobs:
         working-directory: pipeline_components/aws_infra
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
@@ -248,7 +248,7 @@ jobs:
         working-directory: api/aws_infra
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
@@ -291,7 +291,7 @@ jobs:
         working-directory: webui/aws_infra
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
@@ -329,7 +329,7 @@ jobs:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
         sparse-checkout: |
@@ -368,7 +368,7 @@ jobs:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
         sparse-checkout: |
@@ -407,7 +407,7 @@ jobs:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Set up Docker Buildx
@@ -459,7 +459,7 @@ jobs:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Report node version stored in .nvmrc
@@ -514,7 +514,7 @@ jobs:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ needs.commit-deps-lock-updates.outputs.latest-commit-sha }}
     - name: Setup node.js (CDK CLI requirement)
