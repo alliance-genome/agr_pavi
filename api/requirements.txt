@@ -19,13 +19,13 @@ anyio==4.12.0 \
     #   httpx
     #   starlette
     #   watchfiles
-boto3==1.42.2 \
-    --hash=sha256:2b403f503bfe8486fd273e41f0b5a033d0e8dad5d94c5a5c0669e92272bd4f17 \
-    --hash=sha256:e93c55fecfecc6f05de604288d216a49b06a3c2c53421848ca4afad55f0614b7
+boto3==1.42.8 \
+    --hash=sha256:747acc83488fc80b0e7d1c4ff0c533039ff3ede21bdbd4e89544e25b010b070c \
+    --hash=sha256:e967706af5887339407481562c389c612d5eae641eb854ddd59026d049df740e
     # via smart-open
-botocore==1.42.2 \
-    --hash=sha256:3dbeba76168764219cbe392aa67cbc9265cfa05b09970ed5f2e0c786b8ac5010 \
-    --hash=sha256:8bb3f0ce39c6a7f63b404a2632ab1a5189187b27317c7b97fe45494677633b5d
+botocore==1.42.8 \
+    --hash=sha256:4921aa454f82fed0880214eab21126c98a35fe31ede952693356f9c85ce3574b \
+    --hash=sha256:4cb89c74dd9083d16e45868749b999265a91309b2499907c84adeffa0a8df89b
     # via
     #   boto3
     #   s3transfer
@@ -501,9 +501,9 @@ typing-inspection==0.4.2 \
     --hash=sha256:4ed1cacbdc298c220f1bd249ed5287caa16f34d44ef4e9c3d0cbad5b521545e7 \
     --hash=sha256:ba561c48a67c5958007083d386c3295464928b01faa735ab8547c5692e87f464
     # via pydantic
-urllib3==2.5.0 \
-    --hash=sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760 \
-    --hash=sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc
+urllib3==2.6.2 \
+    --hash=sha256:016f9c98bb7e98085cb2b4b17b87d2c702975664e4f060c6532e64d1c1a5e797 \
+    --hash=sha256:ec21cddfe7724fc7cb4ba4bea7aa8e2ef36f607a4bab81aa6ce42a13dc3f03dd
     # via botocore
 uvicorn[standard]==0.38.0 \
     --hash=sha256:48c0afd214ceb59340075b4a052ea1ee91c16fbc2a9b1469cca0e54566977b02 \
