@@ -1,7 +1,7 @@
 'use client';
 
 import { EventName, createComponent } from '@lit/react';
-import React from 'react';
+import React, { memo } from 'react';
 
 import NightingaleTrack, {Feature} from '@nightingale-elements/nightingale-track';
 import {Shapes as FeatureShapes} from '@nightingale-elements/nightingale-track/dist/FeatureShape';
@@ -22,6 +22,9 @@ const NightingaleTrackReactComponent = createComponent({
     },
 });
 
+// Memoized version to prevent unnecessary re-renders
+const MemoizedNightingaleTrack = memo(NightingaleTrackReactComponent);
+
 export type { NightingaleTrackType }
 export type { dataPropType, FeatureShapes }
-export default NightingaleTrackReactComponent
+export default MemoizedNightingaleTrack

@@ -1,7 +1,7 @@
 'use client';
 
 import { EventName, createComponent } from '@lit/react';
-import React from 'react';
+import React, { memo } from 'react';
 
 import NightingaleMSA from '@nightingale-elements/nightingale-msa';
 import { NightingaleChangeEvent } from './types';
@@ -36,6 +36,9 @@ const NightingaleMSAReactComponent = createComponent({
     },
 });
 
+// Memoized version to prevent unnecessary re-renders
+const MemoizedNightingaleMSA = memo(NightingaleMSAReactComponent);
+
 export type { NightingaleMSAType }
 export type { dataPropType, featuresPropType }
-export default NightingaleMSAReactComponent
+export default MemoizedNightingaleMSA

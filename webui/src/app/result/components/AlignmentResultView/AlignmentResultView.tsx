@@ -12,20 +12,22 @@ import { SeqInfoDict } from '../InteractiveAlignment/types';
 import { FailureDisplay } from '../FailureDisplay/FailureDisplay';
 
 const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
+const VirtualizedAlignment = dynamic(() => import('../InteractiveAlignment/VirtualizedAlignment'), { ssr: false })
 
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
 }
 export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = (props: AlignmentResultViewProps) => {
 
-    const [displayMode, setDisplayMode] = useState('interactive' as displayModeType)
+    const [displayMode, setDisplayMode] = useState('virtualized' as displayModeType)
     type displayModeOptionsType = {
         label: string,
         value: displayModeType
     }
     const displayModeOptions: displayModeOptionsType[] = [
-        {label: 'Text', value: 'text'},
-        {label: 'Interactive', value: 'interactive'}
+        {label: 'Interactive (Virtualized)', value: 'virtualized'},
+        {label: 'Interactive (Legacy)', value: 'interactive'},
+        {label: 'Text', value: 'text'}
     ]
 
     const [alignmentResult, setAlignmentResult] = useState<string>('')
@@ -36,6 +38,9 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         setDisplayMode(displayMode)
     }
 
+    const virtualizedDisplayStyle = () => {
+        return displayMode == 'virtualized' ? 'block' : 'none'
+    }
     const interactiveDisplayStyle = () => {
         return displayMode == 'interactive' ? 'block' : 'none'
     }
@@ -122,6 +127,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                 {alignmentResult ?
                     (
                         <>
+                            <div style={{display: virtualizedDisplayStyle()}}><VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} /></div>
                             <div style={{display: interactiveDisplayStyle()}}><InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} /></div>
                             <div style={{display: textDisplayStyle()}}><TextAlignment alignmentResult={alignmentResult} /></div>
                         </>
