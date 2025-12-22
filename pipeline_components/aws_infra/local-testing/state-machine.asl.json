@@ -1,0 +1,255 @@
+{
+  "Comment": "PAVI Pipeline - Full Workflow with DynamoDB Job Tracking",
+  "StartAt": "InitializeJob",
+  "States": {
+    "InitializeJob": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:putItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Item": {
+          "job_id": { "S.$": "$.job_id" },
+          "status": { "S": "RUNNING" },
+          "stage": { "S": "INITIALIZING" },
+          "created_at": { "S.$": "$$.State.EnteredTime" },
+          "input_count": { "N.$": "States.Format('{}', States.ArrayLength($.seq_regions))" }
+        }
+      },
+      "ResultPath": "$.dynamodb_init",
+      "Next": "PrepareExecution",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "MarkJobFailed"
+        }
+      ]
+    },
+
+    "PrepareExecution": {
+      "Type": "Pass",
+      "Comment": "Prepare execution parameters",
+      "Parameters": {
+        "job_id.$": "$.job_id",
+        "execution_id.$": "$$.Execution.Name",
+        "input_regions.$": "$.seq_regions",
+        "job_queue_arn.$": "$.job_queue_arn",
+        "s3_bucket": "agr-pavi-pipeline-prod",
+        "s3_work_prefix.$": "States.Format('jobs/{}/work', $.job_id)",
+        "s3_results_prefix.$": "States.Format('jobs/{}/results', $.job_id)"
+      },
+      "Next": "UpdateStageSequenceRetrieval"
+    },
+
+    "UpdateStageSequenceRetrieval": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Key": { "job_id": { "S.$": "$.job_id" } },
+        "UpdateExpression": "SET stage = :stage",
+        "ExpressionAttributeValues": {
+          ":stage": { "S": "SEQUENCE_RETRIEVAL" }
+        }
+      },
+      "ResultPath": null,
+      "Next": "ParallelSequenceRetrieval"
+    },
+
+    "ParallelSequenceRetrieval": {
+      "Type": "Map",
+      "Comment": "Retrieve sequences in parallel for each input region",
+      "ItemsPath": "$.input_regions",
+      "MaxConcurrency": 40,
+      "Parameters": {
+        "region.$": "$$.Map.Item.Value",
+        "index.$": "$$.Map.Item.Index",
+        "job_id.$": "$.job_id",
+        "s3_bucket.$": "$.s3_bucket",
+        "s3_work_prefix.$": "$.s3_work_prefix",
+        "job_queue_arn.$": "$.job_queue_arn"
+      },
+      "Iterator": {
+        "StartAt": "SequenceRetrievalJob",
+        "States": {
+          "SequenceRetrievalJob": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::batch:submitJob.sync",
+            "Parameters": {
+              "JobDefinition": "pavi-seq-retrieval",
+              "JobName.$": "States.Format('seq-retrieval-{}-{}', $.job_id, $.index)",
+              "JobQueue.$": "$.job_queue_arn",
+              "ContainerOverrides": {
+                "Command.$": "States.Array('seq_retrieval.py', '--output_type', 'protein', '--unique_entry_id', $.region.unique_entry_id, '--base_seq_name', $.region.base_seq_name, '--seq_id', $.region.seq_id, '--seq_strand', $.region.seq_strand, '--fasta_file_url', $.region.fasta_file_url, '--s3_bucket', $.s3_bucket, '--s3_output_prefix', $.s3_work_prefix)"
+              }
+            },
+            "ResultPath": "$.batch_result",
+            "End": true,
+            "Retry": [
+              {
+                "ErrorEquals": ["Batch.AWSBatchException"],
+                "IntervalSeconds": 30,
+                "MaxAttempts": 2,
+                "BackoffRate": 2
+              }
+            ]
+          }
+        }
+      },
+      "ResultPath": "$.retrieval_results",
+      "Next": "UpdateStageAlignment",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "MarkJobFailed"
+        }
+      ]
+    },
+
+    "UpdateStageAlignment": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Key": { "job_id": { "S.$": "$.job_id" } },
+        "UpdateExpression": "SET stage = :stage, sequences_processed = :count",
+        "ExpressionAttributeValues": {
+          ":stage": { "S": "ALIGNMENT" },
+          ":count": { "N.$": "States.Format('{}', States.ArrayLength($.retrieval_results))" }
+        }
+      },
+      "ResultPath": null,
+      "Next": "AlignmentJob"
+    },
+
+    "AlignmentJob": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::batch:submitJob.sync",
+      "Parameters": {
+        "JobDefinition": "pavi-alignment",
+        "JobName.$": "States.Format('alignment-{}', $.job_id)",
+        "JobQueue.$": "$.job_queue_arn",
+        "ContainerOverrides": {
+          "Command": [
+            "alignment_wrapper.sh",
+            "--s3-bucket.$": "$.s3_bucket",
+            "--s3-work-prefix.$": "$.s3_work_prefix",
+            "--s3-results-prefix.$": "$.s3_results_prefix"
+          ],
+          "ResourceRequirements": [
+            { "Type": "MEMORY", "Value": "2048" },
+            { "Type": "VCPU", "Value": "1" }
+          ]
+        }
+      },
+      "ResultPath": "$.alignment_result",
+      "Next": "UpdateStageCollect",
+      "Retry": [
+        {
+          "ErrorEquals": ["Batch.AWSBatchException"],
+          "IntervalSeconds": 60,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "MarkJobFailed"
+        }
+      ]
+    },
+
+    "UpdateStageCollect": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Key": { "job_id": { "S.$": "$.job_id" } },
+        "UpdateExpression": "SET stage = :stage",
+        "ExpressionAttributeValues": {
+          ":stage": { "S": "COLLECTING_RESULTS" }
+        }
+      },
+      "ResultPath": null,
+      "Next": "CollectSeqInfo"
+    },
+
+    "CollectSeqInfo": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::batch:submitJob.sync",
+      "Parameters": {
+        "JobDefinition": "pavi-seq-retrieval",
+        "JobName.$": "States.Format('collect-seqinfo-{}', $.job_id)",
+        "JobQueue.$": "$.job_queue_arn",
+        "ContainerOverrides": {
+          "Command": [
+            "seq_info_align.py",
+            "--s3-bucket.$": "$.s3_bucket",
+            "--s3-work-prefix.$": "$.s3_work_prefix",
+            "--s3-results-prefix.$": "$.s3_results_prefix"
+          ]
+        }
+      },
+      "ResultPath": "$.collect_result",
+      "Next": "MarkJobComplete",
+      "Retry": [
+        {
+          "ErrorEquals": ["Batch.AWSBatchException"],
+          "IntervalSeconds": 30,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "MarkJobFailed"
+        }
+      ]
+    },
+
+    "MarkJobComplete": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Key": { "job_id": { "S.$": "$.job_id" } },
+        "UpdateExpression": "SET #status = :status, stage = :stage, completed_at = :completed, result_s3_uri = :result_uri",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": { "S": "COMPLETED" },
+          ":stage": { "S": "DONE" },
+          ":completed": { "S.$": "$$.State.EnteredTime" },
+          ":result_uri": { "S.$": "States.Format('s3://{}/{}/alignment-output.aln', $.s3_bucket, $.s3_results_prefix)" }
+        }
+      },
+      "End": true
+    },
+
+    "MarkJobFailed": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Key": { "job_id": { "S.$": "$.job_id" } },
+        "UpdateExpression": "SET #status = :status, stage = :stage, failed_at = :failed, error_message = :error",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": { "S": "FAILED" },
+          ":stage": { "S": "ERROR" },
+          ":failed": { "S.$": "$$.State.EnteredTime" },
+          ":error": { "S.$": "States.JsonToString($.error)" }
+        }
+      },
+      "End": true
+    }
+  }
+}

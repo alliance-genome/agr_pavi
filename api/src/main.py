@@ -14,7 +14,10 @@ from constants import JobStatus
 from log_mgmt import get_logger
 
 # Import the new job service
-from job_service import get_job_service, JobService, JobInfo, JobStatus as SFJobStatus
+from job_service import (
+    get_job_service, JobService, JobInfo, JobStatus as SFJobStatus,
+    JobServiceError, JobNotFoundError, JobExecutionError, JobResultNotReadyError
+)
 
 logger = get_logger(name=__name__)
 
@@ -47,6 +50,7 @@ class Pipeline_job(BaseModel):
     stage: Optional[str] = None
     input_count: Optional[int] = None
     sequences_processed: Optional[int] = None
+    error_message: Optional[str] = None
 
     def __init__(self, uuid: UUID, **data: Any):
         super().__init__(uuid=uuid, name=f'pavi-job-{uuid}', **data)
@@ -59,7 +63,8 @@ class Pipeline_job(BaseModel):
             status=job_info.status.value.lower(),
             stage=job_info.stage.value if job_info.stage else None,
             input_count=job_info.input_count,
-            sequences_processed=job_info.sequences_processed
+            sequences_processed=job_info.sequences_processed,
+            error_message=job_info.error_message
         )
 
 
@@ -127,6 +132,10 @@ def run_pipeline_step_functions(
         pipeline_seq_regions: sequence regions for pipeline input
         job_id: Job ID
         job_service: JobService instance
+
+    Note:
+        This function runs in the background. Errors are logged and
+        the job status is updated to FAILED in DynamoDB.
     """
     logger.info(f'Initiating Step Functions pipeline run for job {job_id}.')
 
@@ -136,8 +145,22 @@ def run_pipeline_step_functions(
     try:
         job_service.start_job(job_id, seq_regions)
         logger.info(f'Step Functions execution started for job {job_id}.')
-    except Exception as e:
+    except JobServiceError as e:
+        # JobService already handles updating the job status to FAILED
         logger.error(f'Failed to start Step Functions execution for job {job_id}: {e}')
+    except Exception as e:
+        # Unexpected error - try to update job status
+        logger.error(f'Unexpected error starting Step Functions execution for job {job_id}: {e}')
+        try:
+            from job_service import JobStatus as SFStatus, JobStage
+            job_service._update_job_dynamodb(
+                job_id,
+                status=SFStatus.FAILED,
+                stage=JobStage.ERROR,
+                error_message=f'Unexpected error: {str(e)[:500]}'
+            )
+        except Exception as update_err:
+            logger.error(f'Failed to update job status after error: {update_err}')
 
 
 app = FastAPI()
@@ -214,13 +237,23 @@ async def create_new_pipeline_job(
 
 @router.get("/pipeline-job/{uuid}", response_model_exclude_none=True, responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_handler(uuid: UUID) -> Pipeline_job:
-    """Get job status and details."""
+    """
+    Get job status and details.
+
+    For running jobs in Step Functions mode, this will sync the status
+    from the Step Functions execution before returning.
+    """
     if USE_STEP_FUNCTIONS:
         job_service = get_job_service()
-        job_info = job_service.get_job(str(uuid))
-        if job_info is None:
-            raise HTTPException(status_code=404, detail='Job not found.')
-        return Pipeline_job.from_job_info(job_info)
+        try:
+            # Use get_job_with_sync to auto-update status from Step Functions
+            job_info = job_service.get_job_with_sync(str(uuid))
+            if job_info is None:
+                raise HTTPException(status_code=404, detail='Job not found.')
+            return Pipeline_job.from_job_info(job_info)
+        except JobServiceError as e:
+            logger.error(f"Error getting job {uuid}: {e}")
+            raise HTTPException(status_code=500, detail=f'Error retrieving job: {str(e)}')
     else:
         job: Pipeline_job | None = get_pipeline_job(uuid)
         if job is None:
@@ -229,15 +262,46 @@ async def get_pipeline_job_handler(uuid: UUID) -> Pipeline_job:
             return job
 
 
-@router.get("/pipeline-job/{uuid}/result/alignment", responses={404: {'model': HTTP_exception_response}})
+@router.get("/pipeline-job/{uuid}/result/alignment", responses={
+    404: {'model': HTTP_exception_response},
+    400: {'model': HTTP_exception_response},
+    500: {'model': HTTP_exception_response}
+})
 async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
-    """Get alignment result file."""
+    """
+    Get alignment result file.
+
+    Returns 400 if the job has failed or is not yet complete.
+    Returns 404 if the job or result file is not found.
+    """
     if USE_STEP_FUNCTIONS:
         job_service = get_job_service()
+
+        # First sync and check job status
+        try:
+            job_info = job_service.get_job_with_sync(str(uuid))
+        except JobServiceError as e:
+            logger.error(f"Error getting job {uuid}: {e}")
+            raise HTTPException(status_code=500, detail=f'Error retrieving job: {str(e)}')
+
+        if job_info is None:
+            raise HTTPException(status_code=404, detail='Job not found.')
+
+        # Check job status before returning results
+        if job_info.status == SFJobStatus.FAILED:
+            error_msg = job_info.error_message or 'Job execution failed'
+            raise HTTPException(status_code=400, detail=f'Job failed: {error_msg}')
+
+        if job_info.status != SFJobStatus.COMPLETED:
+            raise HTTPException(
+                status_code=400,
+                detail=f'Results not ready. Job status: {job_info.status.value.lower()}'
+            )
+
         content = job_service.get_job_result_alignment(str(uuid))
         if content is None:
             logger.warning(f'GET result/alignment error: File not found for job "{uuid}".')
-            raise HTTPException(status_code=404, detail='File not found.')
+            raise HTTPException(status_code=404, detail='Result file not found.')
 
         def iterfile():  # type: ignore
             with BytesIO(content) as f:
@@ -263,15 +327,46 @@ async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
             return StreamingResponse(iterfile(), media_type="text/plain")
 
 
-@router.get("/pipeline-job/{uuid}/result/seq-info", responses={404: {'model': HTTP_exception_response}})
+@router.get("/pipeline-job/{uuid}/result/seq-info", responses={
+    404: {'model': HTTP_exception_response},
+    400: {'model': HTTP_exception_response},
+    500: {'model': HTTP_exception_response}
+})
 async def get_pipeline_job_seq_info_result(uuid: UUID) -> StreamingResponse:
-    """Get sequence info result file."""
+    """
+    Get sequence info result file.
+
+    Returns 400 if the job has failed or is not yet complete.
+    Returns 404 if the job or result file is not found.
+    """
     if USE_STEP_FUNCTIONS:
         job_service = get_job_service()
+
+        # First sync and check job status
+        try:
+            job_info = job_service.get_job_with_sync(str(uuid))
+        except JobServiceError as e:
+            logger.error(f"Error getting job {uuid}: {e}")
+            raise HTTPException(status_code=500, detail=f'Error retrieving job: {str(e)}')
+
+        if job_info is None:
+            raise HTTPException(status_code=404, detail='Job not found.')
+
+        # Check job status before returning results
+        if job_info.status == SFJobStatus.FAILED:
+            error_msg = job_info.error_message or 'Job execution failed'
+            raise HTTPException(status_code=400, detail=f'Job failed: {error_msg}')
+
+        if job_info.status != SFJobStatus.COMPLETED:
+            raise HTTPException(
+                status_code=400,
+                detail=f'Results not ready. Job status: {job_info.status.value.lower()}'
+            )
+
         content = job_service.get_job_result_seqinfo(str(uuid))
         if content is None:
             logger.warning(f'GET result/seq-info error: File not found for job "{uuid}".')
-            raise HTTPException(status_code=404, detail='File not found.')
+            raise HTTPException(status_code=404, detail='Result file not found.')
 
         def iterfile():  # type: ignore
             with BytesIO(content) as f:

@@ -15,6 +15,7 @@ from aws_cdk import (
     aws_s3 as s3,
     aws_iam as iam,
     aws_logs as cwl,
+    aws_dynamodb as dynamodb,
     Tags as cdk_tags
 )
 from constructs import Construct
@@ -34,6 +35,7 @@ class PaviStepFunctionsPipeline:
 
     state_machine: sfn.StateMachine
     work_bucket: s3.Bucket
+    jobs_table: dynamodb.Table
     seq_retrieval_job_def: batch.EcsJobDefinition
     alignment_job_def: batch.EcsJobDefinition
     log_group: cwl.LogGroup
@@ -64,6 +66,9 @@ class PaviStepFunctionsPipeline:
 
         # Create S3 bucket for Step Functions work and results
         self._create_work_bucket()
+
+        # Create DynamoDB table for job tracking
+        self._create_jobs_table()
 
         # Create Batch job definitions
         self._create_job_definitions(
@@ -110,6 +115,44 @@ class PaviStepFunctionsPipeline:
         cdk_tags.of(self.work_bucket).add("Product", "PAVI")
         cdk_tags.of(self.work_bucket).add("CreatedBy", "PAVI")
         cdk_tags.of(self.work_bucket).add("AppComponent", "pipeline")
+
+    def _create_jobs_table(self) -> None:
+        """Create DynamoDB table for job tracking."""
+        table_name = 'pavi-jobs'
+        if self.env_suffix:
+            table_name += f'-{self.env_suffix}'
+
+        self.jobs_table = dynamodb.Table(
+            scope=self.scope,
+            id=f'{self.construct_id}-jobs-table',
+            table_name=table_name,
+            partition_key=dynamodb.Attribute(
+                name='job_id',
+                type=dynamodb.AttributeType.STRING
+            ),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=RemovalPolicy.RETAIN,
+            point_in_time_recovery=True,
+            time_to_live_attribute='ttl'
+        )
+
+        # Global Secondary Index for status queries
+        self.jobs_table.add_global_secondary_index(
+            index_name='status-created_at-index',
+            partition_key=dynamodb.Attribute(
+                name='status',
+                type=dynamodb.AttributeType.STRING
+            ),
+            sort_key=dynamodb.Attribute(
+                name='created_at',
+                type=dynamodb.AttributeType.STRING
+            ),
+            projection_type=dynamodb.ProjectionType.ALL
+        )
+
+        cdk_tags.of(self.jobs_table).add("Product", "PAVI")
+        cdk_tags.of(self.jobs_table).add("CreatedBy", "PAVI")
+        cdk_tags.of(self.jobs_table).add("AppComponent", "pipeline")
 
     def _create_job_definitions(
         self,
@@ -242,6 +285,14 @@ class PaviStepFunctionsPipeline:
             result_path='$.batch_result'
         )
 
+        # Add retry logic for transient failures
+        seq_retrieval_task.add_retry(
+            errors=['Batch.JobFailed', 'States.TaskFailed'],
+            interval=Duration.seconds(2),
+            max_attempts=2,
+            backoff_rate=2.0
+        )
+
         # Map state for parallel retrieval
         parallel_retrieval = sfn.Map(
             self.scope,
@@ -252,6 +303,8 @@ class PaviStepFunctionsPipeline:
             result_path='$.retrieval_results'
         )
         parallel_retrieval.iterator(seq_retrieval_task)
+
+        # Note: Map state catch will be added after failure_state is defined
 
         # 3. Prepare alignment input
         prepare_alignment = sfn.Pass(
@@ -288,6 +341,14 @@ class PaviStepFunctionsPipeline:
             result_path='$.alignment_result'
         )
 
+        # Add retry logic for alignment task
+        alignment_task.add_retry(
+            errors=['Batch.JobFailed', 'States.TaskFailed'],
+            interval=Duration.seconds(5),
+            max_attempts=2,
+            backoff_rate=2.0
+        )
+
         # 5. Collect and align seq info
         collect_task = sfn_tasks.BatchSubmitJob(
             self.scope,
@@ -310,11 +371,48 @@ class PaviStepFunctionsPipeline:
             result_path='$.collect_result'
         )
 
-        # 6. Success state
+        # Add retry logic for collect task
+        collect_task.add_retry(
+            errors=['Batch.JobFailed', 'States.TaskFailed'],
+            interval=Duration.seconds(2),
+            max_attempts=2,
+            backoff_rate=2.0
+        )
+
+        # 6. Failure state for unrecoverable errors
+        failure_state = sfn.Fail(
+            self.scope,
+            f'{self.construct_id}-failure',
+            cause='Pipeline execution failed after retries',
+            error='PipelineError'
+        )
+
+        # 7. Success state
         success_state = sfn.Succeed(
             self.scope,
             f'{self.construct_id}-success',
             comment='Pipeline completed successfully'
+        )
+
+        # Add catch for unrecoverable errors on parallel retrieval
+        parallel_retrieval.add_catch(
+            failure_state,
+            errors=['States.ALL'],
+            result_path='$.error'
+        )
+
+        # Add catch for unrecoverable errors on alignment task
+        alignment_task.add_catch(
+            failure_state,
+            errors=['States.ALL'],
+            result_path='$.error'
+        )
+
+        # Add catch for unrecoverable errors on collect task
+        collect_task.add_catch(
+            failure_state,
+            errors=['States.ALL'],
+            result_path='$.error'
         )
 
         # Chain the states together
@@ -388,3 +486,6 @@ class PaviStepFunctionsPipeline:
                 ]
             )
         )
+
+        # Grant state machine permission to access DynamoDB jobs table
+        self.jobs_table.grant_read_write_data(self.state_machine.role)

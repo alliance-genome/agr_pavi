@@ -20,6 +20,33 @@ from log_mgmt.log_manager import get_logger
 log = get_logger(__name__)
 
 
+class JobServiceError(Exception):
+    """Base exception for job service errors."""
+    pass
+
+
+class JobNotFoundError(JobServiceError):
+    """Exception raised when a job is not found."""
+    pass
+
+
+class JobExecutionError(JobServiceError):
+    """Exception raised when job execution fails."""
+
+    def __init__(self, message: str, cause: Optional[str] = None):
+        super().__init__(message)
+        self.cause = cause
+
+
+class JobResultNotReadyError(JobServiceError):
+    """Exception raised when job results are not yet available."""
+
+    def __init__(self, job_id: str, status: str):
+        super().__init__(f"Results not ready for job {job_id}, status: {status}")
+        self.job_id = job_id
+        self.status = status
+
+
 class JobStatus(str, Enum):
     """Job status enum matching DynamoDB values."""
     PENDING = "PENDING"
@@ -435,6 +462,116 @@ class JobService:
         except ClientError as e:
             log.error(f"Failed to get S3 object {s3_uri}: {e}")
             return None
+
+    def sync_job_status(self, job_id: str) -> Optional[JobInfo]:
+        """
+        Synchronize job status from Step Functions execution state.
+
+        This method queries the Step Functions execution and updates
+        the DynamoDB job record with the current status.
+
+        Args:
+            job_id: Job ID to sync
+
+        Returns:
+            Updated JobInfo or None if job not found
+        """
+        job = self._get_job_dynamodb(job_id)
+        if not job:
+            return None
+
+        # Only sync if job is still running and has an execution ARN
+        if job.status not in [JobStatus.RUNNING, JobStatus.PENDING]:
+            return job
+
+        if not job.execution_arn:
+            return job
+
+        try:
+            response = self.sfn.describe_execution(
+                executionArn=job.execution_arn
+            )
+
+            sf_status = response.get('status', 'RUNNING')
+            now = datetime.utcnow().isoformat() + 'Z'
+
+            if sf_status == 'SUCCEEDED':
+                # Parse output to get result S3 URI
+                output = json.loads(response.get('output', '{}'))
+                result_uri = output.get('result_s3_uri')
+
+                self._update_job_dynamodb(
+                    job_id,
+                    status=JobStatus.COMPLETED,
+                    stage=JobStage.DONE,
+                    completed_at=now,
+                    result_s3_uri=result_uri
+                )
+                log.info(f"Job {job_id} completed successfully")
+
+            elif sf_status == 'FAILED':
+                # Extract error information
+                error = response.get('error', 'Unknown error')
+                cause = response.get('cause', 'No details available')
+                error_msg = f"{error}: {cause}"
+
+                self._update_job_dynamodb(
+                    job_id,
+                    status=JobStatus.FAILED,
+                    stage=JobStage.ERROR,
+                    completed_at=now,
+                    error_message=error_msg[:1000]  # Truncate to fit DynamoDB
+                )
+                log.error(f"Job {job_id} failed: {error_msg}")
+
+            elif sf_status == 'TIMED_OUT':
+                self._update_job_dynamodb(
+                    job_id,
+                    status=JobStatus.FAILED,
+                    stage=JobStage.ERROR,
+                    completed_at=now,
+                    error_message='Execution timed out'
+                )
+                log.error(f"Job {job_id} timed out")
+
+            elif sf_status == 'ABORTED':
+                self._update_job_dynamodb(
+                    job_id,
+                    status=JobStatus.FAILED,
+                    stage=JobStage.ERROR,
+                    completed_at=now,
+                    error_message='Execution was aborted'
+                )
+                log.warning(f"Job {job_id} was aborted")
+
+            # Return the updated job
+            return self._get_job_dynamodb(job_id)
+
+        except ClientError as e:
+            log.error(f"Failed to sync job status for {job_id}: {e}")
+            return job
+
+    def get_job_with_sync(self, job_id: str) -> Optional[JobInfo]:
+        """
+        Get job information with automatic status synchronization.
+
+        For running jobs, this will check the Step Functions execution
+        and update the job status before returning.
+
+        Args:
+            job_id: Job ID
+
+        Returns:
+            JobInfo object or None if not found
+        """
+        if self.use_step_functions:
+            job = self._get_job_dynamodb(job_id)
+            if job and job.status in [JobStatus.RUNNING, JobStatus.PENDING]:
+                # Sync status from Step Functions
+                return self.sync_job_status(job_id)
+            return job
+        else:
+            return self._local_jobs.get(job_id)
 
 
 # Singleton instance for the API

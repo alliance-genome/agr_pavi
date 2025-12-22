@@ -1,0 +1,32 @@
+services:
+  stepfunctions-local:
+    image: amazon/aws-stepfunctions-local:latest
+    container_name: pavi-stepfunctions-local
+    ports:
+      - "8083:8083"
+    environment:
+      - AWS_DEFAULT_REGION=us-east-1
+      - BATCH_ENDPOINT=http://mock-batch:8084
+      - STEP_FUNCTIONS_LOCAL_CONFIG=/home/stepfunctions/MockConfigFile.json
+    volumes:
+      - ./mock-config.json:/home/stepfunctions/MockConfigFile.json:ro
+      - ./state-machine.asl.json:/home/stepfunctions/state-machine.asl.json:ro
+    networks:
+      - pavi-local
+
+  # Mock Batch service for local testing
+  mock-batch:
+    image: python:3.12-slim
+    container_name: pavi-mock-batch
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./mock-batch-server.py:/app/server.py:ro
+    working_dir: /app
+    command: python server.py
+    networks:
+      - pavi-local
+
+networks:
+  pavi-local:
+    driver: bridge

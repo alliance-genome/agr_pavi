@@ -6,8 +6,10 @@ alongside the existing Batch infrastructure for parallel testing.
 """
 
 from aws_cdk import (
+    Duration,
     Stack,
     aws_ecr as ecr,
+    aws_cloudwatch as cloudwatch,
     Tags as cdk_tags
 )
 from constructs import Construct
@@ -131,4 +133,230 @@ class StepFunctionsPocStack(Stack):
             'AlignmentJobDefArn',
             value=self.step_functions_pipeline.alignment_job_def.job_definition_arn,
             description='Alignment job definition ARN'
+        )
+
+        CfnOutput(
+            self,
+            'JobsTableName',
+            value=self.step_functions_pipeline.jobs_table.table_name,
+            description='DynamoDB jobs table name'
+        )
+
+        CfnOutput(
+            self,
+            'JobsTableArn',
+            value=self.step_functions_pipeline.jobs_table.table_arn,
+            description='DynamoDB jobs table ARN'
+        )
+
+        # Create CloudWatch monitoring
+        self._create_cloudwatch_alarms(env_suffix)
+        self._create_cloudwatch_dashboard(env_suffix)
+
+    def _create_cloudwatch_alarms(self, env_suffix: str) -> None:
+        """Create CloudWatch alarms for pipeline monitoring."""
+
+        state_machine = self.step_functions_pipeline.state_machine
+
+        # Alarm for failed executions
+        self.execution_failed_alarm = cloudwatch.Alarm(
+            self,
+            f'pavi-sfn-executions-failed-{env_suffix}',
+            metric=state_machine.metric_failed(
+                period=Duration.minutes(5),
+                statistic='Sum'
+            ),
+            threshold=1,
+            evaluation_periods=1,
+            alarm_description='PAVI Step Functions pipeline has failed executions',
+            alarm_name=f'pavi-sfn-executions-failed-{env_suffix}',
+            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING
+        )
+
+        # Alarm for timed out executions
+        self.execution_timeout_alarm = cloudwatch.Alarm(
+            self,
+            f'pavi-sfn-executions-timeout-{env_suffix}',
+            metric=state_machine.metric_timed_out(
+                period=Duration.minutes(5),
+                statistic='Sum'
+            ),
+            threshold=1,
+            evaluation_periods=1,
+            alarm_description='PAVI Step Functions pipeline has timed out executions',
+            alarm_name=f'pavi-sfn-executions-timeout-{env_suffix}',
+            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING
+        )
+
+        # Alarm for high execution time (over 30 minutes)
+        self.execution_time_alarm = cloudwatch.Alarm(
+            self,
+            f'pavi-sfn-execution-time-{env_suffix}',
+            metric=state_machine.metric_time(
+                period=Duration.minutes(5),
+                statistic='Average'
+            ),
+            threshold=1800000,  # 30 minutes in milliseconds
+            evaluation_periods=1,
+            alarm_description='PAVI Step Functions pipeline execution time is high',
+            alarm_name=f'pavi-sfn-execution-time-high-{env_suffix}',
+            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING
+        )
+
+        # Alarm for throttled executions
+        self.execution_throttled_alarm = cloudwatch.Alarm(
+            self,
+            f'pavi-sfn-executions-throttled-{env_suffix}',
+            metric=state_machine.metric_throttled(
+                period=Duration.minutes(5),
+                statistic='Sum'
+            ),
+            threshold=1,
+            evaluation_periods=1,
+            alarm_description='PAVI Step Functions pipeline is being throttled',
+            alarm_name=f'pavi-sfn-executions-throttled-{env_suffix}',
+            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING
+        )
+
+    def _create_cloudwatch_dashboard(self, env_suffix: str) -> None:
+        """Create CloudWatch dashboard for pipeline monitoring."""
+
+        state_machine = self.step_functions_pipeline.state_machine
+
+        self.dashboard = cloudwatch.Dashboard(
+            self,
+            f'pavi-sfn-dashboard-{env_suffix}',
+            dashboard_name=f'PAVI-StepFunctions-Pipeline-{env_suffix}',
+            default_interval=Duration.hours(3)
+        )
+
+        # Row 1: Execution metrics
+        self.dashboard.add_widgets(
+            cloudwatch.GraphWidget(
+                title='Executions Started vs Completed',
+                left=[
+                    state_machine.metric_started(
+                        period=Duration.minutes(5),
+                        statistic='Sum',
+                        label='Started'
+                    ),
+                    state_machine.metric_succeeded(
+                        period=Duration.minutes(5),
+                        statistic='Sum',
+                        label='Succeeded'
+                    )
+                ],
+                width=12
+            ),
+            cloudwatch.GraphWidget(
+                title='Execution Failures',
+                left=[
+                    state_machine.metric_failed(
+                        period=Duration.minutes(5),
+                        statistic='Sum',
+                        label='Failed'
+                    ),
+                    state_machine.metric_timed_out(
+                        period=Duration.minutes(5),
+                        statistic='Sum',
+                        label='Timed Out'
+                    ),
+                    state_machine.metric_aborted(
+                        period=Duration.minutes(5),
+                        statistic='Sum',
+                        label='Aborted'
+                    )
+                ],
+                width=12
+            )
+        )
+
+        # Row 2: Execution time and throttling
+        self.dashboard.add_widgets(
+            cloudwatch.GraphWidget(
+                title='Execution Time (Average)',
+                left=[
+                    state_machine.metric_time(
+                        period=Duration.minutes(5),
+                        statistic='Average',
+                        label='Avg Time (ms)'
+                    ),
+                    state_machine.metric_time(
+                        period=Duration.minutes(5),
+                        statistic='Maximum',
+                        label='Max Time (ms)'
+                    )
+                ],
+                width=12
+            ),
+            cloudwatch.GraphWidget(
+                title='Throttling',
+                left=[
+                    state_machine.metric_throttled(
+                        period=Duration.minutes(5),
+                        statistic='Sum',
+                        label='Throttled'
+                    )
+                ],
+                width=12
+            )
+        )
+
+        # Row 3: Alarm status
+        self.dashboard.add_widgets(
+            cloudwatch.AlarmStatusWidget(
+                title='Pipeline Alarms',
+                alarms=[
+                    self.execution_failed_alarm,
+                    self.execution_timeout_alarm,
+                    self.execution_time_alarm,
+                    self.execution_throttled_alarm
+                ],
+                width=24
+            )
+        )
+
+        # Row 4: DynamoDB table metrics
+        self.dashboard.add_widgets(
+            cloudwatch.GraphWidget(
+                title='DynamoDB Read/Write Capacity',
+                left=[
+                    cloudwatch.Metric(
+                        namespace='AWS/DynamoDB',
+                        metric_name='ConsumedReadCapacityUnits',
+                        dimensions_map={
+                            'TableName': self.step_functions_pipeline.jobs_table.table_name
+                        },
+                        period=Duration.minutes(5),
+                        statistic='Sum',
+                        label='Read Units'
+                    ),
+                    cloudwatch.Metric(
+                        namespace='AWS/DynamoDB',
+                        metric_name='ConsumedWriteCapacityUnits',
+                        dimensions_map={
+                            'TableName': self.step_functions_pipeline.jobs_table.table_name
+                        },
+                        period=Duration.minutes(5),
+                        statistic='Sum',
+                        label='Write Units'
+                    )
+                ],
+                width=12
+            ),
+            cloudwatch.SingleValueWidget(
+                title='Current Executions Running',
+                metrics=[
+                    state_machine.metric(
+                        metric_name='ExecutionsRunning',
+                        period=Duration.minutes(1),
+                        statistic='Average'
+                    )
+                ],
+                width=12
+            )
         )
