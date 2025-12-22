@@ -13,7 +13,7 @@
         "test:watch": "jest --watch"
     },
     "engines": {
-        "node": "^22.19"
+        "node": "^24"
     },
     "dependencies": {
         "@jbrowse/core": "~2.18.0",
