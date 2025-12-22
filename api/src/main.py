@@ -19,15 +19,21 @@ from job_service import (
     JobServiceError, JobNotFoundError, JobExecutionError, JobResultNotReadyError
 )
 
+# Import configuration module
+from config import get_api_config, should_use_step_functions, Environment
+
 logger = get_logger(name=__name__)
 
-api_results_path_prefix = getenv("API_NEXTFLOW_OUT_DIR", './') + 'results/'
-nf_workdir = getenv("API_NEXTFLOW_OUT_DIR", './') + 'work/'
-api_execution_env = getenv("API_EXECUTION_ENV", 'local')
-api_pipeline_image_tag = getenv("API_PIPELINE_IMAGE_TAG", 'latest')
+# Load configuration
+_config = get_api_config()
 
-# Feature flag for Step Functions mode
-USE_STEP_FUNCTIONS = getenv("USE_STEP_FUNCTIONS", 'false').lower() == 'true'
+api_results_path_prefix = _config.nextflow_out_dir + 'results/'
+nf_workdir = _config.nextflow_out_dir + 'work/'
+api_execution_env = getenv("API_EXECUTION_ENV", 'local')
+api_pipeline_image_tag = _config.pipeline_image_tag
+
+# Feature flag for Step Functions mode (from config)
+USE_STEP_FUNCTIONS = _config.pipeline.use_step_functions
 
 
 class Pipeline_seq_region(BaseModel):
@@ -187,9 +193,22 @@ async def help_msg() -> dict[str, str]:
 
 
 @router.get("/health", status_code=200, description='Health endpoint to check API health', tags=['metadata'])
-async def health() -> dict[str, str]:
+async def health() -> dict[str, Any]:
     mode = "step_functions" if USE_STEP_FUNCTIONS else "nextflow"
-    return {"status": "up", "execution_mode": mode}
+    response: dict[str, Any] = {
+        "status": "up",
+        "execution_mode": mode,
+        "environment": _config.environment.value,
+    }
+
+    # Add rollout info if enabled
+    if _config.pipeline.enable_step_functions_rollout:
+        response["rollout"] = {
+            "enabled": True,
+            "percentage": _config.pipeline.step_functions_rollout_percentage
+        }
+
+    return response
 
 
 @router.post('/pipeline-job/', status_code=201, response_model_exclude_none=True)
@@ -202,8 +221,17 @@ async def create_new_pipeline_job(
 
     In Step Functions mode, job is created in DynamoDB and execution started.
     In Nextflow mode (legacy), job is stored in-memory and Nextflow is invoked.
+
+    When gradual rollout is enabled, jobs are routed to Step Functions based
+    on a percentage configured via STEP_FUNCTIONS_ROLLOUT_PERCENTAGE.
     """
-    if USE_STEP_FUNCTIONS:
+    # Generate job ID first for consistent routing
+    new_job_id = str(uuid1())
+
+    # Determine which backend to use (supports gradual rollout)
+    use_sf = should_use_step_functions(_config, new_job_id)
+
+    if use_sf:
         # Step Functions mode
         job_service = get_job_service()
         seq_regions = [sr.model_dump() for sr in pipeline_seq_regions]
@@ -223,9 +251,9 @@ async def create_new_pipeline_job(
         return Pipeline_job.from_job_info(job_info)
     else:
         # Legacy Nextflow mode
-        new_task: Pipeline_job = Pipeline_job(uuid=uuid1())
+        new_task: Pipeline_job = Pipeline_job(uuid=UUID(new_job_id))
         jobs[new_task.uuid] = new_task
-        logger.info(f'Created pipeline job {new_task.uuid}.')
+        logger.info(f'Created Nextflow pipeline job {new_task.uuid}.')
         background_tasks.add_task(
             func=run_pipeline,
             pipeline_seq_regions=pipeline_seq_regions,
