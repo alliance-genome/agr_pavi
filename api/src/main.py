@@ -1,9 +1,8 @@
 from fastapi import APIRouter, BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-from io import StringIO
+from io import StringIO, BytesIO
 from os import getenv
 from pydantic import BaseModel
-from smart_open import open  # type: ignore
 
 from typing import Any, Optional
 
@@ -14,12 +13,18 @@ from uuid import uuid1, UUID
 from constants import JobStatus
 from log_mgmt import get_logger
 
+# Import the new job service
+from job_service import get_job_service, JobService, JobInfo, JobStatus as SFJobStatus
+
 logger = get_logger(name=__name__)
 
 api_results_path_prefix = getenv("API_NEXTFLOW_OUT_DIR", './') + 'results/'
 nf_workdir = getenv("API_NEXTFLOW_OUT_DIR", './') + 'work/'
 api_execution_env = getenv("API_EXECUTION_ENV", 'local')
 api_pipeline_image_tag = getenv("API_PIPELINE_IMAGE_TAG", 'latest')
+
+# Feature flag for Step Functions mode
+USE_STEP_FUNCTIONS = getenv("USE_STEP_FUNCTIONS", 'false').lower() == 'true'
 
 
 class Pipeline_seq_region(BaseModel):
@@ -38,9 +43,24 @@ class Pipeline_job(BaseModel):
     uuid: UUID
     status: str = JobStatus.PENDING.name.lower()
     name: str
+    # Extended fields for Step Functions mode
+    stage: Optional[str] = None
+    input_count: Optional[int] = None
+    sequences_processed: Optional[int] = None
 
-    def __init__(self, uuid: UUID):
-        super().__init__(uuid=uuid, name=f'pavi-job-{uuid}')
+    def __init__(self, uuid: UUID, **data: Any):
+        super().__init__(uuid=uuid, name=f'pavi-job-{uuid}', **data)
+
+    @classmethod
+    def from_job_info(cls, job_info: JobInfo) -> 'Pipeline_job':
+        """Create Pipeline_job from JobInfo object."""
+        return cls(
+            uuid=UUID(job_info.job_id),
+            status=job_info.status.value.lower(),
+            stage=job_info.stage.value if job_info.stage else None,
+            input_count=job_info.input_count,
+            sequences_processed=job_info.sequences_processed
+        )
 
 
 class HTTP_exception_response(BaseModel):
@@ -49,7 +69,7 @@ class HTTP_exception_response(BaseModel):
 
 def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) -> None:
     """
-    Run the backend alignment pipeline.
+    Run the backend alignment pipeline using Nextflow (legacy mode).
 
     Args:
         pipeline_seq_regions: sequence regions for pipeline input
@@ -95,15 +115,42 @@ def run_pipeline(pipeline_seq_regions: list[Pipeline_seq_region], uuid: UUID) ->
         job.status = JobStatus.COMPLETED.name.lower()
 
 
+def run_pipeline_step_functions(
+    pipeline_seq_regions: list[Pipeline_seq_region],
+    job_id: str,
+    job_service: JobService
+) -> None:
+    """
+    Run the backend alignment pipeline using Step Functions.
+
+    Args:
+        pipeline_seq_regions: sequence regions for pipeline input
+        job_id: Job ID
+        job_service: JobService instance
+    """
+    logger.info(f'Initiating Step Functions pipeline run for job {job_id}.')
+
+    # Convert Pydantic models to dicts
+    seq_regions = [sr.model_dump() for sr in pipeline_seq_regions]
+
+    try:
+        job_service.start_job(job_id, seq_regions)
+        logger.info(f'Step Functions execution started for job {job_id}.')
+    except Exception as e:
+        logger.error(f'Failed to start Step Functions execution for job {job_id}: {e}')
+
+
 app = FastAPI()
 router = APIRouter(
     prefix="/api"
 )
 
+# Legacy in-memory job storage (used when USE_STEP_FUNCTIONS=false)
 jobs: dict[UUID, Pipeline_job] = {}
 
 
 def get_pipeline_job(uuid: UUID) -> Pipeline_job | None:
+    """Get job from in-memory storage (legacy mode)."""
     if uuid not in jobs.keys():
         logger.warning(f'Pipeline job with UUID {uuid} not found.')
         return None
@@ -118,66 +165,154 @@ async def help_msg() -> dict[str, str]:
 
 @router.get("/health", status_code=200, description='Health endpoint to check API health', tags=['metadata'])
 async def health() -> dict[str, str]:
-    return {"status": "up"}
+    mode = "step_functions" if USE_STEP_FUNCTIONS else "nextflow"
+    return {"status": "up", "execution_mode": mode}
 
 
 @router.post('/pipeline-job/', status_code=201, response_model_exclude_none=True)
-async def create_new_pipeline_job(pipeline_seq_regions: list[Pipeline_seq_region], background_tasks: BackgroundTasks) -> Pipeline_job:
-    new_task: Pipeline_job = Pipeline_job(uuid=uuid1())
-    jobs[new_task.uuid] = new_task
-    logger.info(f'Created pipeline job {new_task.uuid}.')
-    background_tasks.add_task(func=run_pipeline, pipeline_seq_regions=pipeline_seq_regions, uuid=new_task.uuid)
+async def create_new_pipeline_job(
+    pipeline_seq_regions: list[Pipeline_seq_region],
+    background_tasks: BackgroundTasks
+) -> Pipeline_job:
+    """
+    Create and start a new pipeline job.
 
-    return new_task
+    In Step Functions mode, job is created in DynamoDB and execution started.
+    In Nextflow mode (legacy), job is stored in-memory and Nextflow is invoked.
+    """
+    if USE_STEP_FUNCTIONS:
+        # Step Functions mode
+        job_service = get_job_service()
+        seq_regions = [sr.model_dump() for sr in pipeline_seq_regions]
+
+        # Create job in DynamoDB
+        job_info = job_service.create_job(seq_regions)
+        logger.info(f'Created Step Functions pipeline job {job_info.job_id}.')
+
+        # Start execution in background
+        background_tasks.add_task(
+            func=run_pipeline_step_functions,
+            pipeline_seq_regions=pipeline_seq_regions,
+            job_id=job_info.job_id,
+            job_service=job_service
+        )
+
+        return Pipeline_job.from_job_info(job_info)
+    else:
+        # Legacy Nextflow mode
+        new_task: Pipeline_job = Pipeline_job(uuid=uuid1())
+        jobs[new_task.uuid] = new_task
+        logger.info(f'Created pipeline job {new_task.uuid}.')
+        background_tasks.add_task(
+            func=run_pipeline,
+            pipeline_seq_regions=pipeline_seq_regions,
+            uuid=new_task.uuid
+        )
+
+        return new_task
 
 
 @router.get("/pipeline-job/{uuid}", response_model_exclude_none=True, responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_handler(uuid: UUID) -> Pipeline_job:
-    job: Pipeline_job | None = get_pipeline_job(uuid)
-    if job is None:
-        raise HTTPException(status_code=404, detail='Job not found.')
+    """Get job status and details."""
+    if USE_STEP_FUNCTIONS:
+        job_service = get_job_service()
+        job_info = job_service.get_job(str(uuid))
+        if job_info is None:
+            raise HTTPException(status_code=404, detail='Job not found.')
+        return Pipeline_job.from_job_info(job_info)
     else:
-        return job
+        job: Pipeline_job | None = get_pipeline_job(uuid)
+        if job is None:
+            raise HTTPException(status_code=404, detail='Job not found.')
+        else:
+            return job
 
 
 @router.get("/pipeline-job/{uuid}/result/alignment", responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_alignment_result(uuid: UUID) -> StreamingResponse:
-    try:
-        file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/alignment-output.aln', mode="rb")
-    except FileNotFoundError:
-        logger.warning(f'GET result/alignment error: File not found for job "{uuid}".')
-        raise HTTPException(status_code=404, detail='File not found.')
-    except OSError as error:
-        logger.warning(f'GET result/alignment error: OS error caught while opening "{uuid}" result file.')
-        raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
-    else:
+    """Get alignment result file."""
+    if USE_STEP_FUNCTIONS:
+        job_service = get_job_service()
+        content = job_service.get_job_result_alignment(str(uuid))
+        if content is None:
+            logger.warning(f'GET result/alignment error: File not found for job "{uuid}".')
+            raise HTTPException(status_code=404, detail='File not found.')
+
         def iterfile():  # type: ignore
-            with file_like:
-                yield from file_like
+            with BytesIO(content) as f:
+                yield from f
 
         return StreamingResponse(iterfile(), media_type="text/plain")
+    else:
+        # Legacy filesystem-based retrieval
+        try:
+            from smart_open import open as smart_open
+            file_like = smart_open(f'{api_results_path_prefix}pipeline-results_{uuid}/alignment-output.aln', mode="rb")
+        except FileNotFoundError:
+            logger.warning(f'GET result/alignment error: File not found for job "{uuid}".')
+            raise HTTPException(status_code=404, detail='File not found.')
+        except OSError as error:
+            logger.warning(f'GET result/alignment error: OS error caught while opening "{uuid}" result file.')
+            raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
+        else:
+            def iterfile():  # type: ignore
+                with file_like:
+                    yield from file_like
+
+            return StreamingResponse(iterfile(), media_type="text/plain")
 
 
 @router.get("/pipeline-job/{uuid}/result/seq-info", responses={404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_seq_info_result(uuid: UUID) -> StreamingResponse:
-    try:
-        file_like = open(f'{api_results_path_prefix}pipeline-results_{uuid}/aligned_seq_info.json', mode="rb")
-    except FileNotFoundError:
-        logger.warning(f'GET result/seq-info error: File not found for job "{uuid}".')
-        raise HTTPException(status_code=404, detail='File not found.')
-    except OSError as error:
-        logger.warning(f'GET result/seq-info error: OS error caught while opening "{uuid}" result file.')
-        raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
-    else:
+    """Get sequence info result file."""
+    if USE_STEP_FUNCTIONS:
+        job_service = get_job_service()
+        content = job_service.get_job_result_seqinfo(str(uuid))
+        if content is None:
+            logger.warning(f'GET result/seq-info error: File not found for job "{uuid}".')
+            raise HTTPException(status_code=404, detail='File not found.')
+
         def iterfile():  # type: ignore
-            with file_like:
-                yield from file_like
+            with BytesIO(content) as f:
+                yield from f
 
         return StreamingResponse(iterfile(), media_type="application/json")
+    else:
+        # Legacy filesystem-based retrieval
+        try:
+            from smart_open import open as smart_open
+            file_like = smart_open(f'{api_results_path_prefix}pipeline-results_{uuid}/aligned_seq_info.json', mode="rb")
+        except FileNotFoundError:
+            logger.warning(f'GET result/seq-info error: File not found for job "{uuid}".')
+            raise HTTPException(status_code=404, detail='File not found.')
+        except OSError as error:
+            logger.warning(f'GET result/seq-info error: OS error caught while opening "{uuid}" result file.')
+            raise HTTPException(status_code=404, detail=f'OS error caught: {error}.')
+        else:
+            def iterfile():  # type: ignore
+                with file_like:
+                    yield from file_like
+
+            return StreamingResponse(iterfile(), media_type="application/json")
 
 
 @router.get("/pipeline-job/{uuid}/logs", responses={400: {'model': HTTP_exception_response}, 404: {'model': HTTP_exception_response}})
 async def get_pipeline_job_logs(uuid: UUID) -> StreamingResponse:
+    """
+    Get job logs.
+
+    Note: In Step Functions mode, logs are retrieved from CloudWatch.
+    In Nextflow mode, logs are retrieved from Nextflow log command.
+    """
+    if USE_STEP_FUNCTIONS:
+        # TODO: Implement CloudWatch log retrieval for Step Functions mode
+        raise HTTPException(
+            status_code=501,
+            detail='Log retrieval not yet implemented for Step Functions mode.'
+        )
+
+    # Legacy Nextflow log retrieval
     job: Pipeline_job | None = get_pipeline_job(uuid)
     if job is None:
         logger.warning(f'GET job logs error: job "{uuid}" not found.')
@@ -208,5 +343,6 @@ async def get_pipeline_job_logs(uuid: UUID) -> StreamingResponse:
                 yield from file_like
 
         return StreamingResponse(contentStream(), media_type="text/plain")
+
 
 app.include_router(router)

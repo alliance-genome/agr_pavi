@@ -10,6 +10,7 @@ import json
 import jsonpickle  # type: ignore
 import logging
 import re
+import subprocess
 from typing import Any, get_args, List, TypedDict, Optional
 
 from data_mover import data_file_mover
@@ -142,8 +143,36 @@ def process_variants_param(ctx: click.Context, param: click.Parameter, value: st
         return variants
 
 
+def upload_to_s3(local_path: str, s3_prefix: str) -> None:
+    """
+    Upload a local file to S3 using AWS CLI.
+
+    Args:
+        local_path: Path to the local file to upload
+        s3_prefix: S3 URI prefix (e.g., s3://bucket/prefix/)
+    """
+    import os
+    filename = os.path.basename(local_path)
+    s3_uri = s3_prefix.rstrip('/') + '/' + filename
+
+    logger.info(f'Uploading {local_path} to {s3_uri}...')
+
+    result = subprocess.run(
+        ['aws', 's3', 'cp', local_path, s3_uri],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        logger.error(f'Failed to upload {local_path} to S3: {result.stderr}')
+        raise RuntimeError(f'S3 upload failed: {result.stderr}')
+
+    logger.info(f'Successfully uploaded {local_path} to {s3_uri}')
+
+
 def write_output(unique_entry_id: str, base_seq_name: str, output_type: str, variants_flag: bool, alt_seq_name_suffix: str,
-                 ref_seq: Optional[str], alt_seq: Optional[str], ref_info: SeqInfo, alt_info: Optional[SeqInfo], sequence_output_file: str | None = None) -> None:
+                 ref_seq: Optional[str], alt_seq: Optional[str], ref_info: SeqInfo, alt_info: Optional[SeqInfo],
+                 sequence_output_file: str | None = None, s3_output_prefix: str | None = None) -> None:
     # Define sequence names
     ref_seq_name: str = base_seq_name
     alt_seq_name: str
@@ -166,6 +195,10 @@ def write_output(unique_entry_id: str, base_seq_name: str, output_type: str, var
             if alt_seq is not None:
                 output_file.write(f'>{alt_seq_name}\n{alt_seq}\n')
 
+        # Upload FASTA to S3 if prefix provided
+        if s3_output_prefix:
+            upload_to_s3(sequence_output_file, s3_output_prefix)
+
     # Print seq info
     indexed_seq_info: dict[str, Any] = {}
     indexed_seq_info[ref_seq_name] = ref_info
@@ -180,6 +213,10 @@ def write_output(unique_entry_id: str, base_seq_name: str, output_type: str, var
         logger.debug(f'Writing sequence info to {seq_info_output_file}...')
 
         output_file.write(jsonpickle.encode(indexed_seq_info, make_refs=False, unpicklable=False))
+
+    # Upload seq info to S3 if prefix provided
+    if s3_output_prefix:
+        upload_to_s3(seq_info_output_file, s3_output_prefix)
 
 
 @click.command(context_settings={'show_default': True})
@@ -215,11 +252,13 @@ def write_output(unique_entry_id: str, base_seq_name: str, output_type: str, var
               if file already exists at destination path, rather than re-downloading and overwritting.""")
 @click.option("--unmasked", is_flag=True,
               help="""When defined, return unmasked sequences (undo soft masking present in reference files).""")
+@click.option("--s3_output_prefix", type=click.STRING, required=False,
+              help="""S3 URI prefix to upload output files to (e.g., s3://bucket/prefix/).""")
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
 def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[SeqRegionDict], cds_seq_regions: List[SeqRegionDict],
          variant_ids: set[str], alt_seq_name_suffix: str, fasta_file_url: str, output_type: str, base_seq_name: str, unique_entry_id: str,
-         sequence_output_file: str, reuse_local_cache: bool, unmasked: bool, debug: bool) -> None:
+         sequence_output_file: str, reuse_local_cache: bool, unmasked: bool, s3_output_prefix: str, debug: bool) -> None:
     """
     Main method for sequence retrieval from JBrowse faidx indexed fasta files. Receives input args from click.
 
@@ -313,7 +352,7 @@ def main(seq_id: str, seq_strand: SeqRegion.STRAND_TYPE, exon_seq_regions: List[
         raise NotImplementedError(f"Output_type {output_type} is currently not implemented.")
 
     write_output(unique_entry_id=unique_entry_id, base_seq_name=base_seq_name, output_type=output_type, sequence_output_file=sequence_output_file, alt_seq_name_suffix=alt_seq_name_suffix,
-                 ref_seq=ref_seq, alt_seq=alt_seq, ref_info=ref_info, alt_info=alt_info, variants_flag=len(variant_info) > 0)
+                 ref_seq=ref_seq, alt_seq=alt_seq, ref_info=ref_info, alt_info=alt_info, variants_flag=len(variant_info) > 0, s3_output_prefix=s3_output_prefix)
 
 
 if __name__ == '__main__':

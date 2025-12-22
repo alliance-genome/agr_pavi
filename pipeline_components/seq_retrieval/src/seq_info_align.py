@@ -11,10 +11,12 @@ from Bio.Align import MultipleSeqAlignment
 from copy import deepcopy
 import click
 from enum import Enum
+import glob
 import json
 import jsonpickle  # type: ignore
 import logging
 from os import path, access, R_OK
+import subprocess
 from typing import Any, List, Optional
 
 from log_mgmt import set_log_level, get_logger
@@ -22,6 +24,68 @@ from variant import AlignmentEmbeddedVariant, AlignmentEmbeddedVariantsList
 from seq_info import EnumValueHandler, SeqInfo
 
 logger = get_logger(name=__name__)
+
+
+def download_from_s3(s3_prefix: str, local_dir: str, pattern: str = "*") -> List[str]:
+    """
+    Download files from S3 to local directory.
+
+    Args:
+        s3_prefix: S3 URI prefix (e.g., s3://bucket/prefix/)
+        local_dir: Local directory to download to
+        pattern: File pattern to include (default: all files)
+
+    Returns:
+        List of downloaded local file paths
+    """
+    import os
+    os.makedirs(local_dir, exist_ok=True)
+
+    logger.info(f'Downloading files from {s3_prefix} to {local_dir}...')
+
+    result = subprocess.run(
+        ['aws', 's3', 'cp', s3_prefix, local_dir, '--recursive', '--include', pattern],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        logger.error(f'Failed to download from S3: {result.stderr}')
+        raise RuntimeError(f'S3 download failed: {result.stderr}')
+
+    # Get list of downloaded files
+    downloaded_files = glob.glob(path.join(local_dir, '**', '*'), recursive=True)
+    downloaded_files = [f for f in downloaded_files if path.isfile(f)]
+
+    logger.info(f'Downloaded {len(downloaded_files)} files from S3')
+    return downloaded_files
+
+
+def upload_to_s3(local_path: str, s3_prefix: str) -> None:
+    """
+    Upload a local file to S3 using AWS CLI.
+
+    Args:
+        local_path: Path to the local file to upload
+        s3_prefix: S3 URI prefix (e.g., s3://bucket/prefix/)
+    """
+    import os
+    filename = path.basename(local_path)
+    s3_uri = s3_prefix.rstrip('/') + '/' + filename
+
+    logger.info(f'Uploading {local_path} to {s3_uri}...')
+
+    result = subprocess.run(
+        ['aws', 's3', 'cp', local_path, s3_uri],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        logger.error(f'Failed to upload {local_path} to S3: {result.stderr}')
+        raise RuntimeError(f'S3 upload failed: {result.stderr}')
+
+    logger.info(f'Successfully uploaded {local_path} to {s3_uri}')
 
 
 def process_sequence_info_files_param(ctx: click.Context, param: click.Parameter, value: str) -> List[str]:  # noqa: U100
@@ -73,25 +137,83 @@ def process_alignment_result_file_param(ctx: click.Context, param: click.Paramet
 
 
 @click.command(context_settings={'show_default': True})
-@click.option("--sequence-info-files", type=click.UNPROCESSED, required=True, callback=process_sequence_info_files_param,
-              help="Space separated list of sequence info files to read.")
-@click.option("--alignment-result-file", type=click.UNPROCESSED, required=True, callback=process_alignment_result_file_param,
-              help="Path to alignment output file.")
+@click.option("--sequence-info-files", type=click.STRING, required=False, default=None,
+              help="Space separated list of sequence info files to read (local mode).")
+@click.option("--alignment-result-file", type=click.STRING, required=False, default=None,
+              help="Path to alignment output file (local mode).")
+@click.option("--s3-work-prefix", type=click.STRING, required=False, default=None,
+              help="S3 URI prefix for work directory (S3 mode). Downloads seqinfo JSON files from here.")
+@click.option("--s3-results-prefix", type=click.STRING, required=False, default=None,
+              help="S3 URI prefix for results (S3 mode). Downloads alignment.aln from here and uploads aligned_seq_info.json.")
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
-def main(alignment_result_file: str, sequence_info_files: List[str], debug: bool) -> None:
+def main(alignment_result_file: Optional[str], sequence_info_files: Optional[str],
+         s3_work_prefix: Optional[str], s3_results_prefix: Optional[str], debug: bool) -> None:
     if debug:
         set_log_level(logging.DEBUG)
     else:
         set_log_level(logging.INFO)
 
-    logger.debug(f"sequence_info_files: {sequence_info_files}")
-    logger.debug(f"alignment output file: {alignment_result_file}")
+    # Determine mode: S3 or local
+    s3_mode = s3_work_prefix is not None and s3_results_prefix is not None
+
+    if s3_mode:
+        logger.info("Running in S3 mode")
+        # Download sequence info files from S3 work prefix
+        work_dir = '/tmp/seq_info_work'
+        results_dir = '/tmp/seq_info_results'
+
+        # Download seqinfo JSON files from work directory
+        download_from_s3(s3_work_prefix, work_dir, "*.json")
+        seq_info_file_list = glob.glob(path.join(work_dir, '*-seqinfo.json'))
+
+        # Download alignment result from results directory
+        download_from_s3(s3_results_prefix, results_dir, "alignment.aln")
+        alignment_file = path.join(results_dir, 'alignment.aln')
+
+        if not path.exists(alignment_file):
+            logger.error(f"Alignment file not found at {alignment_file}")
+            exit(1)
+    else:
+        logger.info("Running in local mode")
+        # Validate local mode has required parameters
+        if sequence_info_files is None or alignment_result_file is None:
+            logger.error("Local mode requires --sequence-info-files and --alignment-result-file")
+            exit(1)
+
+        # Parse and validate sequence info files
+        seq_info_file_list = sequence_info_files.split(' ')
+        for f in seq_info_file_list:
+            if not path.exists(f):
+                logger.error(f"Sequence info file '{f}' does not exist.")
+                exit(1)
+            if not path.isfile(f):
+                logger.error(f"Sequence info file '{f}' is not a regular file.")
+                exit(1)
+            if not access(f, R_OK):
+                logger.error(f"Sequence info file '{f}' is not readable.")
+                exit(1)
+
+        # Validate alignment file
+        if not path.exists(alignment_result_file):
+            logger.error(f"Alignment result file '{alignment_result_file}' does not exist.")
+            exit(1)
+        if not path.isfile(alignment_result_file):
+            logger.error(f"Alignment result file '{alignment_result_file}' is not a regular file.")
+            exit(1)
+        if not access(alignment_result_file, R_OK):
+            logger.error(f"Alignment result file '{alignment_result_file}' is not readable.")
+            exit(1)
+
+        alignment_file = alignment_result_file
+
+    logger.debug(f"sequence_info_files: {seq_info_file_list}")
+    logger.debug(f"alignment output file: {alignment_file}")
 
     alt_sequence_info_dict: dict[str, SeqInfo] = {}
 
     # * Read each of the sequence_info_files (JSON) and merge into a single dict
-    for file in sequence_info_files:
+    for file in seq_info_file_list:
         try:
             with open(file, 'r') as f:
                 sequence_info_json_dict: dict[str, Any] = json.load(f)
@@ -103,23 +225,23 @@ def main(alignment_result_file: str, sequence_info_files: List[str], debug: bool
             logger.error(f"Failed to read sequence info file '{file}': {e}")
             exit(1)
 
-    # * Read alignment_result_file
+    # * Read alignment_file
     alignment: MultipleSeqAlignment
     try:
-        alignment = next(AlignIO.parse(alignment_result_file, "clustal"))
+        alignment = next(AlignIO.parse(alignment_file, "clustal"))
     except Exception as e:
-        logger.error(f"Failed to read alignment result file '{alignment_result_file}': {e}")
+        logger.error(f"Failed to read alignment result file '{alignment_file}': {e}")
         exit(1)
 
     if not isinstance(alignment, MultipleSeqAlignment):
-        logger.error(f"Alignment result file '{alignment_result_file}' does not contain a multiple sequence alignment.")
+        logger.error(f"Alignment result file '{alignment_file}' does not contain a multiple sequence alignment.")
         exit(1)
 
-    # * Loop over each record in the alignment_result_file and update the sequence info dict with relative alignment positions
+    # * Loop over each record in the alignment_file and update the sequence info dict with relative alignment positions
     aligned_seq_info_dict: dict[str, SeqInfo] = deepcopy(alt_sequence_info_dict)
     for record in alignment:
         if not isinstance(record, SeqRecord):
-            logger.error(f"Error while parsing record of alignment result file '{alignment_result_file}'.")
+            logger.error(f"Error while parsing record of alignment result file '{alignment_file}'.")
             exit(1)
         if record.seq is None:
             logger.error(f"Error while reading record sequence for alignment record '{record.id}'.")
@@ -147,8 +269,17 @@ def main(alignment_result_file: str, sequence_info_files: List[str], debug: bool
 
     jsonpickle.set_encoder_options("simplejson", sort_maps=True)
     jsonpickle.register(Enum, EnumValueHandler, base=True)
-    with open('aligned_seq_info.json', 'w') as f:
+
+    output_file = 'aligned_seq_info.json'
+    with open(output_file, 'w') as f:
         f.write(jsonpickle.encode(aligned_seq_info_dict, make_refs=False, unpicklable=False))
+
+    logger.info(f"Wrote aligned sequence info to {output_file}")
+
+    # Upload to S3 if in S3 mode
+    if s3_mode:
+        upload_to_s3(output_file, s3_results_prefix)
+        logger.info("S3 upload complete")
 
 
 if __name__ == '__main__':
