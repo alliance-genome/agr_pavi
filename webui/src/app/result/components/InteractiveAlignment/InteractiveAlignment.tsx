@@ -119,7 +119,7 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
     const labelWidth = maxLabelLength * 9;
 
     const [displayStart, setDisplayStart] = useState<number>(1);
-    const [displayEnd, setDisplayEnd] = useState<number>(-1);
+    const [displayEnd, setDisplayEnd] = useState<number>(100);
 
     useEffect(() => {
         console.log('InteractiveAlignment rendered.')
@@ -226,19 +226,22 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                 />
             </div>
             <div id='alignment-view-container'>
-                <div style={{paddingLeft: labelWidth.toString()+'px'}}>
-                    <NightingaleTrack
-                        id='variant-overview-track'
-                        data={variantTrackData}
-                        display-start={1}
-                        display-end={seqLength}
-                        length={seqLength}
-                        height={variantTrackHeight}
-                        layout='non-overlapping'
-                        margin-left={0}
-                        margin-right={5}
-                    />
-                </div>
+                {/* Variant overview track - only show if there are variants */}
+                {variantTrackData.length > 0 && (
+                    <div style={{paddingLeft: labelWidth.toString()+'px'}}>
+                        <NightingaleTrack
+                            id='variant-overview-track'
+                            data={variantTrackData}
+                            display-start={1}
+                            display-end={seqLength}
+                            length={seqLength}
+                            height={variantTrackHeight}
+                            layout='non-overlapping'
+                            margin-left={0}
+                            margin-right={5}
+                        />
+                    </div>
+                )}
                 <NightingaleManagerComponent
                     reflected-attributes='display-start,display-end'
                 >
@@ -254,32 +257,39 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                             onChange={(e) => updateDisplayRange({displayStart: e.detail['display-start'], displayEnd: e.detail['display-end']})}
                         />
                     </div>
-                    <div style={{paddingLeft: labelWidth.toString()+'px'}}>
-                        <NightingaleTrack
-                            id='variant-zoom-track'
-                            data={variantTrackData}
+                    {/* Variant zoom track - only show if there are variants */}
+                    {variantTrackData.length > 0 && (
+                        <div style={{paddingLeft: labelWidth.toString()+'px'}}>
+                            <NightingaleTrack
+                                id='variant-zoom-track'
+                                data={variantTrackData}
+                                display-start={displayStart}
+                                display-end={displayEnd}
+                                length={seqLength}
+                                margin-left={0}
+                                margin-right={5}
+                                height={variantTrackHeight}
+                                layout='non-overlapping'
+                            />
+                        </div>
+                    )}
+                    {alignmentData.length === 0 || seqLength === 0 ? (
+                        <div style={{ padding: '20px', color: '#666' }}>Loading alignment...</div>
+                    ) : (
+                        <NightingaleMSAComponent
+                            label-width={labelWidth}
+                            data={alignmentData}
+                            features={alignmentFeatures}
+                            height={alignmentData.length * 20}
+                            margin-left={0}
+                            margin-right={5}
                             display-start={displayStart}
                             display-end={displayEnd}
                             length={seqLength}
-                            margin-left={0}
-                            margin-right={5}
-                            height={variantTrackHeight}
-                            layout='non-overlapping'
+                            colorScheme={alignmentColorScheme}
+                            onChange={(e) => updateDisplayRange({displayStart: e.detail['display-start'], displayEnd: e.detail['display-end']})}
                         />
-                    </div>
-                    <NightingaleMSAComponent
-                        label-width={labelWidth}
-                        data={alignmentData}
-                        features={alignmentFeatures}
-                        height={alignmentData.length * 20}
-                        margin-left={0}
-                        margin-right={5}
-                        display-start={displayStart}
-                        display-end={displayEnd}
-                        length={seqLength}
-                        colorScheme={alignmentColorScheme}
-                        onChange={(e) => updateDisplayRange({displayStart: e.detail['display-start'], displayEnd: e.detail['display-end']})}
-                    />
+                    )}
                 </NightingaleManagerComponent>
             </div>
         </div>

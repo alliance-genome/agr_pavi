@@ -7,6 +7,19 @@ export interface TextAlignmentProps {
 }
 export const TextAlignment: FunctionComponent<TextAlignmentProps> = (props: TextAlignmentProps) => {
     return (
-        <textarea id='alignment-result-text' value={props.alignmentResult} readOnly={true} style={{width: "700px", height: "500px"}} />
+        <textarea
+            id='alignment-result-text'
+            value={props.alignmentResult}
+            readOnly={true}
+            style={{
+                width: "100%",
+                height: "500px",
+                fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+                fontSize: "12px",
+                whiteSpace: "pre",
+                overflowX: "auto",
+                resize: "vertical"
+            }}
+        />
     )
 }
