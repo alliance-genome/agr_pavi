@@ -186,14 +186,30 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     );
 
     return (
-        <div>
-            <AlignmentEntryList agrjBrowseDataRelease={props.agrjBrowseDataRelease}
-                                dispatchInputPayloadPart={dispatchInputPayloadPart} />
-            <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
-                    loading={job['status'] === 'submitting'}
-                    disabled={submitDisabled()}
-                    /><br />
-            <div id="display-message">{displayMsg}</div>
+        <div className="agr-page-section">
+            <div className="agr-page-header">
+                <h1>Submit Alignment Job</h1>
+                <p className="agr-page-description">
+                    Select genes, transcripts, and optionally alleles to include in your protein sequence alignment.
+                </p>
+            </div>
+            <div className="agr-card">
+                <div className="agr-card-header">
+                    <h2>Alignment Entries</h2>
+                </div>
+                <div className="agr-card-body">
+                    <AlignmentEntryList agrjBrowseDataRelease={props.agrjBrowseDataRelease}
+                                        dispatchInputPayloadPart={dispatchInputPayloadPart} />
+                </div>
+                <div className="agr-card-footer">
+                    <Button label='Submit Job' onClick={handleSubmit} icon="pi pi-check"
+                            loading={job['status'] === 'submitting'}
+                            disabled={submitDisabled()}
+                            className="p-button-lg"
+                            />
+                    {displayMsg && <div className="agr-message agr-message-error">{displayMsg}</div>}
+                </div>
+            </div>
         </div>
     );
 }

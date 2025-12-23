@@ -115,29 +115,54 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     )
 
     return (
-        <>
-            <div style={{paddingBottom: '10px'}}>
-                <label htmlFor="display-mode">Display mode: </label>
-                <Dropdown id="display-mode"
-                    value={displayMode} onChange={(e) => changeDisplayMode(e.value)}
-                    options={displayModeOptions}
-                    optionLabel='label'/>
+        <div className="agr-page-section">
+            <div className="agr-page-header">
+                <h1>Alignment Results</h1>
+                <p className="agr-page-description">
+                    Job ID: <code className="agr-code">{props.uuidStr}</code>
+                </p>
             </div>
-            <div style={{paddingBottom: '20px'}}>
-                {alignmentResult ?
-                    (
-                        <>
-                            <div style={{display: virtualizedDisplayStyle()}}><VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} /></div>
-                            <div style={{display: interactiveDisplayStyle()}}><InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} /></div>
-                            <div style={{display: textDisplayStyle()}}><TextAlignment alignmentResult={alignmentResult} /></div>
-                        </>
-                    )
-                 :
-                    (<p>Fetching alignment results...</p>)}
+
+            {seqFailures && seqFailures.size > 0 && (
+                <div className="agr-card agr-card-warning">
+                    <FailureDisplay failureList={seqFailures} />
+                </div>
+            )}
+
+            <div className="agr-card">
+                <div className="agr-card-header">
+                    <div className="agr-result-header">
+                        <h2>Protein Sequence Alignment</h2>
+                        <div className="agr-display-mode-selector">
+                            <label htmlFor="display-mode">Display mode: </label>
+                            <Dropdown id="display-mode"
+                                value={displayMode} onChange={(e) => changeDisplayMode(e.value)}
+                                options={displayModeOptions}
+                                optionLabel='label'
+                                className="agr-dropdown-sm"/>
+                        </div>
+                    </div>
+                </div>
+                <div className="agr-card-body">
+                    <div className="agr-alignment-viewer">
+                        {alignmentResult ?
+                            (
+                                <>
+                                    <div style={{display: virtualizedDisplayStyle()}}><VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} /></div>
+                                    <div style={{display: interactiveDisplayStyle()}}><InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} /></div>
+                                    <div style={{display: textDisplayStyle()}}><TextAlignment alignmentResult={alignmentResult} /></div>
+                                </>
+                            )
+                         :
+                            (
+                                <div className="agr-loading-state">
+                                    <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
+                                    <p>Fetching alignment results...</p>
+                                </div>
+                            )}
+                    </div>
+                </div>
             </div>
-            {seqFailures ? (
-                <FailureDisplay failureList={seqFailures} />
-            ): <></>}
-        </>
+        </div>
     )
 }

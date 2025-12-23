@@ -119,16 +119,42 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         updateLastCheckedMsg(activeProgress, lastChecked)
     }, [updateLastCheckedMsg, activeProgress, lastChecked]);
 
+    const getStatusClass = () => {
+        if (jobState === JobProgressStatus.completed) return 'agr-status-success';
+        if (jobState === JobProgressStatus.failed) return 'agr-status-error';
+        return 'agr-status-pending';
+    };
+
     return (
-        <>
-            <div className="card">
-                <ProgressBar mode={progressBarMode()} value={progressValue} style={{ height: '6px' }}></ProgressBar>
+        <div className="agr-page-section">
+            <div className="agr-page-header">
+                <h1>Job Progress</h1>
+                <p className="agr-page-description">
+                    Tracking alignment job: <code className="agr-code">{props.uuidStr}</code>
+                </p>
             </div>
-            <div>
-                <p style={{margin:'0px', padding:'0px', fontSize:'12px'}}>{lastCheckedMessage}</p>
-                <p id="progress-msg">{progressMessage}</p>
+            <div className="agr-card">
+                <div className="agr-card-header">
+                    <h2>Processing Status</h2>
+                </div>
+                <div className="agr-card-body">
+                    <div className="agr-progress-container">
+                        <ProgressBar
+                            mode={progressBarMode()}
+                            value={progressValue}
+                            style={{ height: '8px' }}
+                            className="agr-progress-bar"
+                        />
+                    </div>
+                    <div className={`agr-progress-status ${getStatusClass()}`}>
+                        <p id="progress-msg" className="agr-progress-message">{progressMessage}</p>
+                        {lastCheckedMessage && (
+                            <p className="agr-progress-timestamp">{lastCheckedMessage}</p>
+                        )}
+                    </div>
+                </div>
             </div>
-        </>
+        </div>
     )
 }
 

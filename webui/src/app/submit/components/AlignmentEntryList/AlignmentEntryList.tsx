@@ -85,18 +85,37 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
-        <table>
-            <tbody>
-                {Array.from(alignmentEntries.values()).map((listEntry) => (
-                    <tr key={listEntry.props.index}>
-                        <td><Button text id="remove-record" icon="pi pi-trash" onClick={() => removeAlignmentEntry(listEntry.props.index)} /></td>
-                        <td>< AlignmentEntry {...listEntry.props} /></td>
-                    </tr>))
-                }
-                <tr><td>
-                    <Button text id="add-record" icon="pi pi-plus" onClick={() => addAlignmentEntry()} />
-                </td></tr>
-            </tbody>
-        </table>
+        <div className="agr-alignment-list">
+            {Array.from(alignmentEntries.values()).map((listEntry) => (
+                <div key={listEntry.props.index} className="agr-alignment-entry">
+                    {alignmentEntries.size > 1 && (
+                        <div className="agr-alignment-entry-controls">
+                            <Button
+                                text
+                                severity="danger"
+                                id="remove-record"
+                                icon="pi pi-trash"
+                                onClick={() => removeAlignmentEntry(listEntry.props.index)}
+                                tooltip="Remove this entry"
+                                tooltipOptions={{ position: 'top' }}
+                            />
+                        </div>
+                    )}
+                    <div className="agr-alignment-entry-fields">
+                        <AlignmentEntry {...listEntry.props} />
+                    </div>
+                </div>
+            ))}
+            <div className="agr-alignment-add">
+                <Button
+                    text
+                    id="add-record"
+                    icon="pi pi-plus"
+                    label="Add Another Gene"
+                    onClick={() => addAlignmentEntry()}
+                    className="p-button-outlined"
+                />
+            </div>
+        </div>
     )
 }
