@@ -38,15 +38,6 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         setDisplayMode(displayMode)
     }
 
-    const virtualizedDisplayStyle = () => {
-        return displayMode == 'virtualized' ? 'block' : 'none'
-    }
-    const interactiveDisplayStyle = () => {
-        return displayMode == 'interactive' ? 'block' : 'none'
-    }
-    const textDisplayStyle = () => {
-        return displayMode == 'text' ? 'block' : 'none'
-    }
 
     async function getAlignmentResult(){
         // Fetch alignment output
@@ -148,9 +139,9 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                         {alignmentResult ?
                             (
                                 <>
-                                    <div style={{display: virtualizedDisplayStyle()}}><VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} /></div>
-                                    <div style={{display: interactiveDisplayStyle()}}><InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} /></div>
-                                    <div style={{display: textDisplayStyle()}}><TextAlignment alignmentResult={alignmentResult} /></div>
+                                    {displayMode === 'virtualized' && <VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} />}
+                                    {displayMode === 'interactive' && <InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} />}
+                                    {displayMode === 'text' && <TextAlignment alignmentResult={alignmentResult} />}
                                 </>
                             )
                          :

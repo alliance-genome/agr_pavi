@@ -178,7 +178,7 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
 
     // Display range state
     const [displayStart, setDisplayStart] = useState<number>(1);
-    const [displayEnd, setDisplayEnd] = useState<number>(-1);
+    const [displayEnd, setDisplayEnd] = useState<number>(100); // Default to reasonable value
 
     type updateRangeArgs = {
         displayStart?: number;
@@ -309,20 +309,22 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                 </span>
             </div>
             <div id="alignment-view-container">
-                {/* Variant overview track - always shows full data */}
-                <div style={{ paddingLeft: labelWidth.toString() + 'px' }}>
-                    <NightingaleTrack
-                        id="variant-overview-track"
-                        data={variantTrackData}
-                        display-start={1}
-                        display-end={seqLength}
-                        length={seqLength}
-                        height={variantTrackHeight}
-                        layout="non-overlapping"
-                        margin-left={0}
-                        margin-right={5}
-                    />
-                </div>
+                {/* Variant overview track - only show if there are variants */}
+                {variantTrackData.length > 0 && (
+                    <div style={{ paddingLeft: labelWidth.toString() + 'px' }}>
+                        <NightingaleTrack
+                            id="variant-overview-track"
+                            data={variantTrackData}
+                            display-start={1}
+                            display-end={seqLength}
+                            length={seqLength}
+                            height={variantTrackHeight}
+                            layout="non-overlapping"
+                            margin-left={0}
+                            margin-right={5}
+                        />
+                    </div>
+                )}
 
                 <NightingaleManagerComponent reflected-attributes="display-start,display-end">
                     <div style={{ paddingLeft: labelWidth.toString() + 'px' }}>
@@ -342,62 +344,88 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                             }
                         />
                     </div>
-                    <div style={{ paddingLeft: labelWidth.toString() + 'px' }}>
-                        <NightingaleTrack
-                            id="variant-zoom-track"
-                            data={variantTrackData}
-                            display-start={displayStart}
-                            display-end={displayEnd}
-                            length={seqLength}
-                            margin-left={0}
-                            margin-right={5}
-                            height={variantTrackHeight}
-                            layout="non-overlapping"
-                        />
-                    </div>
-
-                    {/* Virtualized scroll container */}
-                    <div
-                        ref={scrollContainerRef}
-                        onScroll={handleScroll}
-                        style={{
-                            height: `${Math.min(containerHeight - 100, totalHeight)}px`,
-                            maxHeight: '500px',
-                            overflow: 'auto',
-                            position: 'relative'
-                        }}
-                    >
-                        {/* Total height spacer for scrollbar */}
-                        <div style={{ height: `${totalHeight}px`, position: 'absolute', width: '1px' }} />
-
-                        {/* Positioned MSA content */}
-                        <div
-                            style={{
-                                position: 'relative',
-                                top: `${virtualOffset}px`,
-                                willChange: 'transform'
-                            }}
-                        >
-                            <NightingaleMSAComponent
-                                label-width={labelWidth}
-                                data={visibleData}
-                                features={alignmentFeatures}
-                                height={visibleMsaHeight}
-                                margin-left={0}
-                                margin-right={5}
+                    {/* Variant zoom track - only show if there are variants */}
+                    {variantTrackData.length > 0 && (
+                        <div style={{ paddingLeft: labelWidth.toString() + 'px' }}>
+                            <NightingaleTrack
+                                id="variant-zoom-track"
+                                data={variantTrackData}
                                 display-start={displayStart}
                                 display-end={displayEnd}
                                 length={seqLength}
-                                colorScheme={alignmentColorScheme}
-                                onChange={(e) =>
-                                    updateDisplayRange({
-                                        displayStart: e.detail['display-start'],
-                                        displayEnd: e.detail['display-end']
-                                    })
-                                }
+                                margin-left={0}
+                                margin-right={5}
+                                height={variantTrackHeight}
+                                layout="non-overlapping"
                             />
                         </div>
-                    </div>
+                    )}
+
+                    {/* MSA container - simple for small alignments, virtualized for large */}
+                    {fullAlignmentData.length === 0 || seqLength === 0 ? (
+                        <div style={{ padding: '20px', color: '#666' }}>Loading alignment...</div>
+                    ) : fullAlignmentData.length <= MIN_VISIBLE_SEQUENCES ? (
+                        <NightingaleMSAComponent
+                            label-width={labelWidth}
+                            data={fullAlignmentData}
+                            features={alignmentFeatures}
+                            height={fullAlignmentData.length * SEQUENCE_HEIGHT}
+                            margin-left={0}
+                            margin-right={5}
+                            display-start={displayStart}
+                            display-end={displayEnd}
+                            length={seqLength}
+                            colorScheme={alignmentColorScheme}
+                            onChange={(e) =>
+                                updateDisplayRange({
+                                    displayStart: e.detail['display-start'],
+                                    displayEnd: e.detail['display-end']
+                                })
+                            }
+                        />
+                    ) : (
+                        <div
+                            ref={scrollContainerRef}
+                            onScroll={handleScroll}
+                            style={{
+                                height: `${Math.min(containerHeight - 100, totalHeight)}px`,
+                                maxHeight: '500px',
+                                overflow: 'auto',
+                                position: 'relative'
+                            }}
+                        >
+                            {/* Total height spacer for scrollbar */}
+                            <div style={{ height: `${totalHeight}px`, position: 'absolute', width: '1px' }} />
+
+                            {/* Positioned MSA content */}
+                            <div
+                                style={{
+                                    position: 'relative',
+                                    top: `${virtualOffset}px`,
+                                    willChange: 'transform'
+                                }}
+                            >
+                                <NightingaleMSAComponent
+                                    label-width={labelWidth}
+                                    data={visibleData}
+                                    features={alignmentFeatures}
+                                    height={visibleMsaHeight}
+                                    margin-left={0}
+                                    margin-right={5}
+                                    display-start={displayStart}
+                                    display-end={displayEnd}
+                                    length={seqLength}
+                                    colorScheme={alignmentColorScheme}
+                                    onChange={(e) =>
+                                        updateDisplayRange({
+                                            displayStart: e.detail['display-start'],
+                                            displayEnd: e.detail['display-end']
+                                        })
+                                    }
+                                />
+                            </div>
+                        </div>
+                    )}
                 </NightingaleManagerComponent>
             </div>
         </div>
