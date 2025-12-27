@@ -1,0 +1,184 @@
+.dialog :global(.p-dialog-header) {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--agr-gray-200);
+}
+
+.dialog :global(.p-dialog-content) {
+    padding: 0;
+}
+
+.dialogHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--agr-gray-900);
+}
+
+.dialogContent {
+    padding: 1.5rem;
+}
+
+.intro {
+    margin: 0 0 1.5rem 0;
+    color: var(--agr-gray-600);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+
+.categoryFilter {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--agr-gray-200);
+}
+
+.filterLabel {
+    color: var(--agr-gray-600);
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.categoryButtons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.categoryBtn {
+    padding: 0.375rem 0.75rem;
+    background: var(--agr-gray-100);
+    border: 1px solid var(--agr-gray-200);
+    border-radius: var(--agr-border-radius-md);
+    color: var(--agr-gray-700);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.categoryBtn:hover {
+    background: var(--agr-gray-200);
+    border-color: var(--agr-gray-300);
+}
+
+.categoryBtn.active {
+    background: var(--agr-primary);
+    border-color: var(--agr-primary);
+    color: white;
+}
+
+.exampleGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.exampleCard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--agr-gray-50);
+    border: 1px solid var(--agr-gray-200);
+    border-radius: var(--agr-border-radius-md);
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.exampleCard:hover {
+    background: white;
+    border-color: var(--agr-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.exampleCard:focus {
+    outline: 2px solid var(--agr-primary);
+    outline-offset: 2px;
+}
+
+.exampleHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.exampleName {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--agr-gray-900);
+}
+
+.categoryBadge {
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--agr-border-radius-sm);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.categoryBadge.basic {
+    background: var(--agr-success-light);
+    color: var(--agr-success-dark);
+}
+
+.categoryBadge.cross-species {
+    background: var(--agr-primary-light);
+    color: var(--agr-primary-dark);
+}
+
+.categoryBadge.advanced {
+    background: var(--agr-warning-light);
+    color: var(--agr-warning-dark);
+}
+
+.exampleDescription {
+    margin: 0;
+    color: var(--agr-gray-600);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.geneList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.geneBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: white;
+    border: 1px solid var(--agr-gray-200);
+    border-radius: var(--agr-border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--agr-gray-800);
+}
+
+.species {
+    color: var(--agr-gray-500);
+    font-weight: 400;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .categoryFilter {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .exampleHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
