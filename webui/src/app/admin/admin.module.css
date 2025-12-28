@@ -1,0 +1,126 @@
+.loadingContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.loginContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--agr-gray-100) 0%, var(--agr-primary-light) 100%);
+    padding: 1rem;
+}
+
+.loginCard {
+    width: 100%;
+    max-width: 400px;
+}
+
+.loginCard :global(.p-card-body) {
+    padding: 2rem;
+}
+
+.loginHeader {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.loginHeader h1 {
+    margin: 1rem 0 0.5rem;
+    font-size: 1.5rem;
+    color: var(--agr-gray-900);
+}
+
+.loginHeader p {
+    margin: 0;
+    color: var(--agr-gray-600);
+    font-size: 0.875rem;
+}
+
+.loginForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.passwordInput {
+    width: 100%;
+}
+
+.passwordInput input {
+    width: 100%;
+}
+
+.error {
+    margin: 0;
+    padding: 0.5rem;
+    background: var(--agr-error-light);
+    color: var(--agr-error-dark);
+    border-radius: var(--agr-border-radius-sm);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.adminContainer {
+    min-height: 100vh;
+    background: var(--agr-gray-50);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+    background: white;
+    border-bottom: 1px solid var(--agr-gray-200);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.headerContent h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--agr-gray-900);
+}
+
+.headerContent p {
+    margin: 0.25rem 0 0;
+    color: var(--agr-gray-600);
+    font-size: 0.875rem;
+}
+
+.main {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.main :global(.p-tabview-panels) {
+    background: transparent;
+    padding: 1.5rem 0 0;
+}
+
+.main :global(.p-tabview-nav) {
+    background: white;
+    border-radius: var(--agr-border-radius-md);
+    padding: 0.5rem;
+}
+
+.main :global(.p-tabview-nav-link) {
+    border-radius: var(--agr-border-radius-sm);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .main {
+        padding: 1rem;
+    }
+}
