@@ -12,6 +12,7 @@ import { StepFunctionsMonitor } from './components/StepFunctionsMonitor';
 import { BatchJobMonitor } from './components/BatchJobMonitor';
 import { ApiTester } from './components/ApiTester';
 import { JobSubmissionTester } from './components/JobSubmissionTester';
+import { JobAnalytics } from './components/JobAnalytics';
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'pavi-admin-2025';
 
@@ -111,6 +112,9 @@ export default function AdminPage() {
                 <TabView>
                     <TabPanel header="Health Status" leftIcon="pi pi-heart mr-2">
                         <HealthStatus />
+                    </TabPanel>
+                    <TabPanel header="Job Analytics" leftIcon="pi pi-chart-bar mr-2">
+                        <JobAnalytics />
                     </TabPanel>
                     <TabPanel header="Step Functions" leftIcon="pi pi-sitemap mr-2">
                         <StepFunctionsMonitor />

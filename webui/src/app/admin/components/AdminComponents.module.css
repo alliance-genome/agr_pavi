@@ -599,3 +599,145 @@
 .resultCard :global(.p-card-body) {
     padding: 1.25rem;
 }
+
+/* Job Analytics Styles */
+.analyticsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.analyticsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.analyticsHeader h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--agr-gray-900);
+}
+
+.headerActions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.timeRangeDropdown {
+    min-width: 150px;
+}
+
+.summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+    .summaryGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .summaryGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.summaryContent {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.summaryContent i {
+    font-size: 1.5rem;
+}
+
+.summaryContent > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.summaryValue {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--agr-gray-900);
+    line-height: 1.2;
+}
+
+.chartsRow {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+    .chartsRow {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chartCard,
+.chartCardSmall {
+    padding: 0;
+}
+
+.chartCard h3,
+.chartCardSmall h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: var(--agr-gray-900);
+}
+
+.chartContainer {
+    height: 250px;
+    position: relative;
+}
+
+.detailsRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+    .detailsRow {
+        grid-template-columns: 1fr;
+    }
+}
+
+.detailCard h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: var(--agr-gray-900);
+}
+
+.progressCell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.activeJobsCard h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: var(--agr-gray-900);
+    display: flex;
+    align-items: center;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    gap: 1rem;
+    color: var(--agr-gray-500);
+}
