@@ -12,7 +12,7 @@ export const Header: React.FC = () => {
     };
 
     return (
-        <header className="agr-header">
+        <header className="agr-header" role="banner">
             <div className="agr-header-content">
                 <Link href="/" className={styles.logo}>
                     {/* Alliance of Genome Resources Logo */}
@@ -59,7 +59,11 @@ export const Header: React.FC = () => {
                 </button>
 
                 {/* Navigation */}
-                <nav className={`agr-header-nav ${styles.nav} ${mobileMenuOpen ? styles.navOpen : ''}`}>
+                <nav
+                    id="main-navigation"
+                    aria-label="Main navigation"
+                    className={`agr-header-nav ${styles.nav} ${mobileMenuOpen ? styles.navOpen : ''}`}
+                >
                     <Link href="/submit" onClick={() => setMobileMenuOpen(false)}>
                         Submit Job
                     </Link>

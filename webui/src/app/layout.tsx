@@ -8,6 +8,7 @@ import { PrimeReactProvider } from 'primereact/api';
 
 import { Header } from './components/Header/Header';
 import { Footer } from './components/Footer/Footer';
+import { SkipLinks, LiveRegionProvider, KeyboardShortcuts } from './components/Accessibility';
 
 const lato = Lato({
     subsets: ["latin"],
@@ -30,17 +31,21 @@ export default function RootLayout({
         <html lang="en">
         <body className={lato.className}>
             <PrimeReactProvider>
-                {/* eslint-disable-next-line @next/next/no-css-tags */}
-                <link id="theme-link" rel="stylesheet" href="/themes/mdc-light-indigo/theme.css" />
-                <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                    <Header />
-                    <main className="agr-page-content">
-                        <div className="agr-container">
-                            {children}
-                        </div>
-                    </main>
-                    <Footer />
-                </div>
+                <LiveRegionProvider>
+                    {/* eslint-disable-next-line @next/next/no-css-tags */}
+                    <link id="theme-link" rel="stylesheet" href="/themes/mdc-light-indigo/theme.css" />
+                    <SkipLinks />
+                    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                        <Header />
+                        <main id="main-content" className="agr-page-content" role="main" tabIndex={-1}>
+                            <div className="agr-container">
+                                {children}
+                            </div>
+                        </main>
+                        <Footer />
+                        <KeyboardShortcuts />
+                    </div>
+                </LiveRegionProvider>
             </PrimeReactProvider>
         </body>
         </html>

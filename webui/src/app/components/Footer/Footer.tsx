@@ -7,7 +7,7 @@ export const Footer: React.FC = () => {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="agr-footer">
+        <footer id="footer" className="agr-footer" role="contentinfo">
             <div className={styles.footerContent}>
                 {/* Main footer grid */}
                 <div className={styles.footerGrid}>
@@ -47,6 +47,11 @@ export const Footer: React.FC = () => {
                                     rel="noopener noreferrer"
                                 >
                                     GitHub Repository
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/accessibility">
+                                    Accessibility
                                 </a>
                             </li>
                         </ul>
