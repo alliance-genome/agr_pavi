@@ -33,24 +33,6 @@ const API_ENDPOINTS: ApiEndpoint[] = [
         description: 'Check API health status',
     },
     {
-        name: 'List Jobs (stub)',
-        method: 'GET',
-        path: '/api/pipeline-job/',
-        description: 'Get pipeline job information',
-    },
-    {
-        name: 'Get Job by UUID',
-        method: 'GET',
-        path: '/api/pipeline-job/{uuid}',
-        description: 'Get specific job status by UUID',
-    },
-    {
-        name: 'Get Job Alignment Result',
-        method: 'GET',
-        path: '/api/pipeline-job/{uuid}/result/alignment',
-        description: 'Get alignment result for a completed job',
-    },
-    {
         name: 'Submit New Job',
         method: 'POST',
         path: '/api/pipeline-job/',
@@ -63,6 +45,18 @@ const API_ENDPOINTS: ApiEndpoint[] = [
                 "seq_regions": [{ "start": 1, "end": 393 }]
             }
         ], null, 2),
+    },
+    {
+        name: 'Get Job by UUID',
+        method: 'GET',
+        path: '/api/pipeline-job/{uuid}',
+        description: 'Get specific job status by UUID (replace {uuid} with actual job ID)',
+    },
+    {
+        name: 'Get Job Alignment Result',
+        method: 'GET',
+        path: '/api/pipeline-job/{uuid}/result/alignment',
+        description: 'Get alignment result for a completed job (replace {uuid})',
     },
 ];
 
