@@ -10,6 +10,7 @@ interface HealthEndpoint {
     name: string;
     url: string;
     description: string;
+    method?: 'GET' | 'OPTIONS' | 'HEAD';
 }
 
 interface HealthResult {
@@ -27,11 +28,13 @@ const HEALTH_ENDPOINTS: HealthEndpoint[] = [
         name: 'API Health',
         url: '/api/health',
         description: 'Main API health endpoint',
+        method: 'GET',
     },
     {
         name: 'Pipeline Jobs API',
         url: '/api/pipeline-job/',
         description: 'Pipeline job submission endpoint',
+        method: 'OPTIONS', // This endpoint only accepts POST, so we use OPTIONS to check availability
     },
 ];
 
@@ -42,10 +45,11 @@ export function HealthStatus() {
 
     const checkEndpoint = useCallback(async (endpoint: HealthEndpoint): Promise<HealthResult> => {
         const startTime = performance.now();
+        const method = endpoint.method || 'GET';
 
         try {
             const response = await fetch(endpoint.url, {
-                method: 'GET',
+                method,
                 headers: {
                     'Accept': 'application/json',
                 },
@@ -55,15 +59,21 @@ export function HealthStatus() {
 
             let details: Record<string, unknown> | undefined;
             try {
-                details = await response.json();
+                const text = await response.text();
+                if (text) {
+                    details = JSON.parse(text);
+                }
             } catch {
                 // Response might not be JSON
             }
 
+            // Consider 2xx and 405 (method not allowed but endpoint exists) as healthy
+            const isHealthy = response.ok || response.status === 405;
+
             return {
                 name: endpoint.name,
                 url: endpoint.url,
-                status: response.ok ? 'healthy' : 'unhealthy',
+                status: isHealthy ? 'healthy' : 'unhealthy',
                 responseTime,
                 details,
                 lastChecked: new Date(),

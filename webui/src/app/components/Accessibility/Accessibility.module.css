@@ -131,36 +131,7 @@
     margin: 0;
 }
 
-/* Focus indicators - enhanced visibility */
-/* Note: These global focus styles are scoped via focusEnhancements class */
-.focusEnhancements :global(*:focus-visible) {
-    outline: 3px solid var(--agr-primary) !important;
-    outline-offset: 2px !important;
-}
-
-.focusEnhancements :global(button:focus-visible),
-.focusEnhancements :global(.p-button:focus-visible) {
-    outline: 3px solid var(--agr-primary) !important;
-    outline-offset: 2px !important;
-    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25) !important;
-}
-
-.focusEnhancements :global(a:focus-visible) {
-    outline: 3px solid var(--agr-primary) !important;
-    outline-offset: 2px !important;
-    border-radius: 2px;
-}
-
-.focusEnhancements :global(input:focus-visible),
-.focusEnhancements :global(textarea:focus-visible),
-.focusEnhancements :global(select:focus-visible),
-.focusEnhancements :global(.p-inputtext:focus-visible) {
-    outline: 3px solid var(--agr-primary) !important;
-    outline-offset: 0 !important;
-    border-color: var(--agr-primary) !important;
-}
-
-/* High contrast mode adjustments */
+/* High contrast mode adjustments for local styles */
 @media (prefers-contrast: high) {
     .skipLink:focus {
         outline: 4px solid #000;
@@ -170,23 +141,11 @@
     .kbd {
         border: 2px solid #000;
     }
-
-    .focusEnhancements :global(*:focus-visible) {
-        outline: 4px solid #000 !important;
-        outline-offset: 3px !important;
-    }
 }
 
-/* Reduced motion preferences */
+/* Reduced motion preferences for local styles */
 @media (prefers-reduced-motion: reduce) {
     .skipLink {
         transition: none;
-    }
-
-    .reducedMotion :global(*) {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
     }
 }
