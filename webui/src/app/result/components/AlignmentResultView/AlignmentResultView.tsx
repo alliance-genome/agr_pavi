@@ -10,6 +10,7 @@ import { displayModeType } from './types';
 import { TextAlignment } from '../TextAlignment/TextAlignment';
 import { SeqInfoDict } from '../InteractiveAlignment/types';
 import { FailureDisplay } from '../FailureDisplay/FailureDisplay';
+import { ResultsSummary } from '../ResultsSummary';
 
 const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
 const VirtualizedAlignment = dynamic(() => import('../InteractiveAlignment/VirtualizedAlignment'), { ssr: false })
@@ -33,6 +34,8 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const [alignmentResult, setAlignmentResult] = useState<string>('')
     const [alignmentSeqInfo, setAlignmentSeqInfo] = useState<SeqInfoDict>({})
     const [seqFailures, setSeqFailures] = useState<Map<string, string>>(new Map<string, string>())
+    const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [loadedAt, setLoadedAt] = useState<Date | undefined>(undefined)
     function changeDisplayMode(displayMode: displayModeType) {
         console.log(`Changing display mode to ${displayMode}.`)
         setDisplayMode(displayMode)
@@ -40,6 +43,8 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
 
 
     async function getAlignmentResult(){
+        setIsLoading(true)
+
         // Fetch alignment output
         const result = await fetchAlignmentResults(props.uuidStr)
         if(result){
@@ -72,6 +77,31 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         else{
             setSeqFailures(new Map<string, string>())
         }
+
+        setLoadedAt(new Date())
+        setIsLoading(false)
+    }
+
+    const handleDownload = () => {
+        if (!alignmentResult) return
+
+        const blob = new Blob([alignmentResult], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `alignment-${props.uuidStr.slice(0, 8)}.fasta`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+    }
+
+    const handleShare = () => {
+        const url = `${window.location.origin}/result?uuid=${props.uuidStr}`
+        navigator.clipboard.writeText(url).then(() => {
+            // Could add a toast notification here
+            console.log('Result URL copied to clipboard')
+        })
     }
 
     useEffect(
@@ -109,10 +139,18 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         <div className="agr-page-section">
             <div className="agr-page-header">
                 <h1>Alignment Results</h1>
-                <p className="agr-page-description">
-                    Job ID: <code className="agr-code">{props.uuidStr}</code>
-                </p>
             </div>
+
+            {/* Results Summary Panel */}
+            <ResultsSummary
+                jobId={props.uuidStr}
+                alignmentResult={alignmentResult}
+                seqInfoDict={alignmentSeqInfo}
+                isLoading={isLoading}
+                completedAt={loadedAt}
+                onDownload={alignmentResult ? handleDownload : undefined}
+                onShare={handleShare}
+            />
 
             {seqFailures && seqFailures.size > 0 && (
                 <div className="agr-card agr-card-warning">

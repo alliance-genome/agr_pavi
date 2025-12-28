@@ -1,0 +1,175 @@
+/* VisualizationToolbar Component Styles */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--agr-gray-50);
+    border-bottom: 1px solid var(--agr-gray-200);
+    flex-wrap: wrap;
+}
+
+.toolbarGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toolbarDivider {
+    width: 1px;
+    height: 24px;
+    background: var(--agr-gray-300);
+    margin: 0 0.25rem;
+}
+
+.toolbarLabel {
+    font-size: 0.8rem;
+    color: var(--agr-gray-600);
+    margin-right: 0.25rem;
+}
+
+/* Zoom Controls */
+.zoomControls {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.zoomValue {
+    font-size: 0.8rem;
+    font-weight: 500;
+    min-width: 48px;
+    text-align: center;
+    color: var(--agr-gray-700);
+}
+
+.zoomSlider {
+    width: 100px;
+}
+
+.zoomSlider :global(.p-slider) {
+    background: var(--agr-gray-200);
+}
+
+.zoomSlider :global(.p-slider-range) {
+    background: var(--agr-primary);
+}
+
+.zoomSlider :global(.p-slider-handle) {
+    border-color: var(--agr-primary);
+    width: 12px;
+    height: 12px;
+}
+
+/* Button Styles */
+.toolbarButton {
+    border: none;
+    background: transparent;
+    color: var(--agr-gray-600);
+    padding: 0.5rem;
+    border-radius: var(--agr-border-radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolbarButton:hover {
+    background: var(--agr-gray-200);
+    color: var(--agr-gray-900);
+}
+
+.toolbarButton:focus {
+    outline: 2px solid var(--agr-primary);
+    outline-offset: 2px;
+}
+
+.toolbarButton.active {
+    background: var(--agr-primary);
+    color: white;
+}
+
+.toolbarButton.active:hover {
+    background: var(--agr-primary-dark);
+}
+
+/* Fullscreen Button */
+.fullscreenButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.fullscreenButton span {
+    font-size: 0.8rem;
+}
+
+/* Export Menu */
+.exportMenu {
+    position: relative;
+}
+
+.exportMenuButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.exportMenuButton span {
+    font-size: 0.8rem;
+}
+
+/* Toggle Button Group */
+.toggleGroup {
+    display: flex;
+    border: 1px solid var(--agr-gray-300);
+    border-radius: var(--agr-border-radius-sm);
+    overflow: hidden;
+}
+
+.toggleGroup .toolbarButton {
+    border-radius: 0;
+    border-right: 1px solid var(--agr-gray-300);
+}
+
+.toggleGroup .toolbarButton:last-child {
+    border-right: none;
+}
+
+/* Search/Filter */
+.searchInput {
+    min-width: 150px;
+}
+
+.searchInput :global(.p-inputtext) {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.5rem;
+    }
+
+    .toolbarGroup {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .zoomSlider {
+        width: 80px;
+    }
+
+    .toolbarDivider {
+        display: none;
+    }
+}

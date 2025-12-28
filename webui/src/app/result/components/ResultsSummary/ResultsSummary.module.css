@@ -1,0 +1,239 @@
+/* ResultsSummary Component Styles */
+
+.container {
+    margin-bottom: 1.5rem;
+}
+
+.summaryCard {
+    border-left: 4px solid var(--agr-success);
+}
+
+.summaryCard.warning {
+    border-left-color: var(--agr-warning);
+}
+
+.summaryCard.error {
+    border-left-color: var(--agr-error);
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.titleSection {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.statusIcon {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.25rem;
+}
+
+.statusIcon.success {
+    background: var(--agr-success-light);
+    color: var(--agr-success-dark);
+}
+
+.statusIcon.warning {
+    background: var(--agr-warning-light);
+    color: var(--agr-warning-dark);
+}
+
+.statusIcon.error {
+    background: var(--agr-error-light);
+    color: var(--agr-error-dark);
+}
+
+.titleText h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--agr-gray-900);
+}
+
+.titleText p {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    color: var(--agr-gray-600);
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--agr-gray-600);
+}
+
+.statValue {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--agr-gray-900);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.statValue i {
+    font-size: 1rem;
+}
+
+.statValue.success {
+    color: var(--agr-success-dark);
+}
+
+.statValue.warning {
+    color: var(--agr-warning-dark);
+}
+
+.statValue.error {
+    color: var(--agr-error-dark);
+}
+
+/* Quality Indicators */
+.qualitySection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--agr-gray-50);
+    border-radius: var(--agr-border-radius-sm);
+    margin-bottom: 1.5rem;
+}
+
+.qualityItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.qualityLabel {
+    font-size: 0.875rem;
+    color: var(--agr-gray-700);
+}
+
+.qualityBar {
+    width: 100px;
+    height: 8px;
+    background: var(--agr-gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.qualityFill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.qualityFill.excellent {
+    background: var(--agr-success);
+}
+
+.qualityFill.good {
+    background: var(--agr-success-light);
+}
+
+.qualityFill.moderate {
+    background: var(--agr-warning);
+}
+
+.qualityFill.poor {
+    background: var(--agr-error);
+}
+
+.qualityValue {
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 36px;
+}
+
+/* Job Details */
+.detailsSection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.875rem;
+}
+
+.detailItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--agr-gray-600);
+}
+
+.detailItem i {
+    color: var(--agr-gray-400);
+}
+
+.detailItem code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8rem;
+    background: var(--agr-gray-100);
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    color: var(--agr-gray-500);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .actions {
+        justify-content: flex-start;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .qualitySection {
+        flex-direction: column;
+    }
+
+    .detailsSection {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}

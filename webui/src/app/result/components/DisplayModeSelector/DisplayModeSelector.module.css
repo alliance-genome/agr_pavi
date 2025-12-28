@@ -1,0 +1,231 @@
+/* DisplayModeSelector Component Styles */
+
+.container {
+    width: 100%;
+}
+
+/* Tab Container */
+.tabContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    border-bottom: 2px solid var(--agr-gray-200);
+    margin-bottom: 1rem;
+}
+
+/* Individual Tab */
+.tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    color: var(--agr-gray-600);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.tab:hover {
+    color: var(--agr-primary);
+    background: var(--agr-gray-50);
+}
+
+.tab:focus {
+    outline: none;
+}
+
+.tab:focus-visible {
+    outline: 2px solid var(--agr-primary);
+    outline-offset: 2px;
+    border-radius: var(--agr-border-radius-sm);
+}
+
+.tab.active {
+    color: var(--agr-primary);
+    border-bottom-color: var(--agr-primary);
+}
+
+.tabIcon {
+    font-size: 1rem;
+}
+
+.tabLabel {
+    display: inline;
+}
+
+.tabDescription {
+    display: none;
+    font-size: 0.75rem;
+    color: var(--agr-gray-500);
+    font-weight: 400;
+}
+
+/* Tab with description on hover */
+.tab:hover .tabDescription,
+.tab.active .tabDescription {
+    display: block;
+}
+
+/* Badge for new/beta features */
+.tabBadge {
+    font-size: 0.65rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.tabBadge.new {
+    background: var(--agr-success-light);
+    color: var(--agr-success-dark);
+}
+
+.tabBadge.beta {
+    background: var(--agr-warning-light);
+    color: var(--agr-warning-dark);
+}
+
+.tabBadge.recommended {
+    background: var(--agr-primary-light);
+    color: var(--agr-primary-dark);
+}
+
+/* Card Style Tabs */
+.cardTabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 0;
+    border-bottom: none;
+}
+
+.cardTab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem 1rem;
+    background: var(--agr-gray-50);
+    border: 2px solid var(--agr-gray-200);
+    border-radius: var(--agr-border-radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.cardTab:hover {
+    border-color: var(--agr-primary);
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cardTab:focus-visible {
+    outline: 2px solid var(--agr-primary);
+    outline-offset: 2px;
+}
+
+.cardTab.active {
+    border-color: var(--agr-primary);
+    background: var(--agr-primary-light);
+}
+
+.cardTab .tabIcon {
+    font-size: 2rem;
+    color: var(--agr-gray-500);
+}
+
+.cardTab.active .tabIcon {
+    color: var(--agr-primary);
+}
+
+.cardTab .tabLabel {
+    font-weight: 600;
+    color: var(--agr-gray-900);
+}
+
+.cardTab .tabDescription {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+/* Segmented Control Style */
+.segmentedTabs {
+    display: inline-flex;
+    background: var(--agr-gray-100);
+    border-radius: var(--agr-border-radius-md);
+    padding: 0.25rem;
+    border-bottom: none;
+    gap: 0;
+}
+
+.segmentedTab {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: calc(var(--agr-border-radius-md) - 2px);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--agr-gray-600);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-bottom: 0;
+}
+
+.segmentedTab:hover {
+    color: var(--agr-gray-900);
+}
+
+.segmentedTab.active {
+    background: white;
+    color: var(--agr-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Content Area */
+.contentArea {
+    min-height: 200px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tabContainer {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .tabContainer::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .tabDescription {
+        display: none !important;
+    }
+
+    .cardTabs {
+        grid-template-columns: 1fr;
+    }
+
+    .segmentedTabs {
+        width: 100%;
+    }
+
+    .segmentedTab {
+        flex: 1;
+        text-align: center;
+    }
+}
