@@ -39,25 +39,28 @@ const API_ENDPOINTS: ApiEndpoint[] = [
         description: 'Submit a new pipeline job',
         sampleBody: JSON.stringify([
             {
-                "gene_symbol": "TP53",
-                "base_seq_name": "Homo sapiens",
+                "unique_entry_id": "test-entry-1",
+                "base_seq_name": "Homo sapiens TP53",
                 "seq_id": "NP_000537.3",
                 "seq_strand": "+",
-                "seq_regions": [{ "start": 1, "end": 393 }]
+                "exon_seq_regions": [{ "start": 1, "end": 393 }],
+                "cds_seq_regions": [{ "start": 1, "end": 393, "frame": 0 }],
+                "fasta_file_url": "https://example.com/sequence.fasta",
+                "variant_ids": []
             }
         ], null, 2),
     },
     {
         name: 'Get Job by UUID',
         method: 'GET',
-        path: '/api/pipeline-job/{uuid}',
-        description: 'Get specific job status by UUID (replace {uuid} with actual job ID)',
+        path: '/api/pipeline-job/YOUR-UUID-HERE',
+        description: 'Replace YOUR-UUID-HERE with a job UUID from "Submit New Job" (e.g., aa3d0cc4-e420-11f0-a739-d0817ad57bdf)',
     },
     {
         name: 'Get Job Alignment Result',
         method: 'GET',
-        path: '/api/pipeline-job/{uuid}/result/alignment',
-        description: 'Get alignment result for a completed job (replace {uuid})',
+        path: '/api/pipeline-job/YOUR-UUID-HERE/result/alignment',
+        description: 'Replace YOUR-UUID-HERE with a completed job UUID to get alignment results',
     },
 ];
 
