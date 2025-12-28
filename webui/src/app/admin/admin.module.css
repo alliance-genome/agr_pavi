@@ -112,6 +112,11 @@
     border-radius: var(--agr-border-radius-sm);
 }
 
+/* Icon spacing in tabs */
+.main :global(.p-tabview-nav-link) i {
+    margin-right: 0.5rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .header {

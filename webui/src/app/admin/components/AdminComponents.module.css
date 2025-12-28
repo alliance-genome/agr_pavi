@@ -125,8 +125,12 @@
 .healthCardHeader {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-bottom: 0.75rem;
+}
+
+.healthCardHeader i {
+    font-size: 1.25rem;
 }
 
 .healthCardHeader h3 {
