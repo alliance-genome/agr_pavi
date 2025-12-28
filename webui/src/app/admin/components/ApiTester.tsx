@@ -40,6 +40,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
         sampleBody: JSON.stringify([
             {
                 "gene_symbol": "TP53",
+                "base_seq_name": "Homo sapiens",
                 "seq_id": "NP_000537.3",
                 "seq_strand": "+",
                 "seq_regions": [{ "start": 1, "end": 393 }]
