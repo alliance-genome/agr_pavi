@@ -113,8 +113,14 @@
 }
 
 /* Icon spacing in tabs */
-.main :global(.p-tabview-nav-link) i {
+.main :global(.p-tabview-nav-link) i,
+.main :global(.p-tabview-nav-link) span[class*="pi-"] {
     margin-right: 0.5rem;
+}
+
+/* Fix PrimeReact tab icon spacing */
+.main :global(.p-tabview-left-icon) {
+    margin-right: 0.5rem !important;
 }
 
 /* Responsive */

@@ -110,22 +110,22 @@ export default function AdminPage() {
 
             <main className={styles.main}>
                 <TabView>
-                    <TabPanel header="Health Status" leftIcon="pi pi-heart mr-2">
+                    <TabPanel header="Health Status" leftIcon="pi pi-heart">
                         <HealthStatus />
                     </TabPanel>
-                    <TabPanel header="Job Analytics" leftIcon="pi pi-chart-bar mr-2">
+                    <TabPanel header="Job Analytics" leftIcon="pi pi-chart-bar">
                         <JobAnalytics />
                     </TabPanel>
-                    <TabPanel header="Step Functions" leftIcon="pi pi-sitemap mr-2">
+                    <TabPanel header="Step Functions" leftIcon="pi pi-sitemap">
                         <StepFunctionsMonitor />
                     </TabPanel>
-                    <TabPanel header="Batch Jobs" leftIcon="pi pi-server mr-2">
+                    <TabPanel header="Batch Jobs" leftIcon="pi pi-server">
                         <BatchJobMonitor />
                     </TabPanel>
-                    <TabPanel header="API Testing" leftIcon="pi pi-code mr-2">
+                    <TabPanel header="API Testing" leftIcon="pi pi-code">
                         <ApiTester />
                     </TabPanel>
-                    <TabPanel header="E2E Testing" leftIcon="pi pi-play mr-2">
+                    <TabPanel header="E2E Testing" leftIcon="pi pi-play">
                         <JobSubmissionTester />
                     </TabPanel>
                 </TabView>
