@@ -25,40 +25,54 @@ interface TestStep {
 
 const TEST_SCENARIOS: TestScenario[] = [
     {
-        name: 'Single Sequence Test',
-        description: 'Submit a minimal job with two sequences',
+        name: 'Two Sequence Alignment',
+        description: 'Submit a minimal job with two test sequences',
         payload: [
             {
-                gene_symbol: "TEST1",
+                unique_entry_id: "test-entry-1",
+                base_seq_name: "Test Sequence 1",
                 seq_id: "test-seq-1",
                 seq_strand: "+",
-                seq_regions: [{ start: 1, end: 100 }],
-                raw_seq: "MVLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSH"
+                exon_seq_regions: [{ start: 1, end: 100 }],
+                cds_seq_regions: [{ start: 1, end: 100, frame: 0 }],
+                fasta_file_url: "https://example.com/test1.fasta",
+                variant_ids: []
             },
             {
-                gene_symbol: "TEST2",
+                unique_entry_id: "test-entry-2",
+                base_seq_name: "Test Sequence 2",
                 seq_id: "test-seq-2",
                 seq_strand: "+",
-                seq_regions: [{ start: 1, end: 100 }],
-                raw_seq: "MVLSGEDKSNIKAAWGKIGGHGAEYGAEALERMFASFPTTKTYFPHFDVSH"
+                exon_seq_regions: [{ start: 1, end: 100 }],
+                cds_seq_regions: [{ start: 1, end: 100, frame: 0 }],
+                fasta_file_url: "https://example.com/test2.fasta",
+                variant_ids: []
             }
         ],
     },
     {
-        name: 'Cross-Species Comparison',
-        description: 'Compare TP53 orthologs across species',
+        name: 'TP53 Cross-Species',
+        description: 'Compare TP53 orthologs (Human vs Mouse)',
         payload: [
             {
-                gene_symbol: "TP53_HUMAN",
+                unique_entry_id: "tp53-human",
+                base_seq_name: "Homo sapiens TP53",
                 seq_id: "NP_000537.3",
                 seq_strand: "+",
-                seq_regions: [{ start: 1, end: 393 }]
+                exon_seq_regions: [{ start: 1, end: 393 }],
+                cds_seq_regions: [{ start: 1, end: 393, frame: 0 }],
+                fasta_file_url: "https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id=NP_000537.3&db=protein&report=fasta",
+                variant_ids: []
             },
             {
-                gene_symbol: "Trp53_MOUSE",
+                unique_entry_id: "trp53-mouse",
+                base_seq_name: "Mus musculus Trp53",
                 seq_id: "NP_035770.2",
                 seq_strand: "+",
-                seq_regions: [{ start: 1, end: 390 }]
+                exon_seq_regions: [{ start: 1, end: 390 }],
+                cds_seq_regions: [{ start: 1, end: 390, frame: 0 }],
+                fasta_file_url: "https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id=NP_035770.2&db=protein&report=fasta",
+                variant_ids: []
             }
         ],
     },
@@ -69,14 +83,17 @@ const TEST_SCENARIOS: TestScenario[] = [
     },
     {
         name: 'Error Test - Single Sequence',
-        description: 'Test validation with only one sequence',
+        description: 'Test validation error with only one sequence (requires 2+)',
         payload: [
             {
-                gene_symbol: "SOLO",
+                unique_entry_id: "solo-entry",
+                base_seq_name: "Solo Sequence",
                 seq_id: "test-single",
                 seq_strand: "+",
-                seq_regions: [{ start: 1, end: 50 }],
-                raw_seq: "MVLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSH"
+                exon_seq_regions: [{ start: 1, end: 50 }],
+                cds_seq_regions: [{ start: 1, end: 50, frame: 0 }],
+                fasta_file_url: "https://example.com/solo.fasta",
+                variant_ids: []
             }
         ],
     },
