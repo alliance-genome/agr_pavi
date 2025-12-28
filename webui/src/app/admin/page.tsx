@@ -13,7 +13,7 @@ import { BatchJobMonitor } from './components/BatchJobMonitor';
 import { ApiTester } from './components/ApiTester';
 import { JobSubmissionTester } from './components/JobSubmissionTester';
 
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'pavi-admin-2024';
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'pavi-admin-2025';
 
 export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
