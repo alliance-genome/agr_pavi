@@ -132,28 +132,29 @@
 }
 
 /* Focus indicators - enhanced visibility */
-:global(*:focus-visible) {
+/* Note: These global focus styles are scoped via focusEnhancements class */
+.focusEnhancements :global(*:focus-visible) {
     outline: 3px solid var(--agr-primary) !important;
     outline-offset: 2px !important;
 }
 
-:global(button:focus-visible),
-:global(.p-button:focus-visible) {
+.focusEnhancements :global(button:focus-visible),
+.focusEnhancements :global(.p-button:focus-visible) {
     outline: 3px solid var(--agr-primary) !important;
     outline-offset: 2px !important;
     box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25) !important;
 }
 
-:global(a:focus-visible) {
+.focusEnhancements :global(a:focus-visible) {
     outline: 3px solid var(--agr-primary) !important;
     outline-offset: 2px !important;
     border-radius: 2px;
 }
 
-:global(input:focus-visible),
-:global(textarea:focus-visible),
-:global(select:focus-visible),
-:global(.p-inputtext:focus-visible) {
+.focusEnhancements :global(input:focus-visible),
+.focusEnhancements :global(textarea:focus-visible),
+.focusEnhancements :global(select:focus-visible),
+.focusEnhancements :global(.p-inputtext:focus-visible) {
     outline: 3px solid var(--agr-primary) !important;
     outline-offset: 0 !important;
     border-color: var(--agr-primary) !important;
@@ -170,7 +171,7 @@
         border: 2px solid #000;
     }
 
-    :global(*:focus-visible) {
+    .focusEnhancements :global(*:focus-visible) {
         outline: 4px solid #000 !important;
         outline-offset: 3px !important;
     }
@@ -182,7 +183,7 @@
         transition: none;
     }
 
-    :global(*) {
+    .reducedMotion :global(*) {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
