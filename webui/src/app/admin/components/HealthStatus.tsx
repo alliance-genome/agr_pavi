@@ -152,14 +152,16 @@ export function HealthStatus() {
         setFetchError(null);
         try {
             const baseUrl = selectedEnv.apiUrl;
-            const url = baseUrl ? `${baseUrl}/api/deployment-status` : '/api/deployment-status';
+            // For external APIs, use our proxy to avoid CORS issues
+            // For local, call the deployment-status route directly
+            const url = baseUrl
+                ? `/api/proxy-deployment-status?url=${encodeURIComponent(`${baseUrl}/api/deployment-status`)}`
+                : '/api/deployment-status';
 
             const response = await fetch(url, {
                 headers: {
                     'Accept': 'application/json',
                 },
-                // For CORS requests to external APIs
-                mode: baseUrl ? 'cors' : 'same-origin',
             });
 
             if (response.ok) {
@@ -333,7 +335,7 @@ export function HealthStatus() {
                 {selectedEnv.apiUrl && (
                     <span className={styles.corsWarning}>
                         <i className="pi pi-info-circle" />
-                        External API calls may be blocked by browser security (CORS)
+                        Checking status via {selectedEnv.label}
                     </span>
                 )}
             </div>
@@ -455,13 +457,14 @@ export function HealthStatus() {
                                             </ul>
                                         </div>
                                     ) : (
-                                        // CORS issue with remote API
+                                        // Remote API error
                                         <div className={styles.corsHelp}>
                                             <p>
-                                                <strong>Note:</strong> Direct browser requests to external APIs are blocked by CORS security.
+                                                <strong>Error:</strong> {fetchError}
                                             </p>
                                             <p>
-                                                To check {selectedEnv.label} status, visit the API directly:
+                                                The {selectedEnv.label} API may be unavailable or the deployment-status
+                                                endpoint may not exist on this environment.
                                             </p>
                                             <a
                                                 href={`${selectedEnv.apiUrl}/api/deployment-status`}
@@ -470,7 +473,7 @@ export function HealthStatus() {
                                                 className={styles.externalLink}
                                             >
                                                 <i className="pi pi-external-link" />
-                                                {selectedEnv.apiUrl}/api/deployment-status
+                                                Open API directly
                                             </a>
                                         </div>
                                     )}
