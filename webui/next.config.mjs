@@ -1,3 +1,9 @@
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const withBundleAnalyzer = bundleAnalyzer({
+    enabled: process.env.ANALYZE === 'true',
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     eslint: {
@@ -11,7 +17,15 @@ const nextConfig = {
             'https://raw.githubusercontent.com/alliance-genome/agr_ui/test/',
             'https://raw.githubusercontent.com/alliance-genome/agr_ui/stage/'
         ]
-    }
+    },
+    // Performance budgets
+    // webpack: (config, { isServer }) => {
+    //     // Enable webpack analyzer for detailed bundle analysis
+    //     if (process.env.ANALYZE === 'true') {
+    //         // Bundle analyzer is handled by withBundleAnalyzer
+    //     }
+    //     return config;
+    // },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

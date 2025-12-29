@@ -9,7 +9,6 @@ import { submitNewPipelineJob } from './serverActions';
 import { AlignmentEntryList } from '../AlignmentEntryList/AlignmentEntryList';
 import { AlignmentEntryStatus } from '../AlignmentEntry/types';
 import { FormIntroduction } from '../FormIntroduction';
-import { ExampleDataLoader, ExampleData } from '../ExampleDataLoader';
 import { ValidationSummary } from '../ValidationMessage';
 
 import { JobType, JobSumbissionPayloadRecord, InputPayloadDispatchAction, InputPayloadPart, InputPayloadPartMap } from './types';
@@ -117,32 +116,6 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     const [displayMsg, setDisplayMsg] = useState('')
     const [validationErrors, setValidationErrors] = useState<string[]>([])
 
-    // Handle example data loading
-    const handleLoadExample = useCallback((example: ExampleData) => {
-        console.log('Loading example data:', example.name);
-        // For now, log the example - integration with AlignmentEntryList
-        // will be implemented in a follow-up when we add gene pre-population
-        console.log('Example genes:', example.genes);
-        // TODO: Dispatch actions to pre-populate AlignmentEntryList with example genes
-    }, [])
-
-    // Simple handler for FormIntroduction that opens the example dialog
-    const handleTryExample = useCallback(() => {
-        // This triggers the ExampleDataLoader dialog to open
-        // For now, we'll use a simple example directly
-        const defaultExample: ExampleData = {
-            id: 'tp53-orthologs',
-            name: 'TP53 Orthologs',
-            description: 'Compare the tumor suppressor protein p53 across human, mouse, and zebrafish',
-            category: 'cross-species',
-            genes: [
-                { geneId: 'HGNC:11998', geneName: 'TP53', species: 'Homo sapiens' },
-                { geneId: 'MGI:98834', geneName: 'Trp53', species: 'Mus musculus' },
-            ],
-        };
-        handleLoadExample(defaultExample);
-    }, [handleLoadExample])
-
     const jobDisplayMsg = useCallback( () => {
         if (job['status'] === 'expected' || job['status'] === 'submitting') {
             return ''
@@ -219,23 +192,13 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
 
     return (
         <div className="agr-page-section">
-            <FormIntroduction
-                onLoadExample={handleTryExample}
-                showExampleButton={true}
-            />
+            <FormIntroduction />
 
             <ValidationSummary errors={validationErrors} />
 
             <div className="agr-card">
                 <div className="agr-card-header">
                     <h2>Alignment Entries</h2>
-                    <div style={{ marginLeft: 'auto' }}>
-                        <ExampleDataLoader
-                            onLoadExample={handleLoadExample}
-                            buttonLabel="Load Example"
-                            buttonIcon="pi pi-database"
-                        />
-                    </div>
                 </div>
                 <div className="agr-card-body">
                     <AlignmentEntryList agrjBrowseDataRelease={props.agrjBrowseDataRelease}

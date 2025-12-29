@@ -1,25 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Button } from 'primereact/button';
 import styles from './FormIntroduction.module.css';
 
-interface FormIntroductionProps {
-    onLoadExample?: () => void;
-    showExampleButton?: boolean;
-}
-
-// Wrapper to handle the click without passing example data
-const handleTryExampleClick = (onLoadExample?: () => void) => {
-    if (onLoadExample) {
-        onLoadExample();
-    }
-};
-
-export const FormIntroduction: React.FC<FormIntroductionProps> = ({
-    onLoadExample,
-    showExampleButton = true,
-}) => {
+export const FormIntroduction: React.FC = () => {
     return (
         <div className={styles.introduction}>
             <div className={styles.content}>
@@ -54,26 +38,6 @@ export const FormIntroduction: React.FC<FormIntroductionProps> = ({
                     </div>
                 </div>
 
-                <div className={styles.actions}>
-                    {showExampleButton && onLoadExample && (
-                        <Button
-                            label="Try an Example"
-                            icon="pi pi-play"
-                            className="p-button-outlined"
-                            onClick={() => handleTryExampleClick(onLoadExample)}
-                            aria-label="Load example data to see how PAVI works"
-                        />
-                    )}
-                    <a
-                        href="https://www.alliancegenome.org/help"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.helpLink}
-                    >
-                        <i className="pi pi-question-circle" aria-hidden="true" />
-                        Learn more about alignments
-                    </a>
-                </div>
             </div>
 
             <div className={styles.illustration} aria-hidden="true">
