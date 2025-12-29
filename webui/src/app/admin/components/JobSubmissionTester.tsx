@@ -25,53 +25,155 @@ interface TestStep {
 
 const TEST_SCENARIOS: TestScenario[] = [
     {
-        name: 'Two Sequence Alignment',
-        description: 'Submit a minimal job with two test sequences',
+        name: 'C. elegans APL-1 Isoforms',
+        description: 'Compare two APL-1 transcript isoforms from C. elegans',
         payload: [
             {
-                unique_entry_id: "test-entry-1",
-                base_seq_name: "Test Sequence 1",
-                seq_id: "test-seq-1",
-                seq_strand: "+",
-                exon_seq_regions: [{ start: 1, end: 100 }],
-                cds_seq_regions: [{ start: 1, end: 100, frame: 0 }],
-                fasta_file_url: "https://example.com/test1.fasta",
+                unique_entry_id: "apl-1_C42D8.8a.1",
+                base_seq_name: "apl-1_C42D8.8a.1",
+                fasta_file_url: "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+                seq_id: "X",
+                seq_strand: "-",
+                exon_seq_regions: [
+                    { start: 5116866, end: 5116799 },
+                    { start: 5116338, end: 5116171 },
+                    { start: 5115682, end: 5115556 },
+                    { start: 5115372, end: 5115139 },
+                    { start: 5115002, end: 5114910 },
+                    { start: 5114856, end: 5114723 },
+                    { start: 5114583, end: 5114374 },
+                    { start: 5114320, end: 5114124 },
+                    { start: 5114080, end: 5113898 },
+                    { start: 5113848, end: 5113650 },
+                    { start: 5113597, end: 5113469 },
+                    { start: 5113420, end: 5112422 }
+                ],
+                cds_seq_regions: [
+                    { start: 5116864, end: 5116799, frame: 0 },
+                    { start: 5116338, end: 5116171, frame: 0 },
+                    { start: 5115682, end: 5115556, frame: 0 },
+                    { start: 5115372, end: 5115139, frame: 2 },
+                    { start: 5115002, end: 5114910, frame: 2 },
+                    { start: 5114856, end: 5114723, frame: 2 },
+                    { start: 5114583, end: 5114374, frame: 0 },
+                    { start: 5114320, end: 5114124, frame: 0 },
+                    { start: 5114080, end: 5113898, frame: 1 },
+                    { start: 5113848, end: 5113650, frame: 1 },
+                    { start: 5113597, end: 5113469, frame: 0 },
+                    { start: 5113420, end: 5113100, frame: 0 }
+                ],
                 variant_ids: []
             },
             {
-                unique_entry_id: "test-entry-2",
-                base_seq_name: "Test Sequence 2",
-                seq_id: "test-seq-2",
-                seq_strand: "+",
-                exon_seq_regions: [{ start: 1, end: 100 }],
-                cds_seq_regions: [{ start: 1, end: 100, frame: 0 }],
-                fasta_file_url: "https://example.com/test2.fasta",
+                unique_entry_id: "apl-1_C42D8.8b.1",
+                base_seq_name: "apl-1_C42D8.8b.1",
+                fasta_file_url: "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+                seq_id: "X",
+                seq_strand: "-",
+                exon_seq_regions: [
+                    { start: 5116864, end: 5116799 },
+                    { start: 5116338, end: 5116171 },
+                    { start: 5115682, end: 5115556 },
+                    { start: 5115372, end: 5115139 },
+                    { start: 5115002, end: 5114910 },
+                    { start: 5114856, end: 5114723 },
+                    { start: 5114583, end: 5114374 },
+                    { start: 5114320, end: 5114124 },
+                    { start: 5114080, end: 5113898 },
+                    { start: 5113848, end: 5113650 },
+                    { start: 5113591, end: 5113469 },
+                    { start: 5113420, end: 5113100 }
+                ],
+                cds_seq_regions: [
+                    { start: 5116864, end: 5116799, frame: 0 },
+                    { start: 5116338, end: 5116171, frame: 0 },
+                    { start: 5115682, end: 5115556, frame: 0 },
+                    { start: 5115372, end: 5115139, frame: 2 },
+                    { start: 5115002, end: 5114910, frame: 2 },
+                    { start: 5114856, end: 5114723, frame: 2 },
+                    { start: 5114583, end: 5114374, frame: 0 },
+                    { start: 5114320, end: 5114124, frame: 0 },
+                    { start: 5114080, end: 5113898, frame: 1 },
+                    { start: 5113848, end: 5113650, frame: 1 },
+                    { start: 5113591, end: 5113469, frame: 0 },
+                    { start: 5113420, end: 5113100, frame: 0 }
+                ],
                 variant_ids: []
             }
         ],
     },
     {
-        name: 'TP53 Cross-Species',
-        description: 'Compare TP53 orthologs (Human vs Mouse)',
+        name: 'Drosophila Appl Isoforms',
+        description: 'Compare two Appl transcript isoforms from D. melanogaster',
         payload: [
             {
-                unique_entry_id: "tp53-human",
-                base_seq_name: "Homo sapiens TP53",
-                seq_id: "NP_000537.3",
+                unique_entry_id: "Appl_Appl-RA",
+                base_seq_name: "Appl_Appl-RA",
+                fasta_file_url: "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz",
+                seq_id: "X",
                 seq_strand: "+",
-                exon_seq_regions: [{ start: 1, end: 393 }],
-                cds_seq_regions: [{ start: 1, end: 393, frame: 0 }],
-                fasta_file_url: "https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id=NP_000537.3&db=protein&report=fasta",
+                exon_seq_regions: [
+                    { start: 530501, end: 530534 },
+                    { start: 531627, end: 531876 },
+                    { start: 560606, end: 560776 },
+                    { start: 570862, end: 571000 },
+                    { start: 571134, end: 571352 },
+                    { start: 571427, end: 572070 },
+                    { start: 572149, end: 572289 },
+                    { start: 573853, end: 574002 },
+                    { start: 574196, end: 574878 },
+                    { start: 574942, end: 575089 },
+                    { start: 575168, end: 575350 },
+                    { start: 575471, end: 578130 }
+                ],
+                cds_seq_regions: [
+                    { start: 531799, end: 531876, frame: 0 },
+                    { start: 560606, end: 560776, frame: 0 },
+                    { start: 570862, end: 571000, frame: 0 },
+                    { start: 571134, end: 571352, frame: 2 },
+                    { start: 571427, end: 572070, frame: 2 },
+                    { start: 572149, end: 572289, frame: 0 },
+                    { start: 573853, end: 574002, frame: 0 },
+                    { start: 574196, end: 574878, frame: 0 },
+                    { start: 574942, end: 575089, frame: 1 },
+                    { start: 575168, end: 575350, frame: 0 },
+                    { start: 575471, end: 575578, frame: 0 }
+                ],
                 variant_ids: []
             },
             {
-                unique_entry_id: "trp53-mouse",
-                base_seq_name: "Mus musculus Trp53",
-                seq_id: "NP_035770.2",
+                unique_entry_id: "Appl_Appl-RB",
+                base_seq_name: "Appl_Appl-RB",
+                fasta_file_url: "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz",
+                seq_id: "X",
                 seq_strand: "+",
-                exon_seq_regions: [{ start: 1, end: 390 }],
-                cds_seq_regions: [{ start: 1, end: 390, frame: 0 }],
-                fasta_file_url: "https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id=NP_035770.2&db=protein&report=fasta",
+                exon_seq_regions: [
+                    { start: 531170, end: 531189 },
+                    { start: 531627, end: 531876 },
+                    { start: 560606, end: 560776 },
+                    { start: 570862, end: 571000 },
+                    { start: 571134, end: 571352 },
+                    { start: 571427, end: 572070 },
+                    { start: 572149, end: 572289 },
+                    { start: 573853, end: 574002 },
+                    { start: 574196, end: 574878 },
+                    { start: 574945, end: 575089 },
+                    { start: 575168, end: 575362 },
+                    { start: 575471, end: 579044 }
+                ],
+                cds_seq_regions: [
+                    { start: 531799, end: 531876, frame: 0 },
+                    { start: 560606, end: 560776, frame: 0 },
+                    { start: 570862, end: 571000, frame: 0 },
+                    { start: 571134, end: 571352, frame: 2 },
+                    { start: 571427, end: 572070, frame: 2 },
+                    { start: 572149, end: 572289, frame: 0 },
+                    { start: 573853, end: 574002, frame: 0 },
+                    { start: 574196, end: 574878, frame: 0 },
+                    { start: 574945, end: 575089, frame: 1 },
+                    { start: 575168, end: 575362, frame: 0 },
+                    { start: 575471, end: 575578, frame: 0 }
+                ],
                 variant_ids: []
             }
         ],
@@ -257,12 +359,14 @@ export function JobSubmissionTester() {
                             const resultResponse = await fetch(`/api/pipeline-job/${uuid}/result/alignment`);
 
                             if (resultResponse.ok) {
-                                const resultData = await resultResponse.json();
+                                // Alignment result is plain text (Clustal format), not JSON
+                                const alignmentText = await resultResponse.text();
+                                const lineCount = alignmentText.split('\n').length;
                                 updateStep(4, {
                                     status: 'success',
-                                    message: 'Alignment result retrieved successfully',
+                                    message: `Alignment retrieved (${lineCount} lines)`,
                                     duration: Math.round(performance.now() - step5Start),
-                                    data: resultData,
+                                    data: alignmentText.substring(0, 500) + (alignmentText.length > 500 ? '...' : ''),
                                 });
                             } else {
                                 updateStep(4, {
