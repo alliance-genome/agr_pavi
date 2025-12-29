@@ -1,0 +1,189 @@
+TY  - JOUR
+AU  - Di Sera, Tonya
+AU  - Velinder, Matt
+AU  - Ward, Alistair
+AU  - Qiao, Yi
+AU  - Georges, Stephanie
+AU  - Miller, Chase
+AU  - Pitman, Anders
+AU  - Richards, Will
+AU  - Ekawade, Aditya
+AU  - Viskochil, David
+AU  - Carey, John C
+AU  - Pace, Laura
+AU  - Bale, Jim
+AU  - Clardy, Stacey L
+AU  - Andrews, Ashley
+AU  - Botto, Lorenzo
+AU  - Marth, Gabor
+DA  - 2021/10/13/
+PY  - 2021
+DO  - 10.1038/s41598-021-99752-5
+ID  - 34645894
+IS  - 1
+SP  - 20307
+T2  - Scientific reports
+TI  - Gene.iobio: an interactive web tool for versatile, clinically-driven variant interrogation and prioritization.
+UR  - https://pubmed.ncbi.nlm.nih.gov/34645894
+VL  - 11
+ER  -
+
+TY  - JOUR
+AU  - Solomon, Oz
+AU  - Kunik, Vered
+AU  - Simon, Amos
+AU  - Kol, Nitzan
+AU  - Barel, Ortal
+AU  - Lev, Atar
+AU  - Amariglio, Ninette
+AU  - Somech, Raz
+AU  - Rechavi, Gidi
+AU  - Eyal, Eran
+DA  - 2016/8/26/
+PY  - 2016
+DO  - 10.1186/s12864-016-3028-0
+ID  - 27565432
+IS  - 1
+SP  - 681
+T2  - BMC genomics
+TI  - G23D: Online tool for mapping and visualization of genomic variants on 3D protein structures.
+UR  - https://pubmed.ncbi.nlm.nih.gov/27565432
+VL  - 17
+ER  -
+
+TY  - JOUR
+AU  - Sierk, Michael
+AU  - Ratnayake, Shashikala
+AU  - Wagle, Manoj M
+AU  - Chen, Ben
+AU  - Park, Brian
+AU  - Wang, Jiyao
+AU  - Youkharibache, Philippe
+AU  - Meerzaman, Daoud
+DA  - 2023/6/9/
+PY  - 2023
+DO  - 10.1186/s12859-023-05370-5
+ID  - 37296383
+IS  - 1
+SP  - 244
+T2  - BMC bioinformatics
+TI  - 3DVizSNP: a tool for rapidly visualizing missense mutations identified in high throughput experiments in iCn3D.
+UR  - https://pubmed.ncbi.nlm.nih.gov/37296383
+VL  - 24
+ER  -
+
+TY  - JOUR
+AU  - Procter, James B
+AU  - Carstairs, G Mungo
+AU  - Soares, Ben
+AU  - Mourao, Kira
+AU  - Ofoegbu, T Charles
+AU  - Barton, Daniel
+AU  - Lui, Lauren
+AU  - Menard, Anne
+AU  - Sherstnev, Natasha
+AU  - Roldan-Martinez, David
+AU  - Duce, Suzanne
+AU  - Martin, David M A
+AU  - Barton, Geoffrey J
+DA  - 2021///
+PY  - 2021
+DO  - 10.1007/978-1-0716-1036-7_13
+ID  - 33289895
+SP  - 203-224
+T2  - Methods in molecular biology (Clifton, N.J.)
+TI  - Alignment of Biological Sequences with Jalview.
+UR  - https://pubmed.ncbi.nlm.nih.gov/33289895
+VL  - 2231
+ER  -
+
+TY  - JOUR
+AU  - Jehl, Peter
+AU  - Manguy, Jean
+AU  - Shields, Denis C
+AU  - Higgins, Desmond G
+AU  - Davey, Norman E
+DA  - 2016/7/8/
+PY  - 2016
+DO  - 10.1093/nar/gkw265
+ID  - 27085803
+IS  - W1
+SP  - W11-5
+T2  - Nucleic acids research
+TI  - ProViz-a web-based visualization tool to investigate the functional and evolutionary features of protein sequences.
+UR  - https://pubmed.ncbi.nlm.nih.gov/27085803
+VL  - 44
+ER  -
+
+TY  - JOUR
+AU  - Mukhyala, Kiran
+AU  - Masselot, Alexandre
+DA  - 2014/12/1/
+PY  - 2014
+DO  - 10.1093/bioinformatics/btu567
+ID  - 25147360
+IS  - 23
+SP  - 3408-9
+T2  - Bioinformatics (Oxford, England)
+TI  - Visualization of protein sequence features using JavaScript and SVG with pViz.js.
+UR  - https://pubmed.ncbi.nlm.nih.gov/25147360
+VL  - 30
+ER  -
+
+TY  - JOUR
+AU  - Salazar, Gustavo A
+AU  - Luciani, Aurelien
+AU  - Watkins, Xavier
+AU  - Kandasaamy, Swaathi
+AU  - Rice, Daniel L
+AU  - Blum, Matthias
+AU  - Bateman, Alex
+AU  - Martin, Maria
+DA  - 2023///
+PY  - 2023
+DO  - 10.1093/bioadv/vbad064
+ID  - 37359723
+IS  - 1
+SP  - vbad064
+T2  - Bioinformatics advances
+TI  - Nightingale: web components for protein feature visualization.
+UR  - https://pubmed.ncbi.nlm.nih.gov/37359723
+VL  - 3
+ER  -
+
+TY  - JOUR
+AU  - Nevers, Yannis
+AU  - Kress, Arnaud
+AU  - Defosset, Audrey
+AU  - Ripp, Raymond
+AU  - Linard, Benjamin
+AU  - Thompson, Julie D
+AU  - Poch, Olivier
+AU  - Lecompte, Odile
+DA  - 2019/1/8/
+PY  - 2019
+DO  - 10.1093/nar/gky1068
+ID  - 30380106
+IS  - D1
+SP  - D411-D418
+T2  - Nucleic acids research
+TI  - OrthoInspector 3.0: open portal for comparative genomics.
+UR  - https://pubmed.ncbi.nlm.nih.gov/30380106
+VL  - 47
+ER  -
+
+TY  - JOUR
+AU  - Zdablasz, Krzysztof
+AU  - Lisiecka, Anna
+AU  - Dojer, Norbert
+DA  - 2024/10/16/
+PY  - 2024
+DO  - 10.1186/s12864-024-10886-y
+ID  - 39415087
+IS  - 1
+SP  - 973
+T2  - BMC genomics
+TI  - Sequence Flow: interactive web application for visualizing partial order alignments.
+UR  - https://pubmed.ncbi.nlm.nih.gov/39415087
+VL  - 25
+ER  -

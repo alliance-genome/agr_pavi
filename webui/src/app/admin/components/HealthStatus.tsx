@@ -21,6 +21,11 @@ const ENVIRONMENT_OPTIONS: EnvironmentOption[] = [
     { label: 'Development (AWS)', value: 'dev', apiUrl: 'https://pavi-api-dev.alliancegenome.org' },
 ];
 
+// Helper to find environment option by value
+const findEnvByValue = (value: string): EnvironmentOption => {
+    return ENVIRONMENT_OPTIONS.find(env => env.value === value) || ENVIRONMENT_OPTIONS[0];
+};
+
 interface ComponentStatus {
     name: string;
     status: 'healthy' | 'unhealthy' | 'disabled' | 'unavailable' | 'error' | 'not_found' | 'no_access' | 'unknown';
@@ -91,8 +96,11 @@ export function HealthStatus() {
     const [isChecking, setIsChecking] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(false);
     const [lastChecked, setLastChecked] = useState<Date | null>(null);
-    const [selectedEnv, setSelectedEnv] = useState<EnvironmentOption>(ENVIRONMENT_OPTIONS[1]); // Default to production
+    const [selectedEnvValue, setSelectedEnvValue] = useState<string>('local'); // Default to local
     const [fetchError, setFetchError] = useState<string | null>(null);
+
+    // Get the current environment option
+    const selectedEnv = findEnvByValue(selectedEnvValue);
 
     const checkEndpoint = useCallback(async (endpoint: HealthEndpoint): Promise<HealthResult> => {
         const startTime = performance.now();
@@ -197,7 +205,7 @@ export function HealthStatus() {
     // Refetch when environment changes
     useEffect(() => {
         fetchDeploymentStatus();
-    }, [selectedEnv, fetchDeploymentStatus]);
+    }, [selectedEnvValue, fetchDeploymentStatus]);
 
     // Auto-refresh every 30 seconds if enabled
     useEffect(() => {
@@ -311,19 +319,22 @@ export function HealthStatus() {
             <div className={styles.environmentSelector}>
                 <label htmlFor="envSelect">
                     <i className="pi pi-globe" style={{ marginRight: '0.5rem' }} />
-                    Target Environment:
+                    Check Status From:
                 </label>
                 <Dropdown
                     id="envSelect"
-                    value={selectedEnv}
+                    value={selectedEnvValue}
                     options={ENVIRONMENT_OPTIONS}
-                    onChange={(e) => setSelectedEnv(e.value)}
+                    onChange={(e) => setSelectedEnvValue(e.value)}
                     optionLabel="label"
+                    optionValue="value"
                     className={styles.environmentDropdown}
-                    placeholder="Select environment"
                 />
                 {selectedEnv.apiUrl && (
-                    <Tag value="External API" severity="warning" />
+                    <span className={styles.corsWarning}>
+                        <i className="pi pi-info-circle" />
+                        External API calls may be blocked by browser security (CORS)
+                    </span>
                 )}
             </div>
 
@@ -430,9 +441,23 @@ export function HealthStatus() {
                                     <h4>Failed to fetch deployment status</h4>
                                     <p className={styles.error}>{fetchError}</p>
                                     {selectedEnv.apiUrl && (
-                                        <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
-                                            API URL: <code className={styles.code}>{selectedEnv.apiUrl}</code>
-                                        </p>
+                                        <div className={styles.corsHelp}>
+                                            <p>
+                                                <strong>Note:</strong> Direct browser requests to external APIs are blocked by CORS security.
+                                            </p>
+                                            <p>
+                                                To check {selectedEnv.label} status, visit the API directly:
+                                            </p>
+                                            <a
+                                                href={`${selectedEnv.apiUrl}/api/deployment-status`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={styles.externalLink}
+                                            >
+                                                <i className="pi pi-external-link" />
+                                                {selectedEnv.apiUrl}/api/deployment-status
+                                            </a>
+                                        </div>
                                     )}
                                 </>
                             ) : (

@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './admin.module.css';
 
 export default function AdminLayout({
     children,
@@ -6,17 +7,9 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     // Admin pages use their own full-width layout
-    // Override the container constraints from root layout
+    // Use fixed positioning to completely cover the viewport and hide the regular layout
     return (
-        <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 100,
-            background: 'var(--agr-gray-50)',
-        }}>
+        <div className={styles.adminLayoutOverlay}>
             {children}
         </div>
     );

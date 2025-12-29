@@ -1,3 +1,17 @@
+/* Admin layout overlay - completely covers the viewport to hide root layout */
+.adminLayoutOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    background: #f8f9fa; /* Solid fallback */
+    background: var(--agr-gray-50, #f8f9fa);
+    overflow: auto;
+    isolation: isolate; /* Create new stacking context */
+}
+
 .loadingContainer {
     display: flex;
     align-items: center;
