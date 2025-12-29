@@ -50,17 +50,6 @@ export async function GET() {
     // Check if AWS credentials are available
     const hasCredentials = await checkAWSCredentials();
 
-    // WebUI/Next.js API Status (always healthy since we're responding)
-    components['webui'] = {
-        name: 'WebUI Server',
-        status: 'healthy',
-        environment: ENVIRONMENT,
-        details: {
-            type: 'Next.js API Route',
-            node_version: process.version,
-        }
-    };
-
     if (!hasCredentials) {
         // No AWS credentials - return status showing AWS components as unavailable
         components['step_functions'] = {
