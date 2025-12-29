@@ -120,18 +120,18 @@
 }
 
 .menuItemIcon.image {
-    background: #e8f4fd;
-    color: #0077cc;
+    background: var(--agr-info-light);
+    color: var(--agr-info-dark);
 }
 
 .menuItemIcon.pdf {
-    background: #fee2e2;
-    color: #dc2626;
+    background: var(--agr-danger-light);
+    color: var(--agr-danger-dark);
 }
 
 .menuItemIcon.json {
-    background: #fef3c7;
-    color: #d97706;
+    background: var(--agr-warning-light);
+    color: var(--agr-warning-dark);
 }
 
 .menuItemContent {
