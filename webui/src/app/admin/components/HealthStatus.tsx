@@ -4,7 +4,22 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
+import { Tag } from 'primereact/tag';
 import styles from './AdminComponents.module.css';
+
+interface ComponentStatus {
+    name: string;
+    status: 'healthy' | 'unhealthy' | 'disabled' | 'unavailable' | 'error' | 'not_found' | 'no_access' | 'unknown';
+    environment?: string;
+    execution_mode?: string;
+    details?: Record<string, unknown>;
+}
+
+interface DeploymentStatus {
+    overall_status: 'healthy' | 'degraded' | 'unavailable' | 'unknown';
+    environment: string;
+    components: Record<string, ComponentStatus>;
+}
 
 interface HealthEndpoint {
     name: string;
@@ -34,14 +49,34 @@ const HEALTH_ENDPOINTS: HealthEndpoint[] = [
         name: 'Pipeline Jobs API',
         url: '/api/pipeline-job/',
         description: 'Pipeline job submission endpoint',
-        method: 'OPTIONS', // This endpoint only accepts POST, so we use OPTIONS to check availability
+        method: 'OPTIONS',
     },
 ];
 
+const COMPONENT_ICONS: Record<string, string> = {
+    api: 'pi pi-server',
+    step_functions: 'pi pi-sitemap',
+    batch: 'pi pi-th-large',
+    dynamodb: 'pi pi-database',
+    s3_results: 'pi pi-cloud',
+    s3_work: 'pi pi-cloud-upload',
+};
+
+const COMPONENT_DESCRIPTIONS: Record<string, string> = {
+    api: 'FastAPI backend service handling job orchestration',
+    step_functions: 'AWS Step Functions for pipeline workflow execution',
+    batch: 'AWS Batch for compute job execution',
+    dynamodb: 'DynamoDB table for job state storage',
+    s3_results: 'S3 bucket for storing pipeline results',
+    s3_work: 'S3 bucket for intermediate work files',
+};
+
 export function HealthStatus() {
     const [results, setResults] = useState<HealthResult[]>([]);
+    const [deploymentStatus, setDeploymentStatus] = useState<DeploymentStatus | null>(null);
     const [isChecking, setIsChecking] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(false);
+    const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
     const checkEndpoint = useCallback(async (endpoint: HealthEndpoint): Promise<HealthResult> => {
         const startTime = performance.now();
@@ -67,7 +102,6 @@ export function HealthStatus() {
                 // Response might not be JSON
             }
 
-            // Consider 2xx and 405 (method not allowed but endpoint exists) as healthy
             const isHealthy = response.ok || response.status === 405;
 
             return {
@@ -90,6 +124,18 @@ export function HealthStatus() {
         }
     }, []);
 
+    const fetchDeploymentStatus = useCallback(async () => {
+        try {
+            const response = await fetch('/api/deployment-status');
+            if (response.ok) {
+                const data = await response.json();
+                setDeploymentStatus(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch deployment status:', error);
+        }
+    }, []);
+
     const checkAllEndpoints = useCallback(async () => {
         setIsChecking(true);
 
@@ -100,13 +146,16 @@ export function HealthStatus() {
             status: 'checking' as const,
         })));
 
-        // Check all endpoints in parallel
-        const promises = HEALTH_ENDPOINTS.map(ep => checkEndpoint(ep));
-        const newResults = await Promise.all(promises);
+        // Check all endpoints and deployment status in parallel
+        const [endpointResults] = await Promise.all([
+            Promise.all(HEALTH_ENDPOINTS.map(ep => checkEndpoint(ep))),
+            fetchDeploymentStatus(),
+        ]);
 
-        setResults(newResults);
+        setResults(endpointResults);
+        setLastChecked(new Date());
         setIsChecking(false);
-    }, [checkEndpoint]);
+    }, [checkEndpoint, fetchDeploymentStatus]);
 
     // Initial check on mount
     useEffect(() => {
@@ -121,12 +170,19 @@ export function HealthStatus() {
         return () => clearInterval(interval);
     }, [autoRefresh, checkAllEndpoints]);
 
-    const getStatusIcon = (status: HealthResult['status']) => {
+    const getStatusIcon = (status: string) => {
         switch (status) {
             case 'healthy':
                 return <i className="pi pi-check-circle" style={{ color: 'var(--agr-success)' }} />;
             case 'unhealthy':
+            case 'error':
                 return <i className="pi pi-times-circle" style={{ color: 'var(--agr-error)' }} />;
+            case 'disabled':
+                return <i className="pi pi-minus-circle" style={{ color: 'var(--agr-gray-400)' }} />;
+            case 'unavailable':
+            case 'not_found':
+            case 'no_access':
+                return <i className="pi pi-exclamation-circle" style={{ color: 'var(--agr-warning)' }} />;
             case 'checking':
                 return <ProgressSpinner style={{ width: '20px', height: '20px' }} />;
             default:
@@ -134,11 +190,12 @@ export function HealthStatus() {
         }
     };
 
-    const getStatusClass = (status: HealthResult['status']) => {
+    const getStatusClass = (status: string) => {
         switch (status) {
             case 'healthy':
                 return styles.statusHealthy;
             case 'unhealthy':
+            case 'error':
                 return styles.statusUnhealthy;
             case 'checking':
                 return styles.statusChecking;
@@ -147,15 +204,54 @@ export function HealthStatus() {
         }
     };
 
+    const getStatusSeverity = (status: string): 'success' | 'danger' | 'warning' | 'info' | 'secondary' => {
+        switch (status) {
+            case 'healthy':
+                return 'success';
+            case 'unhealthy':
+            case 'error':
+                return 'danger';
+            case 'disabled':
+                return 'secondary';
+            case 'unavailable':
+            case 'not_found':
+            case 'no_access':
+                return 'warning';
+            default:
+                return 'info';
+        }
+    };
+
+    const getOverallStatusColor = (status: string) => {
+        switch (status) {
+            case 'healthy':
+                return 'var(--agr-success)';
+            case 'degraded':
+                return 'var(--agr-warning)';
+            case 'unavailable':
+                return 'var(--agr-error)';
+            default:
+                return 'var(--agr-gray-400)';
+        }
+    };
+
     const healthyCount = results.filter(r => r.status === 'healthy').length;
     const unhealthyCount = results.filter(r => r.status === 'unhealthy').length;
+
+    const deploymentComponents = deploymentStatus?.components
+        ? Object.entries(deploymentStatus.components)
+        : [];
+    const deploymentHealthy = deploymentComponents.filter(([, c]) => c.status === 'healthy').length;
+    const deploymentUnhealthy = deploymentComponents.filter(([, c]) =>
+        ['unhealthy', 'error', 'not_found', 'no_access'].includes(c.status)
+    ).length;
 
     return (
         <div className={styles.section}>
             <div className={styles.sectionHeader}>
                 <div className={styles.sectionTitle}>
-                    <h2>System Health</h2>
-                    <p>Monitor the status of API endpoints and services</p>
+                    <h2>System Health & Deployment Status</h2>
+                    <p>Monitor the status of API endpoints and AWS infrastructure components</p>
                 </div>
                 <div className={styles.sectionActions}>
                     <Button
@@ -174,7 +270,117 @@ export function HealthStatus() {
                 </div>
             </div>
 
-            <div className={styles.statusSummary}>
+            {/* Overall Status Banner */}
+            {deploymentStatus && (
+                <Card className={styles.overallStatusCard}>
+                    <div className={styles.overallStatusContent}>
+                        <div className={styles.overallStatusLeft}>
+                            <i
+                                className={deploymentStatus.overall_status === 'healthy' ? 'pi pi-check-circle' : 'pi pi-exclamation-triangle'}
+                                style={{
+                                    fontSize: '2.5rem',
+                                    color: getOverallStatusColor(deploymentStatus.overall_status)
+                                }}
+                            />
+                            <div>
+                                <h3 style={{ margin: 0, textTransform: 'capitalize' }}>
+                                    {deploymentStatus.overall_status === 'healthy' ? 'All Systems Operational' :
+                                        deploymentStatus.overall_status === 'degraded' ? 'Degraded Performance' :
+                                            'Systems Unavailable'}
+                                </h3>
+                                <p style={{ margin: '0.25rem 0 0', color: 'var(--agr-gray-600)' }}>
+                                    Environment: <Tag value={deploymentStatus.environment.toUpperCase()} severity="info" />
+                                    {lastChecked && (
+                                        <span style={{ marginLeft: '1rem' }}>
+                                            Last checked: {lastChecked.toLocaleTimeString()}
+                                        </span>
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+                        <div className={styles.statusSummary}>
+                            <div className={`${styles.summaryCard} ${styles.summaryHealthy}`}>
+                                <span className={styles.summaryCount}>{deploymentHealthy}</span>
+                                <span className={styles.summaryLabel}>Healthy</span>
+                            </div>
+                            <div className={`${styles.summaryCard} ${styles.summaryUnhealthy}`}>
+                                <span className={styles.summaryCount}>{deploymentUnhealthy}</span>
+                                <span className={styles.summaryLabel}>Issues</span>
+                            </div>
+                            <div className={`${styles.summaryCard} ${styles.summaryTotal}`}>
+                                <span className={styles.summaryCount}>{deploymentComponents.length}</span>
+                                <span className={styles.summaryLabel}>Total</span>
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
+            {/* AWS Infrastructure Components */}
+            <h3 className={styles.subsectionTitle}>AWS Infrastructure</h3>
+            <div className={styles.cardGrid}>
+                {deploymentComponents.map(([key, component]) => (
+                    <Card key={key} className={`${styles.healthCard} ${getStatusClass(component.status)}`}>
+                        <div className={styles.healthCardHeader}>
+                            <i className={COMPONENT_ICONS[key] || 'pi pi-box'} style={{ fontSize: '1.25rem' }} />
+                            <h3>{component.name}</h3>
+                            <Tag
+                                value={component.status.replace('_', ' ').toUpperCase()}
+                                severity={getStatusSeverity(component.status)}
+                                style={{ marginLeft: 'auto' }}
+                            />
+                        </div>
+                        <p className={styles.componentDescription}>
+                            {COMPONENT_DESCRIPTIONS[key] || ''}
+                        </p>
+                        <div className={styles.healthCardBody}>
+                            {component.execution_mode && (
+                                <div className={styles.healthDetail}>
+                                    <span className={styles.label}>Mode:</span>
+                                    <Tag value={component.execution_mode} severity="info" />
+                                </div>
+                            )}
+                            {component.details && Object.entries(component.details).map(([detailKey, value]) => (
+                                <div key={detailKey} className={styles.healthDetail}>
+                                    <span className={styles.label}>{detailKey.replace(/_/g, ' ')}:</span>
+                                    {typeof value === 'string' && value.startsWith('arn:') ? (
+                                        <code className={styles.code} title={value}>
+                                            ...{value.split(':').slice(-1)[0]}
+                                        </code>
+                                    ) : (
+                                        <span className={detailKey === 'error' ? styles.error : ''}>
+                                            {String(value)}
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
+                ))}
+
+                {!deploymentStatus && (
+                    <Card className={styles.emptyCard}>
+                        <div className={styles.emptyMessage}>
+                            {isChecking ? (
+                                <>
+                                    <ProgressSpinner style={{ width: '50px', height: '50px' }} />
+                                    <h4>Loading deployment status...</h4>
+                                </>
+                            ) : (
+                                <>
+                                    <i className="pi pi-exclamation-triangle" style={{ fontSize: '2rem', color: 'var(--agr-warning)' }} />
+                                    <h4>Deployment status unavailable</h4>
+                                    <p>Could not fetch AWS component status</p>
+                                </>
+                            )}
+                        </div>
+                    </Card>
+                )}
+            </div>
+
+            {/* API Endpoints */}
+            <h3 className={styles.subsectionTitle}>API Endpoints</h3>
+            <div className={styles.statusSummary} style={{ marginBottom: '1rem' }}>
                 <div className={`${styles.summaryCard} ${styles.summaryHealthy}`}>
                     <span className={styles.summaryCount}>{healthyCount}</span>
                     <span className={styles.summaryLabel}>Healthy</span>

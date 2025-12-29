@@ -211,6 +211,231 @@ async def health() -> dict[str, Any]:
     return response
 
 
+@router.get("/deployment-status", status_code=200, description='Deployment status for all PAVI components', tags=['metadata'])
+async def deployment_status() -> dict[str, Any]:
+    """
+    Get deployment status for all PAVI components.
+
+    Returns status information for:
+    - API service
+    - Step Functions state machine
+    - AWS Batch compute
+    - DynamoDB jobs table
+    - S3 buckets (results and work)
+    """
+    import boto3
+    from botocore.exceptions import ClientError, NoCredentialsError
+
+    components: dict[str, Any] = {}
+
+    # API Status
+    components["api"] = {
+        "name": "API Service",
+        "status": "healthy",
+        "environment": _config.environment.value,
+        "execution_mode": "step_functions" if USE_STEP_FUNCTIONS else "nextflow",
+        "details": {
+            "host": _config.api_host,
+            "port": _config.api_port,
+            "debug": _config.debug,
+        }
+    }
+
+    # Step Functions Status
+    sf_status: dict[str, Any] = {
+        "name": "Step Functions",
+        "status": "unknown",
+        "details": {}
+    }
+
+    if USE_STEP_FUNCTIONS and _config.pipeline.state_machine_arn:
+        try:
+            sfn_client = boto3.client('stepfunctions')
+            response = sfn_client.describe_state_machine(
+                stateMachineArn=_config.pipeline.state_machine_arn
+            )
+            sf_status["status"] = "healthy" if response.get('status') == 'ACTIVE' else "unhealthy"
+            sf_status["details"] = {
+                "arn": _config.pipeline.state_machine_arn,
+                "name": response.get('name', 'Unknown'),
+                "state": response.get('status', 'Unknown'),
+            }
+        except NoCredentialsError:
+            sf_status["status"] = "unavailable"
+            sf_status["details"]["error"] = "AWS credentials not configured"
+        except ClientError as e:
+            sf_status["status"] = "error"
+            sf_status["details"]["error"] = str(e)
+        except Exception as e:
+            sf_status["status"] = "error"
+            sf_status["details"]["error"] = str(e)
+    else:
+        sf_status["status"] = "disabled"
+        sf_status["details"]["message"] = "Step Functions not enabled"
+
+    components["step_functions"] = sf_status
+
+    # AWS Batch Status
+    batch_status: dict[str, Any] = {
+        "name": "AWS Batch",
+        "status": "unknown",
+        "details": {}
+    }
+
+    if _config.pipeline.job_queue_arn:
+        try:
+            batch_client = boto3.client('batch')
+            response = batch_client.describe_job_queues(
+                jobQueues=[_config.pipeline.job_queue_arn]
+            )
+            if response.get('jobQueues'):
+                queue = response['jobQueues'][0]
+                batch_status["status"] = "healthy" if queue.get('status') == 'VALID' else "unhealthy"
+                batch_status["details"] = {
+                    "arn": _config.pipeline.job_queue_arn,
+                    "name": queue.get('jobQueueName', 'Unknown'),
+                    "state": queue.get('state', 'Unknown'),
+                    "status": queue.get('status', 'Unknown'),
+                }
+            else:
+                batch_status["status"] = "error"
+                batch_status["details"]["error"] = "Job queue not found"
+        except NoCredentialsError:
+            batch_status["status"] = "unavailable"
+            batch_status["details"]["error"] = "AWS credentials not configured"
+        except ClientError as e:
+            batch_status["status"] = "error"
+            batch_status["details"]["error"] = str(e)
+        except Exception as e:
+            batch_status["status"] = "error"
+            batch_status["details"]["error"] = str(e)
+    else:
+        batch_status["status"] = "disabled"
+        batch_status["details"]["message"] = "AWS Batch not configured"
+
+    components["batch"] = batch_status
+
+    # DynamoDB Status
+    dynamo_status: dict[str, Any] = {
+        "name": "DynamoDB Jobs Table",
+        "status": "unknown",
+        "details": {}
+    }
+
+    try:
+        dynamodb = boto3.client('dynamodb')
+        response = dynamodb.describe_table(
+            TableName=_config.pipeline.jobs_table_name
+        )
+        table = response.get('Table', {})
+        dynamo_status["status"] = "healthy" if table.get('TableStatus') == 'ACTIVE' else "unhealthy"
+        dynamo_status["details"] = {
+            "table_name": _config.pipeline.jobs_table_name,
+            "status": table.get('TableStatus', 'Unknown'),
+            "item_count": table.get('ItemCount', 0),
+        }
+    except NoCredentialsError:
+        dynamo_status["status"] = "unavailable"
+        dynamo_status["details"]["error"] = "AWS credentials not configured"
+    except ClientError as e:
+        if 'ResourceNotFoundException' in str(e):
+            dynamo_status["status"] = "not_found"
+            dynamo_status["details"]["error"] = f"Table {_config.pipeline.jobs_table_name} not found"
+        else:
+            dynamo_status["status"] = "error"
+            dynamo_status["details"]["error"] = str(e)
+    except Exception as e:
+        dynamo_status["status"] = "error"
+        dynamo_status["details"]["error"] = str(e)
+
+    components["dynamodb"] = dynamo_status
+
+    # S3 Results Bucket Status
+    s3_results_status: dict[str, Any] = {
+        "name": "S3 Results Bucket",
+        "status": "unknown",
+        "details": {}
+    }
+
+    try:
+        s3 = boto3.client('s3')
+        s3.head_bucket(Bucket=_config.pipeline.results_bucket)
+        s3_results_status["status"] = "healthy"
+        s3_results_status["details"] = {
+            "bucket_name": _config.pipeline.results_bucket,
+        }
+    except NoCredentialsError:
+        s3_results_status["status"] = "unavailable"
+        s3_results_status["details"]["error"] = "AWS credentials not configured"
+    except ClientError as e:
+        error_code = e.response.get('Error', {}).get('Code', '')
+        if error_code == '404':
+            s3_results_status["status"] = "not_found"
+            s3_results_status["details"]["error"] = f"Bucket {_config.pipeline.results_bucket} not found"
+        elif error_code == '403':
+            s3_results_status["status"] = "no_access"
+            s3_results_status["details"]["error"] = "Access denied to bucket"
+        else:
+            s3_results_status["status"] = "error"
+            s3_results_status["details"]["error"] = str(e)
+    except Exception as e:
+        s3_results_status["status"] = "error"
+        s3_results_status["details"]["error"] = str(e)
+
+    components["s3_results"] = s3_results_status
+
+    # S3 Work Bucket Status (if different from results)
+    if _config.pipeline.work_bucket != _config.pipeline.results_bucket:
+        s3_work_status: dict[str, Any] = {
+            "name": "S3 Work Bucket",
+            "status": "unknown",
+            "details": {}
+        }
+
+        try:
+            s3.head_bucket(Bucket=_config.pipeline.work_bucket)
+            s3_work_status["status"] = "healthy"
+            s3_work_status["details"] = {
+                "bucket_name": _config.pipeline.work_bucket,
+            }
+        except NoCredentialsError:
+            s3_work_status["status"] = "unavailable"
+            s3_work_status["details"]["error"] = "AWS credentials not configured"
+        except ClientError as e:
+            error_code = e.response.get('Error', {}).get('Code', '')
+            if error_code == '404':
+                s3_work_status["status"] = "not_found"
+                s3_work_status["details"]["error"] = f"Bucket {_config.pipeline.work_bucket} not found"
+            elif error_code == '403':
+                s3_work_status["status"] = "no_access"
+                s3_work_status["details"]["error"] = "Access denied to bucket"
+            else:
+                s3_work_status["status"] = "error"
+                s3_work_status["details"]["error"] = str(e)
+        except Exception as e:
+            s3_work_status["status"] = "error"
+            s3_work_status["details"]["error"] = str(e)
+
+        components["s3_work"] = s3_work_status
+
+    # Calculate overall status
+    statuses = [c.get('status') for c in components.values()]
+    if all(s in ['healthy', 'disabled'] for s in statuses):
+        overall = "healthy"
+    elif any(s in ['error', 'unhealthy'] for s in statuses):
+        overall = "degraded"
+    elif any(s == 'unavailable' for s in statuses):
+        overall = "unavailable"
+    else:
+        overall = "unknown"
+
+    return {
+        "overall_status": overall,
+        "environment": _config.environment.value,
+        "components": components,
+    }
+
+
 @router.post('/pipeline-job/', status_code=201, response_model_exclude_none=True)
 async def create_new_pipeline_job(
     pipeline_seq_regions: list[Pipeline_seq_region],
