@@ -5,3 +5,4 @@ export type { LogEntry } from './LogViewer';
 export { JobMetadata } from './JobMetadata';
 export { ErrorRecovery } from './ErrorRecovery';
 export type { ErrorDetails } from './ErrorRecovery';
+export { ConnectionStatus } from './ConnectionStatus';

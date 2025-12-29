@@ -1,0 +1,52 @@
+.container {
+    display: inline-flex;
+}
+
+.menu {
+    min-width: 280px;
+}
+
+.menuItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.15s ease;
+}
+
+.menuItem:hover:not(:disabled) {
+    background-color: var(--agr-gray-100, #f8f9fa);
+}
+
+.menuItem:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.menuIcon {
+    font-size: 1.25rem;
+    color: var(--agr-primary, #2069a0);
+    margin-top: 0.125rem;
+}
+
+.menuContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.menuLabel {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--agr-text-primary, #212529);
+}
+
+.menuDescription {
+    font-size: 0.75rem;
+    color: var(--agr-text-muted, #545b62);
+}
