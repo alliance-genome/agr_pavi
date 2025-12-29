@@ -13,8 +13,8 @@ declare module 'html2canvas' {
     }
 
     function html2canvas(
-        element: HTMLElement,
-        options?: Html2CanvasOptions
+        _element: HTMLElement,
+        _options?: Html2CanvasOptions
     ): Promise<HTMLCanvasElement>;
 
     export default html2canvas;

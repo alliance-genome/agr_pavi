@@ -30,9 +30,9 @@ export interface AlignmentSearchProps {
         position: number;
         hgvs?: string;
     }>;
-    onSearchResults?: (matches: SearchMatch[]) => void;
-    onNavigateToMatch?: (match: SearchMatch) => void;
-    onHighlightMatches?: (matches: SearchMatch[]) => void;
+    onSearchResults?: (_matches: SearchMatch[]) => void;
+    onNavigateToMatch?: (_match: SearchMatch) => void;
+    onHighlightMatches?: (_matches: SearchMatch[]) => void;
     placeholder?: string;
     className?: string;
 }
@@ -57,7 +57,6 @@ export function AlignmentSearch({
     const [searchType, setSearchType] = useState<SearchType>('sequence');
     const [matches, setMatches] = useState<SearchMatch[]>([]);
     const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-    const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const resultsRef = useRef<OverlayPanel>(null);
@@ -72,7 +71,6 @@ export function AlignmentSearch({
             return;
         }
 
-        setIsSearching(true);
         setError(null);
 
         try {
@@ -123,7 +121,7 @@ export function AlignmentSearch({
                                 });
                             }
                         }
-                    } catch (e) {
+                    } catch {
                         setError('Invalid regular expression pattern');
                     }
                     break;
@@ -185,8 +183,8 @@ export function AlignmentSearch({
             setCurrentMatchIndex(0);
             onSearchResults?.(newMatches);
             onHighlightMatches?.(newMatches);
-        } finally {
-            setIsSearching(false);
+        } catch {
+            // Error handled within switch cases
         }
     }, [query, searchType, sequences, variants, onSearchResults, onHighlightMatches]);
 

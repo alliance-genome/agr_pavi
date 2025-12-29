@@ -1,11 +1,2 @@
-export {
-    LazyComponent,
-    lazyWithPreload,
-    lazyWithRetry,
-    prefetchComponent,
-    useLazyComponent,
-} from './LazyComponent';
-export type {
-    LazyComponentProps,
-    LazyWithPreloadResult,
-} from './LazyComponent';
+export { LazyComponent, createLazyComponent, preloadComponent } from './LazyComponent';
+export type { LazyComponentProps } from './LazyComponent';

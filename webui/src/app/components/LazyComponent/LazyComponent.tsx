@@ -1,230 +1,254 @@
 'use client';
 
-import React, { Suspense, ComponentType, ReactNode, useState, useEffect } from 'react';
-import { ErrorBoundary, ErrorFallback } from '../ErrorBoundary';
-import { LoadingSpinner } from '../LoadingSpinner';
-import { SkeletonCard } from '../Skeleton';
+import React, { Suspense, ComponentType, ReactNode } from 'react';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import styles from './LazyComponent.module.css';
 
-export interface LazyComponentProps<P extends object> {
-    /** The lazy-loaded component */
-    component: React.LazyExoticComponent<ComponentType<P>>;
-    /** Props to pass to the component */
-    componentProps?: P;
-    /** Loading fallback - can be a node or a skeleton type */
-    loading?: ReactNode | 'spinner' | 'skeleton' | 'none';
-    /** Error fallback component */
+export interface LazyComponentProps<T extends object> {
+    loader: () => Promise<{ default: ComponentType<T> }>;
+    loadingFallback?: ReactNode;
     errorFallback?: ReactNode;
-    /** Minimum loading time in ms (prevents flash of loading state) */
-    minLoadingTime?: number;
-    /** Delay before showing loading state in ms */
-    loadingDelay?: number;
-    /** Callback when component loads successfully */
+    componentProps?: T;
     onLoad?: () => void;
-    /** Callback when component fails to load */
-    // eslint-disable-next-line no-unused-vars
-    onError?: (error: Error) => void;
-    /** Additional class name */
-    className?: string;
+    onError?: (_error: Error) => void;
+    retryOnError?: boolean;
+    minLoadTime?: number;
 }
 
-interface LoadingStateProps {
-    type: ReactNode | 'spinner' | 'skeleton' | 'none';
-    className?: string;
+interface LazyWrapperState {
+    hasError: boolean;
+    error: Error | null;
+    isLoading: boolean;
 }
 
-function LoadingState({ type, className }: LoadingStateProps) {
-    if (type === 'none') {
-        return null;
-    }
-
-    if (type === 'skeleton') {
-        return <SkeletonCard className={className} />;
-    }
-
-    if (type === 'spinner') {
-        return <LoadingSpinner centered className={className} />;
-    }
-
-    // Custom loading node
-    return <>{type}</>;
+/**
+ * Default loading fallback component
+ */
+function DefaultLoadingFallback({ message = 'Loading...' }: { message?: string }) {
+    return (
+        <div className={styles.loadingContainer}>
+            <ProgressSpinner
+                style={{ width: '40px', height: '40px' }}
+                strokeWidth="4"
+                animationDuration="1s"
+            />
+            <span className={styles.loadingMessage}>{message}</span>
+        </div>
+    );
 }
 
-export function LazyComponent<P extends object>({
-    component: Component,
-    componentProps,
-    loading = 'spinner',
+/**
+ * Default error fallback component
+ */
+function DefaultErrorFallback({
+    error,
+    onRetry,
+    showRetry = true,
+}: {
+    error: Error;
+    onRetry?: () => void;
+    showRetry?: boolean;
+}) {
+    return (
+        <div className={styles.errorContainer}>
+            <i className="pi pi-exclamation-triangle" />
+            <h3 className={styles.errorTitle}>Failed to load component</h3>
+            <p className={styles.errorMessage}>
+                {error.message || 'An unexpected error occurred'}
+            </p>
+            {showRetry && onRetry && (
+                <button
+                    onClick={onRetry}
+                    className={styles.retryButton}
+                    type="button"
+                >
+                    <i className="pi pi-refresh" />
+                    Try Again
+                </button>
+            )}
+        </div>
+    );
+}
+
+/**
+ * Error boundary for lazy loaded components
+ */
+class LazyErrorBoundary extends React.Component<
+    {
+        children: ReactNode;
+        fallback: ReactNode;
+        onError?: (_error: Error) => void;
+        onRetry?: () => void;
+        retryOnError?: boolean;
+    },
+    LazyWrapperState
+> {
+    constructor(props: {
+        children: ReactNode;
+        fallback: ReactNode;
+        onError?: (_error: Error) => void;
+        onRetry?: () => void;
+        retryOnError?: boolean;
+    }) {
+        super(props);
+        this.state = { hasError: false, error: null, isLoading: false };
+    }
+
+    static getDerivedStateFromError(error: Error): Partial<LazyWrapperState> {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error: Error) {
+        this.props.onError?.(error);
+    }
+
+    handleRetry = () => {
+        this.setState({ hasError: false, error: null });
+        this.props.onRetry?.();
+    };
+
+    render() {
+        if (this.state.hasError && this.state.error) {
+            if (this.props.fallback) {
+                return this.props.fallback;
+            }
+            return (
+                <DefaultErrorFallback
+                    error={this.state.error}
+                    onRetry={this.props.retryOnError ? this.handleRetry : undefined}
+                    showRetry={this.props.retryOnError}
+                />
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
+/**
+ * LazyComponent - A wrapper for dynamically importing and rendering components
+ *
+ * Features:
+ * - Code splitting with React.lazy
+ * - Configurable loading fallback
+ * - Error boundary with retry capability
+ * - Minimum load time to prevent flash
+ * - Callbacks for load/error events
+ *
+ * Usage:
+ * ```tsx
+ * <LazyComponent
+ *   loader={() => import('../HeavyComponent/HeavyComponent')}
+ *   componentProps={{ data: myData }}
+ *   loadingFallback={<CustomLoader />}
+ *   retryOnError
+ * />
+ * ```
+ */
+export function LazyComponent<T extends object>({
+    loader,
+    loadingFallback,
     errorFallback,
-    minLoadingTime = 0,
-    loadingDelay = 0,
+    componentProps,
     onLoad,
     onError,
-    className,
-}: LazyComponentProps<P>) {
-    const [showLoading, setShowLoading] = useState(loadingDelay === 0);
-    const [isReady, setIsReady] = useState(false);
+    retryOnError = true,
+    minLoadTime = 0,
+}: LazyComponentProps<T>) {
+    const [key, setKey] = React.useState(0);
 
-    // Handle loading delay
-    useEffect(() => {
-        if (loadingDelay > 0) {
-            const timer = setTimeout(() => {
-                setShowLoading(true);
-            }, loadingDelay);
-            return () => clearTimeout(timer);
-        }
-    }, [loadingDelay]);
+    // Create the lazy component with optional minimum load time
+    const LazyLoadedComponent = React.useMemo(() => {
+        return React.lazy(async () => {
+            const startTime = Date.now();
 
-    // Handle minimum loading time
-    useEffect(() => {
-        if (minLoadingTime > 0) {
-            const timer = setTimeout(() => {
-                setIsReady(true);
-            }, minLoadingTime);
-            return () => clearTimeout(timer);
-        } else {
-            setIsReady(true);
-        }
-    }, [minLoadingTime]);
+            try {
+                const loadedModule = await loader();
 
-    const handleError = (error: Error) => {
-        onError?.(error);
-    };
+                // Ensure minimum load time to prevent flash
+                if (minLoadTime > 0) {
+                    const elapsed = Date.now() - startTime;
+                    if (elapsed < minLoadTime) {
+                        await new Promise(resolve =>
+                            setTimeout(resolve, minLoadTime - elapsed)
+                        );
+                    }
+                }
 
-    const loadingFallback = showLoading && !isReady ? (
-        <LoadingState type={loading} className={className} />
-    ) : null;
+                onLoad?.();
+                return loadedModule;
+            } catch (error) {
+                onError?.(error as Error);
+                throw error;
+            }
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loader, minLoadTime, onLoad, onError, key]); // key intentionally included to force re-creation on retry
 
-    const errorFallbackElement = errorFallback || (
-        <ErrorFallback
-            error={new Error('Failed to load component')}
-            title="Failed to load"
-            message="This component could not be loaded. Please try again."
-            variant="inline"
-        />
-    );
+    const handleRetry = React.useCallback(() => {
+        setKey(prev => prev + 1);
+    }, []);
 
     return (
-        <ErrorBoundary
-            fallback={errorFallbackElement}
-            onError={(error) => handleError(error)}
+        <LazyErrorBoundary
+            fallback={errorFallback}
+            onError={onError}
+            onRetry={handleRetry}
+            retryOnError={retryOnError}
         >
-            <Suspense fallback={loadingFallback}>
-                <LazyWrapper
-                    Component={Component}
-                    componentProps={componentProps}
-                    onLoad={onLoad}
-                />
+            <Suspense fallback={loadingFallback || <DefaultLoadingFallback />}>
+                <LazyLoadedComponent {...(componentProps as T)} />
             </Suspense>
-        </ErrorBoundary>
+        </LazyErrorBoundary>
     );
 }
 
-// Wrapper to trigger onLoad callback
-interface LazyWrapperProps<P extends object> {
-    Component: React.LazyExoticComponent<ComponentType<P>>;
-    componentProps?: P;
-    onLoad?: () => void;
-}
-
-function LazyWrapper<P extends object>({
-    Component,
-    componentProps,
-    onLoad,
-}: LazyWrapperProps<P>) {
-    useEffect(() => {
-        onLoad?.();
-    }, [onLoad]);
-
-    return <Component {...(componentProps as P)} />;
-}
-
-// HOC for creating lazy-loadable components with preloading support
-export interface LazyWithPreloadResult<P extends object> {
-    Component: React.LazyExoticComponent<ComponentType<P>>;
-    preload: () => Promise<{ default: ComponentType<P> }>;
-}
-
-export function lazyWithPreload<P extends object>(
-    importFn: () => Promise<{ default: ComponentType<P> }>
-): LazyWithPreloadResult<P> {
-    const Component = React.lazy(importFn);
-    return {
-        Component,
-        preload: importFn,
+/**
+ * Higher-order component for creating lazy-loaded component factories
+ *
+ * Usage:
+ * ```tsx
+ * const LazyHeavyComponent = createLazyComponent(
+ *   () => import('../HeavyComponent/HeavyComponent'),
+ *   { loadingFallback: <Skeleton /> }
+ * );
+ *
+ * // Then use like a normal component
+ * <LazyHeavyComponent data={myData} />
+ * ```
+ */
+export function createLazyComponent<T extends object>(
+    loader: () => Promise<{ default: ComponentType<T> }>,
+    options: Partial<Omit<LazyComponentProps<T>, 'loader' | 'componentProps'>> = {}
+): ComponentType<T> {
+    return function LazyWrapper(props: T) {
+        return (
+            <LazyComponent<T>
+                loader={loader}
+                componentProps={props}
+                {...options}
+            />
+        );
     };
 }
 
-// Utility to create lazy component with retry logic
-export function lazyWithRetry<P extends object>(
-    importFn: () => Promise<{ default: ComponentType<P> }>,
-    retries = 3,
-    delay = 1000
-): React.LazyExoticComponent<ComponentType<P>> {
-    return React.lazy(async () => {
-        let lastError: Error | undefined;
-
-        for (let i = 0; i < retries; i++) {
-            try {
-                return await importFn();
-            } catch (error) {
-                lastError = error instanceof Error ? error : new Error('Import failed');
-
-                if (i < retries - 1) {
-                    // Wait before retrying
-                    await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
-                }
-            }
-        }
-
-        throw lastError;
-    });
-}
-
-// Prefetch utility for route-based code splitting
-export function prefetchComponent<P extends object>(
-    importFn: () => Promise<{ default: ComponentType<P> }>
+/**
+ * Preload a component without rendering it
+ * Useful for prefetching components that will likely be needed
+ *
+ * Usage:
+ * ```tsx
+ * // Preload on hover or focus
+ * onMouseEnter={() => preloadComponent(() => import('../Modal/Modal'))}
+ * ```
+ */
+export function preloadComponent<T extends object>(
+    loader: () => Promise<{ default: ComponentType<T> }>
 ): void {
-    // Only prefetch in browser
-    if (typeof window === 'undefined') return;
-
-    // Use requestIdleCallback if available, otherwise setTimeout
-    const schedule = window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1));
-
-    schedule(() => {
-        importFn().catch(() => {
-            // Ignore prefetch errors silently
-        });
+    // Simply call the loader to trigger the import
+    loader().catch(() => {
+        // Silently fail - component will be loaded when actually needed
     });
-}
-
-// Hook for conditional lazy loading
-export function useLazyComponent<P extends object>(
-    importFn: () => Promise<{ default: ComponentType<P> }>,
-    shouldLoad: boolean = true
-): {
-    Component: React.LazyExoticComponent<ComponentType<P>> | null;
-    isLoading: boolean;
-    error: Error | null;
-    preload: () => void;
-} {
-    const [Component, setComponent] = useState<React.LazyExoticComponent<ComponentType<P>> | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
-
-    useEffect(() => {
-        if (shouldLoad && !Component && !isLoading) {
-            setIsLoading(true);
-            setComponent(React.lazy(importFn));
-            setIsLoading(false);
-        }
-    }, [shouldLoad, Component, isLoading, importFn]);
-
-    const preload = () => {
-        if (!Component) {
-            importFn().catch(e => setError(e instanceof Error ? e : new Error('Preload failed')));
-        }
-    };
-
-    return { Component, isLoading, error, preload };
 }
 
 export default LazyComponent;

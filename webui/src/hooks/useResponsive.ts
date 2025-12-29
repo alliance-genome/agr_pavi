@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export interface ResponsiveState {
     width: number;
@@ -30,7 +30,12 @@ const DEFAULT_OPTIONS: Required<UseResponsiveOptions> = {
  * Provides viewport dimensions and breakpoint information
  */
 export function useResponsive(options: UseResponsiveOptions = {}): ResponsiveState {
-    const config = { ...DEFAULT_OPTIONS, ...options };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const config = useMemo(() => ({ ...DEFAULT_OPTIONS, ...options }), [
+        options.mobileBreakpoint,
+        options.tabletBreakpoint,
+        options.debounceMs,
+    ]);
 
     const [state, setState] = useState<ResponsiveState>(() => {
         // Initial state (SSR-safe)
@@ -63,7 +68,7 @@ export function useResponsive(options: UseResponsiveOptions = {}): ResponsiveSta
         // Update on mount (for SSR hydration)
         handleResize();
 
-        let timeoutId: NodeJS.Timeout;
+        let timeoutId: ReturnType<typeof setTimeout>;
         const debouncedResize = () => {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(handleResize, config.debounceMs);

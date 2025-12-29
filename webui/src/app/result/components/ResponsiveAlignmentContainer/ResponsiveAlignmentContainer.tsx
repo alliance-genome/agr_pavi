@@ -22,10 +22,10 @@ export interface ViewportInfo {
 
 export interface ResponsiveAlignmentContainerProps {
     children: ReactNode;
-    onZoomChange?: (zoom: number) => void;
-    onScrollChange?: (position: { x: number; y: number }) => void;
-    onFullscreenChange?: (isFullscreen: boolean) => void;
-    onViewportChange?: (viewport: ViewportInfo) => void;
+    onZoomChange?: (_zoom: number) => void;
+    onScrollChange?: (_position: { x: number; y: number }) => void;
+    onFullscreenChange?: (_isFullscreen: boolean) => void;
+    onViewportChange?: (_viewport: ViewportInfo) => void;
     showMobileControls?: boolean;
     enableTouchGestures?: boolean;
     minZoom?: number;
@@ -191,7 +191,7 @@ export function ResponsiveAlignmentContainer({
     useEffect(() => {
         if (!viewport.isMobile || !showMobileControls) return;
 
-        let timeout: NodeJS.Timeout;
+        let timeout: ReturnType<typeof setTimeout>;
         const resetTimeout = () => {
             setShowControls(true);
             clearTimeout(timeout);

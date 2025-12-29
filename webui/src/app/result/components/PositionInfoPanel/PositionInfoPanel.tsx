@@ -37,7 +37,7 @@ export interface PositionInfoPanelProps {
     data: PositionData | null;
     isVisible: boolean;
     onClose: () => void;
-    onNavigateToVariant?: (variantId: string) => void;
+    onNavigateToVariant?: (_variantId: string) => void;
     onCopyPosition?: () => void;
     className?: string;
 }

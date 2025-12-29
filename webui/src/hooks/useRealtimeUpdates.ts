@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+// NotificationPermission is a browser global type
+type NotificationPermissionType = 'granted' | 'denied' | 'default';
+
 export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error';
 
 export interface RealtimeUpdateOptions<T> {
@@ -12,13 +15,13 @@ export interface RealtimeUpdateOptions<T> {
     /** Maximum polling duration before timeout in milliseconds (default: 1 hour) */
     maxDuration?: number;
     /** Callback when update is received */
-    onUpdate?: (data: T) => void;
+    onUpdate?: (_data: T) => void;
     /** Callback when job completes (return true to stop polling) */
-    onComplete?: (data: T) => boolean;
+    onComplete?: (_data: T) => boolean;
     /** Callback when error occurs */
-    onError?: (error: Error) => void;
+    onError?: (_error: Error) => void;
     /** Callback when connection status changes */
-    onConnectionChange?: (status: ConnectionStatus) => void;
+    onConnectionChange?: (_status: ConnectionStatus) => void;
     /** Enable browser notifications (requires permission) */
     enableNotifications?: boolean;
     /** Auto-start polling on mount */
@@ -45,11 +48,11 @@ export interface RealtimeUpdateResult<T> {
     /** Manually trigger a fetch */
     refresh: () => Promise<T | null>;
     /** Request notification permission */
-    requestNotificationPermission: () => Promise<NotificationPermission>;
+    requestNotificationPermission: () => Promise<NotificationPermissionType>;
 }
 
 const MAX_RETRY_COUNT = 3;
-const RETRY_BACKOFF_MS = 2000;
+const _RETRY_BACKOFF_MS = 2000; // Reserved for future backoff implementation
 
 export function useRealtimeUpdates<T>(
     options: RealtimeUpdateOptions<T>
@@ -73,7 +76,7 @@ export function useRealtimeUpdates<T>(
     const [error, setError] = useState<Error | null>(null);
     const [retryCount, setRetryCount] = useState(0);
 
-    const pollingRef = useRef<NodeJS.Timeout | null>(null);
+    const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const startTimeRef = useRef<number | null>(null);
     const mountedRef = useRef(true);
 
@@ -99,7 +102,7 @@ export function useRealtimeUpdates<T>(
     }, [enableNotifications]);
 
     // Request notification permission
-    const requestNotificationPermission = useCallback(async (): Promise<NotificationPermission> => {
+    const requestNotificationPermission = useCallback(async (): Promise<NotificationPermissionType> => {
         if (!('Notification' in window)) {
             return 'denied';
         }

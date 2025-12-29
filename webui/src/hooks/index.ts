@@ -6,3 +6,6 @@ export type { ConnectionStatus, RealtimeUpdateOptions, RealtimeUpdateResult } fr
 
 export { useResponsive, usePrefersReducedMotion, useTouchDevice } from './useResponsive';
 export type { ResponsiveState, UseResponsiveOptions } from './useResponsive';
+
+export { usePrefetchRoute, usePrefetchData, usePrefetchOnVisible, clearPrefetchCache } from './usePrefetch';
+export type { PrefetchOptions, UsePrefetchResult } from './usePrefetch';
