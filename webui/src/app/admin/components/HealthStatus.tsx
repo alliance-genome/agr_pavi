@@ -437,10 +437,25 @@ export function HealthStatus() {
                                 </>
                             ) : fetchError ? (
                                 <>
-                                    <i className="pi pi-times-circle" style={{ fontSize: '2rem', color: 'var(--agr-error)' }} />
-                                    <h4>Failed to fetch deployment status</h4>
-                                    <p className={styles.error}>{fetchError}</p>
-                                    {selectedEnv.apiUrl && (
+                                    <i className="pi pi-info-circle" style={{ fontSize: '2rem', color: 'var(--agr-warning)' }} />
+                                    <h4>AWS Infrastructure Status Unavailable</h4>
+                                    {!selectedEnv.apiUrl ? (
+                                        // Local API not running
+                                        <div className={styles.corsHelp}>
+                                            <p>
+                                                The local PAVI API server is not running. The deployment status
+                                                endpoint is provided by the backend API.
+                                            </p>
+                                            <p style={{ marginTop: '0.5rem' }}>
+                                                <strong>Options:</strong>
+                                            </p>
+                                            <ul style={{ textAlign: 'left', marginTop: '0.5rem' }}>
+                                                <li>Start the API server: <code>make run-server-dev</code> from the api/ directory</li>
+                                                <li>Or select a remote environment above to check Production or Development status</li>
+                                            </ul>
+                                        </div>
+                                    ) : (
+                                        // CORS issue with remote API
                                         <div className={styles.corsHelp}>
                                             <p>
                                                 <strong>Note:</strong> Direct browser requests to external APIs are blocked by CORS security.
