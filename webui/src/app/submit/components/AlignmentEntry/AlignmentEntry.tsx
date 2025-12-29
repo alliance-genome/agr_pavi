@@ -26,6 +26,7 @@ export interface AlignmentEntryProps {
     readonly index: number
     readonly agrjBrowseDataRelease: string
     readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>
+    readonly initialGeneId?: string
 }
 export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: AlignmentEntryProps) => {
     const [setupCompleted, setSetupCompleted] = useState<boolean>(false)
@@ -195,8 +196,8 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             // Reset transcript selection
             setTranscriptListLoading(true)
             setSelectedTranscriptIds([])
-            // Reset allele selection
-            setAlleleListLoading(true)
+            // Reset allele selection (alleles are lazy-loaded on dropdown open)
+            setAlleleList([])
             setSelectedAlleleIds([])
 
             const geneInfo: GeneInfo | undefined = await fetchGeneInfo(geneId)
@@ -259,12 +260,20 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
             }
             // TODO: enforce unique_entry_id to be unique across all alignment entries
             // (including when no identifiable_suffix is used)
+
+            // Get strand from gene's genomeLocations, or fallback to transcript strand
+            const genomeLocation = getSingleGenomeLocation(gene_info.genomeLocations)
+            const geneStrand = genomeLocation['strand']
+            // Convert transcript strand (1 or -1) to string format ("+" or "-")
+            const transcriptStrand = transcript.strand === 1 ? '+' : '-'
+            const seqStrand = geneStrand || transcriptStrand
+
             portion.push({
                 unique_entry_id: unique_entry_id,
                 base_seq_name: `${gene_info.symbol}_${transcript.name}`,
                 fasta_file_url: fastaFileUrl!,
-                seq_id: getSingleGenomeLocation(gene_info.genomeLocations)['chromosome'],
-                seq_strand: getSingleGenomeLocation(gene_info.genomeLocations)['strand'],
+                seq_id: genomeLocation['chromosome'],
+                seq_strand: seqStrand,
                 exon_seq_regions: transcript.exons.map((e) => ({
                     'start': e.refStart,
                     'end': e.refEnd
@@ -376,6 +385,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                         id: transcript.id(),
                         curie: transcript.get('curie'),
                         name: transcript.get('name'),
+                        strand: feature.strand as FeatureStrand,
                         exons: exons,
                         cds_regions: cds_regions
                     }
@@ -480,7 +490,8 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
         if (gene !== undefined) {
             updateTranscriptList()
-            updateAlleleList()
+            // Don't auto-fetch alleles - they're optional and can be very slow for genes like TP53
+            // Alleles will be fetched on-demand when user opens the allele dropdown
         }
         else{
             setTranscriptList([])
@@ -586,17 +597,45 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         }, [] // eslint-disable-line react-hooks/exhaustive-deps
     )
 
+    // Handle initialGeneId prop - auto-search and select when provided
+    useEffect(() => {
+        if (setupCompleted && props.initialGeneId && !selectedGeneSuggestion) {
+            console.log(`Processing initialGeneId: ${props.initialGeneId}`)
+            setGeneQuery(props.initialGeneId)
+            searchGene(props.initialGeneId)
+        }
+    }, [setupCompleted, props.initialGeneId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Auto-select first transcript when loaded via initialGeneId
+    useEffect(() => {
+        if (props.initialGeneId &&
+            !transcriptListLoading &&
+            transcriptList.length > 0 &&
+            selectedTranscriptIds.length === 0) {
+            console.log(`Auto-selecting first transcript for initialGeneId: ${props.initialGeneId}`)
+            // Find canonical transcript or use first one
+            const canonicalTranscript = transcriptList.find(t =>
+                t.get('name')?.includes('canonical') || t.get('is_canonical') === true
+            ) || transcriptList[0]
+            if (canonicalTranscript) {
+                const transcriptId = canonicalTranscript.id()
+                console.log(`Auto-selected transcript: ${transcriptId}`)
+                // Just set the IDs - the existing useEffect will handle calling processTranscriptEntry
+                setSelectedTranscriptIds([transcriptId])
+            }
+        }
+    }, [props.initialGeneId, transcriptListLoading, transcriptList, selectedTranscriptIds.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
     return (
         <div className='p-inputgroup'>
             <FloatLabel>
-                <AutoComplete id="gene" placeholder='e.g. HGNC:620'
+                <AutoComplete id={`gene-${props.index}`} placeholder='e.g. HGNC:620'
                     ref={geneFieldRef}
                     pt={{
                         root: (options: AutoCompletePassThroughMethodOptions) => {
                             geneFieldStateRef.current = options.state
                         }
                     }}
-                    appendTo={"self"}
                     delay={700}
                     suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
                     value={geneQuery}
@@ -605,13 +644,12 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     onSelect={ (e) => {setSelectedGeneSuggestion(e.value); setGeneQuery(e.value)} }
                     onHide={() => autoSelectSingleGeneSuggestion()}
                     field="displayName" />
-                <label htmlFor="gene">Gene</label>
+                <label htmlFor={`gene-${props.index}`}>Gene</label>
             </FloatLabel>
             <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
                             text="Failed to find gene, correct input and try again." />
             <FloatLabel>
-                <MultiSelect id="alleles" loading={alleleListLoading} ref={alleleMultiselectRef}
-                    appendTo={"self"}
+                <MultiSelect id={`alleles-${props.index}`} loading={alleleListLoading} ref={alleleMultiselectRef}
                     display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
                     filter filterBy='filterValue'
                     value={selectedAlleleIds} onChange={(e) => setSelectedAlleleIds(e.target.value)}
@@ -619,7 +657,18 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     onFocus={ () => setAlleleListFocused(true) }
                     onBlur={ () => setAlleleListFocused(false) }
                     onHide={ () => setAlleleListOpened(false) }
-                    onShow={ () => setAlleleListOpened(true) }
+                    onShow={ async () => {
+                        setAlleleListOpened(true)
+                        // Lazy-load alleles on first open
+                        if (gene && alleleList.length === 0 && !alleleListLoading) {
+                            console.log(`Lazy-loading alleles for gene: ${gene.id}`)
+                            setAlleleListLoading(true)
+                            const alleles = await fetchAlleles(gene.id)
+                            console.log(`${alleles.length} alleles received.`)
+                            setAlleleList(alleles)
+                            setAlleleListLoading(false)
+                        }
+                    }}
                     options={
                     alleleList.map(r => (
                         {
@@ -628,11 +677,10 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                             filterValue: alleleOptionFilterValue(r),
                             allele: r
                         } ))} />
-                <label htmlFor="alleles">Alleles</label>
+                <label htmlFor={`alleles-${props.index}`}>Alleles</label>
             </FloatLabel>
             <FloatLabel>
-                <MultiSelect id="transcripts" loading={transcriptListLoading} ref={transcriptMultiselectRef}
-                    appendTo={"self"}
+                <MultiSelect id={`transcripts-${props.index}`} loading={transcriptListLoading} ref={transcriptMultiselectRef}
                     display='chip' filter maxSelectedLabels={3} className="w-full md:w-20rem"
                     value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
                     onFocus={ () => setTranscriptListFocused(true) }
@@ -646,7 +694,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                             value: r.id(),
                             label: r.get("name")
                         } ))} />
-                <label htmlFor="transcripts">Transcripts</label>
+                <label htmlFor={`transcripts-${props.index}`}>Transcripts</label>
             </FloatLabel><br />
         </div>
     )

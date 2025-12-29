@@ -5,6 +5,7 @@ import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
 import { Tooltip } from 'primereact/tooltip';
+import { parse } from 'clustal-js';
 import { SeqInfoDict } from '../InteractiveAlignment/types';
 import styles from './ResultsSummary.module.css';
 
@@ -51,23 +52,24 @@ export function ResultsSummary({
             };
         }
 
-        // Parse FASTA alignment to get sequences
-        const lines = alignmentResult.split('\n');
-        const sequences: string[] = [];
-        let currentSeq = '';
-
-        for (const line of lines) {
-            if (line.startsWith('>')) {
-                if (currentSeq) {
-                    sequences.push(currentSeq);
+        // Parse CLUSTAL alignment to get sequences
+        let sequences: string[] = [];
+        try {
+            const parsedAlignment = parse(alignmentResult);
+            sequences = parsedAlignment['alns'].map((aln: { id: string; seq: string }) => aln.seq);
+        } catch {
+            // Fallback: try FASTA format
+            const lines = alignmentResult.split('\n');
+            let currentSeq = '';
+            for (const line of lines) {
+                if (line.startsWith('>')) {
+                    if (currentSeq) sequences.push(currentSeq);
+                    currentSeq = '';
+                } else {
+                    currentSeq += line.trim();
                 }
-                currentSeq = '';
-            } else {
-                currentSeq += line.trim();
             }
-        }
-        if (currentSeq) {
-            sequences.push(currentSeq);
+            if (currentSeq) sequences.push(currentSeq);
         }
 
         const sequenceCount = sequences.length;

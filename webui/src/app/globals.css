@@ -42,7 +42,7 @@ select:focus-visible,
 
 /* Reduced motion preferences - global adjustments */
 @media (prefers-reduced-motion: reduce) {
-    *,
+    *:not(.agr-spinner),
     *::before,
     *::after {
         animation-duration: 0.01ms !important;
@@ -56,4 +56,32 @@ select:focus-visible,
 /* Ensures dropdown panels appear above other page content */
 .p-dropdown-panel {
     z-index: 9999 !important;
+}
+
+/* Spinner animation for progress indicators */
+@keyframes agr-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.agr-spinner {
+    animation: agr-spin 1s linear infinite !important;
+}
+
+i.agr-spinner {
+    display: inline-block;
+    animation: agr-spin 1s linear infinite !important;
+}
+
+/* Fix blurry canvas rendering in Nightingale MSA */
+nightingale-msa,
+nightingale-msa canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+}
+
+#alignment-view-container canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }

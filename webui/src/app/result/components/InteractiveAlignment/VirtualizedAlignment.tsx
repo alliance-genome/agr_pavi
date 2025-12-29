@@ -27,7 +27,9 @@ import { Dropdown } from 'primereact/dropdown';
 import { SeqInfoDict } from './types';
 
 // Constants for virtualization
-const SEQUENCE_HEIGHT = 20; // Height per sequence in pixels
+const SEQUENCE_HEIGHT = 26; // Height per sequence in pixels
+const TILE_HEIGHT = 24; // Height of each amino acid tile
+const TILE_WIDTH = 16; // Width of each amino acid tile
 const OVERSCAN = 10; // Number of extra sequences to render above/below viewport
 const MIN_VISIBLE_SEQUENCES = 30; // Minimum sequences to show at once
 
@@ -270,8 +272,10 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
         if (seqLength === 0) return;
 
         const initDisplayCenter = Math.round(seqLength / 2);
-        const newDisplayStart = seqLength <= 150 ? 1 : initDisplayCenter - 75;
-        const newDisplayEnd = seqLength <= 150 ? seqLength : initDisplayCenter + 75;
+        // Show fewer positions initially for better readability (50 instead of 150)
+        const halfWindow = 25;
+        const newDisplayStart = seqLength <= halfWindow * 2 ? 1 : initDisplayCenter - halfWindow;
+        const newDisplayEnd = seqLength <= halfWindow * 2 ? seqLength : initDisplayCenter + halfWindow;
 
         setDisplayStart(newDisplayStart);
         setDisplayEnd(newDisplayEnd);
@@ -370,6 +374,8 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                             data={fullAlignmentData}
                             features={alignmentFeatures}
                             height={fullAlignmentData.length * SEQUENCE_HEIGHT}
+                            tile-height={TILE_HEIGHT}
+                            tile-width={TILE_WIDTH}
                             margin-left={0}
                             margin-right={5}
                             display-start={displayStart}
@@ -410,6 +416,8 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                                     data={visibleData}
                                     features={alignmentFeatures}
                                     height={visibleMsaHeight}
+                                    tile-height={TILE_HEIGHT}
+                                    tile-width={TILE_WIDTH}
                                     margin-left={0}
                                     margin-right={5}
                                     display-start={displayStart}

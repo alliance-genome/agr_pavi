@@ -22,6 +22,7 @@ export interface TranscriptInfo {
     readonly id: string,
     readonly curie: string,
     readonly name: string,
+    readonly strand: FeatureStrand,
     readonly exons: Array<{
         refStart: number
         refEnd: number

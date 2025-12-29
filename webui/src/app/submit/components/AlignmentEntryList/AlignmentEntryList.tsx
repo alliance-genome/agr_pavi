@@ -9,6 +9,7 @@ import { InputPayloadDispatchAction } from '../JobSubmitForm/types';
 interface AlignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
     readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>
+    readonly initialGeneIds?: string[]
 }
 export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (props: AlignmentEntryListProps) => {
 
@@ -19,12 +20,13 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
         agrjBrowseDataRelease: props.agrjBrowseDataRelease,
         dispatchInputPayloadPart: props.dispatchInputPayloadPart
     }
-    const initListItem = (index: number) => {
-        console.log(`Initiating list item for index ${index}`)
+    const initListItem = (index: number, initialGeneId?: string) => {
+        console.log(`Initiating list item for index ${index}${initialGeneId ? ` with initialGeneId: ${initialGeneId}` : ''}`)
         return(
             {props: {
                 ...alignmentEntryBaseProps,
-                index: index
+                index: index,
+                initialGeneId: initialGeneId
             }}
         ) as AlignmentEntryListItem
     }
@@ -83,6 +85,20 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
 
         return cleanupAlignmentEntries
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Handle loading initial gene IDs (e.g., from example data)
+    useEffect(() => {
+        if (props.initialGeneIds && props.initialGeneIds.length > 0) {
+            console.log(`Loading ${props.initialGeneIds.length} initial gene IDs:`, props.initialGeneIds)
+            setAlignmentEntries(() => {
+                const newState = new Map<number, AlignmentEntryListItem>()
+                props.initialGeneIds!.forEach((geneId, index) => {
+                    newState.set(index, initListItem(index, geneId))
+                })
+                return newState
+            })
+        }
+    }, [props.initialGeneIds]) // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="agr-alignment-list">
