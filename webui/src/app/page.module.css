@@ -27,6 +27,7 @@
     font-weight: 700;
     margin-bottom: var(--agr-spacing-md);
     line-height: 1.2;
+    color: white;
 }
 
 .heroSubtitle {
