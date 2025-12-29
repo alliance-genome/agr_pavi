@@ -6,7 +6,6 @@ const local_api_path = '/api'
 
 // Paths handled by Next.js API routes (not proxied to backend)
 const NEXTJS_API_ROUTES = [
-    '/api/deployment-status',
     '/api/proxy-deployment-status',
 ];
 
