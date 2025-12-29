@@ -5,7 +5,21 @@ import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Tag } from 'primereact/tag';
+import { Dropdown } from 'primereact/dropdown';
 import styles from './AdminComponents.module.css';
+
+// Environment options for deployment status
+interface EnvironmentOption {
+    label: string;
+    value: string;
+    apiUrl: string;
+}
+
+const ENVIRONMENT_OPTIONS: EnvironmentOption[] = [
+    { label: 'Local (this server)', value: 'local', apiUrl: '' },
+    { label: 'Production (AWS)', value: 'production', apiUrl: 'https://pavi-api.alliancegenome.org' },
+    { label: 'Development (AWS)', value: 'dev', apiUrl: 'https://pavi-api-dev.alliancegenome.org' },
+];
 
 interface ComponentStatus {
     name: string;
@@ -77,6 +91,8 @@ export function HealthStatus() {
     const [isChecking, setIsChecking] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(false);
     const [lastChecked, setLastChecked] = useState<Date | null>(null);
+    const [selectedEnv, setSelectedEnv] = useState<EnvironmentOption>(ENVIRONMENT_OPTIONS[1]); // Default to production
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     const checkEndpoint = useCallback(async (endpoint: HealthEndpoint): Promise<HealthResult> => {
         const startTime = performance.now();
@@ -125,16 +141,32 @@ export function HealthStatus() {
     }, []);
 
     const fetchDeploymentStatus = useCallback(async () => {
+        setFetchError(null);
         try {
-            const response = await fetch('/api/deployment-status');
+            const baseUrl = selectedEnv.apiUrl;
+            const url = baseUrl ? `${baseUrl}/api/deployment-status` : '/api/deployment-status';
+
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+                // For CORS requests to external APIs
+                mode: baseUrl ? 'cors' : 'same-origin',
+            });
+
             if (response.ok) {
                 const data = await response.json();
                 setDeploymentStatus(data);
+            } else {
+                setFetchError(`Failed to fetch: ${response.status} ${response.statusText}`);
+                setDeploymentStatus(null);
             }
         } catch (error) {
             console.error('Failed to fetch deployment status:', error);
+            setFetchError(error instanceof Error ? error.message : 'Failed to connect to API');
+            setDeploymentStatus(null);
         }
-    }, []);
+    }, [selectedEnv]);
 
     const checkAllEndpoints = useCallback(async () => {
         setIsChecking(true);
@@ -161,6 +193,11 @@ export function HealthStatus() {
     useEffect(() => {
         checkAllEndpoints();
     }, [checkAllEndpoints]);
+
+    // Refetch when environment changes
+    useEffect(() => {
+        fetchDeploymentStatus();
+    }, [selectedEnv, fetchDeploymentStatus]);
 
     // Auto-refresh every 30 seconds if enabled
     useEffect(() => {
@@ -270,6 +307,26 @@ export function HealthStatus() {
                 </div>
             </div>
 
+            {/* Environment Selector */}
+            <div className={styles.environmentSelector}>
+                <label htmlFor="envSelect">
+                    <i className="pi pi-globe" style={{ marginRight: '0.5rem' }} />
+                    Target Environment:
+                </label>
+                <Dropdown
+                    id="envSelect"
+                    value={selectedEnv}
+                    options={ENVIRONMENT_OPTIONS}
+                    onChange={(e) => setSelectedEnv(e.value)}
+                    optionLabel="label"
+                    className={styles.environmentDropdown}
+                    placeholder="Select environment"
+                />
+                {selectedEnv.apiUrl && (
+                    <Tag value="External API" severity="warning" />
+                )}
+            </div>
+
             {/* Overall Status Banner */}
             {deploymentStatus && (
                 <Card className={styles.overallStatusCard}>
@@ -365,12 +422,24 @@ export function HealthStatus() {
                                 <>
                                     <ProgressSpinner style={{ width: '50px', height: '50px' }} />
                                     <h4>Loading deployment status...</h4>
+                                    <p>Connecting to {selectedEnv.label}...</p>
+                                </>
+                            ) : fetchError ? (
+                                <>
+                                    <i className="pi pi-times-circle" style={{ fontSize: '2rem', color: 'var(--agr-error)' }} />
+                                    <h4>Failed to fetch deployment status</h4>
+                                    <p className={styles.error}>{fetchError}</p>
+                                    {selectedEnv.apiUrl && (
+                                        <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
+                                            API URL: <code className={styles.code}>{selectedEnv.apiUrl}</code>
+                                        </p>
+                                    )}
                                 </>
                             ) : (
                                 <>
                                     <i className="pi pi-exclamation-triangle" style={{ fontSize: '2rem', color: 'var(--agr-warning)' }} />
                                     <h4>Deployment status unavailable</h4>
-                                    <p>Could not fetch AWS component status</p>
+                                    <p>Could not fetch AWS component status from {selectedEnv.label}</p>
                                 </>
                             )}
                         </div>
