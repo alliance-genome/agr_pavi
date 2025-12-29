@@ -366,7 +366,7 @@ export function JobSubmissionTester() {
                                     status: 'success',
                                     message: `Alignment retrieved (${lineCount} lines)`,
                                     duration: Math.round(performance.now() - step5Start),
-                                    data: alignmentText.substring(0, 500) + (alignmentText.length > 500 ? '...' : ''),
+                                    data: { type: 'alignment', content: alignmentText },
                                 });
                             } else {
                                 updateStep(4, {
@@ -558,9 +558,15 @@ export function JobSubmissionTester() {
                                         {item.data && item.status !== 'running' && (
                                             <details className={styles.dataDetails}>
                                                 <summary>View Data</summary>
-                                                <pre className={styles.jsonPreview}>
-                                                    {JSON.stringify(item.data, null, 2)}
-                                                </pre>
+                                                {typeof item.data === 'object' && item.data !== null && 'type' in item.data && (item.data as { type: string }).type === 'alignment' ? (
+                                                    <pre className={styles.alignmentPreview}>
+                                                        {(item.data as { type: string; content: string }).content}
+                                                    </pre>
+                                                ) : (
+                                                    <pre className={styles.jsonPreview}>
+                                                        {JSON.stringify(item.data, null, 2)}
+                                                    </pre>
+                                                )}
                                             </details>
                                         )}
                                     </div>
