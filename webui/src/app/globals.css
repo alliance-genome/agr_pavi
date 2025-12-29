@@ -51,3 +51,9 @@ select:focus-visible,
         scroll-behavior: auto !important;
     }
 }
+
+/* PrimeReact dropdown panel z-index fix */
+/* Ensures dropdown panels appear above other page content */
+.p-dropdown-panel {
+    z-index: 9999 !important;
+}
