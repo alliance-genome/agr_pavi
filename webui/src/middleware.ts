@@ -4,10 +4,20 @@ import type { NextRequest } from 'next/server'
 const API_BASE = process.env.PAVI_API_BASE_URL || 'http://localhost:8000'
 const local_api_path = '/api'
 
+// Paths handled by Next.js API routes (not proxied to backend)
+const NEXTJS_API_ROUTES = [
+    '/api/deployment-status',
+];
+
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
 
     const request_path = request.nextUrl.pathname
+
+    // Skip middleware for Next.js API routes (let Next.js handle them)
+    if (NEXTJS_API_ROUTES.some(route => request_path === route || request_path.startsWith(route + '/'))) {
+        return NextResponse.next()
+    }
 
     //Proxy root API requests to API server docs
     if (request_path === local_api_path) {
