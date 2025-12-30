@@ -9,6 +9,7 @@ import { PrimeReactProvider } from 'primereact/api';
 import { Header } from './components/Header/Header';
 import { Footer } from './components/Footer/Footer';
 import { SkipLinks, LiveRegionProvider, KeyboardShortcuts } from './components/Accessibility';
+import { LayoutWrapper } from './components/LayoutWrapper';
 
 const lato = Lato({
     subsets: ["latin"],
@@ -34,17 +35,14 @@ export default function RootLayout({
                 <LiveRegionProvider>
                     {/* eslint-disable-next-line @next/next/no-css-tags */}
                     <link id="theme-link" rel="stylesheet" href="/themes/mdc-light-indigo/theme.css" />
-                    <SkipLinks />
-                    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                        <Header />
-                        <main id="main-content" className="agr-page-content" role="main" tabIndex={-1}>
-                            <div className="agr-container">
-                                {children}
-                            </div>
-                        </main>
-                        <Footer />
-                        <KeyboardShortcuts />
-                    </div>
+                    <LayoutWrapper
+                        header={<Header />}
+                        footer={<Footer />}
+                        skipLinks={<SkipLinks />}
+                        keyboardShortcuts={<KeyboardShortcuts />}
+                    >
+                        {children}
+                    </LayoutWrapper>
                 </LiveRegionProvider>
             </PrimeReactProvider>
         </body>

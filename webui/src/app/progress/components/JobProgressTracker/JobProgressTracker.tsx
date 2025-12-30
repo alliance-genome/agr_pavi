@@ -7,8 +7,10 @@ import { Button } from 'primereact/button';
 import { useRouter } from 'next/navigation'
 
 import { fetchJobStatusFull } from './serverActions';
-import { JobStatusResponse, ProgressStep } from './types';
+import { ProgressStep } from './types';
 import styles from './JobProgressTracker.module.css';
+import { dataCache, CACHE_CONFIGS } from '@/utils/dataCache';
+import { fetchAlignmentResults, fetchAlignmentSeqInfo } from '@/app/result/components/AlignmentResultView/serverActions';
 
 interface LogEntry {
     timestamp: Date;
@@ -39,6 +41,10 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     const isPollingRef = useRef<boolean>(true)
     const [logs, setLogs] = useState<LogEntry[]>([])
     const logContainerRef = useRef<HTMLDivElement>(null)
+    const hasInitializedRef = useRef<boolean>(false)
+    const hasStartedPollingRef = useRef<boolean>(false)
+    // Track which statuses we've already logged to prevent duplicates
+    const loggedStatusesRef = useRef<Set<string>>(new Set())
 
     const addLog = useCallback((level: LogEntry['level'], message: string) => {
         setLogs(prev => [...prev, { timestamp: new Date(), level, message }])
@@ -105,18 +111,24 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             return
         }
 
-        // Only log status changes
-        if (response.status !== lastStatus) {
+        // Only log if we haven't logged this status before (use ref for reliable tracking)
+        if (!loggedStatusesRef.current.has(response.status)) {
+            loggedStatusesRef.current.add(response.status)
+
             if (response.status === 'pending') {
-                addLog('info', 'Job queued, waiting to start...')
+                addLog('info', `Job ${props.uuidStr.slice(0, 8)}... queued`)
+                addLog('info', 'Waiting for pipeline worker to pick up job...')
             } else if (response.status === 'running') {
+                addLog('success', 'Pipeline worker acquired job')
+                addLog('info', 'Initializing Nextflow pipeline...')
                 addLog('success', 'Pipeline started')
                 addLog('info', 'Retrieving protein sequences from genome database...')
             } else if (response.status === 'completed') {
+                addLog('success', 'Sequence retrieval completed')
+                addLog('info', 'Starting Clustal Omega alignment...')
                 addLog('success', 'Alignment completed successfully')
-                addLog('info', 'Preparing results for display...')
             } else if (response.status === 'failed') {
-                addLog('error', response.error_message || 'Pipeline execution failed')
+                addLog('error', `Pipeline failed: ${response.error_message || 'Unknown error'}`)
             }
         }
 
@@ -125,6 +137,33 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
         if (response.status === 'completed') {
             stopPolling()
+            addLog('info', 'Prefetching alignment results...')
+
+            // Prefetch results during the redirect delay (uses same cache keys as AlignmentResultView)
+            const alignmentCacheKey = `alignment_result_${props.uuidStr}`
+            const seqInfoCacheKey = `alignment_seqinfo_${props.uuidStr}`
+
+            // Fire off prefetch requests (don't await - let them run in parallel with redirect timer)
+            dataCache.getOrFetch(
+                alignmentCacheKey,
+                () => fetchAlignmentResults(props.uuidStr),
+                CACHE_CONFIGS.session
+            ).then(() => {
+                addLog('success', 'Alignment results cached')
+            }).catch(() => {
+                // Silent fail - results will be fetched on the results page
+            })
+
+            dataCache.getOrFetch(
+                seqInfoCacheKey,
+                () => fetchAlignmentSeqInfo(props.uuidStr),
+                CACHE_CONFIGS.session
+            ).then(() => {
+                addLog('success', 'Sequence info cached')
+            }).catch(() => {
+                // Silent fail
+            })
+
             addLog('info', 'Redirecting to results page...')
             // Redirect to results after a short delay
             setTimeout(() => {
@@ -136,7 +175,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             stopPolling()
             setErrorMessage(response.error_message || 'Pipeline execution failed')
         }
-    }, [props.uuidStr, router, updateStepsForStatus, stopPolling, addLog, lastStatus])
+    }, [props.uuidStr, router, updateStepsForStatus, stopPolling, addLog])
 
     // Auto-scroll logs to bottom when new entries are added
     useEffect(() => {
@@ -145,14 +184,19 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         }
     }, [logs])
 
-    // Add initial log on mount
+    // Add initial log on mount (use ref to prevent double-logging in Strict Mode)
     useEffect(() => {
+        if (hasInitializedRef.current) return
+        hasInitializedRef.current = true
         addLog('info', `Tracking job: ${props.uuidStr}`)
         addLog('info', 'Connecting to pipeline server...')
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Single consolidated polling effect
+    // Single consolidated polling effect (use ref to prevent double-polling in Strict Mode)
     useEffect(() => {
+        if (hasStartedPollingRef.current) return
+        hasStartedPollingRef.current = true
+
         let intervalId: ReturnType<typeof setInterval> | null = null
         let mounted = true
 
