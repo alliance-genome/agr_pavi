@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { render, fireEvent, waitFor } from '@testing-library/react'
 
-import { Feature } from '@jbrowse/core/util';
+import { Feature } from '../utils';
 import { AlignmentEntry } from '../AlignmentEntry'
 
 jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',

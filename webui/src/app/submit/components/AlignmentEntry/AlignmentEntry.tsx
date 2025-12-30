@@ -1,7 +1,6 @@
 'use client';
 
-import { revlist } from '@jbrowse/core/BaseFeatureWidget/util';
-import { dedupe, Feature } from '@jbrowse/core/util';
+import { revlist, dedupe, Feature } from './utils';
 import { fetchTranscripts } from 'generic-sequence-panel';
 import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
 import { FloatLabel } from 'primereact/floatlabel';
@@ -383,8 +382,8 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
 
                     const transcriptInfo: TranscriptInfo = {
                         id: transcript.id(),
-                        curie: transcript.get('curie'),
-                        name: transcript.get('name'),
+                        curie: transcript.get('curie') ?? '',
+                        name: transcript.get('name') ?? '',
                         strand: feature.strand as FeatureStrand,
                         exons: exons,
                         cds_regions: cds_regions
