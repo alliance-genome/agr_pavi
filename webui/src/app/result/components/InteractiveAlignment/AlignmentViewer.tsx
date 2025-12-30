@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { AlignmentViewer as AV2, Alignment } from 'alignment-viewer-2';
-import 'alignment-viewer-2/dist/js/index.css';
+import 'alignment-viewer-2/dist/standalone/alignmentviewer.css';
 
 export interface AlignmentViewerProps {
     readonly alignmentResult: string;  // CLUSTAL format string
@@ -90,7 +90,12 @@ export const AlignmentViewerComponent: React.FC<AlignmentViewerProps> = ({
     }
 
     return (
-        <div style={{ width: '100%', height: `${height}px` }}>
+        <div style={{
+            width: '100%',
+            height: `${height}px`,
+            position: 'relative',
+            overflow: 'hidden'
+        }}>
             <AV2
                 alignment={alignment}
                 showMinimap={true}

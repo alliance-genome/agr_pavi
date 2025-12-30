@@ -14,20 +14,18 @@ import { ResultsSummary } from '../ResultsSummary';
 
 const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
 const VirtualizedAlignment = dynamic(() => import('../InteractiveAlignment/VirtualizedAlignment'), { ssr: false })
-const AlignmentViewer = dynamic(() => import('../InteractiveAlignment/AlignmentViewer'), { ssr: false })
 
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
 }
 export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = (props: AlignmentResultViewProps) => {
 
-    const [displayMode, setDisplayMode] = useState('jbrowse' as displayModeType)
+    const [displayMode, setDisplayMode] = useState('virtualized' as displayModeType)
     type displayModeOptionsType = {
         label: string,
         value: displayModeType
     }
     const displayModeOptions: displayModeOptionsType[] = [
-        {label: 'MSA Viewer', value: 'jbrowse'},
         {label: 'Interactive (Virtualized)', value: 'virtualized'},
         {label: 'Interactive (Legacy)', value: 'interactive'},
         {label: 'Text', value: 'text'}
@@ -179,7 +177,6 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                         {alignmentResult ?
                             (
                                 <>
-                                    {displayMode === 'jbrowse' && <AlignmentViewer alignmentResult={alignmentResult} height={600} />}
                                     {displayMode === 'virtualized' && <VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} />}
                                     {displayMode === 'interactive' && <InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} />}
                                     {displayMode === 'text' && <TextAlignment alignmentResult={alignmentResult} />}

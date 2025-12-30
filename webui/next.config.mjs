@@ -18,14 +18,38 @@ const nextConfig = {
             'https://raw.githubusercontent.com/alliance-genome/agr_ui/stage/'
         ]
     },
-    // Performance budgets
-    // webpack: (config, { isServer }) => {
-    //     // Enable webpack analyzer for detailed bundle analysis
-    //     if (process.env.ANALYZE === 'true') {
-    //         // Bundle analyzer is handled by withBundleAnalyzer
-    //     }
-    //     return config;
-    // },
+    // Transpile alignment-viewer-2 to handle its CSS modules
+    transpilePackages: ['alignment-viewer-2'],
+    webpack: (config) => {
+        // Find the CSS/SCSS rules and modify them to be less strict for node_modules
+        config.module.rules.forEach((rule) => {
+            if (rule.oneOf) {
+                rule.oneOf.forEach((oneOfRule) => {
+                    if (oneOfRule.use && Array.isArray(oneOfRule.use)) {
+                        oneOfRule.use.forEach((loader) => {
+                            if (
+                                loader.loader &&
+                                loader.loader.includes('css-loader') &&
+                                loader.options &&
+                                loader.options.modules
+                            ) {
+                                // Set mode to 'pure' only for app code, 'local' for node_modules
+                                if (typeof loader.options.modules === 'object') {
+                                    loader.options.modules.mode = (resourcePath) => {
+                                        if (/node_modules/.test(resourcePath)) {
+                                            return 'local';
+                                        }
+                                        return 'pure';
+                                    };
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        return config;
+    },
 };
 
 export default withBundleAnalyzer(nextConfig);
