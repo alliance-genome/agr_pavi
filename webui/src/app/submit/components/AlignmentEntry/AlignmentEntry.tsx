@@ -1,7 +1,7 @@
 'use client';
 
-import { dedupe, revlist } from '@jbrowse/core/BaseFeatureWidget/util';
-import { Feature } from '@jbrowse/core/util';
+import { revlist } from '@jbrowse/core/BaseFeatureWidget/util';
+import { dedupe, Feature } from '@jbrowse/core/util';
 import { fetchTranscripts } from 'generic-sequence-panel';
 import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
 import { FloatLabel } from 'primereact/floatlabel';
