@@ -8,6 +8,13 @@ import { useRouter } from 'next/navigation'
 
 import { fetchJobStatusFull } from './serverActions';
 import { JobStatusResponse, ProgressStep } from './types';
+import styles from './JobProgressTracker.module.css';
+
+interface LogEntry {
+    timestamp: Date;
+    level: 'info' | 'success' | 'warning' | 'error';
+    message: string;
+}
 
 export interface JobProgressTrackerProps {
     readonly uuidStr: string
@@ -30,6 +37,12 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     const [errorMessage, setErrorMessage] = useState<string>('')
     const [lastChecked, setLastChecked] = useState<Date | null>(null)
     const isPollingRef = useRef<boolean>(true)
+    const [logs, setLogs] = useState<LogEntry[]>([])
+    const logContainerRef = useRef<HTMLDivElement>(null)
+
+    const addLog = useCallback((level: LogEntry['level'], message: string) => {
+        setLogs(prev => [...prev, { timestamp: new Date(), level, message }])
+    }, [])
 
     const updateStepsForStatus = useCallback((status: string, errorMsg?: string) => {
         setSteps(prevSteps => {
@@ -86,9 +99,25 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
         if (!response) {
             setErrorMessage(`Failed to fetch job status. Please check the job UUID.`)
+            addLog('error', 'Failed to fetch job status from server')
             stopPolling()
             updateStepsForStatus('failed', 'Could not connect to server')
             return
+        }
+
+        // Only log status changes
+        if (response.status !== lastStatus) {
+            if (response.status === 'pending') {
+                addLog('info', 'Job queued, waiting to start...')
+            } else if (response.status === 'running') {
+                addLog('success', 'Pipeline started')
+                addLog('info', 'Retrieving protein sequences from genome database...')
+            } else if (response.status === 'completed') {
+                addLog('success', 'Alignment completed successfully')
+                addLog('info', 'Preparing results for display...')
+            } else if (response.status === 'failed') {
+                addLog('error', response.error_message || 'Pipeline execution failed')
+            }
         }
 
         setLastStatus(response.status)
@@ -96,6 +125,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
         if (response.status === 'completed') {
             stopPolling()
+            addLog('info', 'Redirecting to results page...')
             // Redirect to results after a short delay
             setTimeout(() => {
                 const params = new URLSearchParams()
@@ -106,7 +136,20 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             stopPolling()
             setErrorMessage(response.error_message || 'Pipeline execution failed')
         }
-    }, [props.uuidStr, router, updateStepsForStatus, stopPolling])
+    }, [props.uuidStr, router, updateStepsForStatus, stopPolling, addLog, lastStatus])
+
+    // Auto-scroll logs to bottom when new entries are added
+    useEffect(() => {
+        if (logContainerRef.current) {
+            logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight
+        }
+    }, [logs])
+
+    // Add initial log on mount
+    useEffect(() => {
+        addLog('info', `Tracking job: ${props.uuidStr}`)
+        addLog('info', 'Connecting to pipeline server...')
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     // Single consolidated polling effect
     useEffect(() => {
@@ -164,6 +207,15 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         router.push('/submit')
     }
 
+    const formatLogTime = (date: Date) => {
+        return date.toLocaleTimeString('en-US', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        })
+    }
+
     return (
         <div className="agr-page-section">
             <div className="agr-page-header">
@@ -173,121 +225,159 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                 </p>
             </div>
 
-            <Card className="agr-card">
-                <div className="agr-card-header" style={{ marginBottom: '1.5rem' }}>
-                    <h2 style={{ margin: 0 }}>Pipeline Progress</h2>
-                    {lastChecked && (
-                        <small style={{ color: 'var(--agr-gray-500)', fontWeight: 'normal' }}>
-                            Last updated: {lastChecked.toLocaleTimeString()}
-                            {isPolling && ' (auto-refreshing every 5s)'}
-                        </small>
-                    )}
-                </div>
-
-                <Timeline
-                    value={steps}
-                    marker={(item) => (
-                        <span
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '2rem',
-                                height: '2rem',
-                                borderRadius: '50%',
-                                backgroundColor: item.status === 'running' ? 'var(--agr-primary-light, #dbeafe)' : 'transparent'
-                            }}
-                        >
-                            <i
-                                className={`${getStepIcon(item.status)}${item.status === 'running' ? ' agr-spinner' : ''}`}
-                                style={{
-                                    color: getStepColor(item.status),
-                                    fontSize: '1.25rem'
-                                }}
-                            />
-                        </span>
-                    )}
-                    content={(item) => (
-                        <div style={{ paddingBottom: '1.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <strong style={{
-                                    color: item.status === 'error' ? 'var(--agr-error)' : 'inherit'
-                                }}>
-                                    {item.name}
-                                </strong>
-                                {item.status === 'running' && (
-                                    <span style={{
-                                        fontSize: '0.75rem',
-                                        padding: '0.125rem 0.5rem',
-                                        backgroundColor: 'var(--agr-primary-light, #dbeafe)',
-                                        color: 'var(--agr-primary, #3b82f6)',
-                                        borderRadius: '9999px'
-                                    }}>
-                                        In Progress
-                                    </span>
-                                )}
-                            </div>
-                            {item.message && (
-                                <p style={{
-                                    margin: '0.25rem 0 0 0',
-                                    fontSize: '0.875rem',
-                                    color: item.status === 'error' ? 'var(--agr-error)' : 'var(--agr-gray-600)'
-                                }}>
-                                    {item.message}
-                                </p>
-                            )}
-                            {item.timestamp && (
-                                <small style={{ color: 'var(--agr-gray-400)' }}>
-                                    {item.timestamp.toLocaleTimeString()}
+            <div className={styles.container}>
+                {/* Left side: Step graph */}
+                <div className={styles.stepsPanel}>
+                    <Card className="agr-card">
+                        <div className="agr-card-header" style={{ marginBottom: '1.5rem' }}>
+                            <h2 style={{ margin: 0 }}>Pipeline Progress</h2>
+                            {lastChecked && (
+                                <small style={{ color: 'var(--agr-gray-500)', fontWeight: 'normal' }}>
+                                    Last updated: {lastChecked.toLocaleTimeString()}
+                                    {isPolling && ' (auto-refreshing every 5s)'}
                                 </small>
                             )}
                         </div>
-                    )}
-                />
 
-                {errorMessage && (
-                    <div style={{
-                        marginTop: '1rem',
-                        padding: '1rem',
-                        backgroundColor: 'var(--agr-error-light, #fef2f2)',
-                        borderRadius: '0.5rem',
-                        border: '1px solid var(--agr-error, #ef4444)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            <i className="pi pi-exclamation-triangle" style={{ color: 'var(--agr-error)' }} />
-                            <strong style={{ color: 'var(--agr-error)' }}>Error</strong>
-                        </div>
-                        <p style={{ margin: 0, color: 'var(--agr-error-dark, #991b1b)' }}>{errorMessage}</p>
-                        <Button
-                            label="Submit New Job"
-                            icon="pi pi-refresh"
-                            className="p-button-sm p-button-outlined"
-                            style={{ marginTop: '1rem' }}
-                            onClick={handleRetry}
+                        <Timeline
+                            value={steps}
+                            marker={(item) => (
+                                <span
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '2rem',
+                                        height: '2rem',
+                                        borderRadius: '50%',
+                                        backgroundColor: item.status === 'running' ? 'var(--agr-primary-light, #dbeafe)' : 'transparent'
+                                    }}
+                                >
+                                    <i
+                                        className={`${getStepIcon(item.status)}${item.status === 'running' ? ' agr-spinner' : ''}`}
+                                        style={{
+                                            color: getStepColor(item.status),
+                                            fontSize: '1.25rem'
+                                        }}
+                                    />
+                                </span>
+                            )}
+                            content={(item) => (
+                                <div style={{ paddingBottom: '1.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <strong style={{
+                                            color: item.status === 'error' ? 'var(--agr-error)' : 'inherit'
+                                        }}>
+                                            {item.name}
+                                        </strong>
+                                        {item.status === 'running' && (
+                                            <span style={{
+                                                fontSize: '0.75rem',
+                                                padding: '0.125rem 0.5rem',
+                                                backgroundColor: 'var(--agr-primary-light, #dbeafe)',
+                                                color: 'var(--agr-primary, #3b82f6)',
+                                                borderRadius: '9999px'
+                                            }}>
+                                                In Progress
+                                            </span>
+                                        )}
+                                    </div>
+                                    {item.message && (
+                                        <p style={{
+                                            margin: '0.25rem 0 0 0',
+                                            fontSize: '0.875rem',
+                                            color: item.status === 'error' ? 'var(--agr-error)' : 'var(--agr-gray-600)'
+                                        }}>
+                                            {item.message}
+                                        </p>
+                                    )}
+                                    {item.timestamp && (
+                                        <small style={{ color: 'var(--agr-gray-400)' }}>
+                                            {item.timestamp.toLocaleTimeString()}
+                                        </small>
+                                    )}
+                                </div>
+                            )}
                         />
-                    </div>
-                )}
 
-                {lastStatus === 'completed' && (
-                    <div style={{
-                        marginTop: '1rem',
-                        padding: '1rem',
-                        backgroundColor: 'var(--agr-success-light, #f0fdf4)',
-                        borderRadius: '0.5rem',
-                        border: '1px solid var(--agr-success, #22c55e)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <i className="pi pi-check-circle" style={{ color: 'var(--agr-success)', fontSize: '1.25rem' }} />
-                            <strong style={{ color: 'var(--agr-success-dark, #166534)' }}>
-                                Alignment Complete!
-                            </strong>
+                        {errorMessage && (
+                            <div style={{
+                                marginTop: '1rem',
+                                padding: '1rem',
+                                backgroundColor: 'var(--agr-error-light, #fef2f2)',
+                                borderRadius: '0.5rem',
+                                border: '1px solid var(--agr-error, #ef4444)'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <i className="pi pi-exclamation-triangle" style={{ color: 'var(--agr-error)' }} />
+                                    <strong style={{ color: 'var(--agr-error)' }}>Error</strong>
+                                </div>
+                                <p style={{ margin: 0, color: 'var(--agr-error-dark, #991b1b)' }}>{errorMessage}</p>
+                                <Button
+                                    label="Submit New Job"
+                                    icon="pi pi-refresh"
+                                    className="p-button-sm p-button-outlined"
+                                    style={{ marginTop: '1rem' }}
+                                    onClick={handleRetry}
+                                />
+                            </div>
+                        )}
+
+                        {lastStatus === 'completed' && (
+                            <div style={{
+                                marginTop: '1rem',
+                                padding: '1rem',
+                                backgroundColor: 'var(--agr-success-light, #f0fdf4)',
+                                borderRadius: '0.5rem',
+                                border: '1px solid var(--agr-success, #22c55e)'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <i className="pi pi-check-circle" style={{ color: 'var(--agr-success)', fontSize: '1.25rem' }} />
+                                    <strong style={{ color: 'var(--agr-success-dark, #166534)' }}>
+                                        Alignment Complete!
+                                    </strong>
+                                </div>
+                                <p style={{ margin: '0.5rem 0 0 0', color: 'var(--agr-success-dark, #166534)' }}>
+                                    Redirecting to results page...
+                                </p>
+                            </div>
+                        )}
+                    </Card>
+                </div>
+
+                {/* Right side: Log viewer */}
+                <div className={styles.logPanel}>
+                    <div className={styles.logContainer} ref={logContainerRef}>
+                        <div className={styles.logHeader}>
+                            <div className={styles.logTitle}>
+                                <i className="pi pi-desktop" />
+                                <span>Pipeline Log</span>
+                            </div>
+                            <span className={styles.logCount}>{logs.length} entries</span>
                         </div>
-                        <p style={{ margin: '0.5rem 0 0 0', color: 'var(--agr-success-dark, #166534)' }}>
-                            Redirecting to results page...
-                        </p>
+                        <div className={styles.logContent}>
+                            {logs.length === 0 ? (
+                                <div className={styles.emptyLog}>
+                                    <i className="pi pi-inbox" />
+                                    <p>Waiting for log entries...</p>
+                                </div>
+                            ) : (
+                                logs.map((log, index) => (
+                                    <div key={index} className={styles.logEntry}>
+                                        <span className={styles.logTimestamp}>{formatLogTime(log.timestamp)}</span>
+                                        <span className={`${styles.logLevel} ${styles[log.level]}`}>
+                                            {log.level}
+                                        </span>
+                                        <span className={`${styles.logMessage} ${styles[log.level]}`}>
+                                            {log.message}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
-                )}
-            </Card>
+                </div>
+            </div>
         </div>
     )
 }
