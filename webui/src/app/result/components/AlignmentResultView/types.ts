@@ -1,1 +1,1 @@
-export type displayModeType = 'text' | 'interactive' | 'virtualized'
+export type displayModeType = 'text' | 'interactive' | 'virtualized' | 'jbrowse'
