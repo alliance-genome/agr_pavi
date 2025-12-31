@@ -170,8 +170,11 @@ class PaviExecutionEnvironment:
             )
         )
 
+        policy_name = 'agr-pavi-pipeline-nf-aws-execution-policy'
+        if env_suffix:
+            policy_name += f'-{env_suffix}'
         nf_aws_execution_policy = iam.ManagedPolicy(scope, 'pavi-nextflow-aws-execution-policy',
-                                                    managed_policy_name='agr-pavi-pipeline-nf-aws-execution-policy',
+                                                    managed_policy_name=policy_name,
                                                     description='Grant required access to PAVI execution environment to run nextflow pipelines using it.',
                                                     statements=nf_aws_execution_statements)
         cdk_tags.of(nf_aws_execution_policy).add("Product", "PAVI")  # type: ignore

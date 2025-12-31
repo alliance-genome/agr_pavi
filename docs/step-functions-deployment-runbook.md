@@ -5,9 +5,66 @@ This runbook describes the process for deploying the Step Functions-based pipeli
 ## Prerequisites
 
 - AWS CLI configured with appropriate credentials
-- Node.js 20+ installed (for CDK)
-- Python 3.12+ installed
-- Access to the `alliance-genome` AWS account
+- Node.js 20+ installed (for CDK CLI via npx)
+- Python 3.12 installed (exact version required by pavi_shared_aws)
+- Access to the AWS account with the following permissions:
+  - cloudformation:CreateStack, UpdateStack, DescribeStacks
+  - s3:CreateBucket, PutObject, GetObject
+  - iam:CreateRole, PutRolePolicy, PassRole
+  - batch:CreateComputeEnvironment, CreateJobQueue, RegisterJobDefinition
+  - states:CreateStateMachine (for Step Functions)
+  - dynamodb:CreateTable
+  - logs:CreateLogGroup
+  - cloudwatch:PutMetricAlarm, PutDashboard
+
+## POC Deployment (Completed 2024-12-30)
+
+The following resources were successfully deployed to AWS account `100225593120`:
+
+| Resource Type | Name | ARN/ID |
+|--------------|------|--------|
+| State Machine | pavi-pipeline-sfn-poc3 | `arn:aws:states:us-east-1:100225593120:stateMachine:pavi-pipeline-sfn-poc3` |
+| S3 Bucket | agr-pavi-pipeline-stepfunctions-poc3 | Work directory for executions |
+| DynamoDB Table | pavi-jobs-poc3 | Job tracking with TTL |
+| Job Queue | pavi_pipeline_poc3 | `arn:aws:batch:us-east-1:100225593120:job-queue/pavi_pipeline_poc3` |
+| Seq Retrieval Job Def | pavi-seq-retrieval-sfn-poc3 | `arn:aws:batch:us-east-1:100225593120:job-definition/pavi-seq-retrieval-sfn-poc3:1` |
+| Alignment Job Def | pavi-alignment-sfn-poc3 | `arn:aws:batch:us-east-1:100225593120:job-definition/pavi-alignment-sfn-poc3:1` |
+| CloudWatch Dashboard | PAVI-StepFunctions-Pipeline-poc3 | Monitoring dashboard |
+| CloudWatch Alarms | pavi-sfn-*-poc3 | 4 alarms for failures, timeouts, execution time, throttling |
+
+### POC Deployment Steps
+
+```bash
+cd pipeline_components/aws_infra
+
+# 1. Build and install shared_aws package
+make -C ../../shared_aws/py_package/ clean build install
+
+# 2. Create venv with Python 3.12 (required by pavi_shared_aws)
+python3.12 -m venv .venv
+source .venv/bin/activate
+
+# 3. Install CDK dependencies
+pip install -r requirements.txt
+
+# 4. Synthesize to verify template
+JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=1 npx cdk synth -a ".venv/bin/python3 cdk_app_poc2.py"
+
+# 5. Deploy to AWS
+JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=1 npx cdk deploy -a ".venv/bin/python3 cdk_app_poc2.py" --require-approval never
+```
+
+### Key Fixes Applied During POC Deployment
+
+1. **State Machine Type**: Changed from `EXPRESS` to `STANDARD` workflow type because Express workflows don't support `.sync` integration required for waiting on Batch jobs.
+
+2. **Container Image API**: Used `ecs.ContainerImage.from_registry()` instead of `batch.EcsContainerImage` which doesn't exist in CDK v2 stable Batch module.
+
+3. **Size Import**: Import `Size` from `aws_cdk` instead of `s3.Size.mebibytes()`.
+
+4. **Batch Task Environment Variables**: Use `environment` dict instead of `command` array for JsonPath expressions (arrays don't allow JsonPath fields).
+
+5. **IAM Policy Naming**: Append env_suffix to policy names to avoid conflicts with existing resources.
 
 ## Environments
 

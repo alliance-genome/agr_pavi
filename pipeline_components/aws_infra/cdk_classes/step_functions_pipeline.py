@@ -7,11 +7,13 @@ the Nextflow workflow for PAVI protein MSA pipeline.
 
 from aws_cdk import (
     Duration,
+    Size,
     Stack,
     RemovalPolicy,
     aws_stepfunctions as sfn,
     aws_stepfunctions_tasks as sfn_tasks,
     aws_batch as batch,
+    aws_ecs as ecs,
     aws_s3 as s3,
     aws_iam as iam,
     aws_logs as cwl,
@@ -102,13 +104,8 @@ class PaviStepFunctionsPipeline:
                     prefix='executions/*/work/',
                     expiration=Duration.days(30),
                     enabled=True
-                ),
-                # Keep results indefinitely (or set custom retention)
-                s3.LifecycleRule(
-                    id='retain-results',
-                    prefix='executions/*/results/',
-                    enabled=False  # No expiration
                 )
+                # Results are retained indefinitely by default (no lifecycle rule needed)
             ]
         )
 
@@ -196,8 +193,8 @@ class PaviStepFunctionsPipeline:
             container=batch.EcsEc2ContainerDefinition(
                 self.scope,
                 f'{self.construct_id}-seq-retrieval-container',
-                image=batch.EcsContainerImage.from_registry(seq_retrieval_image),
-                memory=s3.Size.mebibytes(500),
+                image=ecs.ContainerImage.from_registry(seq_retrieval_image),
+                memory=Size.mebibytes(500),
                 cpu=1,
                 job_role=job_role,
                 # Command will be overridden by Step Functions
@@ -217,8 +214,8 @@ class PaviStepFunctionsPipeline:
             container=batch.EcsEc2ContainerDefinition(
                 self.scope,
                 f'{self.construct_id}-alignment-container',
-                image=batch.EcsContainerImage.from_registry(alignment_image),
-                memory=s3.Size.mebibytes(2048),
+                image=ecs.ContainerImage.from_registry(alignment_image),
+                memory=Size.mebibytes(2048),
                 cpu=2,
                 job_role=job_role,
                 command=['echo', 'placeholder']
@@ -268,19 +265,18 @@ class PaviStepFunctionsPipeline:
             ),
             job_queue_arn=sfn.JsonPath.string_at('$.job_queue_arn'),
             container_overrides=sfn_tasks.BatchContainerOverrides(
-                memory=500,
+                memory=Size.mebibytes(500),
                 vcpus=1,
-                # Command will be built dynamically
-                command=[
-                    'seq_retrieval.py',
-                    '--output_type', 'protein',
-                    '--unique_entry_id', sfn.JsonPath.string_at('$.unique_entry_id'),
-                    '--base_seq_name', sfn.JsonPath.string_at('$.base_seq_name'),
-                    '--seq_id', sfn.JsonPath.string_at('$.seq_id'),
-                    '--seq_strand', sfn.JsonPath.string_at('$.seq_strand'),
-                    '--fasta_file_url', sfn.JsonPath.string_at('$.fasta_file_url'),
-                    '--s3_output_prefix', sfn.JsonPath.string_at('$.s3_work_prefix')
-                ]
+                # Use environment variables for dynamic values
+                environment={
+                    'UNIQUE_ENTRY_ID': sfn.JsonPath.string_at('$.unique_entry_id'),
+                    'BASE_SEQ_NAME': sfn.JsonPath.string_at('$.base_seq_name'),
+                    'SEQ_ID': sfn.JsonPath.string_at('$.seq_id'),
+                    'SEQ_STRAND': sfn.JsonPath.string_at('$.seq_strand'),
+                    'FASTA_FILE_URL': sfn.JsonPath.string_at('$.fasta_file_url'),
+                    'S3_OUTPUT_PREFIX': sfn.JsonPath.string_at('$.s3_work_prefix'),
+                    'OUTPUT_TYPE': 'protein'
+                }
             ),
             result_path='$.batch_result'
         )
@@ -330,13 +326,12 @@ class PaviStepFunctionsPipeline:
             ),
             job_queue_arn=sfn.JsonPath.string_at('$.job_queue_arn'),
             container_overrides=sfn_tasks.BatchContainerOverrides(
-                memory=2048,
+                memory=Size.mebibytes(2048),
                 vcpus=2,
-                command=[
-                    'alignment_wrapper.sh',
-                    '--s3-work-prefix', sfn.JsonPath.string_at('$.s3_work_prefix'),
-                    '--s3-results-prefix', sfn.JsonPath.string_at('$.s3_results_prefix')
-                ]
+                environment={
+                    'S3_WORK_PREFIX': sfn.JsonPath.string_at('$.s3_work_prefix'),
+                    'S3_RESULTS_PREFIX': sfn.JsonPath.string_at('$.s3_results_prefix')
+                }
             ),
             result_path='$.alignment_result'
         )
@@ -360,13 +355,13 @@ class PaviStepFunctionsPipeline:
             ),
             job_queue_arn=sfn.JsonPath.string_at('$.job_queue_arn'),
             container_overrides=sfn_tasks.BatchContainerOverrides(
-                memory=500,
+                memory=Size.mebibytes(500),
                 vcpus=1,
-                command=[
-                    'seq_info_align.py',
-                    '--s3-work-prefix', sfn.JsonPath.string_at('$.s3_work_prefix'),
-                    '--s3-results-prefix', sfn.JsonPath.string_at('$.s3_results_prefix')
-                ]
+                environment={
+                    'S3_WORK_PREFIX': sfn.JsonPath.string_at('$.s3_work_prefix'),
+                    'S3_RESULTS_PREFIX': sfn.JsonPath.string_at('$.s3_results_prefix'),
+                    'TASK_TYPE': 'collect_seq_info'
+                }
             ),
             result_path='$.collect_result'
         )
@@ -446,7 +441,7 @@ class PaviStepFunctionsPipeline:
             f'{self.construct_id}-state-machine',
             state_machine_name=state_machine_name,
             definition=definition,
-            state_machine_type=sfn.StateMachineType.EXPRESS,
+            state_machine_type=sfn.StateMachineType.STANDARD,  # STANDARD required for .sync Batch integration
             timeout=Duration.minutes(30),
             logs=sfn.LogOptions(
                 destination=self.log_group,
