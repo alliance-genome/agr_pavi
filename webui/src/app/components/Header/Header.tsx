@@ -78,14 +78,9 @@ export const Header: React.FC = () => {
                     >
                         Alliance Home
                     </a>
-                    <a
-                        href="https://www.alliancegenome.org/help"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => setMobileMenuOpen(false)}
-                    >
+                    <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
                         Help
-                    </a>
+                    </Link>
                 </nav>
             </div>
         </header>
