@@ -44,12 +44,12 @@ export function revlist(list: Feat[], seqlen: number): Feat[] {
  * Provides typed accessors for common feature properties
  */
 export interface Feature {
-    get(key: 'start'): number;
-    get(key: 'end'): number;
-    get(key: 'name'): string | undefined;
-    get(key: 'curie'): string | undefined;
-    get(key: 'is_canonical'): boolean | undefined;
-    get(key: string): unknown;
+    get(_key: 'start'): number;
+    get(_key: 'end'): number;
+    get(_key: 'name'): string | undefined;
+    get(_key: 'curie'): string | undefined;
+    get(_key: 'is_canonical'): boolean | undefined;
+    get(_key: string): unknown;
     id(): string;
     toJSON(): Record<string, unknown>;
 }

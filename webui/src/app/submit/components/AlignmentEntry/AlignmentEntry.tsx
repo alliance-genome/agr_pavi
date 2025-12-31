@@ -1,700 +1,343 @@
 'use client';
 
-import { revlist, dedupe, Feature } from './utils';
-import { fetchTranscripts } from 'generic-sequence-panel';
-import NCListFeature from "generic-sequence-panel/dist/NCListFeature";
 import { FloatLabel } from 'primereact/floatlabel';
 import { AutoComplete, AutoCompleteState, AutoCompletePassThroughMethodOptions } from 'primereact/autocomplete';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
 import React, { createRef, FunctionComponent, useCallback, useEffect, useState } from 'react';
 
-import { fetchGeneInfo, fetchGeneSuggestionsAutocomplete, fetchAlleles } from './serverActions';
-
-import { AlignmentEntryStatus, GeneInfo, TranscriptInfo, FeatureStrand, AlleleInfo, GeneSuggestion } from './types';
+import { useGeneSearch, useTranscriptSelection, useAlleleSelection } from '@/hooks';
+import { AlignmentEntryStatus, AlleleInfo } from './types';
 import { JobSumbissionPayloadRecord, InputPayloadPart, InputPayloadDispatchAction } from '../JobSubmitForm/types';
 
-//Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
-// * Server requires node 22's experimental feature http(s) module imports,
-//   which is expected to become stable in Oct 2024 (https://nodejs.org/api/esm.html#https-and-http-imports)
-// * next.js client code does not support async/await (at current), which is required for dynamic imports
-//   like `await import(`${public_website_src}/lib/utils.js`)`
-import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
+// Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
+import { getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
 
 export interface AlignmentEntryProps {
-    readonly index: number
-    readonly agrjBrowseDataRelease: string
-    readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>
-    readonly initialGeneId?: string
+    readonly index: number;
+    readonly agrjBrowseDataRelease: string;
+    readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>;
+    readonly initialGeneId?: string;
 }
+
+// Allele display helpers
+const alleleDisplayText = (alleleInfo: AlleleInfo) => {
+    let text = alleleInfo.id;
+    if (alleleInfo.id !== alleleInfo.displayName) {
+        text += ` - ${alleleInfo.displayName}`;
+    }
+    return text;
+};
+
+const variantsDisplayText = (alleleInfo: AlleleInfo) => {
+    let text = '';
+    if (alleleInfo.variants.size > 1) {
+        text = `(${alleleInfo.variants.size} variants)`;
+    } else {
+        const variant = Array.from(alleleInfo.variants.values()).pop();
+        if (variant?.displayName !== alleleInfo.displayName) {
+            text += `(${variant?.displayName})`;
+        }
+    }
+    return text;
+};
+
+const alleleOptionFilterValue = (alleleInfo: AlleleInfo) => {
+    const alleleText = alleleDisplayText(alleleInfo);
+    const variantText = variantsDisplayText(alleleInfo);
+    return `${alleleText} | ${variantText}`;
+};
+
 export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: AlignmentEntryProps) => {
-    const [setupCompleted, setSetupCompleted] = useState<boolean>(false)
+    const [setupCompleted, setSetupCompleted] = useState<boolean>(false);
+
+    // Refs for form elements
     const geneMessageRef: React.RefObject<Message | null> = createRef();
-    const [geneMessageDisplay, setgeneMessageDisplay] = useState('none')
-    const geneFieldRef = createRef<AutoComplete>()
-    const geneFieldStateRef = createRef<AutoCompleteState>()
-    const [geneSuggestionList, setGeneSuggestionList] = useState<GeneSuggestion[]>([])
-    const [selectedGeneSuggestion, setSelectedGeneSuggestion] = useState<GeneSuggestion>()
-    const [geneQuery, setGeneQuery] = useState<string|GeneSuggestion>()
-    const [gene, setGene] = useState<GeneInfo>()
-    const [selectedAllelesInfo, setSelectedAllelesInfo] = useState<AlleleInfo[]>([])
-    const [selectedTranscriptsInfo, setSelectedTranscriptsInfo] = useState<TranscriptInfo[]>([])
+    const geneFieldRef = createRef<AutoComplete>();
+    const geneFieldStateRef = createRef<AutoCompleteState>();
     const transcriptMultiselectRef: React.RefObject<MultiSelect | null> = createRef();
-    const [transcriptList, setTranscriptList] = useState<Feature[]>([])
-    const [transcriptListFocused, setTranscriptListFocused] = useState<boolean>(false)
-    const [transcriptListOpened, setTranscriptListOpened] = useState<boolean>(false)
-    const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<Array<any>>([])
-    const [transcriptListLoading, setTranscriptListLoading] = useState(true)
     const alleleMultiselectRef: React.RefObject<MultiSelect | null> = createRef();
-    const [alleleList, setAlleleList] = useState<AlleleInfo[]>([])
-    const [alleleListFocused, setAlleleListFocused] = useState<boolean>(false)
-    const [alleleListOpened, setAlleleListOpened] = useState<boolean>(false)
-    const [selectedAlleleIds, setSelectedAlleleIds] = useState<Array<any>>([])
-    const [alleleListLoading, setAlleleListLoading] = useState(false)
-    const [fastaFileUrl, setFastaFileUrl] = useState<string>()
 
-    const alleleDisplayText = (alleleInfo: AlleleInfo) => {
-        let text = alleleInfo.id
-        if( alleleInfo.id !== alleleInfo.displayName ){
-            // Add allele displayName if not identical to ID
-            text += ` - ${alleleInfo.displayName}`
-        }
-        return text
-    };
+    // Callback to update parent about status changes
+    const updateInputPayloadPart = useCallback(
+        (newProperties: Partial<InputPayloadPart>) => {
+            const dispatchAction: InputPayloadDispatchAction = {
+                type: 'UPDATE',
+                index: props.index,
+                value: newProperties,
+            };
+            props.dispatchInputPayloadPart(dispatchAction);
+        },
+        [] // eslint-disable-line react-hooks/exhaustive-deps
+    );
 
-    const variantsDisplayText = (alleleInfo: AlleleInfo) => {
-        let text = ''
-        if( alleleInfo.variants.size > 1 ){
-            // Add variant count if allele has multiple variants
-            text = `(${alleleInfo.variants.size} variants)`
-        }
-        else {
-            // Add variant displayName if allele has one variant and name is not identical to Allele's
-            const variant = Array.from(alleleInfo.variants.values()).pop()
-            if( variant?.displayName !== alleleInfo.displayName ){
-                text += `(${variant?.displayName})`
+    const handleStatusChange = useCallback(
+        (status: AlignmentEntryStatus) => {
+            updateInputPayloadPart({
+                status,
+                payloadPart: status === AlignmentEntryStatus.PROCESSING ? undefined : undefined,
+            });
+        },
+        [updateInputPayloadPart]
+    );
+
+    // Use custom hooks for gene, transcript, and allele selection
+    const geneSearch = useGeneSearch(
+        {
+            onStatusChange: handleStatusChange,
+            initialGeneId: props.initialGeneId,
+            setupCompleted,
+        },
+        geneFieldRef,
+        geneFieldStateRef
+    );
+
+    const transcriptSelection = useTranscriptSelection(
+        {
+            gene: geneSearch.gene,
+            agrjBrowseDataRelease: props.agrjBrowseDataRelease,
+            onStatusChange: handleStatusChange,
+            setupCompleted,
+            initialGeneId: props.initialGeneId,
+        },
+        transcriptMultiselectRef
+    );
+
+    const alleleSelection = useAlleleSelection(
+        {
+            gene: geneSearch.gene,
+            setupCompleted,
+        },
+        alleleMultiselectRef
+    );
+
+    // Register callback to reset dependent selections when gene changes
+    useEffect(() => {
+        geneSearch.onGeneChange(() => {
+            transcriptSelection.resetSelection();
+            alleleSelection.resetSelection();
+        });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Payload calculation
+    const payloadPortion = useCallback(
+        (gene_info: NonNullable<typeof geneSearch.gene>, transcripts_info: typeof transcriptSelection.selectedTranscriptsInfo, alleles_info: typeof alleleSelection.selectedAllelesInfo) => {
+            const portion: JobSumbissionPayloadRecord[] = [];
+
+            transcripts_info.forEach((transcript) => {
+                let alt_seq_name_suffix: string = `_alt${props.index + 1}`;
+                if (alleles_info.length > 0) {
+                    let identifiable_suffix: string = '';
+                    for (const allele of alleles_info) {
+                        if (allele.id !== allele.displayName) {
+                            if (allele.displayName.length < allele.id.length) {
+                                identifiable_suffix += `_${allele.displayName}`;
+                            } else {
+                                identifiable_suffix += `_${allele.id}`;
+                            }
+                        } else {
+                            identifiable_suffix = '';
+                            break;
+                        }
+                    }
+                    // Prevent identifiable suffixes that are too long
+                    if (identifiable_suffix && identifiable_suffix.length < 30) {
+                        alt_seq_name_suffix = identifiable_suffix;
+                    }
+                }
+
+                let unique_entry_id = `${String(props.index).padStart(3, '0')}_${gene_info.symbol}_${transcript.name}`;
+                if (alleles_info.length > 0) {
+                    unique_entry_id += alt_seq_name_suffix;
+                }
+
+                // Get strand from gene's genomeLocations, or fallback to transcript strand
+                const genomeLocation = getSingleGenomeLocation(gene_info.genomeLocations);
+                const geneStrand = genomeLocation['strand'];
+                // Convert transcript strand (1 or -1) to string format ("+" or "-")
+                const transcriptStrand = transcript.strand === 1 ? '+' : '-';
+                const seqStrand = geneStrand || transcriptStrand;
+
+                portion.push({
+                    unique_entry_id: unique_entry_id,
+                    base_seq_name: `${gene_info.symbol}_${transcript.name}`,
+                    fasta_file_url: transcriptSelection.fastaFileUrl!,
+                    seq_id: genomeLocation['chromosome'],
+                    seq_strand: seqStrand,
+                    exon_seq_regions: transcript.exons.map((e) => ({
+                        start: e.refStart,
+                        end: e.refEnd,
+                    })),
+                    cds_seq_regions: transcript.cds_regions.map((e) => ({
+                        start: e.refStart,
+                        end: e.refEnd,
+                        frame: e.phase,
+                    })),
+                    variant_ids: alleles_info.map((a) => Array.from(a.variants.keys())).flat(),
+                    alt_seq_name_suffix: alt_seq_name_suffix,
+                });
+            });
+
+            return portion;
+        },
+        [transcriptSelection.fastaFileUrl, props.index] // eslint-disable-line react-hooks/exhaustive-deps
+    );
+
+    // Calculate input payload part on update of gene, transcript and allele selection
+    useEffect(() => {
+        if (geneSearch.gene !== undefined && transcriptSelection.selectedTranscriptsInfo.length > 0) {
+            console.log('Calculating payload portion...');
+
+            const portion = payloadPortion(
+                geneSearch.gene,
+                transcriptSelection.selectedTranscriptsInfo,
+                alleleSelection.selectedAllelesInfo
+            );
+            console.log('AlignmentEntry portion is', portion);
+
+            if (portion === undefined || portion.length < 1) {
+                updateInputPayloadPart({
+                    status: AlignmentEntryStatus.FAILED_PROCESSING,
+                    payloadPart: undefined,
+                });
+            } else {
+                updateInputPayloadPart({
+                    status: AlignmentEntryStatus.READY,
+                    payloadPart: portion,
+                });
             }
         }
-        return text
-    };
+    }, [
+        geneSearch.gene,
+        transcriptSelection.selectedTranscriptsInfo,
+        alleleSelection.selectedAllelesInfo,
+        payloadPortion,
+        updateInputPayloadPart,
+    ]);
 
-    const alleleOptionTemplate = (option: any) => {
-        const alleleInfo = option.allele as AlleleInfo
+    // Component mount/unmount
+    useEffect(() => {
+        console.log(`AlignmentEntry with index ${props.index} mounted.`);
+        const initInputPayloadPart: InputPayloadPart = {
+            index: props.index,
+            status: AlignmentEntryStatus.PENDING_INPUT,
+            payloadPart: undefined,
+        };
+        props.dispatchInputPayloadPart({ type: 'ADD', index: props.index, value: initInputPayloadPart });
+        setSetupCompleted(true);
 
-        const alleleText = alleleDisplayText(alleleInfo)
+        return props.dispatchInputPayloadPart.bind(undefined, {
+            type: 'DELETE',
+            index: props.index,
+            value: initInputPayloadPart,
+        });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-        const variantText = variantsDisplayText(alleleInfo)
+    // Allele option template for dropdown
+    const alleleOptionTemplate = (option: { allele: AlleleInfo }) => {
+        const alleleInfo = option.allele;
+        const alleleText = alleleDisplayText(alleleInfo);
+        const variantText = variantsDisplayText(alleleInfo);
 
         return (
             <div className="flex align-items-left">
-                <p dangerouslySetInnerHTML={{__html: alleleText}} />
-                <p dangerouslySetInnerHTML={{__html: variantText}} />
+                <p dangerouslySetInnerHTML={{ __html: alleleText }} />
+                <p dangerouslySetInnerHTML={{ __html: variantText }} />
             </div>
         );
     };
 
-    const alleleOptionFilterValue = (alleleInfo: AlleleInfo) => {
-        const alleleText = alleleDisplayText(alleleInfo)
-
-        const variantText = variantsDisplayText(alleleInfo)
-
-        return `${alleleText} | ${variantText}`;
-    };
-
-    const updateInputPayloadPart = useCallback((newProperties: Partial<InputPayloadPart>) => {
-        const dispatchAction: InputPayloadDispatchAction = {
-            type: 'UPDATE',
-            index: props.index,
-            value: newProperties
-        }
-        props.dispatchInputPayloadPart(dispatchAction)
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-    const searchGene = async(geneQuery: string) => {
-        console.log('Searching for gene:', geneQuery)
-        const geneSuggestions: GeneSuggestion[] = []
-
-        // Try exact matching on ID
-        const idMatch = await fetchGeneInfo(geneQuery)
-        if(idMatch){
-            geneSuggestions.push({
-                id: idMatch.id,
-                displayName: `${idMatch.symbol} (${idMatch.species.shortName})`
-            })
-        }
-
-        // Add autocomplete suggestions
-        let autocompleteSuggestions: GeneSuggestion[] = []
-        try {
-            autocompleteSuggestions = await fetchGeneSuggestionsAutocomplete(geneQuery)
-        }
-        catch (e) {
-            console.error(`Error received while requesting autocomplete suggestions: ${e}.`)
-            setgeneMessageDisplay('initial')
-            return
-        }
-
-        if(autocompleteSuggestions && autocompleteSuggestions.length > 0){
-            geneSuggestions.push(...autocompleteSuggestions)
-        }
-
-        console.log(`${geneSuggestions.length} gene suggestions received.`)
-        if( geneSuggestions.length === 0 ){
-            setgeneMessageDisplay('initial')
-        }
-        setGeneSuggestionList(geneSuggestions)
-    }
-
-    const autoSelectSingleGeneSuggestion = useCallback(() => {
-        // Autoselect single gene suggestion if no prior selection was made
-        console.log('Evaluating autoselecting single gene suggestion...')
-        if( geneQuery === undefined || geneQuery === '' ){
-            console.log('No gene query detected. Skipping autoselecting single gene suggestion.')
-            return
-        }
-        if(selectedGeneSuggestion === undefined && geneSuggestionList.length == 1){
-            console.log('Autoselecting single gene suggestion:', geneSuggestionList[0])
-            setSelectedGeneSuggestion(geneSuggestionList[0])
-            setGeneQuery(geneSuggestionList[0])
-            geneFieldRef.current?.hide()
-        }
-        // Reset gene autocomplete text to prior selection if prior selection was made and field is not in focus
-        else if(selectedGeneSuggestion !== undefined && geneQuery !== selectedGeneSuggestion.displayName
-            && !geneFieldStateRef.current?.focused
-        ){
-            setGeneQuery(selectedGeneSuggestion)
-        }
-    }, [geneSuggestionList, selectedGeneSuggestion, geneQuery, geneFieldRef, geneFieldStateRef])
-
-    const processGeneEntry = useCallback(async(geneId: string|undefined) => {
-        if( geneId === undefined ){
-            console.log(`Processing undefined gene entry.`)
-            if(gene !== undefined){
-                // Clear prior gene selection
-                console.log(`Clearing prior gene selection.`)
-                updateInputPayloadPart({
-                    status: AlignmentEntryStatus.PENDING_INPUT
-                })
-                setgeneMessageDisplay('none')
-                setGene(undefined)
-            }
-            return
-        }
-        else if(geneId === gene?.id){
-            // Prevent processing the same gene twice
-            console.log(`Gene field value unchanged, skipping processing for ${geneId}.`)
-            return
-        }
-
-        updateInputPayloadPart({
-                status: AlignmentEntryStatus.PROCESSING,
-                payloadPart: undefined
-        })
-        if( geneId ){
-            console.log('Fetching gene info for geneID', geneId, '...')
-            // Reset transcript selection
-            setTranscriptListLoading(true)
-            setSelectedTranscriptIds([])
-            // Reset allele selection (alleles are lazy-loaded on dropdown open)
-            setAlleleList([])
-            setSelectedAlleleIds([])
-
-            const geneInfo: GeneInfo | undefined = await fetchGeneInfo(geneId)
-            if(geneInfo){
-                updateInputPayloadPart({
-                    status: AlignmentEntryStatus.PENDING_INPUT
-                })
-                console.log('Gene info received:', geneInfo)
-                setgeneMessageDisplay('none')
-                setGene(geneInfo)
-            }
-            else{
-                console.log('Error while receiving gene info: undefined geneInfo returned.')
-                updateInputPayloadPart({
-                    status: AlignmentEntryStatus.FAILED_PROCESSING,
-                    payloadPart: undefined
-                })
-                setgeneMessageDisplay('initial')
-                setGene(undefined)
-            }
-        }
-        else {
-            updateInputPayloadPart({
-                status: AlignmentEntryStatus.PENDING_INPUT
-            })
-            setGene(undefined)
-        }
-    }, [gene, updateInputPayloadPart])
-
-    const payloadPortion = useCallback((gene_info: GeneInfo, transcripts_info: TranscriptInfo[], alleles_info: AlleleInfo[]) => {
-        const portion: JobSumbissionPayloadRecord[] = []
-
-        transcripts_info.forEach(transcript => {
-            let alt_seq_name_suffix: string = `_alt${props.index + 1}`
-            if(alleles_info.length > 0){
-                let identifiable_suffix: string = ''
-                for ( const allele of alleles_info ) {
-                    if (allele.id !== allele.displayName) {
-                        if (allele.displayName.length < allele.id.length) {
-                            identifiable_suffix += `_${allele.displayName}`
-                        }
-                        else {
-                            identifiable_suffix += `_${allele.id}`
-                        }
-                    }
-                    else{
-                        identifiable_suffix = ''
-                        break
-                    }
-                }
-                // Prevent identifiable suffixes that are too long
-                if(identifiable_suffix && identifiable_suffix.length < 30){
-                    alt_seq_name_suffix = identifiable_suffix
-                }
-            }
-
-            let unique_entry_id = `${String(props.index).padStart(3, '0')}_${gene_info.symbol}_${transcript.name}`
-            if(alleles_info.length > 0){
-                unique_entry_id += alt_seq_name_suffix
-            }
-            // TODO: enforce unique_entry_id to be unique across all alignment entries
-            // (including when no identifiable_suffix is used)
-
-            // Get strand from gene's genomeLocations, or fallback to transcript strand
-            const genomeLocation = getSingleGenomeLocation(gene_info.genomeLocations)
-            const geneStrand = genomeLocation['strand']
-            // Convert transcript strand (1 or -1) to string format ("+" or "-")
-            const transcriptStrand = transcript.strand === 1 ? '+' : '-'
-            const seqStrand = geneStrand || transcriptStrand
-
-            portion.push({
-                unique_entry_id: unique_entry_id,
-                base_seq_name: `${gene_info.symbol}_${transcript.name}`,
-                fasta_file_url: fastaFileUrl!,
-                seq_id: genomeLocation['chromosome'],
-                seq_strand: seqStrand,
-                exon_seq_regions: transcript.exons.map((e) => ({
-                    'start': e.refStart,
-                    'end': e.refEnd
-                })),
-                cds_seq_regions: transcript.cds_regions.map((e) => ({
-                    'start': e.refStart,
-                    'end': e.refEnd,
-                    'frame': e.phase
-                })),
-                variant_ids: alleles_info.map((a) => (Array.from(a.variants.keys()))).flat(),
-                alt_seq_name_suffix: alt_seq_name_suffix
-            })
-        });
-
-        return portion
-    },[fastaFileUrl, props.index])
-
-    // Convert relative positions (to parent feature)
-    // to absolute positions (to chromosome/contig)
-    const jBrowseSubfeatureRelToRefPos = (subfeatureList: any[], featureStrand: FeatureStrand,
-                                          parentRefStart: number, parentRefEnd: number) => (
-        subfeatureList.map((subfeat: any) => {
-            const new_subfeat = {
-                ...subfeat,
-            }
-
-            if (featureStrand === -1) {
-                new_subfeat['refStart'] = parentRefEnd - new_subfeat['start']
-                new_subfeat['refEnd'] = parentRefEnd - new_subfeat['end'] + 1
-            }
-            else {
-                new_subfeat['refStart'] = parentRefStart + new_subfeat['start'] + 1
-                new_subfeat['refEnd'] = parentRefStart + new_subfeat['end']
-            }
-
-            return new_subfeat
-        })
-    )
-
-    const processTranscriptEntry = useCallback(async(transcriptIds: string[]) => {
-        updateInputPayloadPart({
-            status: AlignmentEntryStatus.PROCESSING,
-            payloadPart: undefined
-        })
-
-        const transcriptsInfo: Array<TranscriptInfo> = []
-
-        if(transcriptIds.length < 1){
-            console.log('No transcripts selected, pending input.')
-            updateInputPayloadPart({
-                status: AlignmentEntryStatus.PENDING_INPUT
-            })
-            setSelectedTranscriptsInfo([])
-        }
-        else if( transcriptList.length < 1){
-            console.log('Transcript list is empty, clearing prior selected transcripts info.')
-            setSelectedTranscriptsInfo([])
-        }
-        else{
-            console.log(`selected transcripts (${transcriptIds.length}): ${transcriptIds}`)
-            console.log('Fetching exon info for selected transcripts...')
-            transcriptIds.forEach((transcriptId) => {
-                console.log(`Finding transcript for ID ${transcriptId}...`)
-
-                const transcript = transcriptList.find(r => r.id() === transcriptId)
-                if( !transcript ){
-                    console.error(`No transcript found for transcript ID ${transcriptId}`)
-                    updateInputPayloadPart({
-                        status: AlignmentEntryStatus.FAILED_PROCESSING,
-                        payloadPart: undefined
-                    })
-                }
-                else{
-                    console.log(`Found transcript ${transcript}.`)
-
-                    console.log(`Fetching exon info for transcript ${transcript}...`)
-                    // const f = new NCListFeature(transcript);
-                    const feature: any = new NCListFeature(transcript).toJSON();
-                    console.debug('Transcript feature:', feature)
-
-                    const { subfeatures = [] } = feature
-
-                    const children = subfeatures
-                                        .sort((a: any, b: any) => a.start - b.start)
-                                        .map((sub: any) => ({
-                                            ...sub,
-                                            start: sub.start - feature.start,
-                                            end: sub.end - feature.start
-                                        }))
-
-                    let exons: any[] = dedupe(children.filter((sub: any) => sub.type === 'exon'))
-                    let cds_regions: any[] = dedupe(children.filter((sub: any) => sub.type === 'CDS'))
-
-                    const transcript_length = transcript.get("end") - transcript.get("start")
-                    if (feature.strand === -1) {
-                        exons = revlist(exons, transcript_length)
-                        cds_regions = revlist(cds_regions, transcript_length)
-                    }
-
-                    // Convert relative positions (to transcript)
-                    // to absolute positions (to chromosome/contig)
-                    exons = jBrowseSubfeatureRelToRefPos(exons, feature.strand, transcript.get('start'), transcript.get('end'))
-                    cds_regions = jBrowseSubfeatureRelToRefPos(cds_regions, feature.strand, transcript.get('start'), transcript.get('end'))
-
-                    console.log(`transcript ${transcript.get("name")} resulted in exons:`, exons)
-                    console.log(`transcript ${transcript.get("name")} resulted in cds regions:`, cds_regions)
-
-                    const transcriptInfo: TranscriptInfo = {
-                        id: transcript.id(),
-                        curie: transcript.get('curie') ?? '',
-                        name: transcript.get('name') ?? '',
-                        strand: feature.strand as FeatureStrand,
-                        exons: exons,
-                        cds_regions: cds_regions
-                    }
-
-                    transcriptsInfo.push(transcriptInfo)
-                }
-            })
-
-            setSelectedTranscriptsInfo(transcriptsInfo)
-        }
-    }, [transcriptList, updateInputPayloadPart])
-
-    const processAlleleEntry = useCallback(async(alleleIds: string[]) => {
-        if( alleleList.length > 0 ){
-            console.log(`Processing selected alleles: ${alleleIds}`)
-            // Convert alleleList into map keyed by allele ID
-            const allelesMap = new Map<string, AlleleInfo>()
-            alleleList.forEach((allele) => {
-                allelesMap.set(allele.id, allele)
-            })
-
-            const alleleEntryInfo: AlleleInfo[] = []
-            alleleIds.forEach((alleleId) => {
-                const allele = allelesMap.get(alleleId)
-                if(allele){
-                    alleleEntryInfo.push(allele)
-                }
-                else{
-                    console.error(`Selected allele not found: ${alleleId}`)
-                }
-            })
-
-            setSelectedAllelesInfo(alleleEntryInfo)
-        }
-        else{
-            console.log('Alele list is empty, clearing prior selected alleles info.')
-            setSelectedAllelesInfo([])
-        }
-
-    }, [alleleList])
-
-    // When a new geneAutocompleteList is received but the gene field is not focused,
-    // evaluate the geneAutocompleteList to determine if an autoSelection should be made
-    useEffect(() => {
-        if(!geneFieldStateRef.current?.focused){
-            autoSelectSingleGeneSuggestion()
-        }
-    }, [geneSuggestionList])  // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Process gene entry on gene selection
-    useEffect(() => {
-        // Process and store gene object if gene input was selected
-        console.log('Processing gene selection:', selectedGeneSuggestion)
-        processGeneEntry(selectedGeneSuggestion!==undefined?selectedGeneSuggestion.id:undefined)
-    }, [selectedGeneSuggestion, processGeneEntry])
-
-    // Handle transcriptList and alleleList updates once gene object has been saved
-    useEffect(() => {
-        async function updateTranscriptList() {
-            console.log(`Updating transcript list for gene object: ${gene}`)
-
-            if(gene){
-                const speciesConfig = getSpecies(gene.species.taxonId)
-                console.log('speciesConfig:', speciesConfig)
-
-                setFastaFileUrl(speciesConfig.jBrowsefastaurl)
-
-                const jBrowsenclistbaseurl = speciesConfig.jBrowsenclistbaseurltemplate.replace('{release}', props.agrjBrowseDataRelease)
-
-                const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);
-
-                const transcripts = await fetchTranscripts({
-                    refseq: genomeLocation['chromosome'],
-                    start: genomeLocation['start'],
-                    end: genomeLocation['end'],
-                    gene: gene['symbol'],
-                    urltemplate: speciesConfig.jBrowseurltemplate,
-                    nclistbaseurl: jBrowsenclistbaseurl
-                })
-                console.log("transcripts received:", transcripts)
-
-                // Define transcripts list
-                setTranscriptList(transcripts)
-            }
-        }
-
-        // TODO: limit Alleles to those that are relevant to the selected transcripts when selected (and vice versa)
-        async function updateAlleleList() {
-            console.log(`Updating alleles list for gene object: ${gene}`)
-
-            if(gene){
-                const alleles = await fetchAlleles(gene['id'])
-                console.log(`${alleles.length} alleles received.`)
-                if( alleles.length > 0 ){
-                    console.log('allele 0:', alleles[0])
-                }
-
-                // Define alleles list
-                setAlleleList(alleles)
-            }
-        }
-
-        if (gene !== undefined) {
-            updateTranscriptList()
-            // Don't auto-fetch alleles - they're optional and can be very slow for genes like TP53
-            // Alleles will be fetched on-demand when user opens the allele dropdown
-        }
-        else{
-            setTranscriptList([])
-            setAlleleList([])
-        }
-    }, [gene]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Update transcriptList loading status and open selection panel once transcriptList object has been saved
-    useEffect(
-        () => {
-            console.log(`New transcript list loaded.`)
-            if(selectedTranscriptIds.length > 0){
-                console.log('Clearing prior selected transcript ids.')
-                setSelectedTranscriptIds([])
-            }
-            setTranscriptListLoading(false)
-            if(transcriptList.length > 0){
-                const select_menu = transcriptMultiselectRef.current
-                if( select_menu && transcriptListFocused ){
-                    console.log(`Opening transcript panel.`)
-                    transcriptMultiselectRef.current?.show()
-                }
-            }
-        },
-        [transcriptList] // eslint-disable-line react-hooks/exhaustive-deps
-    );
-
-    // Update alleleList loading status once alleleList object has been saved
-    useEffect(
-        () => {
-            console.log(`New allele list loaded.`)
-            if(selectedAlleleIds.length > 0){
-                console.log('Clearing prior selected allele ids.')
-                setSelectedAlleleIds([])
-            }
-            setAlleleListLoading(false)
-            if(alleleList.length > 0){
-                const select_menu = alleleMultiselectRef.current
-                if( select_menu && alleleListFocused ){
-                    console.log(`Opening allele panel.`)
-                    alleleMultiselectRef.current?.show()
-                }
-            }
-        },
-        [alleleList] // eslint-disable-line react-hooks/exhaustive-deps
-    );
-
-    // Process transcript entry once transcript selection panel gets closed
-    useEffect(
-        () => {
-            if( setupCompleted === true && transcriptListFocused === false && transcriptListOpened === false ){
-                processTranscriptEntry(selectedTranscriptIds)
-            }
-        },
-        [setupCompleted, selectedTranscriptIds, transcriptListFocused, transcriptListOpened, processTranscriptEntry]
-    )
-
-    // Process allele entry once allele selection panel gets closed
-    useEffect(
-        () => {
-            if( setupCompleted === true && alleleListFocused === false && alleleListOpened === false ){
-                processAlleleEntry(selectedAlleleIds)
-            }
-        },
-        [setupCompleted, selectedAlleleIds, alleleListFocused, alleleListOpened, processAlleleEntry]
-    )
-
-    // Calculate input payload part on update of gene, transcript and allele selection
-    useEffect(() => {
-        if( gene !== undefined && selectedTranscriptsInfo.length > 0 ){
-            console.log('Calculating payload portion...')
-
-            const portion = payloadPortion(gene!, selectedTranscriptsInfo, selectedAllelesInfo)
-            console.log('AlignmentEntry portion is', portion)
-
-            if( (portion === undefined || portion.length < 1) ){
-                updateInputPayloadPart({
-                    status: AlignmentEntryStatus.FAILED_PROCESSING,
-                    payloadPart: undefined
-                })
-            }
-            else {
-                updateInputPayloadPart({
-                    status: AlignmentEntryStatus.READY,
-                    payloadPart: portion
-                })
-            }
-        }
-    }, [gene, selectedTranscriptsInfo, selectedAllelesInfo, payloadPortion, updateInputPayloadPart])
-
-    useEffect(
-        () => {
-            console.log(`AlignmentEntry with index ${props.index} mounted.`)
-            const initInputPayloadPart: InputPayloadPart = {
-                index: props.index,
-                status: AlignmentEntryStatus.PENDING_INPUT,
-                payloadPart: undefined
-            }
-            props.dispatchInputPayloadPart({type: 'ADD', index: props.index, value: initInputPayloadPart})
-            setSetupCompleted(true)
-
-            return props.dispatchInputPayloadPart.bind(undefined, {type: 'DELETE', index: props.index, value: initInputPayloadPart})
-        }, [] // eslint-disable-line react-hooks/exhaustive-deps
-    )
-
-    // Handle initialGeneId prop - auto-search and select when provided
-    useEffect(() => {
-        if (setupCompleted && props.initialGeneId && !selectedGeneSuggestion) {
-            console.log(`Processing initialGeneId: ${props.initialGeneId}`)
-            setGeneQuery(props.initialGeneId)
-            searchGene(props.initialGeneId)
-        }
-    }, [setupCompleted, props.initialGeneId]) // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Auto-select first transcript when loaded via initialGeneId
-    useEffect(() => {
-        if (props.initialGeneId &&
-            !transcriptListLoading &&
-            transcriptList.length > 0 &&
-            selectedTranscriptIds.length === 0) {
-            console.log(`Auto-selecting first transcript for initialGeneId: ${props.initialGeneId}`)
-            // Find canonical transcript or use first one
-            const canonicalTranscript = transcriptList.find(t =>
-                t.get('name')?.includes('canonical') || t.get('is_canonical') === true
-            ) || transcriptList[0]
-            if (canonicalTranscript) {
-                const transcriptId = canonicalTranscript.id()
-                console.log(`Auto-selected transcript: ${transcriptId}`)
-                // Just set the IDs - the existing useEffect will handle calling processTranscriptEntry
-                setSelectedTranscriptIds([transcriptId])
-            }
-        }
-    }, [props.initialGeneId, transcriptListLoading, transcriptList, selectedTranscriptIds.length]) // eslint-disable-line react-hooks/exhaustive-deps
-
     return (
-        <div className='p-inputgroup'>
+        <div className="p-inputgroup">
             <FloatLabel>
-                <AutoComplete id={`gene-${props.index}`} placeholder='e.g. HGNC:620'
+                <AutoComplete
+                    id={`gene-${props.index}`}
+                    placeholder="e.g. HGNC:620"
                     ref={geneFieldRef}
                     pt={{
                         root: (options: AutoCompletePassThroughMethodOptions) => {
-                            geneFieldStateRef.current = options.state
-                        }
+                            geneFieldStateRef.current = options.state;
+                        },
                     }}
                     delay={700}
-                    suggestions={geneSuggestionList} completeMethod={(e) => searchGene(e.query)}
-                    value={geneQuery}
-                    onChange={ (e) => setGeneQuery(e.value) }
-                    onClear={ () => {setSelectedGeneSuggestion(undefined); setGeneSuggestionList([])} }
-                    onSelect={ (e) => {setSelectedGeneSuggestion(e.value); setGeneQuery(e.value)} }
-                    onHide={() => autoSelectSingleGeneSuggestion()}
-                    field="displayName" />
+                    suggestions={geneSearch.geneSuggestionList}
+                    completeMethod={(e) => geneSearch.searchGene(e.query)}
+                    value={geneSearch.geneQuery}
+                    onChange={(e) => geneSearch.setGeneQuery(e.value)}
+                    onClear={() => {
+                        geneSearch.setSelectedGeneSuggestion(undefined);
+                        geneSearch.clearGeneSuggestionList();
+                    }}
+                    onSelect={(e) => {
+                        geneSearch.setSelectedGeneSuggestion(e.value);
+                        geneSearch.setGeneQuery(e.value);
+                    }}
+                    onHide={() => geneSearch.autoSelectSingleGeneSuggestion()}
+                    field="displayName"
+                />
                 <label htmlFor={`gene-${props.index}`}>Gene</label>
             </FloatLabel>
-            <Message severity='error' ref={geneMessageRef} pt={{root:{style: {display: geneMessageDisplay}}}}
-                            text="Failed to find gene, correct input and try again." />
+            <Message
+                severity="error"
+                ref={geneMessageRef}
+                pt={{ root: { style: { display: geneSearch.geneMessageDisplay } } }}
+                text="Failed to find gene, correct input and try again."
+            />
             <FloatLabel>
-                <MultiSelect id={`alleles-${props.index}`} loading={alleleListLoading} ref={alleleMultiselectRef}
-                    display='chip' maxSelectedLabels={3} className="w-full md:w-20rem"
-                    filter filterBy='filterValue'
-                    value={selectedAlleleIds} onChange={(e) => setSelectedAlleleIds(e.target.value)}
-                    itemTemplate={alleleOptionTemplate} optionLabel='chipLabel' optionValue='key'
-                    onFocus={ () => setAlleleListFocused(true) }
-                    onBlur={ () => setAlleleListFocused(false) }
-                    onHide={ () => setAlleleListOpened(false) }
-                    onShow={ async () => {
-                        setAlleleListOpened(true)
-                        // Lazy-load alleles on first open
-                        if (gene && alleleList.length === 0 && !alleleListLoading) {
-                            console.log(`Lazy-loading alleles for gene: ${gene.id}`)
-                            setAlleleListLoading(true)
-                            const alleles = await fetchAlleles(gene.id)
-                            console.log(`${alleles.length} alleles received.`)
-                            setAlleleList(alleles)
-                            setAlleleListLoading(false)
-                        }
+                <MultiSelect
+                    id={`alleles-${props.index}`}
+                    loading={alleleSelection.alleleListLoading}
+                    ref={alleleMultiselectRef}
+                    display="chip"
+                    maxSelectedLabels={3}
+                    className="w-full md:w-20rem"
+                    filter
+                    filterBy="filterValue"
+                    value={alleleSelection.selectedAlleleIds}
+                    onChange={(e) => alleleSelection.setSelectedAlleleIds(e.target.value)}
+                    itemTemplate={alleleOptionTemplate}
+                    optionLabel="chipLabel"
+                    optionValue="key"
+                    onFocus={() => alleleSelection.setAlleleListFocused(true)}
+                    onBlur={() => alleleSelection.setAlleleListFocused(false)}
+                    onHide={() => alleleSelection.setAlleleListOpened(false)}
+                    onShow={async () => {
+                        alleleSelection.setAlleleListOpened(true);
+                        await alleleSelection.loadAllelesOnDemand();
                     }}
-                    options={
-                    alleleList.map(r => (
-                        {
-                            key: r['id'],
-                            chipLabel: r['id'],
-                            filterValue: alleleOptionFilterValue(r),
-                            allele: r
-                        } ))} />
+                    options={alleleSelection.alleleList.map((r) => ({
+                        key: r['id'],
+                        chipLabel: r['id'],
+                        filterValue: alleleOptionFilterValue(r),
+                        allele: r,
+                    }))}
+                />
                 <label htmlFor={`alleles-${props.index}`}>Alleles</label>
             </FloatLabel>
             <FloatLabel>
-                <MultiSelect id={`transcripts-${props.index}`} loading={transcriptListLoading} ref={transcriptMultiselectRef}
-                    display='chip' filter maxSelectedLabels={3} className="w-full md:w-20rem"
-                    value={selectedTranscriptIds} onChange={(e) => setSelectedTranscriptIds(e.value)}
-                    onFocus={ () => setTranscriptListFocused(true) }
-                    onBlur={ () => setTranscriptListFocused(false) }
-                    onHide={ () => setTranscriptListOpened(false) }
-                    onShow={ () => setTranscriptListOpened(true) }
-                    options={
-                    transcriptList.map(r => (
-                        {
-                            key: r.id(),
-                            value: r.id(),
-                            label: r.get("name")
-                        } ))} />
+                <MultiSelect
+                    id={`transcripts-${props.index}`}
+                    loading={transcriptSelection.transcriptListLoading}
+                    ref={transcriptMultiselectRef}
+                    display="chip"
+                    filter
+                    maxSelectedLabels={3}
+                    className="w-full md:w-20rem"
+                    value={transcriptSelection.selectedTranscriptIds}
+                    onChange={(e) => transcriptSelection.setSelectedTranscriptIds(e.value)}
+                    onFocus={() => transcriptSelection.setTranscriptListFocused(true)}
+                    onBlur={() => transcriptSelection.setTranscriptListFocused(false)}
+                    onHide={() => transcriptSelection.setTranscriptListOpened(false)}
+                    onShow={() => transcriptSelection.setTranscriptListOpened(true)}
+                    options={transcriptSelection.transcriptList.map((r) => ({
+                        key: r.id(),
+                        value: r.id(),
+                        label: r.get('name'),
+                    }))}
+                />
                 <label htmlFor={`transcripts-${props.index}`}>Transcripts</label>
-            </FloatLabel><br />
+            </FloatLabel>
+            <br />
         </div>
-    )
-}
+    );
+};

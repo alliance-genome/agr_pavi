@@ -131,7 +131,7 @@ describe('AlignmentEntry', () => {
             <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
-        const geneInputElement = result.container.querySelector('#gene > input')
+        const geneInputElement = result.container.querySelector('#gene-0 > input')
         expect(geneInputElement).not.toBe(null)  // Expect gene input element to be found
         expect(geneInputElement).toHaveClass('p-inputtext') // Expect element to be inputtext box
     })
@@ -141,7 +141,7 @@ describe('AlignmentEntry', () => {
             <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
-        const transcriptInputElement = result.container.querySelector('#transcripts')
+        const transcriptInputElement = result.container.querySelector('#transcripts-0')
         expect(transcriptInputElement).not.toBe(null)  // Expect transcript input element to be found
         expect(transcriptInputElement).toHaveClass('p-multiselect') // Expect element to be multiselect box
     })
@@ -151,7 +151,7 @@ describe('AlignmentEntry', () => {
             <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
-        const alleleInputElement = result.container.querySelector('#alleles')
+        const alleleInputElement = result.container.querySelector('#alleles-0')
         expect(alleleInputElement).not.toBe(null)  // Expect allele input element to be found
         expect(alleleInputElement).toHaveClass('p-multiselect') // Expect element to be multiselect box
     })
@@ -161,7 +161,7 @@ describe('AlignmentEntry', () => {
             <AlignmentEntry index={0} agrjBrowseDataRelease='0.0.0' dispatchInputPayloadPart={jest.fn()} />
         )
 
-        const geneInputElement = result.container.querySelector('#gene > input')
+        const geneInputElement = result.container.querySelector('#gene-0 > input')
         expect(geneInputElement).not.toBe(null)  // Expect gene input element to be found
 
         // test unkown gene input
@@ -182,7 +182,7 @@ describe('AlignmentEntry', () => {
         fireEvent.focusOut(geneInputElement!)
 
         // Wait for gene query autocomplete processing to start
-        const geneLoadingSpinnerQuery = '#gene > svg.p-autocomplete-loader'
+        const geneLoadingSpinnerQuery = '#gene-0 > svg.p-autocomplete-loader'
         await waitFor(() => {
             expect(result.container.querySelector(geneLoadingSpinnerQuery)).not.toBeNull()
         })
@@ -199,39 +199,31 @@ describe('AlignmentEntry', () => {
             expect(result.container.querySelector('div.p-inline-message-error')).not.toBeVisible()
         })
 
-        // Wait for transcripts and alleles fields to start loading new lists
+        // Wait for transcripts field to start loading new list
         await waitFor(() => {
-            // const transcriptsLoadingSpinner = result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-icon-spin')
-            expect(result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
-
-            expect(result.container.querySelector('div#alleles > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
+            expect(result.container.querySelector('div#transcripts-0 > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
         })
 
         // Wait for transcripts list to finish loading
         await waitFor(() => {
-            // const transcriptsLoadingSpinner = result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-icon-spin')
-            expect(result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon:not(.p-icon-spin)')).not.toBeNull()
+            expect(result.container.querySelector('div#transcripts-0 > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon:not(.p-icon-spin)')).not.toBeNull()
         })
 
-        // Wait for alleles list to finish loading
-        await waitFor(() => {
-            // const transcriptsLoadingSpinner = result.container.querySelector('div#transcripts > div.p-multiselect-trigger > svg.p-icon-spin')
-            expect(result.container.querySelector('div#alleles > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon:not(.p-icon-spin)')).not.toBeNull()
-        })
+        // Note: Alleles are now lazy-loaded when the dropdown is opened, not automatically after gene selection
 
         // Open transcript selection pane
-        fireEvent.focus(result.container.querySelector('div#transcripts')!)
-        const transcriptsDropdownTrigger = result.container.querySelector('div#transcripts > div.p-multiselect-trigger')
+        fireEvent.focus(result.container.querySelector('div#transcripts-0')!)
+        const transcriptsDropdownTrigger = result.container.querySelector('div#transcripts-0 > div.p-multiselect-trigger')
         expect(transcriptsDropdownTrigger).not.toBeNull()
         fireEvent.click(transcriptsDropdownTrigger!)
 
-        // Find opened transcript selection pane
+        // Find opened transcript selection pane (panel is rendered in portal, use document)
         await waitFor(() => {
-            expect(result.container.querySelector('div.p-multiselect-panel')).not.toBeNull()
+            expect(document.querySelector('div.p-multiselect-panel')).not.toBeNull()
         })
 
         // Find transcript option element
-        const transcriptsSelectionPaneElement = result.container.querySelector('div.p-multiselect-panel')
+        const transcriptsSelectionPaneElement = document.querySelector('div.p-multiselect-panel')
         expect(transcriptsSelectionPaneElement).not.toBe(null)
         const transcriptsOptionElements = transcriptsSelectionPaneElement!.querySelectorAll('li.p-multiselect-item')
         expect(transcriptsOptionElements).not.toBe(null)
@@ -239,19 +231,35 @@ describe('AlignmentEntry', () => {
         expect(transcriptsOptionElements[0]).toContainHTML('<span>mock:transcript1</span>')
         expect(transcriptsOptionElements[1]).toContainHTML('<span>mock:transcript2</span>')
 
-        // Open allele selection pane
-        fireEvent.focus(result.container.querySelector('div#alleles')!)
-        const allelesDropdownTrigger = result.container.querySelector('div#alleles > div.p-multiselect-trigger')
+        // Close transcript panel first before opening allele panel
+        fireEvent.click(transcriptsDropdownTrigger!)
+        await waitFor(() => {
+            expect(document.querySelector('div.p-multiselect-panel')).toBeNull()
+        })
+
+        // Open allele selection pane (this triggers lazy-loading of alleles)
+        fireEvent.focus(result.container.querySelector('div#alleles-0')!)
+        const allelesDropdownTrigger = result.container.querySelector('div#alleles-0 > div.p-multiselect-trigger')
         expect(allelesDropdownTrigger).not.toBeNull()
         fireEvent.click(allelesDropdownTrigger!)
 
-        // Find opened allele selection pane
+        // Wait for alleles to start loading
         await waitFor(() => {
-            expect(result.container.querySelector('div.p-multiselect-panel')).not.toBeNull()
+            expect(result.container.querySelector('div#alleles-0 > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon.p-icon-spin')).not.toBeNull()
+        })
+
+        // Wait for alleles to finish loading
+        await waitFor(() => {
+            expect(result.container.querySelector('div#alleles-0 > div.p-multiselect-trigger > svg.p-multiselect-trigger-icon:not(.p-icon-spin)')).not.toBeNull()
+        })
+
+        // Find opened allele selection pane (panel is rendered in portal, use document)
+        await waitFor(() => {
+            expect(document.querySelector('div.p-multiselect-panel')).not.toBeNull()
         })
 
         // Find allele option element
-        const allelesSelectionPaneElement = result.container.querySelector('div.p-multiselect-panel')
+        const allelesSelectionPaneElement = document.querySelector('div.p-multiselect-panel')
         expect(allelesSelectionPaneElement).not.toBe(null)
         const allelesOptionElements = allelesSelectionPaneElement!.querySelectorAll('li.p-multiselect-item')
         expect(allelesOptionElements).not.toBe(null)

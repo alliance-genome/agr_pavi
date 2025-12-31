@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { expect } from '@jest/globals';
 import '@testing-library/jest-dom';
 
@@ -13,21 +13,26 @@ describe('FailureDisplay Component', () => {
 
     test('renders without crashing', () => {
         const {container} = render(<FailureDisplay failureList={failureMap} />);
-        expect(container.querySelector('#alignment-failures')).toBeInTheDocument();
+        // Component now uses accordion structure with role="region"
+        expect(container.querySelector('[role="region"][aria-label="Failure details"]')).toBeInTheDocument();
     });
 
-    test('renders empty when no errors', () => {
-        const {container} = render(<FailureDisplay failureList={new Map<string, string>} />);
-        expect(container.querySelector('#alignment-failures')).not.toBeInTheDocument();
+    test('renders empty state when no errors', () => {
+        render(<FailureDisplay failureList={new Map<string, string>} />);
+        // When empty, shows success message
+        expect(screen.getByText('All sequences processed successfully')).toBeInTheDocument();
     });
 
     test('displays the correct error messages on failures', () => {
-        const {container} = render(<FailureDisplay failureList={failureMap} />);
-        const failuresListItems = container.querySelectorAll('#alignment-failures > ul > li')
-        const textsArray = Array.from(failuresListItems).map(el => el.textContent);
+        // Render with defaultExpanded=false (default) - accordion items are collapsed
+        render(<FailureDisplay failureList={failureMap} defaultExpanded={false} />);
 
-        expect(failuresListItems).toHaveLength(2);
-        expect(textsArray).toContain('seq3: mocked error message');
+        // Check for accordion items with failure IDs (visible in collapsed headers)
+        expect(screen.getByText('seq3')).toBeInTheDocument();
+        expect(screen.getByText('seq4')).toBeInTheDocument();
+
+        // Check that summary shows correct count
+        expect(screen.getByText('2 errors')).toBeInTheDocument();
     });
 
 });

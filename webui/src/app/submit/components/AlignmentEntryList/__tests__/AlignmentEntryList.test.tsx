@@ -31,15 +31,24 @@ describe('AlignmentEntryList', () => {
         const inputGroupsBefore = result.container.querySelectorAll('div.p-inputgroup')
         expect(inputGroupsBefore).toHaveLength(1)  // Expect exactly one input group to be found
 
+        // Remove button only appears when there are >1 entries, so add one first
+        const addRecordBtn = result.container.querySelector('button#add-record')
+        expect(addRecordBtn).not.toBeNull()
+        fireEvent.click(addRecordBtn!)
+
+        const inputGroupsAfterAdd = result.container.querySelectorAll('div.p-inputgroup')
+        expect(inputGroupsAfterAdd).toHaveLength(2)  // Now we have two entries
+
+        // Now the remove button should be visible
         const removeRecordBtn = result.container.querySelector('button#remove-record')
         expect(removeRecordBtn).not.toBeNull()  // Expect remove-record button to be found
         expect(removeRecordBtn).toBeEnabled()
 
         fireEvent.click(removeRecordBtn!)
 
-        //Check one entry-record was removed (zero left)
+        // Check one entry-record was removed (one left)
         const inputGroupsAfter = result.container.querySelectorAll('div.p-inputgroup')
-        expect(inputGroupsAfter).toHaveLength(0)  // Expect exactly one input group to be found
+        expect(inputGroupsAfter).toHaveLength(1)  // Expect exactly one input group after removal
     })
 
     it('renders a functional add-record button', () => {
