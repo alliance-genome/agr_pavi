@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import React, { Suspense, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { parse } from 'clustal-js';
 

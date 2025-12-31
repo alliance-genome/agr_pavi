@@ -1,6 +1,6 @@
 'use client';
 
-import React, { FunctionComponent, useEffect, useState } from 'react';
+import { FunctionComponent, useEffect, useState, useMemo, useCallback } from 'react';
 
 import {parse} from 'clustal-js';
 
@@ -35,21 +35,18 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         displayStart?: number
         displayEnd?: number
     }
-    function updateDisplayRange(args: updateRangeArgs){
+    const updateDisplayRange = useCallback((args: updateRangeArgs) => {
         if(args.displayStart !== undefined){
-            console.log(`Updating dipslayStart to ${args.displayStart}`)
             setDisplayStart(args.displayStart)
         }
         if(args.displayEnd !== undefined){
-            console.log(`Updating dipslayEnd to ${args.displayEnd}`)
             setDisplayEnd(args.displayEnd)
         }
-    }
+    }, []);
 
-    const updateAlignmentColorScheme = (newColorScheme: string) => {
+    const updateAlignmentColorScheme = useCallback((newColorScheme: string) => {
         setAlignmentColorScheme(newColorScheme)
-        console.log('Alignment color scheme updated to:', newColorScheme)
-    }
+    }, []);
     //TODO: update groups and group labels to match Uniprot grouping
     const aminoAcidcolorSchemeOptions: ColorSchemeSelectGroup[] = [
         {
@@ -106,59 +103,41 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         );
     };
 
-    const [alignmentData, setAlignmentData] = useState<MSADataProp>([])
-    const [seqLength, setSeqLength] = useState<number>(100)
-
-    const [alignmentFeatures, setAlignmentFeatures] = useState<MSAFeaturesProp>([])
-    const [variantTrackData, setVariantTrackData] = useState<TrackDataProp>([])
-    const [variantTrackHeight, setVariantTrackHeight] = useState<number>(15)
-
-    const maxLabelLength = alignmentData.reduce((maxLength, alignment) => {
-        return Math.max(maxLength, alignment.name.length);
-    }, 0);
-    const labelWidth = maxLabelLength * 9;
-
-    const [displayStart, setDisplayStart] = useState<number>(1);
-    const [displayEnd, setDisplayEnd] = useState<number>(100);
-
-    useEffect(() => {
-        console.log('InteractiveAlignment rendered.')
-
-        return () => {
-            console.log('InteractiveAlignment unmounted.')
-        }
-    }, []);
-
-    useEffect(() => {
+    // Memoize alignment data parsing - only recompute when alignmentResult changes
+    const alignmentData = useMemo<MSADataProp>(() => {
         console.log('Parsing received alignmentResult.')
-        const parsedAlignment = parse(props.alignmentResult)
-
-        setAlignmentData(parsedAlignment['alns'].map((aln: {id: string, seq: string}) => {
-            return {sequence: aln.seq, name: aln.id}
-        }))
-
-        return () => {
-            console.log('InteractiveAlignment unmounted.')
-        }
+        if (!props.alignmentResult) return [];
+        const parsedAlignment = parse(props.alignmentResult);
+        return parsedAlignment['alns'].map((aln: {id: string, seq: string}) => ({
+            sequence: aln.seq,
+            name: aln.id
+        }));
     }, [props.alignmentResult]);
 
-    useEffect(() => {
-        console.log('Updating alignment features.')
+    // Memoize sequence length calculation
+    const seqLength = useMemo(() => {
+        return alignmentData.reduce((maxLength, alignment) => {
+            return Math.max(maxLength, alignment.sequence.length);
+        }, 0) || 100;
+    }, [alignmentData]);
 
-        const alignmentFeatures: MSAFeaturesProp = []
-        const variantTrackData: TrackDataProp = []
-        const positionalFeatureCount: Map<number, number> = new Map([])
+    // Memoize alignment features and variant track data
+    const { alignmentFeatures, variantTrackData, variantTrackHeight } = useMemo(() => {
+        console.log('Computing alignment features.')
+        const features: MSAFeaturesProp = [];
+        const trackData: TrackDataProp = [];
+        const positionalFeatureCount: Map<number, number> = new Map([]);
 
-        for (let i = 0; i < alignmentData.length; i++){
-            const alignment_seq_name = alignmentData[i].name
-            if(alignment_seq_name in props.seqInfoDict && 'embedded_variants' in props.seqInfoDict[alignment_seq_name]){
-                for(const embedded_variant of (props.seqInfoDict[alignment_seq_name]['embedded_variants'] || [])){
+        for (let i = 0; i < alignmentData.length; i++) {
+            const alignment_seq_name = alignmentData[i].name;
+            if (alignment_seq_name in props.seqInfoDict && 'embedded_variants' in props.seqInfoDict[alignment_seq_name]) {
+                for (const embedded_variant of (props.seqInfoDict[alignment_seq_name]['embedded_variants'] || [])) {
                     // Add variant to positional feature count
-                    for (let j = embedded_variant.alignment_start_pos; j <= embedded_variant.alignment_end_pos; j++){
-                        positionalFeatureCount.set(j, (positionalFeatureCount.get(j) || 0) + 1)
+                    for (let j = embedded_variant.alignment_start_pos; j <= embedded_variant.alignment_end_pos; j++) {
+                        positionalFeatureCount.set(j, (positionalFeatureCount.get(j) || 0) + 1);
                     }
                     // Add variant to alignment features
-                    alignmentFeatures.push({
+                    features.push({
                         residues: {
                             from: embedded_variant.alignment_start_pos,
                             to: embedded_variant.alignment_end_pos
@@ -171,49 +150,55 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
                         borderColor: 'black',
                         fillColor: 'black',
                         mouseOverBorderColor: 'black',
-                        mouseOverFillColor: 'transparent'})
+                        mouseOverFillColor: 'transparent'
+                    });
 
                     // Add variant to variant track
-                    let variantShape: FeatureShapes = 'diamond'
-                    if(embedded_variant.seq_substitution_type === 'deletion'){
-                        variantShape = 'triangle'
+                    let variantShape: FeatureShapes = 'diamond';
+                    if (embedded_variant.seq_substitution_type === 'deletion') {
+                        variantShape = 'triangle';
                     }
-                    if(embedded_variant.seq_substitution_type === 'insertion'){
-                        variantShape = 'chevron'
+                    if (embedded_variant.seq_substitution_type === 'insertion') {
+                        variantShape = 'chevron';
                     }
-                    variantTrackData.push({
+                    trackData.push({
                         accession: embedded_variant.variant_id,
                         start: embedded_variant.alignment_start_pos,
                         end: embedded_variant.alignment_end_pos,
                         color: 'gray',
                         shape: variantShape
-                    })
+                    });
                 }
             }
         }
 
-        setAlignmentFeatures(alignmentFeatures)
-        setVariantTrackData(variantTrackData)
-        setVariantTrackHeight( Math.max(...positionalFeatureCount.values()) * 15 || 15 )
+        const height = Math.max(...Array.from(positionalFeatureCount.values())) * 15 || 15;
+
+        return {
+            alignmentFeatures: features,
+            variantTrackData: trackData,
+            variantTrackHeight: height
+        };
     }, [alignmentData, props.seqInfoDict]);
 
+    const maxLabelLength = alignmentData.reduce((maxLength, alignment) => {
+        return Math.max(maxLength, alignment.name.length);
+    }, 0);
+    const labelWidth = maxLabelLength * 9;
+
+    const [displayStart, setDisplayStart] = useState<number>(1);
+    const [displayEnd, setDisplayEnd] = useState<number>(100);
+
+    // Initialize display range to show readable sequence at center of alignment
     useEffect(() => {
-        // Update zoom to show readable sequence at centre of alignment
-        console.log('Updating navigation to readable centre.')
-        const seqLength = alignmentData.reduce((maxLength, alignment) => {
-            return Math.max(maxLength, alignment.sequence.length);
-        }, 0);
-        const initDisplayCenter = Math.round(seqLength/2)
-        const newDisplayStart = seqLength <= 150 ? 1 : initDisplayCenter - 75
-        const newDisplayEnd = seqLength <= 150 ? seqLength : initDisplayCenter + 75
-        if( newDisplayStart != displayStart ){
-            updateDisplayRange({displayStart: newDisplayStart})
+        if (seqLength > 0) {
+            const initDisplayCenter = Math.round(seqLength / 2);
+            const newDisplayStart = seqLength <= 150 ? 1 : initDisplayCenter - 75;
+            const newDisplayEnd = seqLength <= 150 ? seqLength : initDisplayCenter + 75;
+            setDisplayStart(newDisplayStart);
+            setDisplayEnd(newDisplayEnd);
         }
-        if( newDisplayEnd != displayEnd ){
-            updateDisplayRange({displayEnd: newDisplayEnd})
-        }
-        setSeqLength(seqLength)
-    }, [alignmentData]);  // eslint-disable-line react-hooks/exhaustive-deps
+    }, [seqLength]);
 
     return (
         <div>
