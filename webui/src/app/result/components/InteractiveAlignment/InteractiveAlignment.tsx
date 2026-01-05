@@ -133,8 +133,8 @@ const InteractiveAlignment: FunctionComponent<InteractiveAlignmentProps> = (prop
         console.log('Parsing received alignmentResult.')
         const parsedAlignment = parse(props.alignmentResult)
 
-        setAlignmentData(parsedAlignment['alns'].map((aln: {id: string, seq: string}) => {
-            return {sequence: aln.seq, name: aln.id}
+        setAlignmentData(parsedAlignment['alns'].map((aln: {id: string | undefined, seq: string}) => {
+            return {sequence: aln.seq, name: aln.id as string}
         }))
 
         return () => {
