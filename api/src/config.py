@@ -13,6 +13,7 @@ from typing import Optional
 
 class Environment(str, Enum):
     """Supported deployment environments."""
+
     LOCAL = "local"
     DEV = "dev"
     STAGING = "staging"
@@ -22,6 +23,7 @@ class Environment(str, Enum):
 @dataclass
 class PipelineConfig:
     """Configuration for the pipeline execution."""
+
     # Step Functions
     state_machine_arn: Optional[str]
     use_step_functions: bool
@@ -44,6 +46,7 @@ class PipelineConfig:
 @dataclass
 class APIConfig:
     """Main API configuration."""
+
     environment: Environment
     debug: bool
     pipeline: PipelineConfig
@@ -59,7 +62,7 @@ class APIConfig:
 
 def get_environment() -> Environment:
     """Determine the current environment from environment variables."""
-    env_str = os.environ.get('PAVI_ENVIRONMENT', 'local').lower()
+    env_str = os.environ.get("PAVI_ENVIRONMENT", "local").lower()
     try:
         return Environment(env_str)
     except ValueError:
@@ -75,41 +78,50 @@ def get_config() -> APIConfig:
     env = get_environment()
 
     # Determine Step Functions settings based on environment
-    use_step_functions = os.environ.get('USE_STEP_FUNCTIONS', 'false').lower() == 'true'
+    # Local = Nextflow, AWS (dev/staging/prod) = Step Functions
+    # Can be overridden via USE_STEP_FUNCTIONS env var
+    use_step_functions_env = os.environ.get("USE_STEP_FUNCTIONS")
+    if use_step_functions_env is not None:
+        use_step_functions = use_step_functions_env.lower() == "true"
+    else:
+        # Auto-detect: local uses Nextflow, AWS environments use Step Functions
+        use_step_functions = env != Environment.LOCAL
 
     # Feature flag for gradual rollout
-    enable_rollout = os.environ.get('ENABLE_STEP_FUNCTIONS_ROLLOUT', 'false').lower() == 'true'
-    rollout_percentage = int(os.environ.get('STEP_FUNCTIONS_ROLLOUT_PERCENTAGE', '0'))
+    enable_rollout = (
+        os.environ.get("ENABLE_STEP_FUNCTIONS_ROLLOUT", "false").lower() == "true"
+    )
+    rollout_percentage = int(os.environ.get("STEP_FUNCTIONS_ROLLOUT_PERCENTAGE", "0"))
 
     # Environment-specific defaults
     env_defaults = {
         Environment.LOCAL: {
-            'state_machine_arn': None,
-            'jobs_table': 'pavi-jobs-local',
-            'results_bucket': 'agr-pavi-pipeline-local',
-            'work_bucket': 'agr-pavi-pipeline-local',
-            'job_queue_arn': None,
+            "state_machine_arn": None,
+            "jobs_table": "pavi-jobs-local",
+            "results_bucket": "agr-pavi-pipeline-local",
+            "work_bucket": "agr-pavi-pipeline-local",
+            "job_queue_arn": None,
         },
         Environment.DEV: {
-            'state_machine_arn': os.environ.get('STEP_FUNCTIONS_STATE_MACHINE_ARN'),
-            'jobs_table': 'pavi-jobs-dev',
-            'results_bucket': 'agr-pavi-pipeline-stepfunctions-dev',
-            'work_bucket': 'agr-pavi-pipeline-nextflow',
-            'job_queue_arn': os.environ.get('BATCH_JOB_QUEUE_ARN'),
+            "state_machine_arn": os.environ.get("STEP_FUNCTIONS_STATE_MACHINE_ARN"),
+            "jobs_table": "pavi-jobs-dev",
+            "results_bucket": "agr-pavi-pipeline-stepfunctions-dev",
+            "work_bucket": "agr-pavi-pipeline-nextflow",
+            "job_queue_arn": os.environ.get("BATCH_JOB_QUEUE_ARN"),
         },
         Environment.STAGING: {
-            'state_machine_arn': os.environ.get('STEP_FUNCTIONS_STATE_MACHINE_ARN'),
-            'jobs_table': 'pavi-jobs-staging',
-            'results_bucket': 'agr-pavi-pipeline-stepfunctions-staging',
-            'work_bucket': 'agr-pavi-pipeline-nextflow',
-            'job_queue_arn': os.environ.get('BATCH_JOB_QUEUE_ARN'),
+            "state_machine_arn": os.environ.get("STEP_FUNCTIONS_STATE_MACHINE_ARN"),
+            "jobs_table": "pavi-jobs-staging",
+            "results_bucket": "agr-pavi-pipeline-stepfunctions-staging",
+            "work_bucket": "agr-pavi-pipeline-nextflow",
+            "job_queue_arn": os.environ.get("BATCH_JOB_QUEUE_ARN"),
         },
         Environment.PROD: {
-            'state_machine_arn': os.environ.get('STEP_FUNCTIONS_STATE_MACHINE_ARN'),
-            'jobs_table': 'pavi-jobs-prod',
-            'results_bucket': 'agr-pavi-pipeline-stepfunctions-prod',
-            'work_bucket': 'agr-pavi-pipeline-nextflow',
-            'job_queue_arn': os.environ.get('BATCH_JOB_QUEUE_ARN'),
+            "state_machine_arn": os.environ.get("STEP_FUNCTIONS_STATE_MACHINE_ARN"),
+            "jobs_table": "pavi-jobs-prod",
+            "results_bucket": "agr-pavi-pipeline-stepfunctions-prod",
+            "work_bucket": "agr-pavi-pipeline-nextflow",
+            "job_queue_arn": os.environ.get("BATCH_JOB_QUEUE_ARN"),
         },
     }
 
@@ -117,26 +129,27 @@ def get_config() -> APIConfig:
 
     pipeline_config = PipelineConfig(
         state_machine_arn=os.environ.get(
-            'STEP_FUNCTIONS_STATE_MACHINE_ARN',
-            defaults['state_machine_arn']
+            "STEP_FUNCTIONS_STATE_MACHINE_ARN", defaults["state_machine_arn"]
         ),
         use_step_functions=use_step_functions,
-        jobs_table_name=os.environ.get('DYNAMODB_JOBS_TABLE', defaults['jobs_table']),
-        results_bucket=os.environ.get('PAVI_RESULTS_BUCKET', defaults['results_bucket']),
-        work_bucket=os.environ.get('PAVI_WORK_BUCKET', defaults['work_bucket']),
-        job_queue_arn=os.environ.get('BATCH_JOB_QUEUE_ARN', defaults['job_queue_arn']),
+        jobs_table_name=os.environ.get("DYNAMODB_JOBS_TABLE", defaults["jobs_table"]),
+        results_bucket=os.environ.get(
+            "PAVI_RESULTS_BUCKET", defaults["results_bucket"]
+        ),
+        work_bucket=os.environ.get("PAVI_WORK_BUCKET", defaults["work_bucket"]),
+        job_queue_arn=os.environ.get("BATCH_JOB_QUEUE_ARN", defaults["job_queue_arn"]),
         enable_step_functions_rollout=enable_rollout,
         step_functions_rollout_percentage=rollout_percentage,
     )
 
     return APIConfig(
         environment=env,
-        debug=os.environ.get('DEBUG', 'false').lower() == 'true',
+        debug=os.environ.get("DEBUG", "false").lower() == "true",
         pipeline=pipeline_config,
-        api_host=os.environ.get('API_HOST', '0.0.0.0'),
-        api_port=int(os.environ.get('API_PORT', '8080')),
-        nextflow_out_dir=os.environ.get('API_NEXTFLOW_OUT_DIR', './'),
-        pipeline_image_tag=os.environ.get('API_PIPELINE_IMAGE_TAG', 'latest'),
+        api_host=os.environ.get("API_HOST", "0.0.0.0"),
+        api_port=int(os.environ.get("API_PORT", "8080")),
+        nextflow_out_dir=os.environ.get("API_NEXTFLOW_OUT_DIR", "./"),
+        pipeline_image_tag=os.environ.get("API_PIPELINE_IMAGE_TAG", "latest"),
     )
 
 

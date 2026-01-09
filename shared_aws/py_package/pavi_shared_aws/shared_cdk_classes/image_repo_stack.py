@@ -1,8 +1,4 @@
-from aws_cdk import (
-    Stack,
-    aws_ecr as ecr,
-    Tags as cdk_tags
-)
+from aws_cdk import Stack, aws_ecr as ecr, Tags as cdk_tags
 
 from constructs import Construct
 
@@ -12,12 +8,18 @@ from pavi_shared_aws.shared_cdk_classes.pavi_ecr_repo import PaviEcrRepository
 
 
 class ImageRepoCdkStack(Stack):
-
     ecr_repo: ecr.Repository | ecr.IRepository
 
-    def __init__(self, scope: Construct, construct_id: str, component_name: str, env_suffix: str = "",
-                 ecr_repo_construct_id: str = 'PAVI-container-image-repo', shared_image_repo: Optional[str] = None,
-                 **kwargs: Any) -> None:
+    def __init__(
+        self,
+        scope: Construct,
+        construct_id: str,
+        component_name: str,
+        env_suffix: str = "",
+        ecr_repo_construct_id: str = "PAVI-container-image-repo",
+        shared_image_repo: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
         """
         Args:
             scope: CDK scope
@@ -32,10 +34,14 @@ class ImageRepoCdkStack(Stack):
         # Import or create ecr_repo
         if not shared_image_repo:
             self.ecr_repo = PaviEcrRepository(
-                self, id=ecr_repo_construct_id,
-                component_name=component_name, env_suffix=env_suffix
+                self,
+                id=ecr_repo_construct_id,
+                component_name=component_name,
+                env_suffix=env_suffix,
             )
             cdk_tags.of(self.ecr_repo).add("Product", "PAVI")
             cdk_tags.of(self.ecr_repo).add("CreatedBy", "PAVI")
         else:
-            self.ecr_repo = ecr.Repository.from_repository_name(self, id=ecr_repo_construct_id, repository_name=shared_image_repo)
+            self.ecr_repo = ecr.Repository.from_repository_name(
+                self, id=ecr_repo_construct_id, repository_name=shared_image_repo
+            )

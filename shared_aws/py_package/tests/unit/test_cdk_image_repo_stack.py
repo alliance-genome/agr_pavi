@@ -20,7 +20,9 @@ app = App()
 #      1.2 run `pip uninstall pavi_shared_aws` to uninstall the old package version
 #      1.3 run `make install-test-deps` to install the new version
 #  2. Open the IDE to update all code implementing the ImageRepoCdkStack class to use the new signature.
-stack = ImageRepoCdkStack(app, "pytest-stack", component_name='new_component', env=agr_aws_environment)
+stack = ImageRepoCdkStack(
+    app, "pytest-stack", component_name="new_component", env=agr_aws_environment
+)
 template = assertions.Template.from_stack(stack)
 
 
@@ -28,8 +30,7 @@ template = assertions.Template.from_stack(stack)
 # as it can potentially break a lot of AWS infrastructure of other PAVI components
 # implementing the ImageRepoCdkStack class (and depending on the name format to stay the same).
 def test_ecr_repo_name() -> None:
-    template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
-        "Properties": {
-            "RepositoryName": "agr_pavi/new_component"
-        }
-    })
+    template.has_resource(
+        type=ResourceType.ECR_REPOSITORY.compliance_resource_type,
+        props={"Properties": {"RepositoryName": "agr_pavi/new_component"}},
+    )

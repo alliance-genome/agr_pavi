@@ -29,7 +29,7 @@ class StepFunctionsE2ETest:
     """End-to-end test for Step Functions pipeline."""
 
     def __init__(self, api_base_url: str):
-        self.api_base_url = api_base_url.rstrip('/')
+        self.api_base_url = api_base_url.rstrip("/")
         self.job_id: Optional[str] = None
 
     def run_tests(self) -> bool:
@@ -80,7 +80,7 @@ class StepFunctionsE2ETest:
         print(f"    API Status: {data.get('status')}")
         print(f"    Execution Mode: {data.get('execution_mode')}")
 
-        if data.get('execution_mode') != 'step_functions':
+        if data.get("execution_mode") != "step_functions":
             print("    WARNING: API not in Step Functions mode!")
             # Continue anyway for testing purposes
 
@@ -98,14 +98,14 @@ class StepFunctionsE2ETest:
                 "exon_seq_regions": ["1000..1500"],
                 "cds_seq_regions": ["1000..1500"],
                 "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001405.40_GRCh38.p14_genomic.fna.gz",
-                "variant_ids": []
+                "variant_ids": [],
             }
         ]
 
         response = requests.post(
             f"{self.api_base_url}/api/pipeline-job/",
             json=test_payload,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
         if response.status_code != 201:
@@ -114,7 +114,7 @@ class StepFunctionsE2ETest:
             return False
 
         data = response.json()
-        self.job_id = data.get('uuid')
+        self.job_id = data.get("uuid")
         print(f"    Job ID: {self.job_id}")
         print(f"    Status: {data.get('status')}")
         print(f"    Stage: {data.get('stage')}")
@@ -132,15 +132,17 @@ class StepFunctionsE2ETest:
         last_stage = None
 
         while time.time() - start_time < timeout:
-            response = requests.get(f"{self.api_base_url}/api/pipeline-job/{self.job_id}")
+            response = requests.get(
+                f"{self.api_base_url}/api/pipeline-job/{self.job_id}"
+            )
 
             if response.status_code != 200:
                 print(f"    Failed to get job status: {response.status_code}")
                 return False
 
             data = response.json()
-            status = data.get('status')
-            stage = data.get('stage')
+            status = data.get("status")
+            stage = data.get("stage")
 
             if status != last_status or stage != last_stage:
                 elapsed = int(time.time() - start_time)
@@ -148,12 +150,12 @@ class StepFunctionsE2ETest:
                 last_status = status
                 last_stage = stage
 
-            if status == 'completed':
-                print(f"    Job completed successfully!")
+            if status == "completed":
+                print("    Job completed successfully!")
                 return True
 
-            if status == 'failed':
-                error_msg = data.get('error_message', 'Unknown error')
+            if status == "failed":
+                error_msg = data.get("error_message", "Unknown error")
                 print(f"    Job failed: {error_msg}")
                 return False
 
@@ -186,7 +188,7 @@ class StepFunctionsE2ETest:
         print(f"    First 100 chars: {content[:100]}...")
 
         # Basic validation - should contain CLUSTAL header
-        if 'CLUSTAL' not in content.upper():
+        if "CLUSTAL" not in content.upper():
             print("    WARNING: Output doesn't look like CLUSTAL format")
 
         return True
@@ -225,7 +227,7 @@ class StepFunctionsE2ETest:
 
 def main() -> int:
     """Main entry point."""
-    api_base_url = os.environ.get('API_BASE_URL', 'http://localhost:8080')
+    api_base_url = os.environ.get("API_BASE_URL", "http://localhost:8080")
 
     print(f"Testing API at: {api_base_url}")
 
@@ -235,5 +237,5 @@ def main() -> int:
     return 0 if success else 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

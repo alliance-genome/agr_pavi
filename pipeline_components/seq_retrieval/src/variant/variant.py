@@ -18,17 +18,18 @@ logger = get_logger(name=__name__)
 
 class SeqSubstitutionType(Enum):
     """Value enum for variant sequence substitution type"""
-    DELETION = 'deletion'
+
+    DELETION = "deletion"
     """Ref by alt seq replacement results in deletion of ref sequence."""
-    INSERTION = 'insertion'
+    INSERTION = "insertion"
     """Ref by alt seq replacement results in insertion of alt sequence."""
-    INDEL = 'indel'
+    INDEL = "indel"
     """Ref by alt seq replacement results in combination of deletion of ref sequence and insertion of alt sequence of unequal length."""
-    SUBSTITUTION = 'substitution'
+    SUBSTITUTION = "substitution"
     """Ref by alt seq replacement results in substitution of ref sequence by alt sequence of equal length."""
 
 
-class Variant():
+class Variant:
     """
     Defines a sequence region variant.
     """
@@ -54,7 +55,15 @@ class Variant():
     seq_substitution_type: SeqSubstitutionType
     """Sequence substitution type of the variant when replacing the reference sequence with the alternative sequence"""
 
-    def __init__(self, variant_id: str, seq_id: str, start: int, end: int, genomic_ref_seq: Optional[str] = None, genomic_alt_seq: Optional[str] = None):
+    def __init__(
+        self,
+        variant_id: str,
+        seq_id: str,
+        start: int,
+        end: int,
+        genomic_ref_seq: Optional[str] = None,
+        genomic_alt_seq: Optional[str] = None,
+    ):
         """
         Initializes a Variant instance.
 
@@ -67,19 +76,29 @@ class Variant():
         """
         # Ensure start <= end
         if start > end:
-            raise ValueError(f'Invalid variant positions: start position ({start}) > end position ({end}).')
+            raise ValueError(
+                f"Invalid variant positions: start position ({start}) > end position ({end})."
+            )
 
         # Ensure one of genomic_ref_seq or genomic_alt_seq is provided
         if not genomic_ref_seq and not genomic_alt_seq:
-            raise ValueError('Variant must have at least one of genomic_ref_seq or genomic_alt_seq provided.')
+            raise ValueError(
+                "Variant must have at least one of genomic_ref_seq or genomic_alt_seq provided."
+            )
 
         # For insertions, ensure start and end position indicate insertion site boundaries (2 bp)
         if not genomic_ref_seq and end - 1 != start:
-            raise ValueError('Insertions must have start and end positions that indicate insertion site boundaries (2 flanking bases).')
+            raise ValueError(
+                "Insertions must have start and end positions that indicate insertion site boundaries (2 flanking bases)."
+            )
 
         # Calculate substitution type
         substitution_type: SeqSubstitutionType
-        if genomic_ref_seq and genomic_alt_seq and len(genomic_ref_seq) == len(genomic_alt_seq):
+        if (
+            genomic_ref_seq
+            and genomic_alt_seq
+            and len(genomic_ref_seq) == len(genomic_alt_seq)
+        ):
             substitution_type = SeqSubstitutionType.SUBSTITUTION
         elif genomic_alt_seq is None or len(genomic_alt_seq) == 0:
             substitution_type = SeqSubstitutionType.DELETION
@@ -98,56 +117,61 @@ class Variant():
         self.seq_substitution_type = substitution_type
 
     @classmethod
-    def from_dict(cls, variant_dict: dict[str, Any]) -> 'Variant':
-        if 'variant_id' not in variant_dict:
-            raise KeyError('variant_id not in variant_dict')
-        elif not isinstance(variant_dict['variant_id'], str):
-            raise TypeError('variant_id must be a string')
+    def from_dict(cls, variant_dict: dict[str, Any]) -> "Variant":
+        if "variant_id" not in variant_dict:
+            raise KeyError("variant_id not in variant_dict")
+        elif not isinstance(variant_dict["variant_id"], str):
+            raise TypeError("variant_id must be a string")
 
-        if 'genomic_seq_id' not in variant_dict:
-            raise KeyError('genomic_seq_id not in variant_dict')
-        elif not isinstance(variant_dict['genomic_seq_id'], str):
-            raise TypeError('genomic_seq_id must be a string')
+        if "genomic_seq_id" not in variant_dict:
+            raise KeyError("genomic_seq_id not in variant_dict")
+        elif not isinstance(variant_dict["genomic_seq_id"], str):
+            raise TypeError("genomic_seq_id must be a string")
 
-        if 'genomic_start_pos' not in variant_dict:
-            raise KeyError('genomic_start_pos not in variant_dict')
-        elif not isinstance(variant_dict['genomic_start_pos'], int):
-            raise TypeError('genomic_start_pos must be an integer')
+        if "genomic_start_pos" not in variant_dict:
+            raise KeyError("genomic_start_pos not in variant_dict")
+        elif not isinstance(variant_dict["genomic_start_pos"], int):
+            raise TypeError("genomic_start_pos must be an integer")
 
-        if 'genomic_end_pos' not in variant_dict:
-            raise KeyError('genomic_end_pos not in variant_dict')
-        elif not isinstance(variant_dict['genomic_end_pos'], int):
-            raise TypeError('genomic_end_pos must be an integer')
+        if "genomic_end_pos" not in variant_dict:
+            raise KeyError("genomic_end_pos not in variant_dict")
+        elif not isinstance(variant_dict["genomic_end_pos"], int):
+            raise TypeError("genomic_end_pos must be an integer")
 
         genomic_ref_seq = None
-        if 'genomic_ref_seq' in variant_dict:
-            genomic_ref_seq = variant_dict['genomic_ref_seq']
+        if "genomic_ref_seq" in variant_dict:
+            genomic_ref_seq = variant_dict["genomic_ref_seq"]
 
         genomic_alt_seq = None
-        if 'genomic_alt_seq' in variant_dict:
-            genomic_alt_seq = variant_dict['genomic_alt_seq']
+        if "genomic_alt_seq" in variant_dict:
+            genomic_alt_seq = variant_dict["genomic_alt_seq"]
 
         return cls(
-            variant_id=variant_dict['variant_id'],
-            seq_id=variant_dict['genomic_seq_id'],
-            start=variant_dict['genomic_start_pos'],
-            end=variant_dict['genomic_end_pos'],
+            variant_id=variant_dict["variant_id"],
+            seq_id=variant_dict["genomic_seq_id"],
+            start=variant_dict["genomic_start_pos"],
+            end=variant_dict["genomic_end_pos"],
             genomic_ref_seq=genomic_ref_seq,
-            genomic_alt_seq=genomic_alt_seq
+            genomic_alt_seq=genomic_alt_seq,
         )
 
     @override
     def __eq__(self, other: object) -> bool:
         if isinstance(other, self.__class__):
-            if self.variant_id == other.variant_id and self.genomic_seq_id == other.genomic_seq_id \
-               and self.genomic_start_pos == other.genomic_start_pos and self.genomic_end_pos == other.genomic_end_pos \
-               and self.genomic_ref_seq == other.genomic_ref_seq and self.genomic_alt_seq == other.genomic_alt_seq:
+            if (
+                self.variant_id == other.variant_id
+                and self.genomic_seq_id == other.genomic_seq_id
+                and self.genomic_start_pos == other.genomic_start_pos
+                and self.genomic_end_pos == other.genomic_end_pos
+                and self.genomic_ref_seq == other.genomic_ref_seq
+                and self.genomic_alt_seq == other.genomic_alt_seq
+            ):
                 return True
         return False
 
     @override
     def __str__(self) -> str:  # pragma: no cover
-        object_str = f'{self.variant_id} {self.genomic_seq_id}:{self.genomic_start_pos}-{self.genomic_end_pos} {self.genomic_ref_seq or '-'}/{self.genomic_alt_seq or '-'}'
+        object_str = f"{self.variant_id} {self.genomic_seq_id}:{self.genomic_start_pos}-{self.genomic_end_pos} {self.genomic_ref_seq or '-'}/{self.genomic_alt_seq or '-'}"
 
         return object_str
 
@@ -156,7 +180,7 @@ class Variant():
         return self.__str__()
 
     @classmethod
-    def from_variant_id(cls, variant_id: str) -> 'Variant':
+    def from_variant_id(cls, variant_id: str) -> "Variant":
         """
         Fetches variant information from the public web API \
         and returns it as a Variant object.
@@ -183,7 +207,7 @@ class Variant():
             genomic_alt_seq=variant_data.get("genomicVariantSequence"),
         )
 
-    def overlaps(self, other: 'Variant|SeqRegion') -> bool:
+    def overlaps(self, other: "Variant|SeqRegion") -> bool:
         """
         Checks if this variant overlaps with another sequence object.
 
@@ -194,6 +218,7 @@ class Variant():
             True if the sequence objects overlap with the variant (`self`), False otherwise.
         """
         from seq_region import SeqRegion  # Imported here to prevent circular dependency
+
         overlaps = False
 
         other_start: int
@@ -209,19 +234,29 @@ class Variant():
             other_start = other.start
             other_end = other.end
         else:
-            raise NotImplementedError(f'Overlap detection of variant with class "{other.__class__}" not implemented.')
+            raise NotImplementedError(
+                f'Overlap detection of variant with class "{other.__class__}" not implemented.'
+            )
 
         # Both variants must be on the same seq_id (chromosome or contig) to overlap
         # and have at least partially overlapping start and end positions
-        if self.genomic_seq_id == other_seq_id and \
-           self.genomic_end_pos >= other_start and self.genomic_start_pos <= other_end:
-
+        if (
+            self.genomic_seq_id == other_seq_id
+            and self.genomic_end_pos >= other_start
+            and self.genomic_start_pos <= other_end
+        ):
             # For insertions, the complete insertion site must fall within the other variant
             if self.genomic_ref_seq == "":
-                if self.genomic_start_pos >= other_start and self.genomic_end_pos <= other_end:
+                if (
+                    self.genomic_start_pos >= other_start
+                    and self.genomic_end_pos <= other_end
+                ):
                     overlaps = True
             elif isinstance(other, Variant) and other.genomic_ref_seq == "":
-                if other_start >= self.genomic_start_pos and other_end <= self.genomic_end_pos:
+                if (
+                    other_start >= self.genomic_start_pos
+                    and other_end <= self.genomic_end_pos
+                ):
                     overlaps = True
             # For all other variants, partial overlap is sufficient
             else:
@@ -238,7 +273,9 @@ def variants_overlap(variants: List[Variant]) -> bool:
     Returns:
         True if any two variants overlap, False otherwise.
     """
-    sorted_variants = sorted(variants, key=lambda x: (x.genomic_seq_id, x.genomic_start_pos))
+    sorted_variants = sorted(
+        variants, key=lambda x: (x.genomic_seq_id, x.genomic_start_pos)
+    )
     for i in range((len(sorted_variants) - 1)):
         if sorted_variants[i].overlaps(sorted_variants[i + 1]):
             return True

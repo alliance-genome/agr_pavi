@@ -1,6 +1,7 @@
 """
 Module containing classes related to (alternative) sequence information reporting
 """
+
 from typing import override
 
 from variant import SeqEmbeddedVariantsList
@@ -22,8 +23,8 @@ class AltSeqInfo(SeqInfo):
 
     @override
     def __repr__(self) -> str:
-        return f'AltSeqInfo(sequence={self.sequence}, embedded_variants={self.embedded_variants})'
+        return f"AltSeqInfo(sequence={self.sequence}, embedded_variants={self.embedded_variants})"
 
     @override
     def __str__(self) -> str:  # pragma: no cover
-        return f'AltSeqInfo(sequence={self.sequence}, embedded_variants={self.embedded_variants})'
+        return f"AltSeqInfo(sequence={self.sequence}, embedded_variants={self.embedded_variants})"

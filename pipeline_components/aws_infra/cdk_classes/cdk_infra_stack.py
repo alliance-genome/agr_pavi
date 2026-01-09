@@ -1,8 +1,4 @@
-from aws_cdk import (
-    Stack,
-    aws_ecr as ecr,
-    Tags as cdk_tags
-)
+from aws_cdk import Stack, aws_ecr as ecr, Tags as cdk_tags
 
 from constructs import Construct
 
@@ -13,17 +9,21 @@ from cdk_classes.aws_batch import PaviExecutionEnvironment
 
 
 class CdkInfraStack(Stack):
-
     seq_retrieval_ecr_repo: ecr.Repository | ecr.IRepository
     alignment_ecr_repo: ecr.Repository | ecr.IRepository
     execution_environment: PaviExecutionEnvironment
 
-    def __init__(self, scope: Construct, construct_id: str, env_suffix: str = "",
-                 shared_seq_retrieval_image_repo: Optional[str] = None,
-                 shared_alignment_image_repo: Optional[str] = None,
-                 shared_logs_group: Optional[str] = None,
-                 shared_work_dir_bucket: Optional[str] = None,
-                 **kwargs: Any) -> None:
+    def __init__(
+        self,
+        scope: Construct,
+        construct_id: str,
+        env_suffix: str = "",
+        shared_seq_retrieval_image_repo: Optional[str] = None,
+        shared_alignment_image_repo: Optional[str] = None,
+        shared_logs_group: Optional[str] = None,
+        shared_work_dir_bucket: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
         """
         Args:
             scope: CDK scope
@@ -38,22 +38,43 @@ class CdkInfraStack(Stack):
 
         # Import or create seq_retrieval_ecr_repo
         if not shared_seq_retrieval_image_repo:
-            self.seq_retrieval_ecr_repo = PaviEcrRepository(self, id='PAVI-pipeline-seq-retrieval-repo', component_name='pipeline_seq_retrieval',
-                                                            env_suffix=env_suffix)
+            self.seq_retrieval_ecr_repo = PaviEcrRepository(
+                self,
+                id="PAVI-pipeline-seq-retrieval-repo",
+                component_name="pipeline_seq_retrieval",
+                env_suffix=env_suffix,
+            )
         else:
-            self.seq_retrieval_ecr_repo = ecr.Repository.from_repository_name(self, id='PAVI-pipeline-seq-retrieval-repo', repository_name=shared_seq_retrieval_image_repo)
+            self.seq_retrieval_ecr_repo = ecr.Repository.from_repository_name(
+                self,
+                id="PAVI-pipeline-seq-retrieval-repo",
+                repository_name=shared_seq_retrieval_image_repo,
+            )
             cdk_tags.of(self.seq_retrieval_ecr_repo).add("Product", "PAVI")
             cdk_tags.of(self.seq_retrieval_ecr_repo).add("CreatedBy", "PAVI")  # type: ignore
             cdk_tags.of(self.seq_retrieval_ecr_repo).add("AppComponent", "pipeline")  # type: ignore
 
         # Import or create shared_alignment_image_repo
         if not shared_alignment_image_repo:
-            self.alignment_ecr_repo = PaviEcrRepository(self, id='PAVI-pipeline-alignment-repo', component_name='pipeline_alignment',
-                                                        env_suffix=env_suffix)
+            self.alignment_ecr_repo = PaviEcrRepository(
+                self,
+                id="PAVI-pipeline-alignment-repo",
+                component_name="pipeline_alignment",
+                env_suffix=env_suffix,
+            )
         else:
-            self.alignment_ecr_repo = ecr.Repository.from_repository_name(self, id='PAVI-pipeline-alignment-repo', repository_name=shared_alignment_image_repo)
+            self.alignment_ecr_repo = ecr.Repository.from_repository_name(
+                self,
+                id="PAVI-pipeline-alignment-repo",
+                repository_name=shared_alignment_image_repo,
+            )
             cdk_tags.of(self.alignment_ecr_repo).add("Product", "PAVI")
             cdk_tags.of(self.alignment_ecr_repo).add("CreatedBy", "PAVI")  # type: ignore
             cdk_tags.of(self.alignment_ecr_repo).add("AppComponent", "pipeline")  # type: ignore
 
-        self.execution_environment = PaviExecutionEnvironment(self, env_suffix=env_suffix, shared_logs_group=shared_logs_group, shared_work_dir_bucket=shared_work_dir_bucket)
+        self.execution_environment = PaviExecutionEnvironment(
+            self,
+            env_suffix=env_suffix,
+            shared_logs_group=shared_logs_group,
+            shared_work_dir_bucket=shared_work_dir_bucket,
+        )

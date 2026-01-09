@@ -1,13 +1,10 @@
-from aws_cdk import (
-    Stack,
-    aws_ecr as ecr,
-    RemovalPolicy
-)
+from aws_cdk import Stack, aws_ecr as ecr, RemovalPolicy
 
 
 class PaviEcrRepository(ecr.Repository):
-
-    def __init__(self, scope: Stack, id: str, component_name: str, env_suffix: str) -> None:
+    def __init__(
+        self, scope: Stack, id: str, component_name: str, env_suffix: str
+    ) -> None:
         """
         Initialise a ecr.Repository instance with common setting and naming that apply to all PAVI repositories
 
@@ -21,10 +18,15 @@ class PaviEcrRepository(ecr.Repository):
             aws_ecr.Repository
         """
         # Create the ECR repository
-        PAVI_REPO_PREFIX = 'agr_pavi/'
+        PAVI_REPO_PREFIX = "agr_pavi/"
         repository_name = PAVI_REPO_PREFIX + component_name
         if env_suffix:
-            repository_name += f'_{env_suffix}'
+            repository_name += f"_{env_suffix}"
 
-        super().__init__(scope, id=id, repository_name=repository_name,
-                         empty_on_delete=False, removal_policy=RemovalPolicy.RETAIN)
+        super().__init__(
+            scope,
+            id=id,
+            repository_name=repository_name,
+            empty_on_delete=False,
+            removal_policy=RemovalPolicy.RETAIN,
+        )

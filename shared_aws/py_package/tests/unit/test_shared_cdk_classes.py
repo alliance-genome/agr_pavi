@@ -4,11 +4,7 @@ to ensure breaking changes are caught and handled
 before getting applied to the live AWS resources.
 """
 
-from aws_cdk import (
-    App, Stack,
-    aws_ecr as ecr,
-    Environment as cdk_environment
-)
+from aws_cdk import App, Stack, aws_ecr as ecr, Environment as cdk_environment
 from constructs import Construct
 from aws_cdk.aws_config import ResourceType
 import aws_cdk.assertions as assertions
@@ -20,11 +16,9 @@ from typing import Any
 
 
 class pyTestCdkStack(Stack):
-
     ecr_repo: ecr.Repository
 
-    def __init__(self, scope: Construct, construct_id: str,
-                 **kwargs: Any) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs: Any) -> None:
         """
         Args:
             scope: CDK scope
@@ -34,7 +28,8 @@ class pyTestCdkStack(Stack):
 
         # Create an ECR repository
         self.ecr_repo = PaviEcrRepository(
-            self, id='PAVI-pytest-ecr-repo', component_name='pytest', env_suffix='test')
+            self, id="PAVI-pytest-ecr-repo", component_name="pytest", env_suffix="test"
+        )
 
 
 app = App()
@@ -56,11 +51,12 @@ def test_environment() -> None:
 #      (or delete the images if no longer relevant)
 #    * Delete the old ECR repository
 def test_ecr_repo() -> None:
-    template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
-        "Properties": {
-            "RepositoryName": "agr_pavi/pytest_test"
+    template.has_resource(
+        type=ResourceType.ECR_REPOSITORY.compliance_resource_type,
+        props={
+            "Properties": {"RepositoryName": "agr_pavi/pytest_test"},
+            # ECR repositories must have retain policy to ensure images potentially used
+            # in deployed environments or required for rollback don't get deleted on replacement.
+            "UpdateReplacePolicy": "Retain",
         },
-        # ECR repositories must have retain policy to ensure images potentially used
-        # in deployed environments or required for rollback don't get deleted on replacement.
-        "UpdateReplacePolicy": "Retain"
-    })
+    )
