@@ -22,11 +22,13 @@ log = get_logger(__name__)
 
 class JobServiceError(Exception):
     """Base exception for job service errors."""
+
     pass
 
 
 class JobNotFoundError(JobServiceError):
     """Exception raised when a job is not found."""
+
     pass
 
 
@@ -49,6 +51,7 @@ class JobResultNotReadyError(JobServiceError):
 
 class JobStatus(str, Enum):
     """Job status enum matching DynamoDB values."""
+
     PENDING = "PENDING"
     RUNNING = "RUNNING"
     COMPLETED = "COMPLETED"
@@ -57,6 +60,7 @@ class JobStatus(str, Enum):
 
 class JobStage(str, Enum):
     """Job stage enum for detailed progress tracking."""
+
     INITIALIZING = "INITIALIZING"
     SEQUENCE_RETRIEVAL = "SEQUENCE_RETRIEVAL"
     ALIGNMENT = "ALIGNMENT"
@@ -79,7 +83,7 @@ class JobInfo:
         sequences_processed: int = 0,
         result_s3_uri: Optional[str] = None,
         error_message: Optional[str] = None,
-        execution_arn: Optional[str] = None
+        execution_arn: Optional[str] = None,
     ):
         self.job_id = job_id
         self.status = status
@@ -104,7 +108,7 @@ class JobInfo:
             "input_count": self.input_count,
             "sequences_processed": self.sequences_processed,
             "result_s3_uri": self.result_s3_uri,
-            "error_message": self.error_message
+            "error_message": self.error_message,
         }
 
 
@@ -121,7 +125,7 @@ class JobService:
         dynamodb_table_name: Optional[str] = None,
         state_machine_arn: Optional[str] = None,
         s3_bucket: Optional[str] = None,
-        use_step_functions: bool = True
+        use_step_functions: bool = True,
     ):
         """
         Initialize the job service.
@@ -136,17 +140,17 @@ class JobService:
 
         # Get configuration from environment
         self.table_name = dynamodb_table_name or os.environ.get(
-            'DYNAMODB_JOBS_TABLE', 'pavi-jobs'
+            "DYNAMODB_JOBS_TABLE", "pavi-jobs"
         )
         self.state_machine_arn = state_machine_arn or os.environ.get(
-            'STEP_FUNCTIONS_STATE_MACHINE_ARN'
+            "STEP_FUNCTIONS_STATE_MACHINE_ARN"
         )
         self.s3_bucket = s3_bucket or os.environ.get(
-            'PAVI_RESULTS_BUCKET', 'agr-pavi-pipeline-prod'
+            "PAVI_RESULTS_BUCKET", "agr-pavi-pipeline-prod"
         )
         self.job_queue_arn = os.environ.get(
-            'BATCH_JOB_QUEUE_ARN',
-            'arn:aws:batch:us-east-1:123456789012:job-queue/pavi-pipeline-queue'
+            "BATCH_JOB_QUEUE_ARN",
+            "arn:aws:batch:us-east-1:123456789012:job-queue/pavi-pipeline-queue",
         )
 
         # AWS clients - lazily initialized
@@ -161,25 +165,25 @@ class JobService:
     def dynamodb(self):
         """Lazy initialization of DynamoDB client."""
         if self._dynamodb is None:
-            self._dynamodb = boto3.resource('dynamodb')
+            self._dynamodb = boto3.resource("dynamodb")
         return self._dynamodb
 
     @property
     def sfn(self):
         """Lazy initialization of Step Functions client."""
         if self._sfn is None:
-            endpoint_url = os.environ.get('STEP_FUNCTIONS_ENDPOINT')
+            endpoint_url = os.environ.get("STEP_FUNCTIONS_ENDPOINT")
             if endpoint_url:
-                self._sfn = boto3.client('stepfunctions', endpoint_url=endpoint_url)
+                self._sfn = boto3.client("stepfunctions", endpoint_url=endpoint_url)
             else:
-                self._sfn = boto3.client('stepfunctions')
+                self._sfn = boto3.client("stepfunctions")
         return self._sfn
 
     @property
     def s3(self):
         """Lazy initialization of S3 client."""
         if self._s3 is None:
-            self._s3 = boto3.client('s3')
+            self._s3 = boto3.client("s3")
         return self._s3
 
     def create_job(self, seq_regions: list[dict]) -> JobInfo:
@@ -193,14 +197,14 @@ class JobService:
             JobInfo object with job details
         """
         job_id = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat() + 'Z'
+        now = datetime.utcnow().isoformat() + "Z"
 
         job = JobInfo(
             job_id=job_id,
             status=JobStatus.PENDING,
             stage=JobStage.INITIALIZING,
             created_at=now,
-            input_count=len(seq_regions)
+            input_count=len(seq_regions),
         )
 
         if self.use_step_functions:
@@ -260,12 +264,12 @@ class JobService:
             return self._get_s3_object(job.result_s3_uri)
         else:
             # Local fallback - read from filesystem
-            results_dir = os.environ.get('API_RESULTS_PATH_PREFIX', './results/')
+            results_dir = os.environ.get("API_RESULTS_PATH_PREFIX", "./results/")
             filepath = os.path.join(
-                results_dir, f'pipeline-results_{job_id}', 'alignment-output.aln'
+                results_dir, f"pipeline-results_{job_id}", "alignment-output.aln"
             )
             if os.path.exists(filepath):
-                with open(filepath, 'rb') as f:
+                with open(filepath, "rb") as f:
                     return f.read()
         return None
 
@@ -286,17 +290,17 @@ class JobService:
         if self.use_step_functions and job.result_s3_uri:
             # seq-info is in same directory as alignment
             s3_uri = job.result_s3_uri.replace(
-                'alignment-output.aln', 'aligned_seq_info.json'
+                "alignment-output.aln", "aligned_seq_info.json"
             )
             return self._get_s3_object(s3_uri)
         else:
             # Local fallback
-            results_dir = os.environ.get('API_RESULTS_PATH_PREFIX', './results/')
+            results_dir = os.environ.get("API_RESULTS_PATH_PREFIX", "./results/")
             filepath = os.path.join(
-                results_dir, f'pipeline-results_{job_id}', 'aligned_seq_info.json'
+                results_dir, f"pipeline-results_{job_id}", "aligned_seq_info.json"
             )
             if os.path.exists(filepath):
-                with open(filepath, 'rb') as f:
+                with open(filepath, "rb") as f:
                     return f.read()
         return None
 
@@ -307,13 +311,13 @@ class JobService:
         try:
             table = self.dynamodb.Table(self.table_name)
             item = {
-                'job_id': job.job_id,
-                'status': job.status.value,
-                'stage': job.stage.value if job.stage else None,
-                'created_at': job.created_at,
-                'input_count': job.input_count,
+                "job_id": job.job_id,
+                "status": job.status.value,
+                "stage": job.stage.value if job.stage else None,
+                "created_at": job.created_at,
+                "input_count": job.input_count,
                 # TTL: 30 days from creation
-                'ttl': int((datetime.utcnow() + timedelta(days=30)).timestamp())
+                "ttl": int((datetime.utcnow() + timedelta(days=30)).timestamp()),
             }
             table.put_item(Item=item)
         except ClientError as e:
@@ -324,23 +328,23 @@ class JobService:
         """Get job from DynamoDB."""
         try:
             table = self.dynamodb.Table(self.table_name)
-            response = table.get_item(Key={'job_id': job_id})
-            item = response.get('Item')
+            response = table.get_item(Key={"job_id": job_id})
+            item = response.get("Item")
 
             if not item:
                 return None
 
             return JobInfo(
-                job_id=item['job_id'],
-                status=JobStatus(item['status']),
-                stage=JobStage(item.get('stage')) if item.get('stage') else None,
-                created_at=item.get('created_at'),
-                completed_at=item.get('completed_at'),
-                input_count=int(item.get('input_count', 0)),
-                sequences_processed=int(item.get('sequences_processed', 0)),
-                result_s3_uri=item.get('result_s3_uri'),
-                error_message=item.get('error_message'),
-                execution_arn=item.get('execution_arn')
+                job_id=item["job_id"],
+                status=JobStatus(item["status"]),
+                stage=JobStage(item.get("stage")) if item.get("stage") else None,
+                created_at=item.get("created_at"),
+                completed_at=item.get("completed_at"),
+                input_count=int(item.get("input_count", 0)),
+                sequences_processed=int(item.get("sequences_processed", 0)),
+                result_s3_uri=item.get("result_s3_uri"),
+                error_message=item.get("error_message"),
+                execution_arn=item.get("execution_arn"),
             )
         except ClientError as e:
             log.error(f"Failed to get job from DynamoDB: {e}")
@@ -352,7 +356,7 @@ class JobService:
         status: Optional[JobStatus] = None,
         stage: Optional[JobStage] = None,
         execution_arn: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Update job in DynamoDB."""
         try:
@@ -363,28 +367,30 @@ class JobService:
             expr_attr_names = {}
 
             if status:
-                update_expr_parts.append('#status = :status')
-                expr_attr_names['#status'] = 'status'
-                expr_attr_values[':status'] = status.value
+                update_expr_parts.append("#status = :status")
+                expr_attr_names["#status"] = "status"
+                expr_attr_values[":status"] = status.value
 
             if stage:
-                update_expr_parts.append('stage = :stage')
-                expr_attr_values[':stage'] = stage.value
+                update_expr_parts.append("stage = :stage")
+                expr_attr_values[":stage"] = stage.value
 
             if execution_arn:
-                update_expr_parts.append('execution_arn = :arn')
-                expr_attr_values[':arn'] = execution_arn
+                update_expr_parts.append("execution_arn = :arn")
+                expr_attr_values[":arn"] = execution_arn
 
             for key, value in kwargs.items():
-                update_expr_parts.append(f'{key} = :{key}')
-                expr_attr_values[f':{key}'] = value
+                update_expr_parts.append(f"{key} = :{key}")
+                expr_attr_values[f":{key}"] = value
 
             if update_expr_parts:
                 table.update_item(
-                    Key={'job_id': job_id},
-                    UpdateExpression='SET ' + ', '.join(update_expr_parts),
+                    Key={"job_id": job_id},
+                    UpdateExpression="SET " + ", ".join(update_expr_parts),
                     ExpressionAttributeValues=expr_attr_values,
-                    ExpressionAttributeNames=expr_attr_names if expr_attr_names else None
+                    ExpressionAttributeNames=expr_attr_names
+                    if expr_attr_names
+                    else None,
                 )
         except ClientError as e:
             log.error(f"Failed to update job in DynamoDB: {e}")
@@ -398,29 +404,31 @@ class JobService:
             raise ValueError("Step Functions state machine ARN not configured")
 
         execution_input = {
-            'job_id': job_id,
-            'seq_regions': seq_regions,
-            'job_queue_arn': self.job_queue_arn
+            "job_id": job_id,
+            "seq_regions": seq_regions,
+            "job_queue_arn": self.job_queue_arn,
         }
 
         try:
             response = self.sfn.start_execution(
                 stateMachineArn=self.state_machine_arn,
-                name=f'pavi-job-{job_id}',
-                input=json.dumps(execution_input)
+                name=f"pavi-job-{job_id}",
+                input=json.dumps(execution_input),
             )
 
-            execution_arn = response['executionArn']
+            execution_arn = response["executionArn"]
 
             # Update job with execution ARN
             self._update_job_dynamodb(
                 job_id,
                 status=JobStatus.RUNNING,
                 stage=JobStage.INITIALIZING,
-                execution_arn=execution_arn
+                execution_arn=execution_arn,
             )
 
-            log.info(f"Started Step Functions execution for job {job_id}: {execution_arn}")
+            log.info(
+                f"Started Step Functions execution for job {job_id}: {execution_arn}"
+            )
 
             return self.get_job(job_id)
 
@@ -430,7 +438,7 @@ class JobService:
                 job_id,
                 status=JobStatus.FAILED,
                 stage=JobStage.ERROR,
-                error_message=str(e)
+                error_message=str(e),
             )
             raise
 
@@ -449,15 +457,15 @@ class JobService:
         """Get an object from S3 by URI."""
         try:
             # Parse s3://bucket/key URI
-            if s3_uri.startswith('s3://'):
-                parts = s3_uri[5:].split('/', 1)
+            if s3_uri.startswith("s3://"):
+                parts = s3_uri[5:].split("/", 1)
                 bucket = parts[0]
-                key = parts[1] if len(parts) > 1 else ''
+                key = parts[1] if len(parts) > 1 else ""
             else:
                 return None
 
             response = self.s3.get_object(Bucket=bucket, Key=key)
-            return response['Body'].read()
+            return response["Body"].read()
 
         except ClientError as e:
             log.error(f"Failed to get S3 object {s3_uri}: {e}")
@@ -488,31 +496,29 @@ class JobService:
             return job
 
         try:
-            response = self.sfn.describe_execution(
-                executionArn=job.execution_arn
-            )
+            response = self.sfn.describe_execution(executionArn=job.execution_arn)
 
-            sf_status = response.get('status', 'RUNNING')
-            now = datetime.utcnow().isoformat() + 'Z'
+            sf_status = response.get("status", "RUNNING")
+            now = datetime.utcnow().isoformat() + "Z"
 
-            if sf_status == 'SUCCEEDED':
+            if sf_status == "SUCCEEDED":
                 # Parse output to get result S3 URI
-                output = json.loads(response.get('output', '{}'))
-                result_uri = output.get('result_s3_uri')
+                output = json.loads(response.get("output", "{}"))
+                result_uri = output.get("result_s3_uri")
 
                 self._update_job_dynamodb(
                     job_id,
                     status=JobStatus.COMPLETED,
                     stage=JobStage.DONE,
                     completed_at=now,
-                    result_s3_uri=result_uri
+                    result_s3_uri=result_uri,
                 )
                 log.info(f"Job {job_id} completed successfully")
 
-            elif sf_status == 'FAILED':
+            elif sf_status == "FAILED":
                 # Extract error information
-                error = response.get('error', 'Unknown error')
-                cause = response.get('cause', 'No details available')
+                error = response.get("error", "Unknown error")
+                cause = response.get("cause", "No details available")
                 error_msg = f"{error}: {cause}"
 
                 self._update_job_dynamodb(
@@ -520,27 +526,27 @@ class JobService:
                     status=JobStatus.FAILED,
                     stage=JobStage.ERROR,
                     completed_at=now,
-                    error_message=error_msg[:1000]  # Truncate to fit DynamoDB
+                    error_message=error_msg[:1000],  # Truncate to fit DynamoDB
                 )
                 log.error(f"Job {job_id} failed: {error_msg}")
 
-            elif sf_status == 'TIMED_OUT':
+            elif sf_status == "TIMED_OUT":
                 self._update_job_dynamodb(
                     job_id,
                     status=JobStatus.FAILED,
                     stage=JobStage.ERROR,
                     completed_at=now,
-                    error_message='Execution timed out'
+                    error_message="Execution timed out",
                 )
                 log.error(f"Job {job_id} timed out")
 
-            elif sf_status == 'ABORTED':
+            elif sf_status == "ABORTED":
                 self._update_job_dynamodb(
                     job_id,
                     status=JobStatus.FAILED,
                     stage=JobStage.ERROR,
                     completed_at=now,
-                    error_message='Execution was aborted'
+                    error_message="Execution was aborted",
                 )
                 log.warning(f"Job {job_id} was aborted")
 
@@ -582,6 +588,10 @@ def get_job_service() -> JobService:
     """Get or create the job service singleton."""
     global _job_service
     if _job_service is None:
-        use_sf = os.environ.get('USE_STEP_FUNCTIONS', 'true').lower() == 'true'
-        _job_service = JobService(use_step_functions=use_sf)
+        # Import config to get the environment-aware setting
+        # Local = Nextflow, AWS (dev/staging/prod) = Step Functions
+        from config import get_api_config
+
+        config = get_api_config()
+        _job_service = JobService(use_step_functions=config.pipeline.use_step_functions)
     return _job_service

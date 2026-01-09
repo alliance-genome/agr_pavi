@@ -16,7 +16,7 @@ logger = get_logger(name=__name__)
 set_log_level(logging.DEBUG)
 
 # Read alignment result file
-ALIGNMENT_RESULT_FILE = '../../tests/resources/submit-workflow-success-output.aln'
+ALIGNMENT_RESULT_FILE = "../../tests/resources/submit-workflow-success-output.aln"
 
 
 @pytest.fixture
@@ -25,33 +25,46 @@ def wb_C42D8_8a_1_yn32_seq_record() -> SeqRecord:
     try:
         alignment = next(AlignIO.parse(ALIGNMENT_RESULT_FILE, "clustal"))
     except Exception as e:
-        logger.error(f"Failed to read alignment result file '{ALIGNMENT_RESULT_FILE}': {e}")
+        logger.error(
+            f"Failed to read alignment result file '{ALIGNMENT_RESULT_FILE}': {e}"
+        )
         raise e
 
     if not isinstance(alignment, MultipleSeqAlignment):
-        raise Exception('Alignment result file does not contain a multiple sequence alignment.')
+        raise Exception(
+            "Alignment result file does not contain a multiple sequence alignment."
+        )
 
     return_record: SeqRecord | None = None
     for record in alignment:
         if not isinstance(record, SeqRecord):
-            raise Exception(f"Error while parsing record of alignment result file '{ALIGNMENT_RESULT_FILE}'.")
+            raise Exception(
+                f"Error while parsing record of alignment result file '{ALIGNMENT_RESULT_FILE}'."
+            )
         if record.seq is None:
-            raise Exception(f"Error while reading record sequence for alignment record '{record.id}'.")
+            raise Exception(
+                f"Error while reading record sequence for alignment record '{record.id}'."
+            )
 
-        if record.id == 'apl-1_C42D8.8a.1_yn32':
+        if record.id == "apl-1_C42D8.8a.1_yn32":
             return_record = record
             break
 
     if return_record is None:
-        raise Exception(f"Failed to find alignment record for 'apl-1_C42D8.8a.1_yn32' in alignment result file '{ALIGNMENT_RESULT_FILE}'.")
+        raise Exception(
+            f"Failed to find alignment record for 'apl-1_C42D8.8a.1_yn32' in alignment result file '{ALIGNMENT_RESULT_FILE}'."
+        )
 
     return return_record
 
 
 @pytest.fixture
 def wb_C42D8_8a_1_yn29_seq_record() -> SeqRecord:
-    return SeqRecord(id='apl-1_C42D8.8a.1_yn29',
-                     seq=Seq(data=''.join('''
+    return SeqRecord(
+        id="apl-1_C42D8.8a.1_yn29",
+        seq=Seq(
+            data="".join(
+                """
                              MTVGKLMIGLLIPILVATVYAEGSPAGSKRHEKFIPMVAFSC----GYRNQYMTEEGSWK
                              TDDER---YATCFSGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEGS---PCKW
                              TH-SVRPYHCIDGEFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGK-----------
@@ -68,13 +81,19 @@ def wb_C42D8_8a_1_yn29_seq_record() -> SeqRecord:
                              ------------------------------------------------------------
                              ------------------------------------------------------------
                              --
-                             '''.split())))
+                             """.split()
+            )
+        ),
+    )
 
 
 @pytest.fixture
 def wb_K12G11_3_1_ok2799_seq_record() -> SeqRecord:
-    return SeqRecord(id='adh-1_K12G11.3.1_ok2799',
-                     seq=Seq(data=''.join('''
+    return SeqRecord(
+        id="adh-1_K12G11.3.1_ok2799",
+        seq=Seq(
+            data="".join(
+                """
                              MTVELPS--TQRALVFDTWNGPLEVRQVPVPSPADDEILVKIEYSGICHSDLHVWLGDLK
                              DMSVCPLVGGHEGAGSVVQIGK--------------------------------------
                              ------------------------------------------------------------
@@ -82,4 +101,7 @@ def wb_K12G11_3_1_ok2799_seq_record() -> SeqRecord:
                              ------------------------------------------------------------
                              ---------------------------VTFDTTPFIF-NAITIKGSIVGSRLDVDEAMEF
                              VTRGIVKV------PLELVKLEDVPAVYQRMLDGKINSRAVVDFSL-
-                             '''.split())))
+                             """.split()
+            )
+        ),
+    )

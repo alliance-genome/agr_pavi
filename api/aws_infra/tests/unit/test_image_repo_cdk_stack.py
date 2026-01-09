@@ -13,10 +13,7 @@ from cdk_classes.api_image_repo import ApiImageRepoCdkStack
 from pavi_shared_aws.agr_aws_env import agr_aws_environment
 
 app = App()
-stack = ApiImageRepoCdkStack(
-    app, "pytest-stack",
-    env=agr_aws_environment
-)
+stack = ApiImageRepoCdkStack(app, "pytest-stack", env=agr_aws_environment)
 template = assertions.Template.from_stack(stack)
 
 
@@ -29,8 +26,7 @@ template = assertions.Template.from_stack(stack)
 #      (or delete the images if no longer relevant)
 #    * Delete the old ECR repository
 def test_api_ecr_repo() -> None:
-    template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
-        "Properties": {
-            "RepositoryName": "agr_pavi/api"
-        }
-    })
+    template.has_resource(
+        type=ResourceType.ECR_REPOSITORY.compliance_resource_type,
+        props={"Properties": {"RepositoryName": "agr_pavi/api"}},
+    )

@@ -19,8 +19,10 @@ from cdk_classes.step_functions_stack import StepFunctionsPocStack
 app = cdk.App()
 
 # Get AWS account and region from environment or CDK context
-aws_account = os.environ.get('CDK_DEFAULT_ACCOUNT') or app.node.try_get_context('account')
-aws_region = os.environ.get('CDK_DEFAULT_REGION', 'us-east-1')
+aws_account = os.environ.get("CDK_DEFAULT_ACCOUNT") or app.node.try_get_context(
+    "account"
+)
+aws_region = os.environ.get("CDK_DEFAULT_REGION", "us-east-1")
 
 # Create the POC stack with a different suffix to avoid conflicts
 StepFunctionsPocStack(
@@ -29,11 +31,8 @@ StepFunctionsPocStack(
     env_suffix="poc3",
     # Use existing shared resources from main infrastructure
     shared_logs_group="pavi/pipeline-batch-jobs",
-    env=cdk.Environment(
-        account=aws_account,
-        region=aws_region
-    ),
-    description="PAVI Step Functions POC v3 - STANDARD workflow type"
+    env=cdk.Environment(account=aws_account, region=aws_region),
+    description="PAVI Step Functions POC v3 - STANDARD workflow type",
 )
 
 app.synth()

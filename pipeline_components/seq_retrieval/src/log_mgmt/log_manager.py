@@ -11,7 +11,7 @@ _log_level: int = logging.WARNING
 _loggers: List[logging.Logger] = []
 """List of loggers managed by this module."""
 
-FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(format=FORMAT)
 
 
@@ -48,9 +48,18 @@ def validate_log_level(log_level: int) -> None:
         ValueError: if log_level is not a valid logging level.
     """
 
-    ACCEPTABLE_LOG_LEVELS = [logging.CRITICAL, logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG, logging.NOTSET]
+    ACCEPTABLE_LOG_LEVELS = [
+        logging.CRITICAL,
+        logging.ERROR,
+        logging.WARNING,
+        logging.INFO,
+        logging.DEBUG,
+        logging.NOTSET,
+    ]
     if log_level not in ACCEPTABLE_LOG_LEVELS:
-        raise ValueError(f"log_level {log_level} is not valid. Use a logging package constant.")
+        raise ValueError(
+            f"log_level {log_level} is not valid. Use a logging package constant."
+        )
 
 
 def set_log_level(log_level: int) -> None:

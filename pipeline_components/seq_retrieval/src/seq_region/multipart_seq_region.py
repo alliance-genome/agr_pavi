@@ -42,37 +42,49 @@ class MultiPartSeqRegion(SeqRegion):
 
         self.start = min(map(lambda seq_region: seq_region.start, seq_regions))
         self.end = max(map(lambda seq_region: seq_region.end, seq_regions))
-        self.seq_length = sum(map(lambda seq_region: seq_region.seq_length, seq_regions))
+        self.seq_length = sum(
+            map(lambda seq_region: seq_region.seq_length, seq_regions)
+        )
 
         # Ensure one strand
-        strands: Set[SeqRegion.STRAND_TYPE] = set(map(lambda seq_region: seq_region.strand, seq_regions))
+        strands: Set[SeqRegion.STRAND_TYPE] = set(
+            map(lambda seq_region: seq_region.strand, seq_regions)
+        )
         if len(strands) > 1:
-            raise ValueError(f"Multiple strands defined accross seq regions ({strands})."
-                             + " All seqRegions in multiPartSeqRegion must have equal value for strand attribute.")
+            raise ValueError(
+                f"Multiple strands defined accross seq regions ({strands})."
+                + " All seqRegions in multiPartSeqRegion must have equal value for strand attribute."
+            )
         else:
             self.strand = strands.pop()
 
         # Ensure one seq_id
         seq_ids: Set[str] = set(map(lambda seq_region: seq_region.seq_id, seq_regions))
         if len(seq_ids) > 1:
-            raise ValueError(f"Multiple seq_ids defined accross seq regions ({seq_ids})."
-                             + " All seqRegions in multiPartSeqRegion must have equal value for seq_id attribute.")
+            raise ValueError(
+                f"Multiple seq_ids defined accross seq regions ({seq_ids})."
+                + " All seqRegions in multiPartSeqRegion must have equal value for seq_id attribute."
+            )
         else:
             self.seq_id = seq_ids.pop()
 
         # Ensure one fasta_file_path
-        fasta_file_paths: Set[str] = set(map(lambda seq_region: seq_region.fasta_file_path, seq_regions))
+        fasta_file_paths: Set[str] = set(
+            map(lambda seq_region: seq_region.fasta_file_path, seq_regions)
+        )
         if len(fasta_file_paths) > 1:
-            raise ValueError(f"Multiple fasta_file_paths defined accross seq regions ({fasta_file_paths})."
-                             + " All seqRegions in multiPartSeqRegion must have equal value for fasta_file_path attribute.")
+            raise ValueError(
+                f"Multiple fasta_file_paths defined accross seq regions ({fasta_file_paths})."
+                + " All seqRegions in multiPartSeqRegion must have equal value for fasta_file_path attribute."
+            )
         else:
             self.fasta_file_path = fasta_file_paths.pop()
 
         # Sort seq_regions before storing
         sort_args: Dict[str, Any] = dict(key=lambda region: region.start, reverse=False)
 
-        if self.strand == '-':
-            sort_args['reverse'] = True
+        if self.strand == "-":
+            sort_args["reverse"] = True
 
         ordered_seq_regions = seq_regions
         ordered_seq_regions.sort(**sort_args)
@@ -80,20 +92,26 @@ class MultiPartSeqRegion(SeqRegion):
         # Ensure all or no frame properties are defined on seq regions
         frames = set(map(lambda seq_region: seq_region.frame, ordered_seq_regions))
         if None in frames and len(frames) > 1:
-            raise ValueError("Mixed frame definitions for MultipartSeqRegion subparts found. "
-                             + "Frame property must be defined for all subparts or for none.")
+            raise ValueError(
+                "Mixed frame definitions for MultipartSeqRegion subparts found. "
+                + "Frame property must be defined for all subparts or for none."
+            )
 
         # Ensure frame definitions form sequence triplets (codons)
         if None not in frames:
             reading_frame_size = 0
             for seq_region in ordered_seq_regions:
-                assert seq_region.frame is not None, 'MultiPartSeqRegion codon triple validation code is not supposed to run when frame property is undefined.'
+                assert seq_region.frame is not None, (
+                    "MultiPartSeqRegion codon triple validation code is not supposed to run when frame property is undefined."
+                )
                 # Accept the first frame definition verbatum
                 if reading_frame_size > 0:
                     # Ensure all following ones match to codon triplets from first frame definition
                     if (reading_frame_size + seq_region.frame) % 3 != 0:
-                        raise ValueError("Non-triplet frame definition found. "
-                                         + f"Seq region {seq_region} breaks MultiPartSequence reading frame with its frame property.")
+                        raise ValueError(
+                            "Non-triplet frame definition found. "
+                            + f"Seq region {seq_region} breaks MultiPartSequence reading frame with its frame property."
+                        )
 
                     reading_frame_size += seq_region.seq_length
                 else:
@@ -130,7 +148,12 @@ class MultiPartSeqRegion(SeqRegion):
 
         return fetch_result.sequence
 
-    def fetch_alt_seq(self, inframe_only: bool = False, recursive_fetch: bool = True, variants: List[Variant] = []) -> AltSeqInfo:
+    def fetch_alt_seq(
+        self,
+        inframe_only: bool = False,
+        recursive_fetch: bool = True,
+        variants: List[Variant] = [],
+    ) -> AltSeqInfo:
         """
         Fetch alternative genetic (DNA) sequence for MultiPartSeqRegion, \
         by applying the relevant variants to each of the consisting SeqRegions, \
@@ -154,10 +177,12 @@ class MultiPartSeqRegion(SeqRegion):
         """
 
         if len(variants) > 1 and variants_overlap(variants):
-            raise ValueError('fetch_alt_seq method does not support overlapping variants.')
+            raise ValueError(
+                "fetch_alt_seq method does not support overlapping variants."
+            )
 
         # If inframe_only, start from the inframe MultipartSeqRegion
-        region: 'MultiPartSeqRegion'
+        region: "MultiPartSeqRegion"
         if inframe_only:
             region = self.inframe_seq_region()
         else:
@@ -167,42 +192,61 @@ class MultiPartSeqRegion(SeqRegion):
         variants_overlap_map = region.map_vars_to_region_parts(variants=variants)
 
         # Loop through region.ordered_seqRegions and apply overlapping variants for each seqRegion as required
-        complete_multipart_sequence = ''
+        complete_multipart_sequence = ""
         embedded_variants: SeqEmbeddedVariantsList = SeqEmbeddedVariantsList()
 
         for region_part in region.ordered_seqRegions:
             region_part_str = str(region_part)
-            if region_part_str in variants_overlap_map and len(variants_overlap_map[region_part_str]) > 0:
-                region_alt_seq = region_part.get_alt_sequence(autofetch=recursive_fetch, variants=variants_overlap_map[region_part_str])
+            if (
+                region_part_str in variants_overlap_map
+                and len(variants_overlap_map[region_part_str]) > 0
+            ):
+                region_alt_seq = region_part.get_alt_sequence(
+                    autofetch=recursive_fetch,
+                    variants=variants_overlap_map[region_part_str],
+                )
 
                 if len(region_alt_seq.embedded_variants) > 0:
                     # Check if last embedded variant is overlapping with this region as well
                     # if so, merge them
-                    if len(embedded_variants) > 0 and embedded_variants[-1].variant_id == region_alt_seq.embedded_variants[0].variant_id:
-                        embedded_variants[-1] = embedded_variants[-1].fuse_to_end(region_alt_seq.embedded_variants[0])
+                    if (
+                        len(embedded_variants) > 0
+                        and embedded_variants[-1].variant_id
+                        == region_alt_seq.embedded_variants[0].variant_id
+                    ):
+                        embedded_variants[-1] = embedded_variants[-1].fuse_to_end(
+                            region_alt_seq.embedded_variants[0]
+                        )
                         region_alt_seq.embedded_variants.pop(0)
 
                     # Bump rel_start and rel_end positions to include prior region parts
-                    region_alt_seq.embedded_variants.shift_rel_positions(len(complete_multipart_sequence))
+                    region_alt_seq.embedded_variants.shift_rel_positions(
+                        len(complete_multipart_sequence)
+                    )
 
                     embedded_variants.extend(region_alt_seq.embedded_variants)
 
                 complete_multipart_sequence += region_alt_seq.sequence
             else:
-                complete_multipart_sequence += region_part.get_sequence(autofetch=recursive_fetch)
+                complete_multipart_sequence += region_part.get_sequence(
+                    autofetch=recursive_fetch
+                )
 
         if inframe_only and len(embedded_variants) > 0:
             # Trim sequence to complete in-frame codons (possibly extended/shortened by embedded variants)
-            inframe_length = len(complete_multipart_sequence) // 3 * 3  # Floor the length to full codons
+            inframe_length = (
+                len(complete_multipart_sequence) // 3 * 3
+            )  # Floor the length to full codons
             complete_multipart_sequence = complete_multipart_sequence[0:inframe_length]
 
             # Remove embedded variants that are outside of in-frame window
             # and trim rel_end for embedded variants partially outside of in-frame window
-            embedded_variants = SeqEmbeddedVariantsList.trimmed_on_rel_positions(embedded_variants, inframe_length)
+            embedded_variants = SeqEmbeddedVariantsList.trimmed_on_rel_positions(
+                embedded_variants, inframe_length
+            )
 
         return AltSeqInfo(
-            sequence=complete_multipart_sequence,
-            embedded_variants=embedded_variants
+            sequence=complete_multipart_sequence, embedded_variants=embedded_variants
         )
 
     @override
@@ -222,12 +266,20 @@ class MultiPartSeqRegion(SeqRegion):
         sequence_len = len(sequence)
 
         if sequence_len != self.seq_length:
-            raise ValueError(f"Sequence length ({sequence_len}) does not equal length expected based on region positions ({self.seq_length}).")
+            raise ValueError(
+                f"Sequence length ({sequence_len}) does not equal length expected based on region positions ({self.seq_length})."
+            )
 
         self.sequence = sequence
 
     @override
-    def get_alt_sequence(self, unmasked: bool = False, variants: List[Variant] = [], autofetch: bool = True, inframe_only: bool = False) -> AltSeqInfo:
+    def get_alt_sequence(
+        self,
+        unmasked: bool = False,
+        variants: List[Variant] = [],
+        autofetch: bool = True,
+        inframe_only: bool = False,
+    ) -> AltSeqInfo:
         """
         Get an alternative sequence of the MultipartSeqRegion by applying a list of variants to it.
 
@@ -254,9 +306,13 @@ class MultiPartSeqRegion(SeqRegion):
         """
 
         if len(variants) < 1:
-            raise ValueError('get_alt_sequence method requires at least one variant to be provided.')
+            raise ValueError(
+                "get_alt_sequence method requires at least one variant to be provided."
+            )
         elif len(variants) > 1 and variants_overlap(variants):
-            raise ValueError('get_alt_sequence method does not support overlapping variants.')
+            raise ValueError(
+                "get_alt_sequence method does not support overlapping variants."
+            )
 
         if self.sequence is None and autofetch:
             self.fetch_seq(recursive_fetch=True)
@@ -267,10 +323,12 @@ class MultiPartSeqRegion(SeqRegion):
         if unmasked:
             alt_sequence = alt_sequence.upper()
 
-        return AltSeqInfo(sequence=alt_sequence, embedded_variants=alt_seq_info.embedded_variants)
+        return AltSeqInfo(
+            sequence=alt_sequence, embedded_variants=alt_seq_info.embedded_variants
+        )
 
     @override
-    def inframe_seq_region(self) -> 'MultiPartSeqRegion':
+    def inframe_seq_region(self) -> "MultiPartSeqRegion":
         """
         Return the subregion of the MultiPartSeqRegion within complete reading frames.
 
@@ -282,14 +340,20 @@ class MultiPartSeqRegion(SeqRegion):
         """
 
         rel_start: int = self.frame or 0  # 0-based relative start of inframe region
-        length = (self.seq_length - rel_start) // 3 * 3  # Floor the length to full codons
+        length = (
+            (self.seq_length - rel_start) // 3 * 3
+        )  # Floor the length to full codons
         rel_end: int = rel_start + length - 1  # 0-based relative end of inframe region
         logger.debug(f'seq_length {self.seq_length}, frame "{self.frame}"')
-        logger.debug(f'Inframe region: start {rel_start}, end {rel_end}, length {length}')
+        logger.debug(
+            f"Inframe region: start {rel_start}, end {rel_end}, length {length}"
+        )
 
         return self.sub_region(rel_start + 1, rel_end + 1)
 
-    def map_vars_to_region_parts(self, variants: List[Variant]) -> Dict[str, List[Variant]]:
+    def map_vars_to_region_parts(
+        self, variants: List[Variant]
+    ) -> Dict[str, List[Variant]]:
         """
         Map a list of variants to the SeqRegion parts of a MultipartSeqRegion.
 
@@ -299,30 +363,49 @@ class MultiPartSeqRegion(SeqRegion):
         Returns:
             Dict of lists of variants (values) overlapping each of the parts of the MultipartSeqRegion (keys).
         """
+
         # Sort variants to relative position in `self` (MultiPartSeqRegion) (ascending)
         class SortArgs(TypedDict):
             key: Callable[[Variant], int]
             reverse: bool
 
         sort_kwargs: SortArgs
-        if self.strand == '-':
-            sort_kwargs = dict(key=lambda variant: variant.genomic_end_pos, reverse=True)
+        if self.strand == "-":
+            sort_kwargs = dict(
+                key=lambda variant: variant.genomic_end_pos, reverse=True
+            )
         else:
-            sort_kwargs = dict(key=lambda variant: variant.genomic_start_pos, reverse=False)
+            sort_kwargs = dict(
+                key=lambda variant: variant.genomic_start_pos, reverse=False
+            )
 
-        variant_overlap_map: Dict[str, List[Variant]] = {}  # Key: str of SeqRegion part in `ordered_seqRegions`, Value: list of overlapping variants
+        variant_overlap_map: Dict[
+            str, List[Variant]
+        ] = {}  # Key: str of SeqRegion part in `ordered_seqRegions`, Value: list of overlapping variants
 
-        last_seq_region_overlap_idx: int | None = None  # `ordered_seqRegions` index of last SeqRegion part with overlapping variants
+        last_seq_region_overlap_idx: int | None = (
+            None  # `ordered_seqRegions` index of last SeqRegion part with overlapping variants
+        )
 
         for variant in sorted(variants, **sort_kwargs):
-            last_variant_overlap_idx: int | None = None  # `ordered_seqRegions` index of last SeqRegion part overlapping this variant
+            last_variant_overlap_idx: int | None = (
+                None  # `ordered_seqRegions` index of last SeqRegion part overlapping this variant
+            )
             # If variant is not in the MultipartSeqRegion boundaries, warn and skip
-            if variant.genomic_seq_id != self.seq_id or self.end < variant.genomic_start_pos or variant.genomic_end_pos < self.start:
-                logger.warning(f'Variant ({variant}) out of boundaries of MultipartSeqRegion ({self}).')
+            if (
+                variant.genomic_seq_id != self.seq_id
+                or self.end < variant.genomic_start_pos
+                or variant.genomic_end_pos < self.start
+            ):
+                logger.warning(
+                    f"Variant ({variant}) out of boundaries of MultipartSeqRegion ({self})."
+                )
                 continue
 
             # Determine the overlapping SeqRegion parts
-            for region_idx in range(last_seq_region_overlap_idx or 0, len(self.ordered_seqRegions)):
+            for region_idx in range(
+                last_seq_region_overlap_idx or 0, len(self.ordered_seqRegions)
+            ):
                 region_part = self.ordered_seqRegions[region_idx]
                 region_part_str = str(region_part)
 
@@ -342,7 +425,7 @@ class MultiPartSeqRegion(SeqRegion):
         return variant_overlap_map
 
     @override
-    def sub_region(self, rel_start: int, rel_end: int) -> 'MultiPartSeqRegion':
+    def sub_region(self, rel_start: int, rel_end: int) -> "MultiPartSeqRegion":
         """
         Return a subregion of the MultipartSeqRegion
 
@@ -355,11 +438,17 @@ class MultiPartSeqRegion(SeqRegion):
         """
 
         if rel_end < rel_start:
-            raise ValueError(f'Relative start position {rel_start} should be smaller than relative end position {rel_end}.')
+            raise ValueError(
+                f"Relative start position {rel_start} should be smaller than relative end position {rel_end}."
+            )
         if rel_start < 1:
-            raise ValueError(f'Relative start position {rel_start} falls outside the boundaries of the MultipartSeqRegion {self} (len {self.seq_length}).')
+            raise ValueError(
+                f"Relative start position {rel_start} falls outside the boundaries of the MultipartSeqRegion {self} (len {self.seq_length})."
+            )
         if self.seq_length < rel_end:
-            raise ValueError(f'Relative end position {rel_end} fall outside the boundaries of the MultipartSeqRegion {self} (len {self.seq_length}).')
+            raise ValueError(
+                f"Relative end position {rel_end} fall outside the boundaries of the MultipartSeqRegion {self} (len {self.seq_length})."
+            )
 
         seq_regions: List[SeqRegion] = []
 
@@ -369,7 +458,12 @@ class MultiPartSeqRegion(SeqRegion):
                 covered_length += seq_region.seq_length
                 continue
 
-            seq_regions.append(seq_region.sub_region(rel_start=max(1, rel_start - covered_length), rel_end=min(rel_end - covered_length, seq_region.seq_length)))
+            seq_regions.append(
+                seq_region.sub_region(
+                    rel_start=max(1, rel_start - covered_length),
+                    rel_end=min(rel_end - covered_length, seq_region.seq_length),
+                )
+            )
             covered_length += seq_region.seq_length
 
             if rel_end <= covered_length:
@@ -392,20 +486,29 @@ class MultiPartSeqRegion(SeqRegion):
             ValueError: when abs_position falls between SeqRegion parts
         """
         if seq_position < self.start or self.end < seq_position:
-            raise ValueError(f'Seq position {seq_position} out of boundaries of MultipartSeqRegion {self}.')
+            raise ValueError(
+                f"Seq position {seq_position} out of boundaries of MultipartSeqRegion {self}."
+            )
 
         rel_position: int | None = None
         for i in range(0, len(self.ordered_seqRegions)):
             region = self.ordered_seqRegions[i]
 
             if region.start <= seq_position and seq_position <= region.end:
-                rel_position = sum(map(lambda seq_region: seq_region.seq_length, self.ordered_seqRegions[0:i]))
+                rel_position = sum(
+                    map(
+                        lambda seq_region: seq_region.seq_length,
+                        self.ordered_seqRegions[0:i],
+                    )
+                )
 
                 rel_position += region.to_rel_position(seq_position)
 
                 break
 
         if rel_position is None:
-            raise ValueError(f'Seq position {seq_position} located between SeqRegion parts defining the MultipartSeqRegion {self}.')
+            raise ValueError(
+                f"Seq position {seq_position} located between SeqRegion parts defining the MultipartSeqRegion {self}."
+            )
 
         return rel_position
