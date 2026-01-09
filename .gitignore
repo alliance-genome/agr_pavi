@@ -169,3 +169,6 @@ cython_debug/
 # tmp directories used for downloading and storing local testing resources
 tmp/
 .mcp.json
+
+# Playwright MCP screenshots
+.playwright-mcp/
