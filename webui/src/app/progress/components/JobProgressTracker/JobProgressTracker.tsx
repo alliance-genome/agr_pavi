@@ -50,7 +50,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         setLogs(prev => [...prev, { timestamp: new Date(), level, message }])
     }, [])
 
-    const updateStepsForStatus = useCallback((status: string, errorMsg?: string) => {
+    const updateStepsForStatus = useCallback((status: string, stage?: string, errorMsg?: string) => {
         setSteps(prevSteps => {
             const newSteps = prevSteps.map(s => ({ ...s }))
 
@@ -59,12 +59,26 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                 newSteps[0] = { ...newSteps[0], status: 'success', timestamp: new Date() }
                 newSteps[1] = { ...newSteps[1], status: 'pending', message: 'Waiting in queue...' }
             } else if (status === 'running') {
-                // Pipeline is running
+                // Pipeline is running - use stage to determine progress
                 newSteps[0] = { ...newSteps[0], status: 'success' }
                 newSteps[1] = { ...newSteps[1], status: 'success', message: 'Pipeline initialized', timestamp: new Date() }
-                newSteps[2] = { ...newSteps[2], status: 'running', message: 'Retrieving sequences from genome...' }
-                newSteps[3] = { ...newSteps[3], status: 'pending' }
-                newSteps[4] = { ...newSteps[4], status: 'pending' }
+
+                if (stage === 'alignment') {
+                    // Sequence retrieval done, alignment running
+                    newSteps[2] = { ...newSteps[2], status: 'success', message: 'Sequences retrieved' }
+                    newSteps[3] = { ...newSteps[3], status: 'running', message: 'Running Clustal Omega alignment...' }
+                    newSteps[4] = { ...newSteps[4], status: 'pending' }
+                } else if (stage === 'done') {
+                    // Both done, finalizing
+                    newSteps[2] = { ...newSteps[2], status: 'success', message: 'Sequences retrieved' }
+                    newSteps[3] = { ...newSteps[3], status: 'success', message: 'Alignment complete' }
+                    newSteps[4] = { ...newSteps[4], status: 'running', message: 'Finalizing results...' }
+                } else {
+                    // Default: sequence retrieval in progress
+                    newSteps[2] = { ...newSteps[2], status: 'running', message: 'Retrieving sequences from genome...' }
+                    newSteps[3] = { ...newSteps[3], status: 'pending' }
+                    newSteps[4] = { ...newSteps[4], status: 'pending' }
+                }
             } else if (status === 'completed') {
                 // All done
                 newSteps[0] = { ...newSteps[0], status: 'success' }
@@ -107,33 +121,48 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             setErrorMessage(`Failed to fetch job status. Please check the job UUID.`)
             addLog('error', 'Failed to fetch job status from server')
             stopPolling()
-            updateStepsForStatus('failed', 'Could not connect to server')
+            updateStepsForStatus('failed', undefined, 'Could not connect to server')
             return
         }
 
-        // Only log if we haven't logged this status before (use ref for reliable tracking)
-        if (!loggedStatusesRef.current.has(response.status)) {
-            loggedStatusesRef.current.add(response.status)
+        // Track status and stage changes for logging
+        const stageKey = `${response.status}_${response.stage || 'none'}`
+        if (!loggedStatusesRef.current.has(stageKey)) {
+            // Log status change
+            if (!loggedStatusesRef.current.has(response.status)) {
+                loggedStatusesRef.current.add(response.status)
 
-            if (response.status === 'pending') {
-                addLog('info', `Job ${props.uuidStr.slice(0, 8)}... queued`)
-                addLog('info', 'Waiting for pipeline worker to pick up job...')
-            } else if (response.status === 'running') {
-                addLog('success', 'Pipeline worker acquired job')
-                addLog('info', 'Initializing Nextflow pipeline...')
-                addLog('success', 'Pipeline started')
-                addLog('info', 'Retrieving protein sequences from genome database...')
-            } else if (response.status === 'completed') {
-                addLog('success', 'Sequence retrieval completed')
-                addLog('info', 'Starting Clustal Omega alignment...')
-                addLog('success', 'Alignment completed successfully')
-            } else if (response.status === 'failed') {
-                addLog('error', `Pipeline failed: ${response.error_message || 'Unknown error'}`)
+                if (response.status === 'pending') {
+                    addLog('info', `Job ${props.uuidStr.slice(0, 8)}... queued`)
+                    addLog('info', 'Waiting for pipeline worker to pick up job...')
+                } else if (response.status === 'running') {
+                    addLog('success', 'Pipeline worker acquired job')
+                    addLog('info', 'Initializing Nextflow pipeline...')
+                    addLog('success', 'Pipeline started')
+                } else if (response.status === 'completed') {
+                    addLog('success', 'Alignment completed successfully')
+                } else if (response.status === 'failed') {
+                    addLog('error', `Pipeline failed: ${response.error_message || 'Unknown error'}`)
+                }
+            }
+
+            // Log stage changes within running status
+            loggedStatusesRef.current.add(stageKey)
+            if (response.status === 'running') {
+                if (response.stage === 'sequence_retrieval') {
+                    addLog('info', 'Retrieving protein sequences from genome database...')
+                } else if (response.stage === 'alignment') {
+                    addLog('success', 'Sequence retrieval completed')
+                    addLog('info', 'Starting Clustal Omega alignment...')
+                } else if (response.stage === 'done') {
+                    addLog('success', 'Alignment completed')
+                    addLog('info', 'Finalizing results...')
+                }
             }
         }
 
         setLastStatus(response.status)
-        updateStepsForStatus(response.status, response.error_message)
+        updateStepsForStatus(response.status, response.stage, response.error_message)
 
         if (response.status === 'completed') {
             stopPolling()

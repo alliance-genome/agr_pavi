@@ -1,6 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from io import StringIO, BytesIO
+import os
 from os import getenv
 from pydantic import BaseModel
 
@@ -195,12 +196,54 @@ jobs: dict[UUID, Pipeline_job] = {}
 
 
 def get_pipeline_job(uuid: UUID) -> Pipeline_job | None:
-    """Get job from in-memory storage (legacy mode)."""
+    """Get job from in-memory storage (legacy mode) with stage inference."""
     if uuid not in jobs.keys():
         logger.warning(f"Pipeline job with UUID {uuid} not found.")
         return None
-    else:
-        return jobs[uuid]
+
+    job = jobs[uuid]
+
+    # Infer stage from Nextflow log for running jobs
+    if job.status == JobStatus.RUNNING.name.lower():
+        job.stage = _infer_stage_from_nextflow_log(uuid)
+    elif job.status == JobStatus.COMPLETED.name.lower():
+        job.stage = "done"
+
+    return job
+
+
+def _infer_stage_from_nextflow_log(job_uuid: UUID) -> str:
+    """Parse Nextflow log to determine current pipeline stage."""
+    log_file = ".nextflow.log"
+    job_name = f"pavi-job-{job_uuid}"
+
+    if not os.path.exists(log_file):
+        return "sequence_retrieval"
+
+    try:
+        with open(log_file, "r") as f:
+            content = f.read()
+
+        # Find where this job starts in the log
+        job_start_marker = f"Run name: {job_name}"
+        job_start_idx = content.rfind(job_start_marker)
+
+        if job_start_idx == -1:
+            return "sequence_retrieval"
+
+        # Only look at log content after this job started
+        job_log = content[job_start_idx:]
+
+        # Check which processes have been submitted (in reverse priority order)
+        if "Submitted process > collectAndAlignSeqInfo" in job_log:
+            return "done"  # Final step submitted
+        elif "Submitted process > alignment" in job_log:
+            return "alignment"
+        else:
+            return "sequence_retrieval"
+    except Exception as e:
+        logger.warning(f"Error parsing Nextflow log for stage: {e}")
+        return "sequence_retrieval"
 
 
 @router.get("/")
