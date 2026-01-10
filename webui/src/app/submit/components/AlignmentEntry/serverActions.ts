@@ -98,88 +98,82 @@ export async function fetchGeneSuggestionsAutocomplete (query: string): Promise<
 }
 
 export async function fetchAlleles (geneId: string): Promise<AlleleInfo[]> {
-    console.log(`New gene info request received.`)
+    console.log(`Fetching alleles for gene: ${geneId}`)
 
     const endpointUrl = `https://www.alliancegenome.org/api/gene/${geneId}/allele-variant-detail`
 
-    // Retrieve all alleleCategory filter values
-    const alleleCategories = fetch(`${endpointUrl}?filter.alleleCategory=findCategories`, {
-        method: 'GET',
-        headers: {
-            'accept': 'application/json'
-        },
+    try {
+        // Retrieve all alleleCategory filter values
+        const categoriesResponse = await fetch(`${endpointUrl}?filter.alleleCategory=findCategories`, {
+            method: 'GET',
+            headers: {
+                'accept': 'application/json'
+            },
+        });
 
-    })
-    .then((response: Response) => {
-        if ( 500 <= response.status && response.status <= 599 ){
-            // No point in attempting to process the body, as no body is expected.
-            throw new Error('Server error received.', {cause: 'server error'})
+        if (!categoriesResponse.ok) {
+            console.warn(`Allele API returned ${categoriesResponse.status} for gene ${geneId}`)
+            return [];
         }
 
-        return Promise.all([Promise.resolve(response), response.json()]);
-    })
-    .then(([response, body]) => {
-        if (response.ok) {
-            console.log(`Allele category query filters received successfully: ${JSON.stringify(body['supplementalData'])}`)
-            return Array.from(body['supplementalData']['distinctFieldValues']['filter.alleleCategory']);
-        } else {
-            const errMsg = 'Failure response received from gene/allele-variant-detail API.'
-            console.error(errMsg)
-            if( 400 <= response.status && response.status <= 499 ){
-                throw new Error(errMsg, {cause: 'user error'})
-            }
-            else{
-                console.log('Non user-error response received:', response)
-                throw new Error(errMsg, {cause: 'unkown'})
-            }
+        const categoriesBody = await categoriesResponse.json();
 
+        // Check if we got valid data
+        if (!categoriesBody['supplementalData']?.['distinctFieldValues']?.['filter.alleleCategory']) {
+            console.warn(`No allele categories found for gene ${geneId}`)
+            return [];
         }
-    })
 
-    // Remove the "allele" option from alleleCategories
-    const searchAlleleCategories = (await alleleCategories).filter(category => category !== 'allele')
+        const alleleCategories = Array.from(categoriesBody['supplementalData']['distinctFieldValues']['filter.alleleCategory']);
+        console.log(`Allele category query filters received: ${JSON.stringify(alleleCategories)}`)
 
-    // Throw error if searchAlleleCategories is empty
-    if(  searchAlleleCategories.length === 0 ){
-        throw new Error('No search allele categories found.', {cause: 'unkown'})
-    }
+        // Remove the "allele" option from alleleCategories (we want alleles WITH variants)
+        const searchAlleleCategories = alleleCategories.filter(category => category !== 'allele')
 
-    const queryParams = new URLSearchParams()
-    // queryParams.append('filter.alleleCategory', searchAlleleCategories.map((value) => (encodeURIComponent(String(value)))).join('|'))
-    queryParams.append('filter.alleleCategory', searchAlleleCategories.join('|'))
+        if (searchAlleleCategories.length === 0) {
+            console.log(`No alleles with variants found for gene ${geneId}`)
+            return [];
+        }
 
-    console.log(`Fetching allele info for gene ${geneId} with query params: ${queryParams.toString()}`)
+        const queryParams = new URLSearchParams()
+        queryParams.append('filter.alleleCategory', searchAlleleCategories.join('|'))
 
-    const jobResponse = fetchAllPages({url: endpointUrl, urlSearchParams: queryParams})
-    .then((results) => {
+        // Limit to 500 allele records to prevent browser freeze on genes with thousands of variants
+        const MAX_ALLELE_RESULTS = 500;
+        console.log(`Fetching allele info for gene ${geneId} (max ${MAX_ALLELE_RESULTS} results)`)
+
+        const results = await fetchAllPages({url: endpointUrl, urlSearchParams: queryParams, maxResults: MAX_ALLELE_RESULTS});
         console.log(`Allele info for gene ${geneId} received successfully.`)
+
         const allelesMap = new Map<string, AlleleInfo>()
 
         results.forEach((result: any) => {
             const allele = allelesMap.get(result['allele']['id'])
-            if( result['variant'] === undefined ){
+            if (result['variant'] === undefined) {
                 console.error('Error: allele with undefined variant:', result)
+                return;
             }
             const variant = {
                 id: result['variant']['id'],
                 displayName: result['variant']['displayName']
             }
 
-            if( allele === undefined ){
+            if (allele === undefined) {
                 allelesMap.set(result['allele']['id'], {
                     id: result['allele']['id'],
                     displayName: result['allele']['symbol'],
                     variants: new Map([[variant['id'], variant]])
                 })
-            }
-            else{
-                if( !allele.variants.get(variant['id']) ){
+            } else {
+                if (!allele.variants.get(variant['id'])) {
                     allele.variants.set(variant['id'], variant)
                 }
             }
         })
-        return Array.from(allelesMap.values());
-    })
 
-    return jobResponse
+        return Array.from(allelesMap.values());
+    } catch (error) {
+        console.error(`Error fetching alleles for gene ${geneId}:`, error)
+        return [];
+    }
 }

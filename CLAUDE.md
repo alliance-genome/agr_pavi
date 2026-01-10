@@ -13,6 +13,7 @@ AGR PAVI (Proteins Annotations and Variants Inspector) is a bioinformatics web a
 ```
 agr_pavi/
 ├── webui/              # Next.js 15 frontend (React 19, TypeScript, Nightingale)
+│   └── src/app/        # App Router pages: /submit, /progress, /result, /jobs, /help, /admin
 ├── api/                # FastAPI backend (Python 3.12) - job orchestration
 ├── pipeline_components/
 │   ├── seq_retrieval/  # Protein sequence retrieval from genomic regions
@@ -32,6 +33,20 @@ agr_pavi/
 
 Currently uses Nextflow on AWS Batch/ECS; migrating to AWS Step Functions (see `docs/step-functions-design.md`).
 
+### API Endpoints
+- `POST /api/pipeline-job/` - Submit alignment job with sequence regions
+- `GET /api/pipeline-job/{uuid}` - Poll job status
+- `GET /api/pipeline-job/{uuid}/result/alignment` - Fetch alignment file
+- `GET /api/pipeline-job/{uuid}/result/seq-info` - Fetch sequence metadata
+- `GET /api/pipeline-job/{uuid}/logs` - Fetch pipeline logs
+
+### WebUI User Flow
+1. `/submit` - Job submission form with gene/allele selection
+2. `/progress?uuid={id}` - Real-time job progress tracking
+3. `/result?uuid={id}` - Alignment visualization with Nightingale components
+4. `/jobs` - Job history table
+5. `/help` - Documentation, FAQ, and glossary
+
 ## Essential Commands
 
 Each component has its own Makefile. Run commands from the component directory.
@@ -46,11 +61,13 @@ make run-unit-tests      # pytest (Python) or jest (TypeScript)
 ### Development Servers
 ```bash
 # API (from api/)
-make run-server-dev      # FastAPI dev server on localhost:8080
+make run-server-dev      # FastAPI dev server on localhost:8000
 
 # WebUI (from webui/)
-PAVI_API_BASE_URL=http://localhost:8080 make run-server-dev
+PAVI_API_BASE_URL=http://localhost:8000 make run-server-dev  # Next.js on localhost:3000
 ```
+
+Note: The API docker container runs on port 8080, but `fastapi dev` uses 8000.
 
 ### Running Single Tests
 ```bash
@@ -61,6 +78,13 @@ PAVI_API_BASE_URL=http://localhost:8080 make run-server-dev
 # TypeScript (from webui/)
 npm run test -- --testPathPattern="AlignmentEntry.test"
 npm run test:watch  # Interactive watch mode
+npm run test:dev    # Verbose output (without --silent)
+```
+
+### Verbose Testing with Coverage
+```bash
+# Python (from component directory) - HTML coverage report
+make run-tests-dev   # Runs pytest with --cov-report html -v
 ```
 
 ### Docker
@@ -80,8 +104,11 @@ make update-deps-locks-all  # Update lock files
 ### E2E Testing (WebUI)
 ```bash
 make run-e2e-tests       # Cypress with visual regression in Docker
-make run-e2e-tests-dev   # Interactive Cypress mode
+make run-e2e-tests-dev   # Interactive Cypress mode (no visual regression)
+make open-cypress-image-diff-html-report  # View failed visual regression at localhost:6868
 ```
+
+Visual regression tests use `cypress-image-diff` and require the Docker container for consistent rendering. If tests fail, use the HTML report to inspect differences and update baselines.
 
 ### AWS Deployment
 ```bash
@@ -140,10 +167,18 @@ CDK CLI via npm: `npx cdk <command>`.
 ## Key Libraries
 
 **WebUI:**
-- `@nightingale-elements/*` - Protein sequence visualization components from EMBL-EBI
+- `@nightingale-elements/*` - Protein sequence visualization (MSA viewer, tracks, navigation)
 - `primereact` + `primeflex` - UI component library
 - `@tanstack/react-virtual` - Virtualized alignment rendering
+- `@mui/material` - Material UI components
+- `clustal-js` - Clustal format parsing
+- `@lit/react` - Lit element wrappers for Nightingale web components
 
 **API:**
 - `fastapi[standard]` - REST API framework
 - `smart-open[s3]` - S3 file access
+
+**Pipeline:**
+- `biopython` - Sequence manipulation and FASTA handling
+- `pysam` - SAM/BAM file operations
+- Clustal Omega - Multiple sequence alignment (external binary)

@@ -5,11 +5,12 @@ import React, { FunctionComponent, useEffect, useState } from 'react';
 
 import { AlignmentEntry, AlignmentEntryProps } from '../AlignmentEntry/AlignmentEntry'
 import { InputPayloadDispatchAction } from '../JobSubmitForm/types';
+import { ExampleGene } from '../ExampleDataLoader/ExampleDataLoader';
 
 interface AlignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
     readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>
-    readonly initialGeneIds?: string[]
+    readonly initialGenes?: ExampleGene[]
 }
 export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (props: AlignmentEntryListProps) => {
 
@@ -20,13 +21,17 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
         agrjBrowseDataRelease: props.agrjBrowseDataRelease,
         dispatchInputPayloadPart: props.dispatchInputPayloadPart
     }
-    const initListItem = (index: number, initialGeneId?: string) => {
-        console.log(`Initiating list item for index ${index}${initialGeneId ? ` with initialGeneId: ${initialGeneId}` : ''}`)
+    const initListItem = (index: number, initialGene?: ExampleGene) => {
+        console.log(`Initiating list item for index ${index}${initialGene ? ` with initialGeneId: ${initialGene.geneId}` : ''}`)
+        if (initialGene?.alleleIds) {
+            console.log(`  with ${initialGene.alleleIds.length} initial allele(s)`)
+        }
         return(
             {props: {
                 ...alignmentEntryBaseProps,
                 index: index,
-                initialGeneId: initialGeneId
+                initialGeneId: initialGene?.geneId,
+                initialAlleleIds: initialGene?.alleleIds
             }}
         ) as AlignmentEntryListItem
     }
@@ -86,19 +91,19 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
         return cleanupAlignmentEntries
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Handle loading initial gene IDs (e.g., from example data)
+    // Handle loading initial genes (e.g., from example data)
     useEffect(() => {
-        if (props.initialGeneIds && props.initialGeneIds.length > 0) {
-            console.log(`Loading ${props.initialGeneIds.length} initial gene IDs:`, props.initialGeneIds)
+        if (props.initialGenes && props.initialGenes.length > 0) {
+            console.log(`Loading ${props.initialGenes.length} initial genes:`, props.initialGenes)
             setAlignmentEntries(() => {
                 const newState = new Map<number, AlignmentEntryListItem>()
-                props.initialGeneIds!.forEach((geneId, index) => {
-                    newState.set(index, initListItem(index, geneId))
+                props.initialGenes!.forEach((gene, index) => {
+                    newState.set(index, initListItem(index, gene))
                 })
                 return newState
             })
         }
-    }, [props.initialGeneIds]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [props.initialGenes]) // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="agr-alignment-list">

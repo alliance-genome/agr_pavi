@@ -8,6 +8,7 @@ import { fetchAlleles } from '@/app/submit/components/AlignmentEntry/serverActio
 export interface UseAlleleSelectionOptions {
     gene: GeneInfo | undefined;
     setupCompleted?: boolean;
+    initialAlleleIds?: string[];
 }
 
 export interface UseAlleleSelectionResult {
@@ -31,7 +32,7 @@ export function useAlleleSelection(
     options: UseAlleleSelectionOptions,
     alleleMultiselectRef: RefObject<MultiSelect | null>
 ): UseAlleleSelectionResult {
-    const { gene, setupCompleted } = options;
+    const { gene, setupCompleted, initialAlleleIds } = options;
 
     // Allele state
     const [alleleList, setAlleleList] = useState<AlleleInfo[]>([]);
@@ -40,11 +41,13 @@ export function useAlleleSelection(
     const [selectedAllelesInfo, setSelectedAllelesInfo] = useState<AlleleInfo[]>([]);
     const [alleleListFocused, setAlleleListFocused] = useState(false);
     const [alleleListOpened, setAlleleListOpened] = useState(false);
+    const [initialSelectionApplied, setInitialSelectionApplied] = useState(false);
 
     const resetSelection = useCallback(() => {
         setAlleleList([]);
         setSelectedAlleleIds([]);
         setSelectedAllelesInfo([]);
+        setInitialSelectionApplied(false);
     }, []);
 
     // Lazy-load alleles on demand (when dropdown is opened)
@@ -125,6 +128,35 @@ export function useAlleleSelection(
             setSelectedAllelesInfo([]);
         }
     }, [gene]);
+
+    // Auto-load alleles when we have initial allele IDs
+    useEffect(() => {
+        if (gene && initialAlleleIds && initialAlleleIds.length > 0 && !initialSelectionApplied && alleleList.length === 0 && !alleleListLoading) {
+            console.log(`Auto-loading alleles for initial selection: ${initialAlleleIds.join(', ')}`);
+            loadAllelesOnDemand();
+        }
+    }, [gene, initialAlleleIds, initialSelectionApplied, alleleList.length, alleleListLoading, loadAllelesOnDemand]);
+
+    // Apply initial allele selection once alleles are loaded
+    useEffect(() => {
+        if (initialAlleleIds && initialAlleleIds.length > 0 && alleleList.length > 0 && !initialSelectionApplied) {
+            console.log(`Applying initial allele selection: ${initialAlleleIds.join(', ')}`);
+            // Filter to only include valid allele IDs that exist in the loaded list
+            const validAlleleIds = initialAlleleIds.filter(id => alleleList.some(a => a.id === id));
+            if (validAlleleIds.length > 0) {
+                console.log(`Valid allele IDs found: ${validAlleleIds.join(', ')}`);
+                setSelectedAlleleIds(validAlleleIds);
+                // Also process and set selectedAllelesInfo
+                const allelesInfo = validAlleleIds
+                    .map(id => alleleList.find(a => a.id === id))
+                    .filter((a): a is AlleleInfo => a !== undefined);
+                setSelectedAllelesInfo(allelesInfo);
+            } else {
+                console.warn(`No matching alleles found for initial IDs: ${initialAlleleIds.join(', ')}`);
+            }
+            setInitialSelectionApplied(true);
+        }
+    }, [initialAlleleIds, alleleList, initialSelectionApplied]);
 
     return {
         // State

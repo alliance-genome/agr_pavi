@@ -13,6 +13,7 @@ import { FailureDisplay } from '../FailureDisplay/FailureDisplay';
 import { ResultsSummary } from '../ResultsSummary';
 import { AlignmentSkeleton } from '../AlignmentSkeleton';
 import { dataCache, CACHE_CONFIGS } from '@/utils/dataCache';
+import { deduplicateSequences } from '../../utils/deduplicateSequences';
 
 const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
 const VirtualizedAlignment = dynamic(() => import('../InteractiveAlignment/VirtualizedAlignment'), { ssr: false })
@@ -54,36 +55,51 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         const seqInfoCacheKey = `alignment_seqinfo_${props.uuidStr}`
 
         // Fetch alignment output with caching
-        const result = await dataCache.getOrFetch<string | undefined>(
+        const rawResult = await dataCache.getOrFetch<string | undefined>(
             alignmentCacheKey,
             () => fetchAlignmentResults(props.uuidStr),
             CACHE_CONFIGS.session // Cache for 24 hours - completed results don't change
         )
 
-        if (result) {
-            setAlignmentResult(result)
-        } else {
-            console.log('Failed to retrieve alignment results.')
-            setLoadError('Failed to retrieve alignment results. The job may have failed or expired.')
-        }
-
         // Fetch alignment seq-info with caching
-        const seq_info_dict = await dataCache.getOrFetch<SeqInfoDict | undefined>(
+        const rawSeqInfo = await dataCache.getOrFetch<SeqInfoDict | undefined>(
             seqInfoCacheKey,
             () => fetchAlignmentSeqInfo(props.uuidStr),
             CACHE_CONFIGS.session
         )
 
-        if (seq_info_dict) {
-            setAlignmentSeqInfo(seq_info_dict)
-        } else {
-            console.log('Failed to retrieve alignment seq-info.')
+        if (!rawResult) {
+            console.log('Failed to retrieve alignment results.')
+            setLoadError('Failed to retrieve alignment results. The job may have failed or expired.')
+            setIsLoading(false)
+            return
         }
 
+        if (!rawSeqInfo) {
+            console.log('Failed to retrieve alignment seq-info.')
+            // Still set alignment result even if seq-info fails
+            setAlignmentResult(rawResult)
+            setIsLoading(false)
+            return
+        }
+
+        // Deduplicate reference sequences (KANBAN-727)
+        // When same transcript is submitted with multiple alleles,
+        // the alignment contains duplicate reference sequences.
+        const { alignmentResult: deduplicatedAlignment, seqInfoDict: deduplicatedSeqInfo, duplicatesRemoved } =
+            deduplicateSequences(rawResult, rawSeqInfo)
+
+        if (duplicatesRemoved > 0) {
+            console.log(`Removed ${duplicatesRemoved} duplicate reference sequence(s) from alignment.`)
+        }
+
+        setAlignmentResult(deduplicatedAlignment)
+        setAlignmentSeqInfo(deduplicatedSeqInfo)
+
         // Store failures
-        if (seq_info_dict !== undefined && Object.keys(seq_info_dict).length > 0) {
+        if (Object.keys(deduplicatedSeqInfo).length > 0) {
             const failures: Map<string, string> = new Map<string, string>()
-            for (const [seq_name, seq_info] of Object.entries(seq_info_dict)) {
+            for (const [seq_name, seq_info] of Object.entries(deduplicatedSeqInfo)) {
                 if (seq_info.error) {
                     failures.set(seq_name, seq_info.error)
                 }

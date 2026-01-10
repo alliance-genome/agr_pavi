@@ -56,6 +56,7 @@ nextflow.config:
 run-server-dev: .venv/ install-deps nextflow.sh protein-msa.nf nextflow.config
 	@export API_RESULTS_PATH_PREFIX="`pwd`/" && \
 	 export API_EXECUTION_ENV="local" && \
+	 export JAVA_HOME="$$(/usr/libexec/java_home -v 17)" && \
 	 .venv/bin/fastapi dev src/main.py
 
 update-deps-lock: update-python-deps-lock
