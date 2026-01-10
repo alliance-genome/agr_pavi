@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from typing import Any, Optional
 
 import json
+import re
 import subprocess
 from uuid import uuid1, UUID
 
@@ -60,6 +61,8 @@ class Pipeline_job(BaseModel):
     input_count: Optional[int] = None
     sequences_processed: Optional[int] = None
     error_message: Optional[str] = None
+    # Task-level progress events
+    task_events: Optional[list[str]] = None
 
     def __init__(self, uuid: UUID, **data: Any):
         super().__init__(uuid=uuid, name=f"pavi-job-{uuid}", **data)
@@ -203,11 +206,16 @@ def get_pipeline_job(uuid: UUID) -> Pipeline_job | None:
 
     job = jobs[uuid]
 
-    # Infer stage from Nextflow log for running jobs
+    # Infer stage and task events from Nextflow log for running/completed/failed jobs
     if job.status == JobStatus.RUNNING.name.lower():
         job.stage = _infer_stage_from_nextflow_log(uuid)
+        job.task_events = _parse_task_events_from_nextflow_log(uuid)
     elif job.status == JobStatus.COMPLETED.name.lower():
         job.stage = "done"
+        job.task_events = _parse_task_events_from_nextflow_log(uuid)
+    elif job.status == JobStatus.FAILED.name.lower():
+        job.stage = _infer_stage_from_nextflow_log(uuid)
+        job.task_events = _parse_task_events_from_nextflow_log(uuid)
 
     return job
 
@@ -244,6 +252,67 @@ def _infer_stage_from_nextflow_log(job_uuid: UUID) -> str:
     except Exception as e:
         logger.warning(f"Error parsing Nextflow log for stage: {e}")
         return "sequence_retrieval"
+
+
+def _parse_task_events_from_nextflow_log(job_uuid: UUID) -> list[str]:
+    """Parse Nextflow log to extract task-level events (submitted and completed)."""
+    log_file = ".nextflow.log"
+    job_name = f"pavi-job-{job_uuid}"
+    events: list[str] = []
+
+    if not os.path.exists(log_file):
+        return events
+
+    try:
+        with open(log_file, "r") as f:
+            content = f.read()
+
+        # Find where this job starts in the log
+        job_start_marker = f"Run name: {job_name}"
+        job_start_idx = content.rfind(job_start_marker)
+
+        if job_start_idx == -1:
+            return events
+
+        # Only look at log content after this job started
+        job_log = content[job_start_idx:]
+
+        # Parse submitted events (when tasks start)
+        # Pattern: "[d7/e8390b] Submitted process > sequence_retrieval (1)"
+        submitted_pattern = r"Submitted process > ([^\n]+)"
+        submitted_matches = re.findall(submitted_pattern, job_log)
+
+        for task_name in submitted_matches:
+            task_name = task_name.strip()
+            if task_name.startswith("sequence_retrieval"):
+                num_match = re.search(r"\((\d+)\)", task_name)
+                if num_match:
+                    events.append(f"Retrieving sequence {num_match.group(1)}...")
+            elif task_name.startswith("alignment"):
+                events.append("Running alignment...")
+            elif task_name.startswith("collectAndAlignSeqInfo"):
+                events.append("Collecting results...")
+
+        # Parse task completion events
+        # Pattern: "Task completed > TaskHandler[...name: sequence_retrieval (1); status: COMPLETED...]"
+        completed_pattern = r"Task completed > TaskHandler\[.*?name: ([^;]+); status: COMPLETED"
+        completed_matches = re.findall(completed_pattern, job_log)
+
+        for task_name in completed_matches:
+            task_name = task_name.strip()
+            if task_name.startswith("sequence_retrieval"):
+                num_match = re.search(r"\((\d+)\)", task_name)
+                if num_match:
+                    events.append(f"Sequence {num_match.group(1)} retrieved")
+            elif task_name.startswith("alignment"):
+                events.append("Alignment complete")
+            elif task_name.startswith("collectAndAlignSeqInfo"):
+                events.append("Results finalized")
+
+        return events
+    except Exception as e:
+        logger.warning(f"Error parsing Nextflow log for task events: {e}")
+        return events
 
 
 @router.get("/")
