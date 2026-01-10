@@ -9,7 +9,7 @@ import json
 import os
 import uuid
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Any, Optional
 from enum import Enum
 
 import boto3
@@ -96,7 +96,7 @@ class JobInfo:
         self.error_message = error_message
         self.execution_arn = execution_arn
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API response."""
         return {
             "uuid": self.job_id,
@@ -162,14 +162,14 @@ class JobService:
         self._local_jobs: dict[str, JobInfo] = {}
 
     @property
-    def dynamodb(self):
+    def dynamodb(self) -> Any:
         """Lazy initialization of DynamoDB client."""
         if self._dynamodb is None:
             self._dynamodb = boto3.resource("dynamodb")
         return self._dynamodb
 
     @property
-    def sfn(self):
+    def sfn(self) -> Any:
         """Lazy initialization of Step Functions client."""
         if self._sfn is None:
             endpoint_url = os.environ.get("STEP_FUNCTIONS_ENDPOINT")
@@ -180,13 +180,13 @@ class JobService:
         return self._sfn
 
     @property
-    def s3(self):
+    def s3(self) -> Any:
         """Lazy initialization of S3 client."""
         if self._s3 is None:
             self._s3 = boto3.client("s3")
         return self._s3
 
-    def create_job(self, seq_regions: list[dict]) -> JobInfo:
+    def create_job(self, seq_regions: list[dict[str, Any]]) -> JobInfo:
         """
         Create a new pipeline job.
 
@@ -215,7 +215,9 @@ class JobService:
         log.info(f"Created job {job_id} with {len(seq_regions)} sequences")
         return job
 
-    def start_job(self, job_id: str, seq_regions: list[dict]) -> JobInfo:
+    def start_job(
+        self, job_id: str, seq_regions: list[dict[str, Any]]
+    ) -> Optional[JobInfo]:
         """
         Start a pipeline job execution.
 
@@ -224,7 +226,7 @@ class JobService:
             seq_regions: List of sequence region definitions
 
         Returns:
-            Updated JobInfo object
+            Updated JobInfo object, or None if job not found
         """
         if self.use_step_functions:
             return self._start_step_functions_execution(job_id, seq_regions)
@@ -356,7 +358,7 @@ class JobService:
         status: Optional[JobStatus] = None,
         stage: Optional[JobStage] = None,
         execution_arn: Optional[str] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Update job in DynamoDB."""
         try:
@@ -397,8 +399,8 @@ class JobService:
             raise
 
     def _start_step_functions_execution(
-        self, job_id: str, seq_regions: list[dict]
-    ) -> JobInfo:
+        self, job_id: str, seq_regions: list[dict[str, Any]]
+    ) -> Optional[JobInfo]:
         """Start a Step Functions execution for the job."""
         if not self.state_machine_arn:
             raise ValueError("Step Functions state machine ARN not configured")
@@ -442,7 +444,9 @@ class JobService:
             )
             raise
 
-    def _start_local_execution(self, job_id: str, seq_regions: list[dict]) -> JobInfo:
+    def _start_local_execution(
+        self, job_id: str, seq_regions: list[dict[str, Any]]
+    ) -> Optional[JobInfo]:
         """
         Start a local execution (fallback for development).
         This uses the existing Nextflow subprocess approach.
@@ -465,7 +469,8 @@ class JobService:
                 return None
 
             response = self.s3.get_object(Bucket=bucket, Key=key)
-            return response["Body"].read()
+            body: bytes = response["Body"].read()
+            return body
 
         except ClientError as e:
             log.error(f"Failed to get S3 object {s3_uri}: {e}")

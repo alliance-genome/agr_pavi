@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { usePrefetchRoute, usePrefetchData, clearPrefetchCache, usePrefetchOnVisible } from '../usePrefetch';
 
 // Mock Next.js router
@@ -12,7 +12,7 @@ jest.mock('next/navigation', () => ({
 // Mock IntersectionObserver
 const mockObserve = jest.fn();
 const mockDisconnect = jest.fn();
-const mockIntersectionObserver = jest.fn().mockImplementation((callback: IntersectionObserverCallback) => {
+const mockIntersectionObserver = jest.fn().mockImplementation((callback: (_entries: IntersectionObserverEntry[]) => void) => {
     return {
         observe: mockObserve,
         disconnect: mockDisconnect,
@@ -350,7 +350,10 @@ describe('usePrefetchOnVisible', () => {
         });
 
         // Get the callback that was passed to IntersectionObserver
-        const observerCallback = mockIntersectionObserver.mock.calls[0][0] as IntersectionObserverCallback;
+        const observerCallback = mockIntersectionObserver.mock.calls[0][0] as (
+            _entries: IntersectionObserverEntry[],
+            _observer: IntersectionObserver
+        ) => void;
 
         // Simulate intersection
         act(() => {
@@ -373,7 +376,10 @@ describe('usePrefetchOnVisible', () => {
             result.current(mockElement);
         });
 
-        const observerCallback = mockIntersectionObserver.mock.calls[0][0] as IntersectionObserverCallback;
+        const observerCallback = mockIntersectionObserver.mock.calls[0][0] as (
+            _entries: IntersectionObserverEntry[],
+            _observer: IntersectionObserver
+        ) => void;
 
         act(() => {
             observerCallback(
