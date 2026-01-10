@@ -46,7 +46,7 @@ def test_result_alignment(mocker: MockerFixture) -> None:
     def mock_alignment_open(uri: None = None, **kwargs):  # type: ignore  # noqa: U100
         return open("../tests/resources/submit-workflow-success-output.aln", **kwargs)
 
-    mocker.patch("src.main.open", side_effect=mock_alignment_open)
+    mocker.patch("smart_open.open", side_effect=mock_alignment_open)
     response = client.get(f"/api/pipeline-job/{mock_uuid}/result/alignment")
 
     assert response.status_code == 200
@@ -54,7 +54,7 @@ def test_result_alignment(mocker: MockerFixture) -> None:
 
 
 def test_alignment_result_read_error(mocker: MockerFixture) -> None:
-    mocker.patch("src.main.open", side_effect=mock_open_OSError)
+    mocker.patch("smart_open.open", side_effect=mock_open_OSError)
     response = client.get(f"/api/pipeline-job/{mock_uuid}/result/alignment")
 
     assert response.status_code == 404
@@ -66,7 +66,7 @@ def test_result_seq_info(mocker: MockerFixture) -> None:
             "../tests/resources/submit-workflow-success/aligned_seq_info.json", **kwargs
         )
 
-    mocker.patch("src.main.open", side_effect=mock_seq_info_open)
+    mocker.patch("smart_open.open", side_effect=mock_seq_info_open)
     response = client.get(f"/api/pipeline-job/{mock_uuid}/result/seq-info")
 
     assert response.status_code == 200
@@ -80,7 +80,7 @@ def test_alignment_result_seq_info_not_found() -> None:
 
 
 def test_alignment_result_seq_info_read_error(mocker: MockerFixture) -> None:
-    mocker.patch("src.main.open", side_effect=mock_open_OSError)
+    mocker.patch("smart_open.open", side_effect=mock_open_OSError)
     response = client.get(f"/api/pipeline-job/{mock_uuid}/result/seq-info")
 
     assert response.status_code == 404
