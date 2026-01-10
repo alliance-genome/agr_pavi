@@ -12,6 +12,7 @@ export interface JobStatusResponse {
     name?: string;
     stage?: string;  // sequence_retrieval, alignment, done
     error_message?: string;
+    task_events?: string[];  // List of completed task descriptions
 }
 
 export interface ProgressStep {

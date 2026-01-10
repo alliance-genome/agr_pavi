@@ -45,10 +45,8 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     const hasStartedPollingRef = useRef<boolean>(false)
     // Track which statuses we've already logged to prevent duplicates
     const loggedStatusesRef = useRef<Set<string>>(new Set())
-
-    const addLog = useCallback((level: LogEntry['level'], message: string) => {
-        setLogs(prev => [...prev, { timestamp: new Date(), level, message }])
-    }, [])
+    // Track which task events we've already logged to prevent duplicates
+    const loggedTaskEventsRef = useRef<Set<string>>(new Set())
 
     const updateStepsForStatus = useCallback((status: string, stage?: string, errorMsg?: string) => {
         setSteps(prevSteps => {
@@ -119,7 +117,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
         if (!response) {
             setErrorMessage(`Failed to fetch job status. Please check the job UUID.`)
-            addLog('error', 'Failed to fetch job status from server')
+            setLogs(prev => [...prev, { timestamp: new Date(), level: 'error', message: 'Failed to fetch job status from server' }])
             stopPolling()
             updateStepsForStatus('failed', undefined, 'Could not connect to server')
             return
@@ -133,16 +131,20 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                 loggedStatusesRef.current.add(response.status)
 
                 if (response.status === 'pending') {
-                    addLog('info', `Job ${props.uuidStr.slice(0, 8)}... queued`)
-                    addLog('info', 'Waiting for pipeline worker to pick up job...')
+                    setLogs(prev => [...prev,
+                        { timestamp: new Date(), level: 'info', message: `Job ${props.uuidStr.slice(0, 8)}... queued` },
+                        { timestamp: new Date(), level: 'info', message: 'Waiting for pipeline worker to pick up job...' }
+                    ])
                 } else if (response.status === 'running') {
-                    addLog('success', 'Pipeline worker acquired job')
-                    addLog('info', 'Initializing Nextflow pipeline...')
-                    addLog('success', 'Pipeline started')
+                    setLogs(prev => [...prev,
+                        { timestamp: new Date(), level: 'success', message: 'Pipeline worker acquired job' },
+                        { timestamp: new Date(), level: 'info', message: 'Initializing Nextflow pipeline...' },
+                        { timestamp: new Date(), level: 'success', message: 'Pipeline started' }
+                    ])
                 } else if (response.status === 'completed') {
-                    addLog('success', 'Alignment completed successfully')
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'success', message: 'Alignment completed successfully' }])
                 } else if (response.status === 'failed') {
-                    addLog('error', `Pipeline failed: ${response.error_message || 'Unknown error'}`)
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'error', message: `Pipeline failed: ${response.error_message || 'Unknown error'}` }])
                 }
             }
 
@@ -150,14 +152,29 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             loggedStatusesRef.current.add(stageKey)
             if (response.status === 'running') {
                 if (response.stage === 'sequence_retrieval') {
-                    addLog('info', 'Retrieving protein sequences from genome database...')
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Retrieving protein sequences from genome database...' }])
                 } else if (response.stage === 'alignment') {
-                    addLog('success', 'Sequence retrieval completed')
-                    addLog('info', 'Starting Clustal Omega alignment...')
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Starting Clustal Omega alignment...' }])
                 } else if (response.stage === 'done') {
-                    addLog('success', 'Alignment completed')
-                    addLog('info', 'Finalizing results...')
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Finalizing results...' }])
                 }
+            }
+        }
+
+        // Log task-level events (granular progress from Nextflow)
+        if (response.task_events && response.task_events.length > 0) {
+            console.log('task_events from API:', response.task_events)
+            console.log('already logged:', Array.from(loggedTaskEventsRef.current))
+            const newEvents: LogEntry[] = []
+            response.task_events.forEach(event => {
+                if (!loggedTaskEventsRef.current.has(event)) {
+                    console.log('Adding new event:', event)
+                    loggedTaskEventsRef.current.add(event)
+                    newEvents.push({ timestamp: new Date(), level: 'success', message: event })
+                }
+            })
+            if (newEvents.length > 0) {
+                setLogs(prev => [...prev, ...newEvents])
             }
         }
 
@@ -166,7 +183,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
         if (response.status === 'completed') {
             stopPolling()
-            addLog('info', 'Prefetching alignment results...')
+            setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Prefetching alignment results...' }])
 
             // Prefetch results during the redirect delay (uses same cache keys as AlignmentResultView)
             const alignmentCacheKey = `alignment_result_${props.uuidStr}`
@@ -178,7 +195,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                 () => fetchAlignmentResults(props.uuidStr),
                 CACHE_CONFIGS.session
             ).then(() => {
-                addLog('success', 'Alignment results cached')
+                setLogs(prev => [...prev, { timestamp: new Date(), level: 'success', message: 'Alignment results cached' }])
             }).catch(() => {
                 // Silent fail - results will be fetched on the results page
             })
@@ -188,12 +205,12 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                 () => fetchAlignmentSeqInfo(props.uuidStr),
                 CACHE_CONFIGS.session
             ).then(() => {
-                addLog('success', 'Sequence info cached')
+                setLogs(prev => [...prev, { timestamp: new Date(), level: 'success', message: 'Sequence info cached' }])
             }).catch(() => {
                 // Silent fail
             })
 
-            addLog('info', 'Redirecting to results page...')
+            setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Redirecting to results page...' }])
             // Redirect to results after a short delay
             setTimeout(() => {
                 const params = new URLSearchParams()
@@ -204,7 +221,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             stopPolling()
             setErrorMessage(response.error_message || 'Pipeline execution failed')
         }
-    }, [props.uuidStr, router, updateStepsForStatus, stopPolling, addLog])
+    }, [props.uuidStr, router, updateStepsForStatus, stopPolling])
 
     // Auto-scroll logs to bottom when new entries are added
     useEffect(() => {
@@ -217,9 +234,16 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     useEffect(() => {
         if (hasInitializedRef.current) return
         hasInitializedRef.current = true
-        addLog('info', `Tracking job: ${props.uuidStr}`)
-        addLog('info', 'Connecting to pipeline server...')
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+        setLogs([
+            { timestamp: new Date(), level: 'info', message: `Tracking job: ${props.uuidStr}` },
+            { timestamp: new Date(), level: 'info', message: 'Connecting to pipeline server...' }
+        ])
+        return () => {
+            hasInitializedRef.current = false
+            loggedStatusesRef.current.clear()
+            loggedTaskEventsRef.current.clear()
+        }
+    }, [props.uuidStr])
 
     // Single consolidated polling effect (use ref to prevent double-polling in Strict Mode)
     useEffect(() => {
@@ -252,6 +276,7 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         return () => {
             mounted = false
             isPollingRef.current = false
+            hasStartedPollingRef.current = false  // Reset so polling can restart on remount
             if (intervalId) {
                 clearInterval(intervalId)
             }
