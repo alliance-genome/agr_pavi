@@ -127,17 +127,23 @@ def get_config() -> APIConfig:
 
     defaults = env_defaults.get(env, env_defaults[Environment.LOCAL])
 
+    # These defaults are always strings in env_defaults
+    jobs_table = defaults["jobs_table"]
+    results_bucket = defaults["results_bucket"]
+    work_bucket = defaults["work_bucket"]
+    assert isinstance(jobs_table, str)
+    assert isinstance(results_bucket, str)
+    assert isinstance(work_bucket, str)
+
     pipeline_config = PipelineConfig(
-        state_machine_arn=os.environ.get(
-            "STEP_FUNCTIONS_STATE_MACHINE_ARN", defaults["state_machine_arn"]
-        ),
+        state_machine_arn=os.environ.get("STEP_FUNCTIONS_STATE_MACHINE_ARN")
+        or defaults["state_machine_arn"],
         use_step_functions=use_step_functions,
-        jobs_table_name=os.environ.get("DYNAMODB_JOBS_TABLE", defaults["jobs_table"]),
-        results_bucket=os.environ.get(
-            "PAVI_RESULTS_BUCKET", defaults["results_bucket"]
-        ),
-        work_bucket=os.environ.get("PAVI_WORK_BUCKET", defaults["work_bucket"]),
-        job_queue_arn=os.environ.get("BATCH_JOB_QUEUE_ARN", defaults["job_queue_arn"]),
+        jobs_table_name=os.environ.get("DYNAMODB_JOBS_TABLE") or jobs_table,
+        results_bucket=os.environ.get("PAVI_RESULTS_BUCKET") or results_bucket,
+        work_bucket=os.environ.get("PAVI_WORK_BUCKET") or work_bucket,
+        job_queue_arn=os.environ.get("BATCH_JOB_QUEUE_ARN")
+        or defaults["job_queue_arn"],
         enable_step_functions_rollout=enable_rollout,
         step_functions_rollout_percentage=rollout_percentage,
     )

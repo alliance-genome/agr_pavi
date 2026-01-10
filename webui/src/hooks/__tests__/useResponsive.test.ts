@@ -170,7 +170,7 @@ describe('useResponsive', () => {
 
 describe('usePrefersReducedMotion', () => {
     let mockMatchMedia: jest.Mock;
-    let mediaQueryListeners: Array<(e: MediaQueryListEvent) => void> = [];
+    let mediaQueryListeners: Array<(_e: MediaQueryListEvent) => void> = [];
 
     beforeEach(() => {
         mediaQueryListeners = [];
@@ -178,13 +178,13 @@ describe('usePrefersReducedMotion', () => {
             matches: query.includes('reduce') ? false : true,
             media: query,
             onchange: null,
-            addEventListener: jest.fn((event: string, listener: (e: MediaQueryListEvent) => void) => {
-                if (event === 'change') {
+            addEventListener: jest.fn((_event: string, listener: (_e: MediaQueryListEvent) => void) => {
+                if (_event === 'change') {
                     mediaQueryListeners.push(listener);
                 }
             }),
-            removeEventListener: jest.fn((event: string, listener: (e: MediaQueryListEvent) => void) => {
-                if (event === 'change') {
+            removeEventListener: jest.fn((_event: string, listener: (_e: MediaQueryListEvent) => void) => {
+                if (_event === 'change') {
                     const index = mediaQueryListeners.indexOf(listener);
                     if (index > -1) {
                         mediaQueryListeners.splice(index, 1);

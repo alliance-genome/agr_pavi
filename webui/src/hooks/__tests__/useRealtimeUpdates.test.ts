@@ -7,7 +7,7 @@ Object.defineProperty(window, 'Notification', {
     value: class MockNotification {
         static permission = 'granted';
         static requestPermission = jest.fn().mockResolvedValue('granted');
-        constructor(title: string, options?: NotificationOptions) {
+        constructor(title: string, options?: { body?: string; icon?: string }) {
             mockNotification(title, options);
         }
     },

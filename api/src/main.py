@@ -22,7 +22,7 @@ from job_service import (
 )
 
 # Import configuration module
-from config import get_api_config
+from config import get_api_config, should_use_step_functions
 
 logger = get_logger(name=__name__)
 
@@ -391,8 +391,10 @@ async def deployment_status() -> dict[str, Any]:
         "details": {},
     }
 
+    # Initialize S3 client once for both bucket checks
+    s3 = boto3.client("s3")
+
     try:
-        s3 = boto3.client("s3")
         s3.head_bucket(Bucket=_config.pipeline.results_bucket)
         s3_results_status["status"] = "healthy"
         s3_results_status["details"] = {
