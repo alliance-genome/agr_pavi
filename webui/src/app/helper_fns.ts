@@ -1,9 +1,17 @@
 /* istanbul ignore file */
 
-export async function fetchAllPages({url, urlSearchParams = new URLSearchParams()}: {url: string, urlSearchParams: URLSearchParams}): Promise<any[]> {
+export async function fetchAllPages({
+    url,
+    urlSearchParams = new URLSearchParams(),
+    maxResults
+}: {
+    url: string,
+    urlSearchParams: URLSearchParams,
+    maxResults?: number
+}): Promise<any[]> {
     let results: any[] = [];
     let page = 1;
-    const pageSize = 1000;
+    const pageSize = Math.min(1000, maxResults || 1000);
     let hasMorePages = true;
 
     while (hasMorePages) {
@@ -25,7 +33,11 @@ export async function fetchAllPages({url, urlSearchParams = new URLSearchParams(
         const data: apiResponse = await response.json();
         results = results.concat(data.results);
 
-        if (data.returnedRecords === pageSize) {
+        // Stop if we've reached maxResults
+        if (maxResults && results.length >= maxResults) {
+            results = results.slice(0, maxResults);
+            hasMorePages = false;
+        } else if (data.returnedRecords === pageSize) {
             page++;
         } else {
             hasMorePages = false;

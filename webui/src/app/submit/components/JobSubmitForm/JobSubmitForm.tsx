@@ -8,7 +8,7 @@ import { submitNewPipelineJob } from './serverActions';
 
 import { AlignmentEntryList } from '../AlignmentEntryList/AlignmentEntryList';
 import { AlignmentEntryStatus } from '../AlignmentEntry/types';
-import { ExampleDataLoader, ExampleData } from '../ExampleDataLoader/ExampleDataLoader';
+import { ExampleDataLoader, ExampleData, ExampleGene } from '../ExampleDataLoader/ExampleDataLoader';
 import { FormIntroduction } from '../FormIntroduction';
 import { ValidationSummary } from '../ValidationMessage';
 
@@ -120,13 +120,12 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     const [job, setJob] = useState(initJob)
     const [displayMsg, setDisplayMsg] = useState('')
     const [validationErrors, setValidationErrors] = useState<string[]>([])
-    const [initialGeneIds, setInitialGeneIds] = useState<string[]>()
+    const [initialGenes, setInitialGenes] = useState<ExampleGene[]>()
 
     const handleLoadExample = useCallback((example: ExampleData) => {
         console.log('Loading example:', example.name)
-        const geneIds = example.genes.map(gene => gene.geneId)
-        console.log('Gene IDs to load:', geneIds)
-        setInitialGeneIds(geneIds)
+        console.log('Genes to load:', example.genes)
+        setInitialGenes(example.genes)
         setValidationErrors([])
     }, [])
 
@@ -218,7 +217,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
                 <div className="agr-card-body">
                     <AlignmentEntryList agrjBrowseDataRelease={props.agrjBrowseDataRelease}
                                         dispatchInputPayloadPart={dispatchInputPayloadPart}
-                                        initialGeneIds={initialGeneIds} />
+                                        initialGenes={initialGenes} />
                 </div>
                 <div className="agr-card-footer">
                     <Button label='Submit Job' onClick={handleSubmit} icon="pi pi-check"

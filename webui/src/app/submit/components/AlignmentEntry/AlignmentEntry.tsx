@@ -18,6 +18,7 @@ export interface AlignmentEntryProps {
     readonly agrjBrowseDataRelease: string;
     readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>;
     readonly initialGeneId?: string;
+    readonly initialAlleleIds?: string[];
 }
 
 // Allele display helpers
@@ -107,6 +108,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         {
             gene: geneSearch.gene,
             setupCompleted,
+            initialAlleleIds: props.initialAlleleIds,
         },
         alleleMultiselectRef
     );
@@ -309,9 +311,9 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                         id={`transcripts-${props.index}`}
                         loading={transcriptSelection.transcriptListLoading}
                         ref={transcriptMultiselectRef}
-                        display="chip"
+                        display="comma"
                         filter
-                        maxSelectedLabels={2}
+                        maxSelectedLabels={3}
                         style={{ width: '100%' }}
                         value={transcriptSelection.selectedTranscriptIds}
                         onChange={(e) => transcriptSelection.setSelectedTranscriptIds(e.value)}
@@ -337,8 +339,8 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                         loading={alleleSelection.alleleListLoading}
                         disabled={!geneSearch.gene}
                         ref={alleleMultiselectRef}
-                        display="chip"
-                        maxSelectedLabels={2}
+                        display="comma"
+                        maxSelectedLabels={3}
                         style={{ width: '100%' }}
                         filter
                         filterBy="filterValue"

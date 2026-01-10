@@ -17,6 +17,7 @@ export interface ExampleGene {
     geneId: string;
     geneName: string;
     species: string;
+    alleleIds?: string[];
 }
 
 // Pre-defined example datasets
@@ -63,6 +64,16 @@ export const EXAMPLE_DATASETS: ExampleData[] = [
             { geneId: 'MGI:97490', geneName: 'Pax6', species: 'Mus musculus' },
             { geneId: 'FB:FBgn0004170', geneName: 'ey', species: 'Drosophila melanogaster' },
             { geneId: 'WB:WBGene00003927', geneName: 'pax-6', species: 'Caenorhabditis elegans' },
+        ],
+    },
+    {
+        id: 'cftr-comparison',
+        name: 'CFTR Human-Mouse',
+        description: 'Cystic fibrosis transmembrane conductance regulator comparison',
+        category: 'advanced',
+        genes: [
+            { geneId: 'HGNC:1884', geneName: 'CFTR', species: 'Homo sapiens' },
+            { geneId: 'MGI:88388', geneName: 'Cftr', species: 'Mus musculus' },
         ],
     },
 ];
@@ -179,6 +190,11 @@ export const ExampleDataLoader: React.FC<ExampleDataLoaderProps> = ({
                                             <span className={styles.species}>
                                                 ({gene.species.split(' ')[0][0]}. {gene.species.split(' ')[1]})
                                             </span>
+                                            {gene.alleleIds && gene.alleleIds.length > 0 && (
+                                                <span className={styles.alleleBadge} title={`${gene.alleleIds.length} allele(s)`}>
+                                                    +{gene.alleleIds.length}
+                                                </span>
+                                            )}
                                         </span>
                                     ))}
                                 </div>
