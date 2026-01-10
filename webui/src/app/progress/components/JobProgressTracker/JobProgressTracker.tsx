@@ -42,7 +42,8 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     const [logs, setLogs] = useState<LogEntry[]>([])
     const logContainerRef = useRef<HTMLDivElement>(null)
     const hasInitializedRef = useRef<boolean>(false)
-    const hasStartedPollingRef = useRef<boolean>(false)
+    // Store interval ID in ref to track if polling is already running
+    const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null)
     // Track which statuses we've already logged to prevent duplicates
     const loggedStatusesRef = useRef<Set<string>>(new Set())
     // Track which task events we've already logged to prevent duplicates
@@ -245,12 +246,18 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         }
     }, [props.uuidStr])
 
-    // Single consolidated polling effect (use ref to prevent double-polling in Strict Mode)
+    // Single consolidated polling effect
     useEffect(() => {
-        if (hasStartedPollingRef.current) return
-        hasStartedPollingRef.current = true
+        // Clear any existing interval from previous mount (handles client-side navigation)
+        if (intervalIdRef.current) {
+            clearInterval(intervalIdRef.current)
+            intervalIdRef.current = null
+        }
 
-        let intervalId: ReturnType<typeof setInterval> | null = null
+        // Reset polling state for fresh start
+        isPollingRef.current = true
+        setIsPolling(true)
+
         let mounted = true
 
         const startPolling = async () => {
@@ -259,13 +266,13 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
 
             // Only set up interval if still mounted and should be polling
             if (mounted && isPollingRef.current) {
-                intervalId = setInterval(() => {
+                intervalIdRef.current = setInterval(() => {
                     // Check ref before each poll to ensure we should still be polling
                     if (isPollingRef.current) {
                         pollJobStatus()
-                    } else if (intervalId) {
-                        clearInterval(intervalId)
-                        intervalId = null
+                    } else if (intervalIdRef.current) {
+                        clearInterval(intervalIdRef.current)
+                        intervalIdRef.current = null
                     }
                 }, 5000)
             }
@@ -276,9 +283,9 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         return () => {
             mounted = false
             isPollingRef.current = false
-            hasStartedPollingRef.current = false  // Reset so polling can restart on remount
-            if (intervalId) {
-                clearInterval(intervalId)
+            if (intervalIdRef.current) {
+                clearInterval(intervalIdRef.current)
+                intervalIdRef.current = null
             }
         }
     }, [props.uuidStr]) // eslint-disable-line react-hooks/exhaustive-deps
