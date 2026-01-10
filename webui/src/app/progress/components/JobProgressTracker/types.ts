@@ -10,6 +10,7 @@ export interface JobStatusResponse {
     uuid: string;
     status: string;
     name?: string;
+    stage?: string;  // sequence_retrieval, alignment, done
     error_message?: string;
 }
 

@@ -16,7 +16,8 @@ export async function fetchJobStatus (jobId: string ): Promise<JobProgressStatus
         method: 'GET',
         headers: {
             'accept': 'application/json'
-        }
+        },
+        cache: 'no-store'  // Prevent caching for polling
     })
     .then((response: Response) => {
         if ( 500 <= response.status && response.status <= 599 ){
@@ -64,7 +65,8 @@ export async function fetchJobStatusFull(jobId: string): Promise<JobStatusRespon
             method: 'GET',
             headers: {
                 'accept': 'application/json'
-            }
+            },
+            cache: 'no-store'  // Prevent caching for polling - always get fresh status
         })
 
         if (!response.ok) {

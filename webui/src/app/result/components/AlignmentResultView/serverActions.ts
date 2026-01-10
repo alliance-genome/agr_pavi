@@ -15,7 +15,8 @@ export async function fetchAlignmentResults (jobId: string ): Promise<string|und
         method: 'GET',
         headers: {
             'accept': 'application/json'
-        }
+        },
+        cache: 'no-store'  // Always fetch fresh data
     })
     .then((response: Response) => {
         if ( 500 <= response.status && response.status <= 599 ){
@@ -63,7 +64,8 @@ export async function fetchAlignmentSeqInfo (jobId: string ): Promise<SeqInfoDic
         method: 'GET',
         headers: {
             'accept': 'application/json'
-        }
+        },
+        cache: 'no-store'  // Always fetch fresh data
     })
     .then((response: Response) => {
         if ( 500 <= response.status && response.status <= 599 ){
