@@ -76,6 +76,38 @@ export const EXAMPLE_DATASETS: ExampleData[] = [
             { geneId: 'MGI:88388', geneName: 'Cftr', species: 'Mus musculus' },
         ],
     },
+    {
+        id: 'yeast-cell-cycle',
+        name: 'Yeast Cell Cycle Kinase',
+        description: 'CDC28/CDK1 cell cycle kinase conserved from yeast to human',
+        category: 'cross-species',
+        genes: [
+            { geneId: 'SGD:S000004883', geneName: 'CDC28', species: 'Saccharomyces cerevisiae' },
+            { geneId: 'HGNC:1722', geneName: 'CDK1', species: 'Homo sapiens' },
+            { geneId: 'MGI:88351', geneName: 'Cdk1', species: 'Mus musculus' },
+        ],
+    },
+    {
+        id: 'worm-insulin-signaling',
+        name: 'Worm Insulin/IGF Signaling',
+        description: 'DAF-2 insulin receptor pathway - key regulator of aging in C. elegans',
+        category: 'cross-species',
+        genes: [
+            { geneId: 'WB:WBGene00000898', geneName: 'daf-2', species: 'Caenorhabditis elegans' },
+            { geneId: 'HGNC:6091', geneName: 'IGF1R', species: 'Homo sapiens' },
+            { geneId: 'MGI:96433', geneName: 'Igf1r', species: 'Mus musculus' },
+        ],
+    },
+    {
+        id: 'yeast-dna-repair',
+        name: 'Yeast DNA Repair (RAD51)',
+        description: 'RAD51 recombinase - essential for DNA repair across all eukaryotes',
+        category: 'basic',
+        genes: [
+            { geneId: 'SGD:S000000897', geneName: 'RAD51', species: 'Saccharomyces cerevisiae' },
+            { geneId: 'HGNC:9817', geneName: 'RAD51', species: 'Homo sapiens' },
+        ],
+    },
 ];
 
 interface ExampleDataLoaderProps {
