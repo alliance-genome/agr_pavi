@@ -82,7 +82,7 @@ export const EXAMPLE_DATASETS: ExampleData[] = [
         description: 'CDC28/CDK conserved cell cycle kinase in yeast, worm, and fly',
         category: 'cross-species',
         genes: [
-            { geneId: 'SGD:S000004883', geneName: 'CDC28', species: 'Saccharomyces cerevisiae' },
+            { geneId: 'SGD:S000000364', geneName: 'CDC28', species: 'Saccharomyces cerevisiae' },
             { geneId: 'WB:WBGene00000405', geneName: 'cdk-1', species: 'Caenorhabditis elegans' },
             { geneId: 'FB:FBgn0004106', geneName: 'cdc2', species: 'Drosophila melanogaster' },
         ],
