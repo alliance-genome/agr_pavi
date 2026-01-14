@@ -6,7 +6,6 @@ from aws_cdk import App
 from cdk_classes.webui_eb_app import WebUiEbApplicationCdkStack
 from cdk_classes.webui_eb_env import WebUiEbEnvironmentCdkStack
 from cdk_classes.webui_image_repo import WebUiImageRepoCdkStack
-from cdk_classes.webui_amplify import WebUiAmplifyStack
 
 from pavi_shared_aws.agr_aws_env import agr_aws_environment
 
@@ -25,6 +24,8 @@ deployment_method = getenv('PAVI_WEBUI_DEPLOYMENT_METHOD', 'eb')
 
 if deployment_method == 'amplify':
     # AWS Amplify deployment (recommended for Next.js)
+    # Import only when needed (aws_amplify_alpha is an optional dependency)
+    from cdk_classes.webui_amplify import WebUiAmplifyStack
     WebUiAmplifyStack(
         app, "PaviWebUiAmplifyStack",
         env_suffix='main',
