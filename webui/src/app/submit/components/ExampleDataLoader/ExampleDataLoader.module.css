@@ -122,18 +122,18 @@
 }
 
 .categoryBadge.basic {
-    background: var(--agr-success-light);
-    color: var(--agr-success-dark);
+    background: var(--agr-success-light, #d4edda);
+    color: var(--agr-success-dark, #155724);
 }
 
 .categoryBadge.cross-species {
-    background: var(--agr-primary-light);
-    color: var(--agr-primary-dark);
+    background: #dbeafe;
+    color: #1e40af;
 }
 
 .categoryBadge.advanced {
-    background: var(--agr-warning-light);
-    color: var(--agr-warning-dark);
+    background: var(--agr-warning-light, #fff3cd);
+    color: var(--agr-warning-dark, #856404);
 }
 
 .exampleDescription {

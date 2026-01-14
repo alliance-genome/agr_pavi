@@ -7,14 +7,12 @@ import { parse } from 'clustal-js';
 
 import { fetchAlignmentResults, fetchAlignmentSeqInfo } from '../result/components/AlignmentResultView/serverActions';
 import { SeqInfoDict } from '../result/components/InteractiveAlignment/types';
-
-import NightingaleNavigationComponent from '../result/components/InteractiveAlignment/nightingale/Navigation';
-import NightingaleLinegraphTrack, { LineData } from '../result/components/InteractiveAlignment/nightingale/LinegraphTrack';
+import type { LineData } from '../result/components/InteractiveAlignment/nightingale/LinegraphTrack';
 
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 
-// Dynamic import for MSA component (requires DOM)
+// Dynamic imports for all Nightingale components (require DOM/HTMLElement)
 const NightingaleMSAComponent = dynamic(
     () => import('../result/components/InteractiveAlignment/nightingale/MSA').then(mod => ({ default: mod.default })),
     { ssr: false }
@@ -22,6 +20,16 @@ const NightingaleMSAComponent = dynamic(
 
 const NightingaleManagerComponent = dynamic(
     () => import('../result/components/InteractiveAlignment/nightingale/Manager'),
+    { ssr: false }
+);
+
+const NightingaleNavigationComponent = dynamic(
+    () => import('../result/components/InteractiveAlignment/nightingale/Navigation'),
+    { ssr: false }
+);
+
+const NightingaleLinegraphTrack = dynamic(
+    () => import('../result/components/InteractiveAlignment/nightingale/LinegraphTrack'),
     { ssr: false }
 );
 
