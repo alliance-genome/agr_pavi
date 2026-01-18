@@ -182,7 +182,7 @@ a:hover {
 
 .agr-page-content {
   padding: var(--agr-spacing-xl) 0;
-  min-height: calc(100vh - var(--agr-header-height) - 100px);
+  flex: 1 0 auto; /* Grow to fill space and push footer down, without forcing min-height */
 }
 
 /* Header */
