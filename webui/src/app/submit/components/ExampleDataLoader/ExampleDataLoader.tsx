@@ -77,12 +77,11 @@ export const EXAMPLE_DATASETS: ExampleData[] = [
         ],
     },
     {
-        id: 'yeast-worm-kinase',
-        name: 'Yeast-Worm Cell Cycle',
-        description: 'CDC28/CDK conserved cell cycle kinase in yeast, worm, and fly',
+        id: 'worm-fly-kinase',
+        name: 'Worm-Fly Cell Cycle',
+        description: 'CDK cell cycle kinase comparison in worm and fly',
         category: 'cross-species',
         genes: [
-            { geneId: 'SGD:S000000364', geneName: 'CDC28', species: 'Saccharomyces cerevisiae' },
             { geneId: 'WB:WBGene00000405', geneName: 'cdk-1', species: 'Caenorhabditis elegans' },
             { geneId: 'FB:FBgn0004106', geneName: 'cdc2', species: 'Drosophila melanogaster' },
         ],
@@ -98,13 +97,13 @@ export const EXAMPLE_DATASETS: ExampleData[] = [
         ],
     },
     {
-        id: 'yeast-worm-rad51',
-        name: 'Yeast-Worm DNA Repair',
+        id: 'worm-fly-dna-repair',
+        name: 'Worm-Fly DNA Repair',
         description: 'RAD51 recombinase - DNA repair in small genome organisms',
         category: 'basic',
         genes: [
-            { geneId: 'SGD:S000000897', geneName: 'RAD51', species: 'Saccharomyces cerevisiae' },
             { geneId: 'WB:WBGene00004297', geneName: 'rad-51', species: 'Caenorhabditis elegans' },
+            { geneId: 'FB:FBgn0003243', geneName: 'spn-A', species: 'Drosophila melanogaster' },
         ],
     },
 ];
