@@ -9,8 +9,13 @@ const nextConfig = {
     eslint: {
         dirs: ['src', 'cypress/e2e', 'cypress/support'],
     },
-    // Remove 'output: standalone' for Vercel deployment compatibility
-    // Use 'standalone' only for Docker builds
+    // Static export for GitHub Pages deployment
+    output: process.env.GITHUB_PAGES === 'true' ? 'export' : undefined,
+    // Disable image optimization for static export
+    images: {
+        unoptimized: process.env.GITHUB_PAGES === 'true',
+    },
+    // Use standalone for Docker builds
     skipTrailingSlashRedirect: true,
     experimental: {
         urlImports: [

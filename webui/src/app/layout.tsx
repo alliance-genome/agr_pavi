@@ -10,6 +10,7 @@ import { Header } from './components/Header/Header';
 import { Footer } from './components/Footer/Footer';
 import { SkipLinks, LiveRegionProvider, KeyboardShortcuts } from './components/Accessibility';
 import { LayoutWrapper } from './components/LayoutWrapper';
+import MockServiceWorker from './components/MockServiceWorker';
 
 const lato = Lato({
     subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({
     return (
         <html lang="en">
         <body className={lato.className}>
+            <MockServiceWorker />
             <PrimeReactProvider>
                 <LiveRegionProvider>
                     {/* eslint-disable-next-line @next/next/no-css-tags */}

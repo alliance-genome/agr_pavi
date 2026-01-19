@@ -4,8 +4,9 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "dev:mock": "MOCK_API=true next dev",
+        "dev:mock": "MOCK_API=true NEXT_PUBLIC_MOCK_API=true next dev",
         "build": "next build",
+        "build:gh-pages": "GITHUB_PAGES=true NEXT_PUBLIC_MOCK_API=true next build",
         "build:analyze": "ANALYZE=true next build",
         "start": "next start",
         "lint": "next lint --max-warnings 0",
