@@ -9,7 +9,8 @@ const nextConfig = {
     eslint: {
         dirs: ['src', 'cypress/e2e', 'cypress/support'],
     },
-    output: 'standalone',
+    // Remove 'output: standalone' for Vercel deployment compatibility
+    // Use 'standalone' only for Docker builds
     skipTrailingSlashRedirect: true,
     experimental: {
         urlImports: [

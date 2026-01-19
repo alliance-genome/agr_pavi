@@ -1,0 +1,32 @@
+version: 2
+# Percy configuration for PAVI visual testing
+static:
+  # Static snapshot configuration
+  cleanUrls: true
+  include: '**/*.html'
+  exclude: []
+
+# Snapshot configuration
+snapshot:
+  widths:
+    - 375   # Mobile
+    - 768   # Tablet
+    - 1280  # Desktop
+    - 1920  # Large desktop
+  minHeight: 1024
+  percyCSS: ''
+  enableJavaScript: true
+
+# Discovery configuration for static snapshots
+discovery:
+  allowed-hostnames:
+    - localhost
+    - '*.vercel.app'
+
+# Agent configuration
+agent:
+  asset-discovery:
+    allowed-hostnames:
+      - localhost
+      - '*.vercel.app'
+      - raw.githubusercontent.com
