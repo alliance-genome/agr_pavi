@@ -8,5 +8,6 @@ export default async function Page() {
     )
 }
 
-// Force dynamic page rendering by next.js
-export const dynamic = 'force-dynamic'
+// For GitHub Pages static export, we need force-static
+// For regular deployment, this should be force-dynamic (modify before deploying to production)
+export const dynamic = 'force-static'

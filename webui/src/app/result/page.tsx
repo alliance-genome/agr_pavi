@@ -1,16 +1,23 @@
-// Server-generated page
+'use client';
 
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { AlignmentResultView } from './components/AlignmentResultView/AlignmentResultView'
-import { redirect } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useEffect, Suspense } from 'react'
 
-export default async function ResultPage( props: any ) {
+function ResultPageContent() {
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const jobUuidStr = searchParams.get('uuid')
 
-    const searchParams: Record<string, any> = (await props.searchParams)
-    const jobUuidStr = searchParams['uuid'] as string
+    useEffect(() => {
+        if (!jobUuidStr) {
+            router.push('/submit')
+        }
+    }, [jobUuidStr, router])
 
-    if( !jobUuidStr ){
-        redirect('/submit')
+    if (!jobUuidStr) {
+        return null
     }
 
     return (
@@ -23,5 +30,13 @@ export default async function ResultPage( props: any ) {
             />
             <AlignmentResultView uuidStr={jobUuidStr} />
         </article>
+    )
+}
+
+export default function ResultPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ResultPageContent />
+        </Suspense>
     )
 }

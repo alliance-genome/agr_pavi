@@ -34,6 +34,13 @@ export async function apiHealthHTTPStatus(): Promise<[number, string]|undefined>
 }
 
 export const WebUiHealthCheck: FunctionComponent = async() => {
+    // For GitHub Pages static export, skip API health check
+    if (process.env.GITHUB_PAGES === 'true') {
+        return (
+            <div id="response-msg">Welcome to PAVI! This is a demo deployment with mock API.</div>
+        )
+    }
+
     const apiHealthResponse = await apiHealthHTTPStatus()
     if( !apiHealthResponse ){
         console.error('Undefined apiHealthResponse received.')
