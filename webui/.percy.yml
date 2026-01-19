@@ -1,32 +1,30 @@
 version: 2
-# Percy configuration for PAVI visual testing
-static:
-  # Static snapshot configuration
-  cleanUrls: true
-  include: '**/*.html'
-  exclude: []
+# Percy configuration for PAVI visual testing - COMPREHENSIVE CROSS-BROWSER TESTING
 
 # Snapshot configuration
 snapshot:
   widths:
-    - 375   # Mobile
-    - 768   # Tablet
-    - 1280  # Desktop
-    - 1920  # Large desktop
+    - 1024  # Desktop Minimum
+    - 1152  # Desktop Small-Medium
+    - 1280  # Desktop Small (Common)
+    - 1366  # Desktop Small (Laptops)
+    - 1440  # Desktop Medium (MacBook Pro)
+    - 1536  # Desktop Medium-Large
+    - 1600  # Desktop Large
+    - 1680  # Desktop Large (iMac)
+    - 1920  # Desktop Full HD
+    - 2000  # Desktop Max Percy
   minHeight: 1024
   percyCSS: ''
   enableJavaScript: true
 
 # Discovery configuration for static snapshots
 discovery:
+  network-idle-timeout: 750
   allowed-hostnames:
     - localhost
     - '*.vercel.app'
-
-# Agent configuration
-agent:
-  asset-discovery:
-    allowed-hostnames:
-      - localhost
-      - '*.vercel.app'
-      - raw.githubusercontent.com
+    - '*.github.io'
+    - 'alliance-genome.github.io'
+    - 'raw.githubusercontent.com'
+    - 'www.alliancegenome.org'

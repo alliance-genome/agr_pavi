@@ -1,0 +1,42 @@
+# HOME & LANDING
+- https://alliance-genome.github.io/agr_pavi/
+
+# SUBMIT PAGE - MULTIPLE STATES
+- https://alliance-genome.github.io/agr_pavi/submit
+- https://alliance-genome.github.io/agr_pavi/submit?loadExample=brca1
+- https://alliance-genome.github.io/agr_pavi/submit?loadExample=yeast
+- https://alliance-genome.github.io/agr_pavi/submit?loadExample=worm
+
+# PROGRESS - ALL JOB STATES  
+- https://alliance-genome.github.io/agr_pavi/progress?uuid=job-1&mockStatus=pending
+- https://alliance-genome.github.io/agr_pavi/progress?uuid=job-2&mockStatus=running
+- https://alliance-genome.github.io/agr_pavi/progress?uuid=job-3&mockStatus=completed
+- https://alliance-genome.github.io/agr_pavi/progress?uuid=job-4&mockStatus=failed
+
+# RESULTS PAGE - DIFFERENT JOBS
+- https://alliance-genome.github.io/agr_pavi/result?uuid=result-1
+- https://alliance-genome.github.io/agr_pavi/result?uuid=result-2
+
+# JOBS LIST
+- https://alliance-genome.github.io/agr_pavi/jobs
+
+# HELP & DOCUMENTATION
+- https://alliance-genome.github.io/agr_pavi/help
+
+# ADMIN PANEL
+- https://alliance-genome.github.io/agr_pavi/admin
+
+# ALIGNMENT VIEWER
+- https://alliance-genome.github.io/agr_pavi/alignment
+
+# BENCHMARK PAGE
+- https://alliance-genome.github.io/agr_pavi/benchmark
+
+# ACCESSIBILITY
+- https://alliance-genome.github.io/agr_pavi/accessibility
+
+# ERROR STATES
+- https://alliance-genome.github.io/agr_pavi/error
+
+# HEALTH CHECK
+- https://alliance-genome.github.io/agr_pavi/health

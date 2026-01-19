@@ -54,6 +54,7 @@
         "@eslint/js": "^9.17.0",
         "@jest/globals": "^30.0.5",
         "@next/bundle-analyzer": "^15.1.0",
+        "@percy/cli": "^1.31.8",
         "@testing-library/dom": "^10.4.0",
         "@testing-library/jest-dom": "^6.4.8",
         "@testing-library/react": "^16.0.0",
