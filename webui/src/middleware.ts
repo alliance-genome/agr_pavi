@@ -2,19 +2,24 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const API_BASE = process.env.PAVI_API_BASE_URL || 'http://localhost:8000'
-const MOCK_API = process.env.MOCK_API === 'true'
+const GITHUB_PAGES = process.env.GITHUB_PAGES === 'true'
 const local_api_path = '/api'
 
 // Paths handled by Next.js API routes (not proxied to backend)
 const NEXTJS_API_ROUTES = [
     '/api/proxy-deployment-status',
-    '/api/mock', // Mock API routes for visual testing
 ];
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
 
     const request_path = request.nextUrl.pathname
+
+    // Skip all API middleware for GitHub Pages static export
+    // The service worker will handle API mocking client-side
+    if (GITHUB_PAGES) {
+        return NextResponse.next()
+    }
 
     // Skip middleware for Next.js API routes (let Next.js handle them)
     if (NEXTJS_API_ROUTES.some(route => request_path === route || request_path.startsWith(route + '/'))) {
@@ -32,13 +37,6 @@ export function middleware(request: NextRequest) {
     }
     //Proxy all other API requests to respective API server endpoints
     else if (request_path.startsWith(local_api_path+'/')) {
-        // Use mock API if enabled (for visual testing without backend)
-        if (MOCK_API) {
-            // Extract path after /api/ and redirect to mock endpoint
-            const apiPath = request_path.substring(local_api_path.length + 1);
-            const mockUrl = new URL(`/api/mock/${apiPath}${request.nextUrl.search}`, request.url);
-            return NextResponse.rewrite(mockUrl);
-        }
         return NextResponse.rewrite(new URL(request_path, API_BASE))
     }
     //Proxy openAPI specs for API server docs

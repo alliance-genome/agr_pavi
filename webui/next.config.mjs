@@ -11,6 +11,8 @@ const nextConfig = {
     },
     // Static export for GitHub Pages deployment
     output: process.env.GITHUB_PAGES === 'true' ? 'export' : undefined,
+    // GitHub Pages serves from /agr_pavi/ subdirectory
+    basePath: process.env.GITHUB_PAGES === 'true' ? '/agr_pavi' : '',
     // Disable image optimization for static export
     images: {
         unoptimized: process.env.GITHUB_PAGES === 'true',
