@@ -1,0 +1,11 @@
+{
+  "buildCommand": "cd webui && npm run build",
+  "devCommand": "cd webui && npm run dev",
+  "installCommand": "cd webui && npm install --strict-peer-deps",
+  "framework": "nextjs",
+  "rootDirectory": "webui",
+  "env": {
+    "MOCK_API": "true"
+  },
+  "regions": ["iad1"]
+}
