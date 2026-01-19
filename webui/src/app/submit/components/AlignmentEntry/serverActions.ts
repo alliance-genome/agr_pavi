@@ -1,4 +1,4 @@
-'use server';
+
 
 import { GeneInfo, AlleleInfo, GeneSuggestion, GeneAutocompleteApiResponse } from "./types";
 import { fetchAllPages } from "@/app/helper_fns";

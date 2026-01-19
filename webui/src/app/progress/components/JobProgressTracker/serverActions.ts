@@ -1,5 +1,3 @@
-'use server';
-
 import { JobProgressStatus, JobStatusResponse } from './types';
 
 import { validate as uuid_validate } from 'uuid'
@@ -12,7 +10,7 @@ export async function fetchJobStatus (jobId: string ): Promise<JobProgressStatus
         return Promise.resolve(undefined)
     }
 
-    const jobResponse = fetch(`${process.env.PAVI_API_BASE_URL}/api/pipeline-job/${jobId}`, {
+    const jobResponse = fetch(`/api/pipeline-job/${jobId}`, {
         method: 'GET',
         headers: {
             'accept': 'application/json'
@@ -61,7 +59,7 @@ export async function fetchJobStatusFull(jobId: string): Promise<JobStatusRespon
     }
 
     try {
-        const response = await fetch(`${process.env.PAVI_API_BASE_URL}/api/pipeline-job/${jobId}`, {
+        const response = await fetch(`/api/pipeline-job/${jobId}`, {
             method: 'GET',
             headers: {
                 'accept': 'application/json'

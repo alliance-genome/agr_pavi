@@ -1,5 +1,3 @@
-'use server';
-
 import { validate as uuid_validate } from 'uuid';
 import { SeqInfoDict } from '../InteractiveAlignment/types';
 
@@ -11,7 +9,7 @@ export async function fetchAlignmentResults (jobId: string ): Promise<string|und
         return Promise.resolve(undefined)
     }
 
-    const jobResponse = fetch(`${process.env.PAVI_API_BASE_URL}/api/pipeline-job/${jobId}/result/alignment`, {
+    const jobResponse = fetch(`/api/pipeline-job/${jobId}/result/alignment`, {
         method: 'GET',
         headers: {
             'accept': 'application/json'
@@ -60,7 +58,7 @@ export async function fetchAlignmentSeqInfo (jobId: string ): Promise<SeqInfoDic
         return Promise.resolve(undefined)
     }
 
-    const jobResponse = fetch(`${process.env.PAVI_API_BASE_URL}/api/pipeline-job/${jobId}/result/seq-info`, {
+    const jobResponse = fetch(`/api/pipeline-job/${jobId}/result/seq-info`, {
         method: 'GET',
         headers: {
             'accept': 'application/json'
