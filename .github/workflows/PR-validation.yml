@@ -55,7 +55,7 @@ jobs:
         working-directory: ./pipeline_components/seq_retrieval/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -88,7 +88,7 @@ jobs:
         working-directory: ./api/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -121,7 +121,7 @@ jobs:
         working-directory: ./webui/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -148,7 +148,7 @@ jobs:
         working-directory: ./shared_aws/py_package/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -183,7 +183,7 @@ jobs:
         working-directory: ./shared_aws/py_package/
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
         sparse-checkout: |
@@ -221,7 +221,7 @@ jobs:
         working-directory: ./shared_aws/py_package/
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
         sparse-checkout: |
@@ -259,7 +259,7 @@ jobs:
         working-directory: ./shared_aws/aws_infra/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -299,7 +299,7 @@ jobs:
         working-directory: ./shared_aws/aws_infra/
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
         sparse-checkout: |
@@ -352,7 +352,7 @@ jobs:
         working-directory: ./pipeline_components/aws_infra/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -389,7 +389,7 @@ jobs:
         working-directory: ./api/aws_infra/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -426,7 +426,7 @@ jobs:
         working-directory: ./webui/aws_infra/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -463,7 +463,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -515,7 +515,7 @@ jobs:
         working-directory: ./pipeline_components/seq_retrieval/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -553,7 +553,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -600,7 +600,7 @@ jobs:
         working-directory: ./pipeline_components/alignment/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -631,7 +631,7 @@ jobs:
         working-directory: ./api/pipeline_workflow/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -681,7 +681,7 @@ jobs:
         working-directory: ./pipeline_components/aws_infra
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
         sparse-checkout: |
@@ -735,7 +735,7 @@ jobs:
         working-directory: ./api/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -769,7 +769,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -833,7 +833,7 @@ jobs:
         working-directory: ./api/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Download updated api (main) dependencies lock file
@@ -884,7 +884,7 @@ jobs:
         working-directory: ./api/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -936,7 +936,7 @@ jobs:
         working-directory: ./api/aws_infra
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
         sparse-checkout: |
@@ -991,7 +991,7 @@ jobs:
         working-directory: ./webui/aws_infra
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
         sparse-checkout: |
@@ -1043,7 +1043,7 @@ jobs:
         working-directory: ./webui/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -1072,7 +1072,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Download updated webui dependencies lock file
@@ -1113,7 +1113,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Download updated webui dependencies lock file
@@ -1170,7 +1170,7 @@ jobs:
           role-session-name: gh-actions-${{github.run_id}}.${{github.run_number}}.${{github.run_attempt}}-e2e-testing
           aws-region: us-east-1
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Download API image artifact
         uses: actions/download-artifact@v5
         with:
@@ -1258,7 +1258,7 @@ jobs:
       - pipeline-seq-retrieval-update-dependency-lock-files
       - webui-update-dependency-lock-files
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
