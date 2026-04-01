@@ -346,7 +346,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
     - name: Build and push container image
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       env:
           DOCKER_BUILD_SUMMARY: false
       with:
@@ -385,7 +385,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
     - name: Build and push container image
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       env:
           DOCKER_BUILD_SUMMARY: false
       with:
@@ -432,7 +432,7 @@ jobs:
         echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" >> aws.credentials
         echo "aws_session_token = $AWS_SESSION_TOKEN" >> aws.credentials
     - name: Build and push container image
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       env:
           DOCKER_BUILD_SUMMARY: false
       with:
@@ -482,7 +482,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
     - name: Build and push container image
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       env:
           DOCKER_BUILD_SUMMARY: false
       with:
