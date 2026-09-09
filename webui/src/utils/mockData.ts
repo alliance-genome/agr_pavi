@@ -4,20 +4,20 @@
  */
 
 export const mockJobSubmissionResponse = {
-    uuid: '12345678-1234-1234-1234-123456789abc',
+    uuid: '123e4567-e89b-42d3-a456-426614174000',
     status: 'pending',
     inputValidationPassed: true,
 };
 
 export const mockJobStatusPending = {
-    uuid: '12345678-1234-1234-1234-123456789abc',
+    uuid: '123e4567-e89b-42d3-a456-426614174000',
     status: 'pending',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
 };
 
 export const mockJobStatusRunning = {
-    uuid: '12345678-1234-1234-1234-123456789abc',
+    uuid: '123e4567-e89b-42d3-a456-426614174000',
     status: 'running',
     created_at: new Date(Date.now() - 60000).toISOString(),
     updated_at: new Date().toISOString(),
@@ -25,7 +25,7 @@ export const mockJobStatusRunning = {
 };
 
 export const mockJobStatusCompleted = {
-    uuid: '12345678-1234-1234-1234-123456789abc',
+    uuid: '123e4567-e89b-42d3-a456-426614174000',
     status: 'completed',
     created_at: new Date(Date.now() - 120000).toISOString(),
     updated_at: new Date().toISOString(),
@@ -34,7 +34,7 @@ export const mockJobStatusCompleted = {
 };
 
 export const mockJobStatusFailed = {
-    uuid: '12345678-1234-1234-1234-123456789abc',
+    uuid: '123e4567-e89b-42d3-a456-426614174000',
     status: 'failed',
     created_at: new Date(Date.now() - 90000).toISOString(),
     updated_at: new Date().toISOString(),
@@ -59,34 +59,42 @@ BRCA1_MOUSE         NDEVSIIQSMGYRNRAKRLLQSEPENPSLQETSQSVQLSNLGTVRTLRTKQRIQPQKTL 
                     :**********************************:*************************
 `;
 
+// Aligned sequence info, keyed by the sequence names used in the alignment
+// output above (matches the real API's aligned_seq_info.json: a SeqInfoDict of
+// { [seqName]: SeqInfo } with per-sequence embedded variants positioned onto
+// the gapped alignment columns).
 export const mockAlignedSeqInfo = {
-    sequences: [
-        {
-            id: 'BRCA1_HUMAN',
-            geneId: 'HGNC:1100',
-            geneName: 'BRCA1',
-            species: 'Homo sapiens',
-            transcript: 'ENST00000357654.8',
-            sequenceLength: 1863,
-            start: 1,
-            end: 1863,
-        },
-        {
-            id: 'BRCA1_MOUSE',
-            geneId: 'MGI:104537',
-            geneName: 'Brca1',
-            species: 'Mus musculus',
-            transcript: 'ENSMUST00000017290.13',
-            sequenceLength: 1812,
-            start: 1,
-            end: 1812,
-        },
-    ],
-    alignmentLength: 180,
-    identityPercentage: 89.4,
+    BRCA1_HUMAN: {
+        species: 'Homo sapiens',
+        requested_variant_ids: ['NC_000017.11:g.43093456A>G'],
+        embedded_variants: [
+            {
+                alignment_start_pos: 30,
+                alignment_end_pos: 30,
+                seq_start_pos: 30,
+                seq_end_pos: 30,
+                seq_length: 1,
+                variant_id: 'NC_000017.11:g.43093456A>G',
+                genomic_seq_id: 'NC_000017.11',
+                genomic_start_pos: 43093456,
+                genomic_end_pos: 43093456,
+                genomic_ref_seq: 'A',
+                genomic_alt_seq: 'G',
+                seq_substitution_type: 'substitution',
+                molecular_consequences: ['missense_variant'],
+                hgvs_protein: 'NP_009225.1:p.Ile30Val',
+                hgvs_coding: 'NM_007294.4:c.88A>G',
+                impact: 'MODERATE',
+                gene_id: 'HGNC:1100',
+            },
+        ],
+    },
+    BRCA1_MOUSE: {
+        species: 'Mus musculus',
+    },
 };
 
-export const mockJobLogs = `[2024-01-19 10:15:23] Job submitted with UUID: 12345678-1234-1234-1234-123456789abc
+export const mockJobLogs = `[2024-01-19 10:15:23] Job submitted with UUID: 123e4567-e89b-42d3-a456-426614174000
 [2024-01-19 10:15:24] Validating input parameters...
 [2024-01-19 10:15:24] Input validation passed
 [2024-01-19 10:15:25] Starting sequence retrieval for HGNC:1100

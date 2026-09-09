@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "dev:mock": "MOCK_API=true next dev",
+        "dev:mock": "MOCK_API=true PAVI_API_BASE_URL=http://localhost:3000 next dev",
         "build": "next build",
         "build:analyze": "ANALYZE=true next build",
         "start": "next start",

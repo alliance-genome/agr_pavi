@@ -22,6 +22,15 @@ export async function GET(
         return NextResponse.json(mockData, { status: 404 });
     }
 
+    // String payloads (alignment output, logs) are returned as raw text to
+    // match the real API — NextResponse.json() would JSON-quote them and break
+    // downstream parsing (e.g. clustal-js on the alignment result).
+    if (typeof mockData === 'string') {
+        return new NextResponse(mockData, {
+            headers: { 'Content-Type': 'text/plain' },
+        });
+    }
+
     return NextResponse.json(mockData);
 }
 
