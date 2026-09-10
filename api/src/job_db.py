@@ -14,8 +14,12 @@ running API. The per-job DB is the long-term, exportable artifact.
 
 from __future__ import annotations
 
+import csv
+import io
 import json
+import re
 import sqlite3
+import textwrap
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -165,3 +169,148 @@ def read_metadata(db_path: Path) -> dict[str, str]:
         return {}
     finally:
         conn.close()
+
+
+def read_results(db_path: Path) -> dict[str, bytes]:
+    """Return the stored result blobs (e.g. ``alignment``, ``seq_info``) by name."""
+    if not db_path.exists():
+        return {}
+    conn = _connect(db_path)
+    try:
+        rows = conn.execute("SELECT name, content FROM results").fetchall()
+        return {row[0]: row[1] for row in rows}
+    except sqlite3.DatabaseError:
+        return {}
+    finally:
+        conn.close()
+
+
+def _decoded_results(db_path: Path) -> tuple[str, Any]:
+    """Return (alignment_text, seq_info_obj) from a per-job DB.
+
+    ``seq_info_obj`` is the parsed JSON (a SeqInfoDict), or ``None`` if it is
+    absent or unparseable.
+    """
+    results = read_results(db_path)
+    alignment = results.get("alignment", b"").decode("utf-8", errors="replace")
+    seq_info_obj: Any = None
+    seq_info_raw = results.get("seq_info")
+    if seq_info_raw is not None:
+        try:
+            seq_info_obj = json.loads(seq_info_raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            seq_info_obj = None
+    return alignment, seq_info_obj
+
+
+def export_bundle_json(db_path: Path) -> str:
+    """Serialise a per-job DB to a single self-contained JSON bundle.
+
+    Mirrors the DB contents: metadata, the original input regions, the
+    alignment text, and the (parsed) seq-info. Round-trips the same
+    information a `job.db` carries, in a format any tool can read.
+    """
+    alignment, seq_info_obj = _decoded_results(db_path)
+    metadata = read_metadata(db_path)
+    bundle = {
+        "schema_version": metadata.get("schema_version", SCHEMA_VERSION),
+        "job_id": metadata.get("job_id"),
+        "completed_at": metadata.get("completed_at"),
+        "input_seq_regions": read_input_seq_regions(db_path) or [],
+        "alignment": alignment,
+        "seq_info": seq_info_obj,
+    }
+    return json.dumps(bundle, indent=2)
+
+
+def _parse_clustal(text: str) -> list[tuple[str, str]]:
+    """Parse a CLUSTAL-format alignment into ``[(name, aligned_seq), ...]``.
+
+    Concatenates the interleaved blocks per sequence and drops the header,
+    the trailing residue counts, and the conservation lines. Order of first
+    appearance is preserved.
+    """
+    seqs: dict[str, list[str]] = {}
+    order: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        if not line or line.startswith("CLUSTAL"):
+            continue
+        # Conservation lines are indented to sit under the sequence columns.
+        if raw_line[0].isspace():
+            continue
+        parts = line.split()
+        if len(parts) < 2:
+            continue
+        name, chunk = parts[0], parts[1]
+        # A real sequence chunk contains residues; skip conservation-only rows.
+        if not re.search(r"[A-Za-z]", chunk):
+            continue
+        if name not in seqs:
+            seqs[name] = []
+            order.append(name)
+        seqs[name].append(chunk)
+    return [(name, "".join(seqs[name])) for name in order]
+
+
+def export_fasta(db_path: Path, wrap: int = 60) -> str:
+    """Export the aligned sequences (with gaps) as FASTA."""
+    alignment, _ = _decoded_results(db_path)
+    lines: list[str] = []
+    for name, seq in _parse_clustal(alignment):
+        lines.append(f">{name}")
+        if wrap and wrap > 0 and seq:
+            lines.extend(textwrap.wrap(seq, wrap))
+        else:
+            lines.append(seq)
+    return "\n".join(lines) + ("\n" if lines else "")
+
+
+_VARIANT_CSV_COLUMNS = [
+    "sequence",
+    "species",
+    "alignment_start_pos",
+    "alignment_end_pos",
+    "seq_start_pos",
+    "seq_end_pos",
+    "variant_id",
+    "seq_substitution_type",
+    "genomic_seq_id",
+    "genomic_start_pos",
+    "genomic_end_pos",
+    "genomic_ref_seq",
+    "genomic_alt_seq",
+    "hgvs_coding",
+    "hgvs_protein",
+    "molecular_consequences",
+    "impact",
+    "gene_id",
+]
+
+
+def export_variants_csv(db_path: Path) -> str:
+    """Export the embedded variants across all sequences as a flat CSV table."""
+    _, seq_info_obj = _decoded_results(db_path)
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=_VARIANT_CSV_COLUMNS, extrasaction="ignore")
+    writer.writeheader()
+
+    if isinstance(seq_info_obj, dict):
+        for seq_name, seq_info in seq_info_obj.items():
+            if not isinstance(seq_info, dict):
+                continue
+            species = seq_info.get("species", "")
+            for variant in seq_info.get("embedded_variants", []) or []:
+                if not isinstance(variant, dict):
+                    continue
+                row = {col: variant.get(col, "") for col in _VARIANT_CSV_COLUMNS}
+                row["sequence"] = seq_name
+                row["species"] = species
+                consequences = variant.get("molecular_consequences")
+                if isinstance(consequences, list):
+                    row["molecular_consequences"] = ";".join(
+                        str(c) for c in consequences
+                    )
+                writer.writerow(row)
+
+    return buf.getvalue()

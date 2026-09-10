@@ -1,11 +1,11 @@
-from fastapi import APIRouter, BackgroundTasks, FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, BackgroundTasks, FastAPI, HTTPException, Query
+from fastapi.responses import Response, StreamingResponse
 from io import StringIO, BytesIO
 import os
 from os import getenv
 from pydantic import BaseModel
 
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import json
 import re
@@ -982,14 +982,18 @@ async def get_pipeline_job_seq_info_result(uuid: UUID) -> StreamingResponse:
         501: {"model": HTTP_exception_response},
     },
 )
-async def get_pipeline_job_export(uuid: UUID) -> StreamingResponse:
+async def get_pipeline_job_export(
+    uuid: UUID,
+    fmt: Literal["db", "json", "fasta", "csv"] = Query("db", alias="format"),
+) -> Response:
     """
-    Download a self-contained per-job SQLite (`job.db`).
+    Download a finished job in one of several formats.
 
-    The file holds the original input payload, the alignment output, and
-    the seq-info output for the job. It can be opened by any SQLite
-    client and is the format a future PAVI desktop application would
-    consume.
+    - ``db`` (default): the self-contained per-job SQLite (`job.db`) holding
+      the original input payload, the alignment output, and the seq-info.
+    - ``json``: the same contents as a single self-contained JSON bundle.
+    - ``fasta``: the aligned protein sequences (with gaps).
+    - ``csv``: a flat table of the embedded variants across all sequences.
 
     Currently produced only by the local pipeline mode. Step Functions
     mode does not yet emit a per-job DB.
@@ -997,7 +1001,7 @@ async def get_pipeline_job_export(uuid: UUID) -> StreamingResponse:
     if not USE_LOCAL_PIPELINE:
         raise HTTPException(
             status_code=501,
-            detail="Per-job DB export is currently only available in local pipeline mode.",
+            detail="Per-job export is currently only available in local pipeline mode.",
         )
 
     job_service = get_job_service()
@@ -1008,15 +1012,36 @@ async def get_pipeline_job_export(uuid: UUID) -> StreamingResponse:
             detail="Per-job DB not found. The job may not be complete yet, or it predates the per-job DB feature.",
         )
 
-    def iterfile():  # type: ignore
-        with open(db_path, "rb") as f:
-            yield from f
+    base_name = f"pavi-job-{uuid}"
 
-    return StreamingResponse(
-        iterfile(),
-        media_type="application/x-sqlite3",
+    if fmt == "db":
+        def iterfile():  # type: ignore
+            with open(db_path, "rb") as f:
+                yield from f
+
+        return StreamingResponse(
+            iterfile(),
+            media_type="application/x-sqlite3",
+            headers={
+                "Content-Disposition": f'attachment; filename="{base_name}.db"'
+            },
+        )
+
+    if fmt == "json":
+        body = job_db.export_bundle_json(db_path)
+        media_type, extension = "application/json", "json"
+    elif fmt == "fasta":
+        body = job_db.export_fasta(db_path)
+        media_type, extension = "text/x-fasta", "fasta"
+    else:  # csv
+        body = job_db.export_variants_csv(db_path)
+        media_type, extension = "text/csv", "csv"
+
+    return Response(
+        content=body,
+        media_type=media_type,
         headers={
-            "Content-Disposition": f'attachment; filename="pavi-job-{uuid}.db"'
+            "Content-Disposition": f'attachment; filename="{base_name}.{extension}"'
         },
     )
 

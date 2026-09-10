@@ -99,3 +99,106 @@ def test_read_helpers_tolerate_corrupt_db(tmp_path: Path, attr: str) -> None:
     # read_input_seq_regions returns None, read_metadata returns {}
     result = fn(db_path)
     assert result is None or result == {}
+
+
+# --- Export formats -------------------------------------------------------
+
+_CLUSTAL = (
+    "CLUSTAL O(1.2.4) multiple sequence alignment\n"
+    "\n\n"
+    "BRCA1_HUMAN         MDLSALRVEE 10\n"
+    "BRCA1_MOUSE         MDLSALRIEE 10\n"
+    "                    *******:**\n"
+    "\n"
+    "BRCA1_HUMAN         VQNVINAMQK 20\n"
+    "BRCA1_MOUSE         VQNVVNAMQK 20\n"
+    "                    ****:*****\n"
+)
+
+_SEQ_INFO = {
+    "BRCA1_HUMAN": {
+        "species": "Homo sapiens",
+        "embedded_variants": [
+            {
+                "alignment_start_pos": 8,
+                "alignment_end_pos": 8,
+                "seq_start_pos": 8,
+                "seq_end_pos": 8,
+                "variant_id": "NC_000017.11:g.43093456A>G",
+                "genomic_seq_id": "NC_000017.11",
+                "genomic_start_pos": 43093456,
+                "genomic_end_pos": 43093456,
+                "genomic_ref_seq": "A",
+                "genomic_alt_seq": "G",
+                "seq_substitution_type": "substitution",
+                "molecular_consequences": ["missense_variant"],
+                "hgvs_coding": "NM_007294.4:c.22A>G",
+                "hgvs_protein": "NP_009225.1:p.Ile8Val",
+                "impact": "MODERATE",
+                "gene_id": "HGNC:1100",
+            }
+        ],
+    },
+    "BRCA1_MOUSE": {"species": "Mus musculus"},
+}
+
+
+def _make_job_db(tmp_path: Path) -> Path:
+    import json
+
+    db_path = job_db.db_path_for_job(tmp_path, "export-job")
+    job_db.write_finished_job(
+        db_path=db_path,
+        job_id="export-job",
+        seq_regions=[{"base_seq_name": "BRCA1"}],
+        alignment_bytes=_CLUSTAL.encode("utf-8"),
+        seq_info_bytes=json.dumps(_SEQ_INFO).encode("utf-8"),
+    )
+    return db_path
+
+
+def test_export_bundle_json_mirrors_db(tmp_path: Path) -> None:
+    import json
+
+    bundle = json.loads(job_db.export_bundle_json(_make_job_db(tmp_path)))
+    assert bundle["job_id"] == "export-job"
+    assert bundle["schema_version"] == job_db.SCHEMA_VERSION
+    assert bundle["input_seq_regions"] == [{"base_seq_name": "BRCA1"}]
+    assert bundle["alignment"].startswith("CLUSTAL O")
+    assert bundle["seq_info"] == _SEQ_INFO
+
+
+def test_export_fasta_concatenates_blocks_and_drops_conservation(tmp_path: Path) -> None:
+    fasta = job_db.export_fasta(_make_job_db(tmp_path))
+    # Interleaved blocks are joined per sequence; counts and conservation gone.
+    assert ">BRCA1_HUMAN\nMDLSALRVEEVQNVINAMQK\n" in fasta
+    assert ">BRCA1_MOUSE\nMDLSALRIEEVQNVVNAMQK\n" in fasta
+    assert "*" not in fasta
+    assert "10" not in fasta and "20" not in fasta
+
+
+def test_export_variants_csv_flattens_embedded_variants(tmp_path: Path) -> None:
+    csv_text = job_db.export_variants_csv(_make_job_db(tmp_path))
+    lines = [ln for ln in csv_text.splitlines() if ln.strip()]
+    assert lines[0].startswith("sequence,species,alignment_start_pos")
+    # Exactly one variant row (only BRCA1_HUMAN has an embedded variant).
+    assert len(lines) == 2
+    row = lines[1]
+    assert "BRCA1_HUMAN" in row
+    assert "NC_000017.11:g.43093456A>G" in row
+    assert "missense_variant" in row
+    assert "MODERATE" in row
+
+
+def test_exports_on_empty_db_do_not_crash(tmp_path: Path) -> None:
+    # A DB with no results table content still yields valid, empty-ish output.
+    db_path = job_db.db_path_for_job(tmp_path, "empty-job")
+    job_db.write_finished_job(
+        db_path=db_path,
+        job_id="empty-job",
+        seq_regions=[],
+        alignment_bytes=b"",
+        seq_info_bytes=b"{}",
+    )
+    assert job_db.export_fasta(db_path) == ""
+    assert job_db.export_variants_csv(db_path).startswith("sequence,")

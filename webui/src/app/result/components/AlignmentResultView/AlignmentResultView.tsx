@@ -1,11 +1,12 @@
 'use client';
 
-import React, { FunctionComponent, useCallback, useEffect, useState } from 'react';
+import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
+import { Menu } from 'primereact/menu';
 
 import { fetchAlignmentResults, fetchAlignmentSeqInfo } from './serverActions';
 import { displayModeType } from './types';
@@ -46,6 +47,18 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [loadError, setLoadError] = useState<string | null>(null)
     const [loadedAt, setLoadedAt] = useState<Date | undefined>(undefined)
+
+    const downloadMenuRef = useRef<Menu>(null)
+    const downloadExport = useCallback((format: string) => {
+        window.location.href = withBasePath(`/api/pipeline-job/${props.uuidStr}/export?format=${format}`)
+    }, [props.uuidStr])
+    const downloadMenuItems = [
+        { label: 'JSON bundle', icon: 'pi pi-file', command: () => downloadExport('json') },
+        { label: 'Aligned FASTA', icon: 'pi pi-align-left', command: () => downloadExport('fasta') },
+        { label: 'Variants (CSV)', icon: 'pi pi-table', command: () => downloadExport('csv') },
+        { separator: true },
+        { label: 'SQLite (.db)', icon: 'pi pi-database', command: () => downloadExport('db') },
+    ]
 
     function changeDisplayMode(displayMode: displayModeType) {
         console.log(`Changing display mode to ${displayMode}.`)
@@ -268,17 +281,19 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                                 options={displayModeOptions}
                                 optionLabel='label'
                                 className="agr-dropdown-sm"/>
+                            <Menu model={downloadMenuItems} popup ref={downloadMenuRef} id="download-menu" />
                             <Button
                                 type="button"
-                                label="Download .db"
+                                label="Export"
                                 icon="pi pi-download"
+                                iconPos="left"
                                 size="small"
                                 outlined
-                                tooltip="Download the per-job SQLite (input + alignment + seq-info)"
+                                tooltip="Export this job (JSON, FASTA, variants CSV, or SQLite)"
                                 tooltipOptions={{ position: 'top' }}
-                                onClick={() => {
-                                    window.location.href = withBasePath(`/api/pipeline-job/${props.uuidStr}/export`);
-                                }}
+                                aria-haspopup
+                                aria-controls="download-menu"
+                                onClick={(e) => downloadMenuRef.current?.toggle(e)}
                                 disabled={isLoading || !!loadError || !alignmentResult}
                             />
                         </div>
