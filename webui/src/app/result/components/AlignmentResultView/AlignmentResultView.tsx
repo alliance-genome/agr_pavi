@@ -19,6 +19,7 @@ import { dataCache, CACHE_CONFIGS } from '@/utils/dataCache';
 import { withBasePath } from '@/utils/basePath';
 import { useJobHistory } from '@/hooks/useJobHistory';
 import { deduplicateSequences } from '../../utils/deduplicateSequences';
+import { PublicationFigureDialog } from '../PublicationFigure/PublicationFigureDialog';
 
 const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
 const VirtualizedAlignment = dynamic(() => import('../InteractiveAlignment/VirtualizedAlignment'), { ssr: false })
@@ -47,6 +48,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [loadError, setLoadError] = useState<string | null>(null)
     const [loadedAt, setLoadedAt] = useState<Date | undefined>(undefined)
+    const [figureDialogVisible, setFigureDialogVisible] = useState<boolean>(false)
 
     const downloadMenuRef = useRef<Menu>(null)
     const downloadExport = useCallback((format: string) => {
@@ -296,6 +298,18 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                                 onClick={(e) => downloadMenuRef.current?.toggle(e)}
                                 disabled={isLoading || !!loadError || !alignmentResult}
                             />
+                            <Button
+                                type="button"
+                                label="Publication figure"
+                                icon="pi pi-image"
+                                iconPos="left"
+                                size="small"
+                                outlined
+                                tooltip="Build a publication-quality SVG figure of this alignment"
+                                tooltipOptions={{ position: 'top' }}
+                                onClick={() => setFigureDialogVisible(true)}
+                                disabled={isLoading || !!loadError || !alignmentResult}
+                            />
                         </div>
                     </div>
                 </div>
@@ -350,6 +364,14 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                     </div>
                 </div>
             </div>
+
+            <PublicationFigureDialog
+                visible={figureDialogVisible}
+                onHide={() => setFigureDialogVisible(false)}
+                alignmentResult={alignmentResult}
+                seqInfo={alignmentSeqInfo}
+                jobId={props.uuidStr}
+            />
         </div>
     )
 }
