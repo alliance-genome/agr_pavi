@@ -101,31 +101,32 @@ export const SPECIES: SpeciesConfig[] = [
         jBrowsefastaurl: `${S3}/fasta/GCF_000004195.4_UCB_Xtro_10.0_genomic.fna.gz`,
     },
     {
-        // Danio rerio.
+        // Danio rerio — PINNED to the older 9.0.0 / GRCz11 data (deliberate).
         //
-        // KNOWN GAP (as of Alliance release 9.1.0): zebrafish cannot currently
-        // be aligned in PAVI, and the UI shows the honest "no transcript
-        // models available" notice. Root cause is an AGR data-publishing gap,
-        // not a PAVI bug:
-        //   - The Alliance gene API reports zebrafish coordinates on the NEW
-        //     assembly GRCz12tu.
-        //   - But the transcript NCList tracks for GRCz12tu are NOT yet
-        //     published on S3 (`9.1.0/zfin/zebrafish/...` 404s). Only the
-        //     OLD GRCz11 tracks exist (last carried at 9.0.0, under the legacy
-        //     `zfin/zebrafish-11/` path).
-        // There is no coherent (coords + tracks + FASTA) combination to serve:
-        // GRCz12 coords against GRCz11 tracks return the wrong region (empty,
-        // or — worse — an unrelated locus), so we deliberately do NOT pin the
-        // old assembly. This entry stays on the current GRCz12tu form so it
-        // starts working automatically once AGR publishes GRCz12tu tracks.
+        // Context: at release 9.1.0 the current-assembly (GRCz12tu) zebrafish
+        // transcript tracks are not yet published on S3 (`zfin/zebrafish/` 404s).
+        // The last published tracks are GRCz11, at release 9.0.0, under the
+        // legacy `zfin/zebrafish-11/` path — so we pin the NCList + FASTA to
+        // that coherent GRCz11 pair, and pin the release to 9.0.0.
+        //
+        // IMPORTANT CAVEAT (surfaced to users via a zebrafish disclaimer in
+        // AlignmentEntry): the Alliance gene API now returns GRCz12tu
+        // coordinates, which do NOT match these GRCz11 tracks. In practice
+        // many zebrafish genes therefore return an empty transcript list
+        // (e.g. tp53), and any that DO return transcripts are on the old
+        // assembly and could, in rare coordinate-overlap cases, be the wrong
+        // locus. This pin is a stopgap so zebrafish is not hard-blocked;
+        // remove it (revert to `{release}` + `zfin/zebrafish/` + GRCz12tu)
+        // once AGR publishes GRCz12tu tracks.
         taxonId: 'NCBITaxon:7955',
         fullName: 'Danio rerio',
         shortName: 'Dre',
         jBrowseName: 'Danio rerio',
         apolloName: 'zebrafish',
-        jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/zfin/zebrafish/`,
+        jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/zfin/zebrafish-11/`,
         jBrowseurltemplate: ALL_GENES,
-        jBrowsefastaurl: `${S3}/fasta/GCF_049306965.1_GRCz12tu_genomic.fna.gz`,
+        jBrowsefastaurl: `${S3}/fasta/GCF_000002035.6_GRCz11_genomic.fna.gz`,
+        jBrowseDataReleaseOverride: '9.0.0',
     },
     {
         taxonId: 'NCBITaxon:7227',
