@@ -103,25 +103,29 @@ export const SPECIES: SpeciesConfig[] = [
     {
         // Danio rerio.
         //
-        // At Alliance release 9.1.0 the zebrafish transcript NCList tracks are
-        // NOT published on S3 (an in-flight GRCz11 -> GRCz12tu assembly
-        // migration): every `9.1.0/zfin/zebrafish[-11]/...` path 404s. The
-        // last release that carries them is 9.0.0, under the older
-        // `zfin/zebrafish-11/` path, on assembly GRCz11.
-        //
-        // So pin zebrafish to a COHERENT 9.0.0 + GRCz11 pair: the NCList
-        // (GRCz11) and the FASTA (GRCz11) match, so the pipeline splices the
-        // right coordinates. Revert this whole entry to the plain
-        // `{release}` + GRCz12tu form once AGR republishes zebrafish tracks.
+        // KNOWN GAP (as of Alliance release 9.1.0): zebrafish cannot currently
+        // be aligned in PAVI, and the UI shows the honest "no transcript
+        // models available" notice. Root cause is an AGR data-publishing gap,
+        // not a PAVI bug:
+        //   - The Alliance gene API reports zebrafish coordinates on the NEW
+        //     assembly GRCz12tu.
+        //   - But the transcript NCList tracks for GRCz12tu are NOT yet
+        //     published on S3 (`9.1.0/zfin/zebrafish/...` 404s). Only the
+        //     OLD GRCz11 tracks exist (last carried at 9.0.0, under the legacy
+        //     `zfin/zebrafish-11/` path).
+        // There is no coherent (coords + tracks + FASTA) combination to serve:
+        // GRCz12 coords against GRCz11 tracks return the wrong region (empty,
+        // or — worse — an unrelated locus), so we deliberately do NOT pin the
+        // old assembly. This entry stays on the current GRCz12tu form so it
+        // starts working automatically once AGR publishes GRCz12tu tracks.
         taxonId: 'NCBITaxon:7955',
         fullName: 'Danio rerio',
         shortName: 'Dre',
         jBrowseName: 'Danio rerio',
         apolloName: 'zebrafish',
-        jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/zfin/zebrafish-11/`,
+        jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/zfin/zebrafish/`,
         jBrowseurltemplate: ALL_GENES,
-        jBrowsefastaurl: `${S3}/fasta/GCF_000002035.6_GRCz11_genomic.fna.gz`,
-        jBrowseDataReleaseOverride: '9.0.0',
+        jBrowsefastaurl: `${S3}/fasta/GCF_049306965.1_GRCz12tu_genomic.fna.gz`,
     },
     {
         taxonId: 'NCBITaxon:7227',
