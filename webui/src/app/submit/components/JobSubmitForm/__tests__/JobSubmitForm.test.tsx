@@ -3,14 +3,15 @@ import { describe, expect, it } from '@jest/globals';
 import { render, fireEvent } from '@testing-library/react'
 import { JobSubmitForm } from '../JobSubmitForm'
 
-jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
+jest.mock('@/utils/agrSpeciesConfig',
     () => {
         return {
             getSpecies: jest.fn(() => {}),
-            getSingleGenomeLocation: jest.fn(() => {})
+            getSingleGenomeLocation: jest.fn(() => {}),
+            resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
+                sc?.jBrowseDataReleaseOverride ?? r,
         }
-    },
-    {virtual: true}
+    }
 )
 
 // Mock useRouter:

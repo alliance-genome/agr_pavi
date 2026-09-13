@@ -1,13 +1,14 @@
-// useTranscriptSelection imports this remote module at module scope; mock it
-// so the module can be required in the jsdom test environment (mirrors the
-// mock in AlignmentEntry.test.tsx).
+// useTranscriptSelection imports the vendored species config at module scope;
+// mock it so the module can be required in the jsdom test environment (mirrors
+// the mock in AlignmentEntry.test.tsx).
 jest.mock(
-    'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
+    '@/utils/agrSpeciesConfig',
     () => ({
         getSpecies: jest.fn(),
         getSingleGenomeLocation: jest.fn(),
-    }),
-    { virtual: true }
+        resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
+            sc?.jBrowseDataReleaseOverride ?? r,
+    })
 );
 
 import { selectInitialTranscriptIds } from '../useTranscriptSelection';

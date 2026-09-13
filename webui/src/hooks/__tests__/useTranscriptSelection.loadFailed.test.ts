@@ -1,7 +1,7 @@
 // useTranscriptSelection imports this remote module at module scope; mock it so
 // the hook can be required in jsdom (mirrors AlignmentEntry.test.tsx).
 jest.mock(
-    'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
+    '@/utils/agrSpeciesConfig',
     () => ({
         getSpecies: jest.fn(() => ({
             jBrowsefastaurl: 'https://example.test/fasta.fa.gz',
@@ -9,8 +9,9 @@ jest.mock(
             jBrowseurltemplate: 'tracks/All_Genes/{refseq}/trackData.jsonz',
         })),
         getSingleGenomeLocation: jest.fn(() => ({ chromosome: '5', start: 1, end: 2 })),
-    }),
-    { virtual: true }
+        resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
+            sc?.jBrowseDataReleaseOverride ?? r,
+    })
 );
 
 // Control the transcript fetch so we can simulate a missing-NCList rejection.

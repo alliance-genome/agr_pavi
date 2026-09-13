@@ -6,9 +6,11 @@ import { Feature } from '../utils';
 import { AlignmentEntry } from '../AlignmentEntry'
 import { LONG_ALLELE_NAME } from '../__mocks__/serverActions'
 
-jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
+jest.mock('@/utils/agrSpeciesConfig',
     () => {
         return {
+            resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
+                sc?.jBrowseDataReleaseOverride ?? r,
             getSpecies: jest.fn((taxonId: string) => {
                 console.log('Mocking getSpecies for taxonId:', taxonId)
                 return {
@@ -34,8 +36,7 @@ jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib
                 return genomeLocations[genomeLocations.length - 1]
             })
         }
-    },
-    {virtual: true}
+    }
 )
 
 // Mock server Actions

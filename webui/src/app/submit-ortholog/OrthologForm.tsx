@@ -15,7 +15,7 @@ import { JobSumbissionPayloadRecord } from '@/app/submit/components/JobSubmitFor
 
 import { fetchOrthologs, OrthologInfo } from './serverActions';
 
-import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
+import { getSpecies, getSingleGenomeLocation, resolveJBrowseRelease } from '@/utils/agrSpeciesConfig';
 import { fetchTranscripts } from 'generic-sequence-panel';
 import NCListFeature from 'generic-sequence-panel/dist/NCListFeature';
 import { dedupe, revlist } from '@/app/submit/components/AlignmentEntry/utils';
@@ -159,7 +159,7 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
             const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);
 
             const jBrowsenclistbaseurl = speciesConfig.jBrowsenclistbaseurltemplate.replace(
-                '{release}', agrjBrowseDataRelease
+                '{release}', resolveJBrowseRelease(speciesConfig, agrjBrowseDataRelease)
             );
 
             const transcripts = await fetchTranscripts({

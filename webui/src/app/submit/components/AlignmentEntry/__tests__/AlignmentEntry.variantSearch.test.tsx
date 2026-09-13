@@ -3,11 +3,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import { AlignmentEntry } from '../AlignmentEntry';
 
-// Same virtual mock for the agr_ui raw-github util as the main AlignmentEntry
+// Mock the vendored species config the same way as the main AlignmentEntry
 // test harness (see AlignmentEntry.test.tsx).
 jest.mock(
-    'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
+    '@/utils/agrSpeciesConfig',
     () => ({
+        resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
+            sc?.jBrowseDataReleaseOverride ?? r,
         getSpecies: jest.fn((taxonId: string) => ({
             apolloName: 'human',
             apolloTrack: '/All%20Genes/',
@@ -25,8 +27,7 @@ jest.mock(
             vertebrate: true,
         })),
         getSingleGenomeLocation: jest.fn((genomeLocations: any[]) => genomeLocations[genomeLocations.length - 1]),
-    }),
-    { virtual: true }
+    })
 );
 
 jest.mock('../../TranscriptViewer', () => ({

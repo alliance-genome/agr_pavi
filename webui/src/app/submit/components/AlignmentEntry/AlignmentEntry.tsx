@@ -17,7 +17,7 @@ import { lookupVariantByHgvs, searchVariants, searchAllelesByName } from './serv
 import { looksLikeHgvs, looksLikeGenomicPosition, normalizeHgvs } from './hgvs';
 
 // Note: dynamic import of stage vs main src is currently not possible on client nor server (2024/07/25).
-import { getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
+import { getSingleGenomeLocation } from '@/utils/agrSpeciesConfig';
 
 export interface AlignmentEntryProps {
     readonly index: number;

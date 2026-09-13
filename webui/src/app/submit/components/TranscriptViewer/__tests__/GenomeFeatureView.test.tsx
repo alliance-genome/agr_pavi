@@ -7,7 +7,7 @@ import GenomeFeatureView, {
 
 // Mock the cross-repo Alliance utils (same pattern as AlignmentEntry.test).
 jest.mock(
-    'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
+    '@/utils/agrSpeciesConfig',
     () => ({
         getSpecies: jest.fn(() => ({
             apolloName: 'human',
@@ -19,8 +19,9 @@ jest.mock(
             start: 100,
             end: 200,
         })),
-    }),
-    { virtual: true }
+        resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
+            sc?.jBrowseDataReleaseOverride ?? r,
+    })
 );
 
 // Mock the genomefeatures library.

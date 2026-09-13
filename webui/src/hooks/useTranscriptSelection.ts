@@ -8,7 +8,7 @@ import { Feature, dedupe, revlist } from '@/app/submit/components/AlignmentEntry
 import { GeneInfo, TranscriptInfo, FeatureStrand, AlignmentEntryStatus } from '@/app/submit/components/AlignmentEntry/types';
 
 // Note: dynamic import of stage vs main src is currently not possible on client nor server
-import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
+import { getSpecies, getSingleGenomeLocation, resolveJBrowseRelease } from '@/utils/agrSpeciesConfig';
 
 export interface UseTranscriptSelectionOptions {
     gene: GeneInfo | undefined;
@@ -217,7 +217,7 @@ export function useTranscriptSelection(
 
                 const jBrowsenclistbaseurl = speciesConfig.jBrowsenclistbaseurltemplate.replace(
                     '{release}',
-                    agrjBrowseDataRelease
+                    resolveJBrowseRelease(speciesConfig, agrjBrowseDataRelease)
                 );
 
                 const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);

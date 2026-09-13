@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useId } from 'react';
-import { getSpecies, getSingleGenomeLocation } from 'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js';
+import { getSpecies, getSingleGenomeLocation, resolveJBrowseRelease } from '@/utils/agrSpeciesConfig';
 import { GeneInfo } from '../AlignmentEntry/types';
 import { buildNcListUrl, buildIsoformTrackConfig, ViewerRegion } from './trackConfig';
 import './transcriptView.css';
@@ -95,7 +95,7 @@ export default function GenomeFeatureView({
                 };
                 const urlTemplate = buildNcListUrl(
                     speciesConfig.jBrowsenclistbaseurltemplate,
-                    release,
+                    resolveJBrowseRelease(speciesConfig, release),
                     region.chromosome
                 );
 
