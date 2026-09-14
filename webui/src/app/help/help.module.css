@@ -424,6 +424,13 @@
     margin-bottom: var(--agr-spacing-lg, 1.5rem);
 }
 
+/* Space the tab icon off its label. In this PrimeReact build the leftIcon
+   renders as a bare `<span class="pi …">` (no `p-tabview-left-icon` wrapper)
+   and the `mr-2` utility doesn't land, so target the icon span directly. */
+.tabsContainer :global(.p-tabview-nav-link) :global(.pi) {
+    margin-right: 0.5rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .helpContainer {
