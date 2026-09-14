@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="AGR PAVI — Proteins Annotations and Variants Inspector — demo deck">
+<meta name="description" content="AGR PAVI: Proteins Annotations and Variants Inspector demo deck">
 <title>PAVI Demo Deck</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
@@ -124,7 +124,7 @@
   .title-slide .tagline{font-family:var(--serif); font-weight:600; font-size:4.4cqw;
     letter-spacing:-.01em; color:var(--ink); margin:0; text-wrap:balance}
 
-  /* persistent AGR mark (placeholder — swap for the official logo asset) */
+  /* persistent AGR mark (placeholder, swap for the official logo asset) */
   .brand{position:absolute; top:2.8cqw; right:7.6cqw; display:flex; align-items:center;
     gap:1cqw; z-index:5; pointer-events:none}
   .brand-logo{width:5.2cqw; height:5.2cqw; object-fit:contain; display:block}
@@ -354,13 +354,13 @@
       </div>
       <div class="points" style="margin-top:5cqw">
         <div class="point"><span class="b"></span><div class="point-t">How does this protein compare <b>across species</b>?<span>Human, mouse, rat, frog, zebrafish, fly, worm, yeast.</span></div></div>
-        <div class="point"><span class="b"></span><div class="point-t">Which regions are <b>conserved</b> &mdash; and which aren&rsquo;t?</div></div>
+        <div class="point"><span class="b"></span><div class="point-t">Which regions are <b>conserved</b>, and which aren&rsquo;t?</div></div>
         <div class="point"><span class="b"></span><div class="point-t">Where do <b>known variants</b> land on that picture?</div></div>
       </div>
     </section>
 
     <!-- 3 · WHAT IT IS -->
-    <section class="slide" data-notes="Keep this to one breath. Pick a gene, PAVI pulls its orthologs, aligns the proteins with Clustal Omega, and overlays variant annotations. The demo makes it concrete — don't over-explain here.">
+    <section class="slide" data-notes="Keep this to one breath. Pick a gene, PAVI pulls its orthologs, aligns the proteins with Clustal Omega, and overlays variant annotations. The demo makes it concrete, don't over-explain here.">
       <div class="slide-head">
         <div class="eyebrow">What PAVI does</div>
         <h2>Pick a gene. Get the picture.</h2>
@@ -374,7 +374,7 @@
     </section>
 
     <!-- 4 · HOW IT WORKS -->
-    <section class="slide" data-notes="One slide, don't dwell. The point is reassurance: this is a real ordered pipeline, fully automated. Users never touch steps 1–3 — they submit and get step 4.">
+    <section class="slide" data-notes="One slide, don't dwell. The point is reassurance: this is a real ordered pipeline, fully automated. Users never touch steps 1–3, they submit and get step 4.">
       <div class="slide-head">
         <div class="eyebrow">Under the hood</div>
         <h2>Four steps you never have to run</h2>
@@ -388,7 +388,7 @@
     </section>
 
     <!-- 4b · PIPELINE, PRECISELY -->
-    <section class="slide" data-notes="For the technical crowd: PAVI never fetches protein. It pulls genomic DNA (pysam / faidx from the JBrowse reference FASTA), splices the CDS in strand order using each CDS's frame — or finds the longest ORF across three frames if no CDS is given — and translates with Biopython's Standard codon table (translate to first stop). Variants are fetched by HGVS from the web API and applied to the coding DNA, then re-translated; the ORF is re-validated (a changed start codon rejects the alt; a lost stop extends the region and re-searches); non-coding variants (UTR/intron) are dropped by their SO consequence terms. Clustal Omega aligns the protein FASTAs; finally each variant's ungapped residue index is projected onto its gapped alignment column by counting non-gap residues.">
+    <section class="slide" data-notes="For the technical crowd: PAVI never fetches protein. It pulls genomic DNA (pysam / faidx from the JBrowse reference FASTA), splices the CDS in strand order using each CDS's frame, or finds the longest ORF across three frames if no CDS is given, and translates with Biopython's Standard codon table (translate to first stop). Variants are fetched by HGVS from the web API and applied to the coding DNA, then re-translated; the ORF is re-validated (a changed start codon rejects the alt; a lost stop extends the region and re-searches); non-coding variants (UTR/intron) are dropped by their SO consequence terms. Clustal Omega aligns the protein FASTAs; finally each variant's ungapped residue index is projected onto its gapped alignment column by counting non-gap residues.">
       <div class="slide-head">
         <div class="eyebrow">The pipeline, precisely</div>
         <h2>DNA in, aligned protein out</h2>
@@ -423,7 +423,7 @@
     </section>
 
     <!-- 4c2 · DATA SOURCES -->
-    <section class="slide diagram" data-notes="Where PAVI's data actually comes from — two external sources, hit in two phases. In the browser, the submit form calls the Alliance Genome API (www.alliancegenome.org) for gene and ortholog search, gene info, alleles and variants, and the data release, and it pulls transcript models (exon/CDS coordinates) from the AGR JBrowse data on S3. The browser then hands the API a compact job: a reference-FASTA URL, the exon/CDS coordinates, and any variant HGVS ids — not sequence. In the pipeline, seq_retrieval fetches the actual reference-genome FASTA from that S3 bucket (via pysam/faidx) and the per-variant details (ref/alt, molecular consequence) from the Alliance /api/variant endpoint. So PAVI stores almost no biology itself — it composes it from the Alliance API and the AGR JBrowse data on demand.">
+    <section class="slide diagram" data-notes="Where PAVI's data actually comes from, two external sources, hit in two phases. In the browser, the submit form calls the Alliance Genome API (www.alliancegenome.org) for gene and ortholog search, gene info, alleles and variants, and the data release, and it pulls transcript models (exon/CDS coordinates) from the AGR JBrowse data on S3. The browser then hands the API a compact job: a reference-FASTA URL, the exon/CDS coordinates, and any variant HGVS ids, not sequence. In the pipeline, seq_retrieval fetches the actual reference-genome FASTA from that S3 bucket (via pysam/faidx) and the per-variant details (ref/alt, molecular consequence) from the Alliance /api/variant endpoint. So PAVI stores almost no biology itself, it composes it from the Alliance API and the AGR JBrowse data on demand.">
       <div class="slide-head">
         <div class="eyebrow">Data sources</div>
         <h2>Where PAVI gets its data</h2>
@@ -432,12 +432,12 @@
         <div class="src">
           <div class="src-h">Alliance Genome API<span>www.alliancegenome.org/api</span></div>
           <div class="src-line"><span class="who">browser</span><span>Gene &amp; ortholog search, gene info, alleles &amp; variants, data release.</span></div>
-          <div class="src-line"><span class="who pipe">pipeline</span><span>Variant details by HGVS &mdash; ref/alt, molecular consequence.</span></div>
+          <div class="src-line"><span class="who pipe">pipeline</span><span>Variant details by HGVS, ref/alt, molecular consequence.</span></div>
         </div>
         <div class="src">
           <div class="src-h">AGR JBrowse data (S3)<span>s3.amazonaws.com/agrjbrowse</span></div>
-          <div class="src-line"><span class="who">browser</span><span>Transcript models &mdash; exon &amp; CDS coordinates.</span></div>
-          <div class="src-line"><span class="who pipe">pipeline</span><span>Reference genome FASTA &mdash; genomic DNA (faidx).</span></div>
+          <div class="src-line"><span class="who">browser</span><span>Transcript models, exon &amp; CDS coordinates.</span></div>
+          <div class="src-line"><span class="who pipe">pipeline</span><span>Reference genome FASTA, genomic DNA (faidx).</span></div>
         </div>
       </div>
       <div class="dataflow">
@@ -452,15 +452,15 @@
     </section>
 
     <!-- 4d · ARCHITECTURE -->
-    <section class="slide diagram" data-notes="The stack: a Next.js WebUI talks to a FastAPI backend that orchestrates the job. The same API supports three orchestration modes. What runs the dev site today is the local pipeline — SQLite + local filesystem, USE_LOCAL_PIPELINE=true, straight on the EC2 host. Nextflow-on-Batch is the established AWS pipeline. AWS Step Functions (DynamoDB + S3) is a proof-of-concept being evaluated to replace Nextflow — gated behind a rollout flag, not yet production. All three run the same two containerized components, seq_retrieval and alignment. Toggle with USE_LOCAL_PIPELINE / USE_STEP_FUNCTIONS.">
+    <section class="slide diagram" data-notes="The stack: a Next.js WebUI talks to a FastAPI backend that orchestrates the job. The same API supports three orchestration modes. What runs the dev site today is the local pipeline, SQLite + local filesystem, USE_LOCAL_PIPELINE=true, straight on the EC2 host. Nextflow-on-Batch is the established AWS pipeline. AWS Step Functions (DynamoDB + S3) is a proof-of-concept being evaluated to replace Nextflow, gated behind a rollout flag, not yet production. All three run the same two containerized components, seq_retrieval and alignment. Toggle with USE_LOCAL_PIPELINE / USE_STEP_FUNCTIONS.">
       <div class="slide-head">
         <div class="eyebrow">Architecture</div>
         <h2>One API, three execution modes</h2>
       </div>
       <div class="arch">
-        <div class="lbox"><span class="lt">Frontend</span><span class="lv">WebUI &mdash; Next.js 15 &middot; React 19 &middot; Nightingale</span></div>
+        <div class="lbox"><span class="lt">Frontend</span><span class="lv">WebUI, Next.js 15 &middot; React 19 &middot; Nightingale</span></div>
         <div class="flowarrow">&darr;</div>
-        <div class="lbox"><span class="lt">Backend</span><span class="lv">API &mdash; FastAPI &middot; Python 3.12 &middot; job orchestration</span></div>
+        <div class="lbox"><span class="lt">Backend</span><span class="lv">API, FastAPI &middot; Python 3.12 &middot; job orchestration</span></div>
         <div class="flowarrow">&darr;</div>
         <div class="modes">
           <div class="mode key"><b>Local pipeline</b><span>SQLite + local FS</span><em>runs the dev site</em></div>
@@ -473,7 +473,7 @@
     </section>
 
     <!-- 4e · HISTORY / TIMELINE -->
-    <section class="slide diagram" data-notes="A quick history for context. PAVI started at the Alliance in early 2024. Through 2025 the alignment viewer settled on Nightingale — we briefly trialled JBrowse and alignment-viewer-2 in late 2025 and reverted — while the pipeline ran on Nextflow on AWS Batch. Late 2025 we began the Step Functions POC to replace Nextflow. 2026 brought the big Alliance v9 API migration (new gene/allele/variant response shapes) and the local-pipeline mode that runs the dev site. The most recent work is about making it faster to use: allele-name lookup, editing a query, and gene-centric ortholog comparison.">
+    <section class="slide diagram" data-notes="A quick history for context. PAVI started at the Alliance in early 2024. Through 2025 the alignment viewer settled on Nightingale, we briefly trialled JBrowse and alignment-viewer-2 in late 2025 and reverted, while the pipeline ran on Nextflow on AWS Batch. Late 2025 we began the Step Functions POC to replace Nextflow. 2026 brought the big Alliance v9 API migration (new gene/allele/variant response shapes) and the local-pipeline mode that runs the dev site. The most recent work is about making it faster to use: allele-name lookup, editing a query, and gene-centric ortholog comparison.">
       <div class="slide-head">
         <div class="eyebrow">Evolution</div>
         <h2>How PAVI got here</h2>
@@ -504,13 +504,13 @@
     </section>
 
     <!-- 5 · WHAT'S NEW -->
-    <section class="slide" data-notes="These are the crowd-pleasers — the reasons to come back. Tie each to a real annoyance it removes: no more copying accessions, no more restarting a query from scratch, no more hunting orthologs by hand.">
+    <section class="slide" data-notes="These are the crowd-pleasers, the reasons to come back. Tie each to a real annoyance it removes: no more copying accessions, no more restarting a query from scratch, no more hunting orthologs by hand.">
       <div class="slide-head">
         <div class="eyebrow">What&rsquo;s new</div>
         <h2>Less friction, fewer tabs</h2>
       </div>
       <div class="cards">
-        <div class="card"><span class="kbd">n1046</span><h3>Look up by allele name</h3><p>Type an allele name and PAVI resolves it to the variant &mdash; no HGVS hunting.</p></div>
+        <div class="card"><span class="kbd">n1046</span><h3>Look up by allele name</h3><p>Type an allele name and PAVI resolves it to the variant, no HGVS hunting.</p></div>
         <div class="card"><span class="kbd">&#9998; edit</span><h3>Edit your query</h3><p>Go back and tweak genes, transcripts, or variants instead of starting over.</p></div>
         <div class="card"><span class="kbd">orthologs</span><h3>Gene-centric picking</h3><p>Choose one gene; its orthologs populate automatically.</p></div>
       </div>
@@ -550,9 +550,9 @@
     </section>
 
     <!-- 6 · DEMO -->
-    <section class="slide" data-notes="DEMO SCRIPT — 1) /submit → 'Load Example' → TP53 Orthologs (resolves fast). 2) Show transcript selection and the Alleles box; demo allele-name lookup. 3) Submit, glance at /progress — then jump to the PRE-RUN result to skip the wait. 4) Walk the alignment: conserved regions, one variant in context. 5) Click 'Edit these sequences' to show the form comes back pre-filled. AVOID zebrafish live (transcript data pending). Keep a screen recording as backup.">
+    <section class="slide" data-notes="DEMO SCRIPT, 1) /submit → 'Load Example' → TP53 Orthologs (resolves fast). 2) Show transcript selection and the Alleles box; demo allele-name lookup. 3) Submit, glance at /progress, then jump to the PRE-RUN result to skip the wait. 4) Walk the alignment: conserved regions, one variant in context. 5) Click 'Edit these sequences' to show the form comes back pre-filled. AVOID zebrafish live (transcript data pending). Keep a screen recording as backup.">
       <div class="slide-head">
-        <div class="eyebrow">Live &mdash; watch it run</div>
+        <div class="eyebrow">Live, watch it run</div>
         <h2>Submit &rarr; Progress &rarr; Results</h2>
       </div>
       <div class="spring" style="display:flex;align-items:center">
@@ -578,7 +578,7 @@
     </section>
 
     <!-- 7 · READING RESULTS -->
-    <section class="slide" data-notes="This is where users actually spend their time — show, don't list. Hover a conserved column, click a variant, reorder a couple of rows, point out Download and the shareable job link.">
+    <section class="slide" data-notes="This is where users actually spend their time, show, don't list. Hover a conserved column, click a variant, reorder a couple of rows, point out Download and the shareable job link.">
       <div class="slide-head">
         <div class="eyebrow">On the results page</div>
         <h2>Reading the alignment</h2>
@@ -591,14 +591,14 @@
     </section>
 
     <!-- 8 · TIPS -->
-    <section class="slide" data-notes="Practical — these prevent the most common support questions. 'Load Example' gets a working multi-species job in one click; the first ~100 variants load for big genes, the rest come in by HGVS or allele name; My Jobs keeps history and Edit reopens anything.">
+    <section class="slide" data-notes="Practical, these prevent the most common support questions. 'Load Example' gets a working multi-species job in one click; the first ~100 variants load for big genes, the rest come in by HGVS or allele name; My Jobs keeps history and Edit reopens anything.">
       <div class="slide-head">
         <div class="eyebrow">Getting the most out of it</div>
         <h2>Four things worth knowing</h2>
       </div>
       <div class="tips">
         <div class="tip"><span class="m">&rsaquo;</span><p><b>Load Example</b> gives you a working multi-species job in one click.</p></div>
-        <div class="tip"><span class="m">&rsaquo;</span><p>Paste a full HGVS &mdash; <code>NC_000068.8:g.105521966G&gt;T</code> &mdash; to pull in a specific variant.</p></div>
+        <div class="tip"><span class="m">&rsaquo;</span><p>Paste a full HGVS, <code>NC_000068.8:g.105521966G&gt;T</code>, to pull in a specific variant.</p></div>
         <div class="tip"><span class="m">&rsaquo;</span><p>Big genes load ~the first 100 variants; find the rest by HGVS or allele name.</p></div>
         <div class="tip"><span class="m">&rsaquo;</span><p><b>My Jobs</b> keeps your history; <b>Edit</b> reopens any past query.</p></div>
       </div>
@@ -615,7 +615,7 @@
         <div class="link-row"><span class="k">In-app guide</span><span class="v"><em>/help/guide</em></span></div>
         <div class="link-row"><span class="k">Right now</span><span class="v">Load Example &rarr; Submit</span></div>
       </div>
-      <p class="note">Coming: broader species &amp; assembly coverage &mdash; a few transcript sets are still being published upstream.</p>
+      <p class="note">Coming: broader species &amp; assembly coverage, a few transcript sets are still being published upstream.</p>
     </section>
 
     <!-- 10 · THANKS -->
@@ -630,7 +630,7 @@
 </style>
     <section class="slide" data-notes="Acknowledgements. Credit the developers, and thank the Alliance PIs and the Variants Working Group who shaped and tested PAVI. Swap in specific names where the placeholders are if you want to call people out by name.">
       <div class="eyebrow">Acknowledgements</div>
-      <h2>Built by &mdash; and for &mdash;<br>the Alliance.</h2>
+      <h2>Built by, and for,<br>the Alliance.</h2>
 
       <div class="ack-grid">
         <div>
@@ -650,13 +650,9 @@
           </ul>
         </div>
       </div>
-
-      <p class="lead" style="margin-top:auto;color:var(--faint);font-size:2cqw">
-        Supported by NIH grant <span style="font-family:var(--mono)">U24HG010859</span>.
-      </p>
     </section>
     
-    <section class="slide thanks" data-notes="Invite concrete feedback — 'try it, then tell us what's missing' is how the roadmap gets set. Leave the links up during Q&amp;A.">
+    <section class="slide thanks" data-notes="Invite concrete feedback, 'try it, then tell us what's missing' is how the roadmap gets set. Leave the links up during Q&amp;A.">
       <div class="eyebrow">Questions &amp; feedback</div>
       <h2>Try it, then tell us<br>what&rsquo;s missing.</h2>
       <p class="lead"><span style="font-family:var(--mono);color:var(--accent-ink)">pavi.alliancegenome.org</span> &nbsp;&#183;&nbsp; <span style="font-family:var(--mono)">github.com/alliance-genome/agr_pavi</span></p>
