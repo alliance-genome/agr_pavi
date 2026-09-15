@@ -3,7 +3,7 @@
  * Provides offline support and caching for the PAVI web application
  */
 
-const CACHE_NAME = 'pavi-cache-v1';
+const CACHE_NAME = 'pavi-cache-v2';
 const OFFLINE_URL = '/offline';
 
 // Static assets to cache immediately
@@ -20,19 +20,25 @@ const CACHE_STRATEGIES = {
         /\.(?:js|css|woff2?|ttf|otf|eot)$/,
         /\/_next\/static\//,
     ],
-    // Network first for API and dynamic content
+    // Network first for API, dynamic content, AND all app pages.
+    // Page documents MUST be network-first: they carry Next.js Server Action
+    // IDs that are regenerated on every build. Serving a stale page after a
+    // redeploy makes the client POST old action IDs the new server rejects
+    // ("Failed to find Server Action"). Network-first always gives the current
+    // build's document, and still falls back to cache when offline.
     networkFirst: [
         /\/api\//,
         /\/result\//,
         /\/progress\//,
-    ],
-    // Stale while revalidate for pages
-    staleWhileRevalidate: [
         /\/$/,
         /\/submit/,
         /\/jobs/,
         /\/help/,
     ],
+    // Stale-while-revalidate is intentionally empty: never serve a stale app
+    // document (see the Server Action note above). Content-hashed assets under
+    // /_next/static/ are handled cache-first below and are safe (unique per build).
+    staleWhileRevalidate: [],
 };
 
 // Install event - cache core assets
