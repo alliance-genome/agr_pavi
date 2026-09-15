@@ -29,7 +29,9 @@ const nextConfig = {
     },
     ...(basePath ? { basePath } : {}),
     env: {
-        NEXT_PUBLIC_APP_VERSION: pkg.version,
+        // Prefer a build-injected version (e.g. `make print-webui-version` ->
+        // webui-vX.Y.Z-N-g<sha>); fall back to package.json when unset.
+        NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || pkg.version,
     },
 };
 

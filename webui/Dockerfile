@@ -19,6 +19,9 @@ COPY . .
 # so root/production image builds are unaffected.
 ARG NEXT_PUBLIC_BASE_PATH=""
 ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH}
+# Component version (e.g. webui-vX.Y.Z-N-g<sha>), baked in for the footer.
+ARG NEXT_PUBLIC_APP_VERSION=""
+ENV NEXT_PUBLIC_APP_VERSION=${NEXT_PUBLIC_APP_VERSION}
 RUN npm run build;
 
 # Production image, copy all the files and run next
