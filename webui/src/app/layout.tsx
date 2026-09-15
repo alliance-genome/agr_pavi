@@ -8,6 +8,7 @@ import { PrimeReactProvider } from 'primereact/api';
 
 import { Header } from './components/Header/Header';
 import { Footer } from './components/Footer/Footer';
+import { Ribbon } from './components/Ribbon/Ribbon';
 import { SkipLinks, LiveRegionProvider, KeyboardShortcuts } from './components/Accessibility';
 import { LayoutWrapper } from './components/LayoutWrapper';
 import { withBasePath } from '@/utils/basePath';
@@ -32,6 +33,7 @@ export default function RootLayout({
     return (
         <html lang="en">
         <body className={lato.className}>
+            <Ribbon />
             <PrimeReactProvider>
                 <LiveRegionProvider>
                     <link id="theme-link" rel="stylesheet" href={withBasePath('/themes/mdc-light-indigo/theme.css')} />

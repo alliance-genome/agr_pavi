@@ -1,0 +1,28 @@
+/* Top-right corner environment ribbon (BETA / DEV). */
+.ribbon {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 130px;
+    height: 130px;
+    overflow: hidden;
+    pointer-events: none; /* never intercept clicks on the UI beneath it */
+    z-index: 2000;
+}
+
+.ribbon span {
+    position: absolute;
+    top: 30px;
+    right: -38px;
+    display: block;
+    width: 180px;
+    padding: 7px 0;
+    text-align: center;
+    transform: rotate(45deg);
+    color: #fff;
+    font-family: var(--agr-font-mono, ui-monospace, monospace);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
