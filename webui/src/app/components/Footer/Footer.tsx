@@ -5,8 +5,16 @@ import Link from 'next/link';
 import styles from './Footer.module.css';
 import { withBasePath } from '@/utils/basePath';
 
-// WebUI version is inlined at build time from package.json (see next.config).
+// WebUI version is inlined at build time from package.json (see next.config),
+// or a build-injected git-describe (e.g. webui-v0.5.0-3-g<sha>).
 const WEBUI_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || 'dev';
+
+// Strip a component prefix and ensure a single leading "v":
+//   "0.5.0" -> "v0.5.0";  "webui-v0.5.0-3-g<sha>" -> "v0.5.0-3-g<sha>".
+const fmtVersion = (raw: string, component: string): string => {
+    const v = raw.replace(new RegExp(`^${component}-`), '');
+    return v.startsWith('v') ? v : `v${v}`;
+};
 
 export const Footer: React.FC = () => {
     const currentYear = new Date().getFullYear();
@@ -142,8 +150,8 @@ export const Footer: React.FC = () => {
                         . All rights reserved.
                     </p>
                     <p className={styles.version}>
-                        WebUI v{WEBUI_VERSION}
-                        {apiVersion ? ` · API v${apiVersion}` : ''}
+                        WebUI {fmtVersion(WEBUI_VERSION, 'webui')}
+                        {apiVersion ? ` · API ${fmtVersion(apiVersion, 'api')}` : ''}
                     </p>
                 </div>
             </div>
