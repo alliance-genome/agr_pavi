@@ -4,6 +4,10 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import styles from './Header.module.css';
 
+// Ortholog Alignment and Bulk Upload are hidden in the production release.
+// Set NEXT_PUBLIC_SHOW_EXPERIMENTAL=true (e.g. in dev) to show them again.
+const showExperimental = process.env.NEXT_PUBLIC_SHOW_EXPERIMENTAL === 'true';
+
 export const Header: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -67,12 +71,16 @@ export const Header: React.FC = () => {
                     <Link href="/submit" onClick={() => setMobileMenuOpen(false)}>
                         Submit Job
                     </Link>
-                    <Link href="/submit-ortholog" onClick={() => setMobileMenuOpen(false)}>
-                        Ortholog Alignment
-                    </Link>
-                    <Link href="/submit-bulk" onClick={() => setMobileMenuOpen(false)}>
-                        Bulk Upload
-                    </Link>
+                    {showExperimental && (
+                        <Link href="/submit-ortholog" onClick={() => setMobileMenuOpen(false)}>
+                            Ortholog Alignment
+                        </Link>
+                    )}
+                    {showExperimental && (
+                        <Link href="/submit-bulk" onClick={() => setMobileMenuOpen(false)}>
+                            Bulk Upload
+                        </Link>
+                    )}
                     <Link href="/jobs" onClick={() => setMobileMenuOpen(false)}>
                         My Jobs
                     </Link>
