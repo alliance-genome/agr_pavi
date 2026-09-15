@@ -3,9 +3,24 @@
 import React from 'react';
 import Link from 'next/link';
 import styles from './Footer.module.css';
+import { withBasePath } from '@/utils/basePath';
+
+// WebUI version is inlined at build time from package.json (see next.config).
+const WEBUI_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || 'dev';
 
 export const Footer: React.FC = () => {
     const currentYear = new Date().getFullYear();
+    const [apiVersion, setApiVersion] = React.useState<string | null>(null);
+
+    // Fetch the API's own version from its health endpoint.
+    React.useEffect(() => {
+        let cancelled = false;
+        fetch(withBasePath('/api/health'))
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && d?.version) setApiVersion(String(d.version)); })
+            .catch(() => { /* version is best-effort; ignore failures */ });
+        return () => { cancelled = true; };
+    }, []);
 
     return (
         <footer id="footer" className="agr-footer" role="contentinfo">
@@ -125,6 +140,10 @@ export const Footer: React.FC = () => {
                             Alliance of Genome Resources
                         </a>
                         . All rights reserved.
+                    </p>
+                    <p className={styles.version}>
+                        WebUI v{WEBUI_VERSION}
+                        {apiVersion ? ` · API v${apiVersion}` : ''}
                     </p>
                 </div>
             </div>

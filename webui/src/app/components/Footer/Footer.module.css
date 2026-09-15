@@ -120,3 +120,12 @@
         margin-bottom: 0;
     }
 }
+
+/* Component version line in the copyright bar */
+.version {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    opacity: 0.6;
+    font-family: var(--agr-font-mono, ui-monospace, monospace);
+    letter-spacing: 0.02em;
+}

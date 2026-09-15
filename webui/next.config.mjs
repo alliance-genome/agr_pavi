@@ -1,8 +1,12 @@
 import bundleAnalyzer from '@next/bundle-analyzer';
+import { readFileSync } from 'fs';
 
 const withBundleAnalyzer = bundleAnalyzer({
     enabled: process.env.ANALYZE === 'true',
 });
+
+// Expose the WebUI version (from package.json) to the client for display.
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 // Serve the app under a URL prefix (e.g. '/pavi') when NEXT_PUBLIC_BASE_PATH is set.
 // Unset/empty (default) keeps the app at root, matching current behavior exactly.
@@ -24,6 +28,9 @@ const nextConfig = {
         ]
     },
     ...(basePath ? { basePath } : {}),
+    env: {
+        NEXT_PUBLIC_APP_VERSION: pkg.version,
+    },
 };
 
 export default withBundleAnalyzer(nextConfig);

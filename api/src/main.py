@@ -377,6 +377,34 @@ async def help_msg() -> dict[str, str]:
     }
 
 
+def _resolve_api_version() -> str:
+    """Best-effort API version: env override, then installed package metadata,
+    then the pyproject.toml on disk, else 'unknown'."""
+    import os
+
+    env_version = os.environ.get("PAVI_API_VERSION")
+    if env_version:
+        return env_version
+    try:
+        from importlib.metadata import version
+
+        return version("pavi-api")
+    except Exception:
+        pass
+    try:
+        import tomllib
+        from pathlib import Path
+
+        pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+        with open(pyproject, "rb") as fh:
+            return str(tomllib.load(fh)["project"]["version"])
+    except Exception:
+        return "unknown"
+
+
+API_VERSION = _resolve_api_version()
+
+
 @router.get(
     "/health",
     status_code=200,
@@ -393,6 +421,7 @@ async def health() -> dict[str, Any]:
 
     response: dict[str, Any] = {
         "status": "up",
+        "version": API_VERSION,
         "execution_mode": mode,
         "environment": _config.environment.value,
     }
