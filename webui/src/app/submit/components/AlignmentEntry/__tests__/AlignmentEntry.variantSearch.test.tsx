@@ -10,6 +10,7 @@ jest.mock(
     () => ({
         resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
             sc?.jBrowseDataReleaseOverride ?? r,
+        gffFileUrl: jest.fn(() => 'https://example.test/gff.gff.gz'),
         getSpecies: jest.fn((taxonId: string) => ({
             apolloName: 'human',
             apolloTrack: '/All%20Genes/',
@@ -34,8 +35,8 @@ jest.mock('../../TranscriptViewer', () => ({
     TranscriptViewerDialog: () => null,
 }));
 
-jest.mock('generic-sequence-panel', () => ({
-    fetchTranscripts: jest.fn(async () => []),
+jest.mock('@/utils/tabixTranscripts', () => ({
+    fetchTranscriptsGff: jest.fn(async () => []),
 }));
 
 // Reuse the real gene/allele mocks (fetchGeneInfo, fetchAlleles, ...) from the

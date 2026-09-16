@@ -15,10 +15,8 @@ import { JobSumbissionPayloadRecord } from '@/app/submit/components/JobSubmitFor
 
 import { fetchOrthologs, OrthologInfo } from './serverActions';
 
-import { getSpecies, getSingleGenomeLocation, resolveJBrowseRelease } from '@/utils/agrSpeciesConfig';
-import { fetchTranscripts } from 'generic-sequence-panel';
-import NCListFeature from 'generic-sequence-panel/dist/NCListFeature';
-import { dedupe, revlist } from '@/app/submit/components/AlignmentEntry/utils';
+import { getSpecies, getSingleGenomeLocation, gffFileUrl } from '@/utils/agrSpeciesConfig';
+import { fetchTranscriptsGff } from '@/utils/tabixTranscripts';
 
 import styles from './page.module.css';
 
@@ -122,28 +120,6 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
 
     const selectedCount = orthologs.filter(o => o.selected).length + (includeSource ? 1 : 0);
 
-    // Convert JBrowse relative positions to reference positions
-    // Exact copy of the logic from useTranscriptSelection.ts
-    function jBrowseSubfeatureRelToRefPos(
-        subfeatureList: Array<Record<string, any>>,
-        featureStrand: number,
-        parentRefStart: number,
-        parentRefEnd: number
-    ): Array<Record<string, any>> {
-        return subfeatureList.map((subfeat) => {
-            const newSubfeat = { ...subfeat };
-            const start = subfeat['start'] as number;
-            const end = subfeat['end'] as number;
-            if (featureStrand === -1) {
-                newSubfeat['refStart'] = parentRefEnd - start;
-                newSubfeat['refEnd'] = parentRefEnd - end + 1;
-            } else {
-                newSubfeat['refStart'] = parentRefStart + start + 1;
-                newSubfeat['refEnd'] = parentRefStart + end;
-            }
-            return newSubfeat;
-        });
-    }
 
     interface BuildPayloadResult {
         record: JobSumbissionPayloadRecord | null;
@@ -158,63 +134,39 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
             const speciesConfig = getSpecies(gene.species.taxonId);
             const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);
 
-            const jBrowsenclistbaseurl = speciesConfig.jBrowsenclistbaseurltemplate.replace(
-                '{release}', resolveJBrowseRelease(speciesConfig, agrjBrowseDataRelease)
-            );
+            const gffUrl = gffFileUrl(speciesConfig, agrjBrowseDataRelease);
 
-            const transcripts = await fetchTranscripts({
+            const transcripts = await fetchTranscriptsGff({
+                gffUrl,
                 refseq: genomeLocation['chromosome'],
                 start: genomeLocation['start'],
                 end: genomeLocation['end'],
-                gene: gene['symbol'],
-                urltemplate: speciesConfig.jBrowseurltemplate,
-                nclistbaseurl: jBrowsenclistbaseurl,
+                geneSymbol: gene['symbol'],
             });
 
             if (!transcripts || transcripts.length === 0) {
                 return { record: null, error: `${gene.symbol}: no transcripts found` };
             }
 
-            // Pick first transcript (same as useTranscriptSelection)
-            const transcript = transcripts[0];
-            const feature: any = new NCListFeature(transcript).toJSON();
-            const { subfeatures = [] } = feature;
+            // Pick the first protein-coding transcript (with CDS), else the first.
+            const transcript = transcripts.find((t) => t.cds_regions.length > 0) ?? transcripts[0];
 
-            const children = subfeatures
-                .sort((a: { start: number }, b: { start: number }) => a.start - b.start)
-                .map((sub: any) => ({
-                    ...sub,
-                    start: sub.start - feature.start,
-                    end: sub.end - feature.start,
-                }));
-
-            let exons: any[] = dedupe(children.filter((sub: { type: string }) => sub.type === 'exon'));
-            let cds_regions: any[] = dedupe(children.filter((sub: { type: string }) => sub.type === 'CDS'));
-
-            const transcript_length = transcript.get('end') - transcript.get('start');
-            if (feature.strand === -1) {
-                exons = revlist(exons, transcript_length);
-                cds_regions = revlist(cds_regions, transcript_length);
-            }
-
-            // Convert relative to absolute positions (exact same as useTranscriptSelection)
-            exons = jBrowseSubfeatureRelToRefPos(exons, feature.strand, transcript.get('start'), transcript.get('end'));
-            cds_regions = jBrowseSubfeatureRelToRefPos(cds_regions, feature.strand, transcript.get('start'), transcript.get('end'));
-
-            if (cds_regions.length === 0) {
+            if (transcript.cds_regions.length === 0) {
                 return { record: null, error: `${gene.symbol}: no CDS regions` };
             }
 
-            const transcriptName = (transcript.get('name') as string) ?? gene.symbol;
+            // GFF coords are already in the final 1-based-inclusive forward frame;
+            // no relative→reference / revlist transform (see tabixTranscripts.ts).
+            const transcriptName = transcript.name ?? gene.symbol;
 
             return {
                 record: {
                     unique_entry_id: `${index}_${gene.symbol}_${transcriptName}`,
                     base_seq_name: `${gene.symbol}_${transcriptName}`,
                     seq_id: genomeLocation['chromosome'],
-                    seq_strand: feature.strand === -1 ? '-' : '+',
-                    exon_seq_regions: exons.map((e: any) => ({ start: e.refStart, end: e.refEnd })),
-                    cds_seq_regions: cds_regions.map((c: any) => ({ start: c.refStart, end: c.refEnd, frame: c.phase ?? 0 })),
+                    seq_strand: transcript.strand === -1 ? '-' : '+',
+                    exon_seq_regions: transcript.exons.map((e) => ({ start: e.start, end: e.end })),
+                    cds_seq_regions: transcript.cds_regions.map((c) => ({ start: c.start, end: c.end, frame: c.phase })),
                     fasta_file_url: speciesConfig.jBrowsefastaurl,
                     variant_ids: [],
                     alt_seq_name_suffix: '_alt',

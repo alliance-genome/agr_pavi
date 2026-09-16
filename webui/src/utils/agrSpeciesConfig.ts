@@ -11,15 +11,15 @@
  *  - The urlImport was *locked* to a stale snapshot of `agr_ui@main`, so the
  *    per-species JBrowse paths silently drifted from what is actually on S3
  *    (e.g. the stale copy still used the old `zfin/zebrafish-11/` path).
- *  - Owning the config lets PAVI pin a *coherent* (NCList release + FASTA
- *    assembly) pair per species, which the pipeline requires: transcript
- *    exon coordinates come from the NCList and are spliced against
- *    `jBrowsefastaurl`, so the two MUST be the same genome assembly.
+ *  - Owning the config lets PAVI keep a *coherent* (transcript-track + FASTA
+ *    assembly) pair per species, which the pipeline requires: transcript exon
+ *    coordinates come from the GFF and are spliced against `jBrowsefastaurl`,
+ *    so the two MUST be the same genome assembly.
  *
  * Keep this in sync deliberately (not automatically) with agr_ui's SPECIES.
- * Only the fields PAVI reads are carried here:
- *   jBrowsenclistbaseurltemplate, jBrowseurltemplate, jBrowsefastaurl,
- *   apolloName (used by the "View transcripts" viewer), plus identity fields.
+ * Transcript models are fetched from `jBrowseGffurltemplate` (tabix GFF, the
+ * current AGR format); the `jBrowsenclist*` fields are the deprecated NCList
+ * source, retained only for the legacy "View transcripts" viewer.
  *
  * Per-species overrides (`jBrowseDataReleaseOverride`) let one species use a
  * different JBrowse data release than the global Alliance release, without
@@ -32,16 +32,24 @@ export interface SpeciesConfig {
     shortName: string;
     jBrowseName: string;
     apolloName: string;
-    /** NCList base URL, with a `{release}` placeholder. */
+    /** NCList base URL, with a `{release}` placeholder. (Legacy; visualization only.) */
     jBrowsenclistbaseurltemplate: string;
     /** Per-refseq track path appended to the NCList base URL. */
     jBrowseurltemplate: string;
-    /** Reference genome FASTA. MUST match the assembly of the NCList above. */
+    /**
+     * Tabix-indexed GFF URL for transcript models, with a `{release}`
+     * placeholder (e.g. `.../{release}/zfin/zebrafish/GFF_ZFIN.sorted.gff.gz`).
+     * This is the CURRENT transcript source; the NCList fields above are the
+     * deprecated one AGR migrated away from. MUST be the same genome assembly
+     * as `jBrowsefastaurl` (exon coords are spliced against that FASTA).
+     */
+    jBrowseGffurltemplate: string;
+    /** Reference genome FASTA. MUST match the assembly of the GFF above. */
     jBrowsefastaurl: string;
     /**
      * When set, this species uses this JBrowse data release instead of the
      * global Alliance release. Use it to pin a species to a release whose
-     * NCList tracks still exist / match `jBrowsefastaurl`.
+     * tracks still exist / match `jBrowsefastaurl`.
      */
     jBrowseDataReleaseOverride?: string;
 }
@@ -58,6 +66,7 @@ export const SPECIES: SpeciesConfig[] = [
         apolloName: 'human',
         jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/human/`,
         jBrowseurltemplate: ALL_GENES,
+        jBrowseGffurltemplate: `${S3}/docker/{release}/human/GFF_HUMAN.sorted.gff.gz`,
         jBrowsefastaurl: `${S3}/fasta/GCF_000001405.40_GRCh38.p14_genomic.fna.gz`,
     },
     {
@@ -68,6 +77,7 @@ export const SPECIES: SpeciesConfig[] = [
         apolloName: 'mouse',
         jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/MGI/mouse/`,
         jBrowseurltemplate: ALL_GENES,
+        jBrowseGffurltemplate: `${S3}/docker/{release}/MGI/mouse/GFF_MGI.sorted.gff.gz`,
         jBrowsefastaurl: `${S3}/fasta/GCF_000001635.27_GRCm39_genomic.fna.gz`,
     },
     {
@@ -78,6 +88,7 @@ export const SPECIES: SpeciesConfig[] = [
         apolloName: 'rat',
         jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/RGD/rat/`,
         jBrowseurltemplate: ALL_GENES,
+        jBrowseGffurltemplate: `${S3}/docker/{release}/RGD/rat/GFF_RGD.sorted.gff.gz`,
         jBrowsefastaurl: `${S3}/fasta/GCF_036323735.1_GRCr8_genomic.fna.gz`,
     },
     {
@@ -88,6 +99,7 @@ export const SPECIES: SpeciesConfig[] = [
         apolloName: 'x_laevis',
         jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/XenBase/x_laevis/`,
         jBrowseurltemplate: ALL_GENES,
+        jBrowseGffurltemplate: `${S3}/docker/{release}/XenBase/x_laevis/GFF_XBXL.sorted.gff.gz`,
         jBrowsefastaurl: `${S3}/fasta/GCF_017654675.1_Xenopus_laevis_v10.1_genomic.fna.gz`,
     },
     {
@@ -98,35 +110,28 @@ export const SPECIES: SpeciesConfig[] = [
         apolloName: 'x_tropicalis',
         jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/XenBase/x_tropicalis/`,
         jBrowseurltemplate: ALL_GENES,
+        jBrowseGffurltemplate: `${S3}/docker/{release}/XenBase/x_tropicalis/GFF_XBXT.sorted.gff.gz`,
         jBrowsefastaurl: `${S3}/fasta/GCF_000004195.4_UCB_Xtro_10.0_genomic.fna.gz`,
     },
     {
-        // Danio rerio — PINNED to the older 9.0.0 / GRCz11 data (deliberate).
+        // Danio rerio — current assembly (GRCz12tu), via the tabix GFF.
         //
-        // Context: at release 9.1.0 the current-assembly (GRCz12tu) zebrafish
-        // transcript tracks are not yet published on S3 (`zfin/zebrafish/` 404s).
-        // The last published tracks are GRCz11, at release 9.0.0, under the
-        // legacy `zfin/zebrafish-11/` path — so we pin the NCList + FASTA to
-        // that coherent GRCz11 pair, and pin the release to 9.0.0.
-        //
-        // IMPORTANT CAVEAT (surfaced to users via a zebrafish disclaimer in
-        // AlignmentEntry): the Alliance gene API now returns GRCz12tu
-        // coordinates, which do NOT match these GRCz11 tracks. In practice
-        // many zebrafish genes therefore return an empty transcript list
-        // (e.g. tp53), and any that DO return transcripts are on the old
-        // assembly and could, in rare coordinate-overlap cases, be the wrong
-        // locus. This pin is a stopgap so zebrafish is not hard-blocked;
-        // remove it (revert to `{release}` + `zfin/zebrafish/` + GRCz12tu)
-        // once AGR publishes GRCz12tu tracks.
+        // Zebrafish transcripts come from the current-assembly GFF
+        // (zfin/zebrafish/GFF_ZFIN.sorted.gff.gz, GRCz12tu), matching the
+        // GRCz12tu coordinates the Alliance gene API returns and the GRCz12tu
+        // FASTA below. The old NCList `zfin/zebrafish-11/` (GRCz11) tracks that
+        // this used to be pinned to are deprecated; the nclist fields remain
+        // only for the legacy "View transcripts" viewer and are not used for
+        // alignment. (The prior 9.0.0/GRCz11 pin + release override are gone.)
         taxonId: 'NCBITaxon:7955',
         fullName: 'Danio rerio',
         shortName: 'Dre',
         jBrowseName: 'Danio rerio',
         apolloName: 'zebrafish',
-        jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/zfin/zebrafish-11/`,
+        jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/zfin/zebrafish/`,
         jBrowseurltemplate: ALL_GENES,
-        jBrowsefastaurl: `${S3}/fasta/GCF_000002035.6_GRCz11_genomic.fna.gz`,
-        jBrowseDataReleaseOverride: '9.0.0',
+        jBrowseGffurltemplate: `${S3}/docker/{release}/zfin/zebrafish/GFF_ZFIN.sorted.gff.gz`,
+        jBrowsefastaurl: `${S3}/fasta/GCF_049306965.1_GRCz12tu_genomic.fna.gz`,
     },
     {
         taxonId: 'NCBITaxon:7227',
@@ -136,6 +141,7 @@ export const SPECIES: SpeciesConfig[] = [
         apolloName: 'fly',
         jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/FlyBase/fruitfly/`,
         jBrowseurltemplate: ALL_GENES,
+        jBrowseGffurltemplate: `${S3}/docker/{release}/FlyBase/fruitfly/GFF_FB.sorted.gff.gz`,
         jBrowsefastaurl: `${S3}/fasta/dmel-all-chromosome-r6.67.fasta.gz`,
     },
     {
@@ -146,6 +152,7 @@ export const SPECIES: SpeciesConfig[] = [
         apolloName: 'worm',
         jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/WormBase/c_elegans_PRJNA13758/`,
         jBrowseurltemplate: ALL_GENES,
+        jBrowseGffurltemplate: `${S3}/docker/{release}/WormBase/c_elegans_PRJNA13758/GFF_WB.sorted.gff.gz`,
         jBrowsefastaurl: `${S3}/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz`,
     },
     {
@@ -156,6 +163,7 @@ export const SPECIES: SpeciesConfig[] = [
         apolloName: 'yeast',
         jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/SGD/yeast/`,
         jBrowseurltemplate: ALL_GENES,
+        jBrowseGffurltemplate: `${S3}/docker/{release}/SGD/yeast/GFF_SGD.sorted.gff.gz`,
         jBrowsefastaurl: `${S3}/fasta/GCF_000146045.2_R64_genomic.fna.gz`,
     },
     {
@@ -166,6 +174,10 @@ export const SPECIES: SpeciesConfig[] = [
         apolloName: 'SARS-CoV-2',
         jBrowsenclistbaseurltemplate: `${S3}/docker/{release}/SARS-CoV-2/`,
         jBrowseurltemplate: 'tracks/All Genes/{refseq}/trackData.jsonz',
+        // No AGR tabix GFF published for SARS-CoV-2; it is not an alignment
+        // target here, so leave the GFF template empty (a fetch would surface a
+        // load failure, same as any species with no transcript data).
+        jBrowseGffurltemplate: '',
         jBrowsefastaurl: `${S3}/fasta/GCF_000001405.40_GRCh38.p14_genomic.fna.gz`,
     },
 ];
@@ -191,6 +203,20 @@ export function resolveJBrowseRelease(
     globalRelease: string,
 ): string {
     return speciesConfig.jBrowseDataReleaseOverride ?? globalRelease;
+}
+
+/**
+ * Resolve a species' tabix-GFF transcript-track URL for a release: substitutes
+ * `{release}` (honouring any per-species override) into `jBrowseGffurltemplate`.
+ * Returns an empty string when the species has no GFF configured.
+ */
+export function gffFileUrl(
+    speciesConfig: Partial<SpeciesConfig>,
+    globalRelease: string,
+): string {
+    const template = speciesConfig.jBrowseGffurltemplate;
+    if (!template) return '';
+    return template.replace('{release}', resolveJBrowseRelease(speciesConfig, globalRelease));
 }
 
 // Loosely typed to match the prior (untyped) agr_ui import: callers index in

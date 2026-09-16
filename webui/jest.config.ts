@@ -102,6 +102,12 @@ const config: Config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@nightingale-elements/nightingale-track$': '<rootDir>/__mocks__/nightingale-track.ts', // mock nightingale-track module because it keeps throwing errors when tested through jest
+    // The tabix/GFF libs are browser-oriented ESM that jest can't transform and
+    // would make real HTTP calls; stub them so the transcript-fetch module can
+    // load under jsdom (it then yields no transcripts unless a test mocks it).
+    '^@gmod/tabix$': '<rootDir>/__mocks__/gmod-stub.ts',
+    '^@gmod/gff$': '<rootDir>/__mocks__/gmod-stub.ts',
+    '^generic-filehandle$': '<rootDir>/__mocks__/gmod-stub.ts',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

@@ -6,20 +6,16 @@ jest.mock(
     () => ({
         getSpecies: jest.fn(),
         getSingleGenomeLocation: jest.fn(),
-        resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
-            sc?.jBrowseDataReleaseOverride ?? r,
+        gffFileUrl: jest.fn(() => ''),
     })
 );
 
 import { selectInitialTranscriptIds } from '../useTranscriptSelection';
 
-// A minimal stand-in for the generic-sequence-panel Feature: only the
-// members selectInitialTranscriptIds uses.
+// A minimal stand-in for a GffTranscript: only the members
+// selectInitialTranscriptIds uses (id, name).
 function feature(id: string, name: string) {
-    return {
-        id: () => id,
-        get: (key: string) => (key === 'name' ? name : undefined),
-    };
+    return { id, name };
 }
 
 describe('selectInitialTranscriptIds', () => {

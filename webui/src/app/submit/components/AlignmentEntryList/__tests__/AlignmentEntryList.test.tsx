@@ -6,6 +6,7 @@ import { AlignmentEntryList } from '../AlignmentEntryList'
 jest.mock('@/utils/agrSpeciesConfig',
     () => {
         return {
+            gffFileUrl: jest.fn(() => 'https://example.test/gff.gff.gz'),
             getSpecies: jest.fn(() => {}),
             getSingleGenomeLocation: jest.fn(() => {}),
             resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>

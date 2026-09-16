@@ -505,14 +505,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         !transcriptSelection.transcriptListLoading &&
         transcriptSelection.transcriptList.length === 0;
 
-    // Zebrafish is pinned to older (GRCz11 / release 9.0.0) transcript tracks
-    // because the current GRCz12tu tracks aren't published yet — see the
-    // zebrafish entry in agrSpeciesConfig.ts. When such tracks DO resolve, warn
-    // that they're on the old assembly and may not match current coordinates.
-    const isZebrafish = geneSearch.gene?.species?.taxonId === 'NCBITaxon:7955';
-    const showZebrafishAssemblyNotice =
-        isZebrafish && transcriptSelection.transcriptList.length > 0;
-
     return (
         <div className="p-inputgroup" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', width: '100%' }}>
             {/* 1. Gene Selection (required) */}
@@ -589,18 +581,11 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                             </span>
                         )}
                         options={transcriptSelection.transcriptList.map((r) => {
-                            const rawProteinAccession =
-                                (r.get('Protein_id') as string | undefined) ||
-                                (r.get('protein_id') as string | undefined);
-                            const proteinAccession =
-                                rawProteinAccession && rawProteinAccession !== 'None'
-                                    ? rawProteinAccession
-                                    : undefined;
                             return {
-                                key: r.id(),
-                                value: r.id(),
-                                label: r.get('name') as string,
-                                proteinAccession,
+                                key: r.id,
+                                value: r.id,
+                                label: r.name,
+                                proteinAccession: r.proteinAccession,
                             };
                         })}
                     />
@@ -618,27 +603,6 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     >
                         No transcript models are available for this gene in the current genome
                         assembly, so it can&rsquo;t be aligned yet.
-                    </small>
-                )}
-                {showZebrafishAssemblyNotice && (
-                    <small
-                        role="alert"
-                        style={{
-                            display: 'block',
-                            marginTop: '0.35rem',
-                            color: 'var(--agr-warning-text, #8a6d1a)',
-                            background: 'var(--agr-warning-bg, #fff8e1)',
-                            border: '1px solid var(--agr-warning-border, #ffe08a)',
-                            borderRadius: '4px',
-                            padding: '0.4rem 0.55rem',
-                            lineHeight: 1.35,
-                        }}
-                    >
-                        <strong>Zebrafish (older assembly):</strong> transcript models are
-                        served from GRCz11 (Alliance data release 9.0.0) because current
-                        (GRCz12tu) tracks aren&rsquo;t published yet. Coordinates may not match
-                        the current assembly &mdash; verify any zebrafish alignment before
-                        relying on it.
                     </small>
                 )}
             </div>

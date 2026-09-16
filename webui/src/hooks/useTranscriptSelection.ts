@@ -2,13 +2,10 @@
 
 import { useCallback, useEffect, useState, RefObject } from 'react';
 import { MultiSelect } from 'primereact/multiselect';
-import { fetchTranscripts } from 'generic-sequence-panel';
-import NCListFeature from 'generic-sequence-panel/dist/NCListFeature';
-import { Feature, dedupe, revlist } from '@/app/submit/components/AlignmentEntry/utils';
-import { GeneInfo, TranscriptInfo, FeatureStrand, AlignmentEntryStatus } from '@/app/submit/components/AlignmentEntry/types';
+import { GeneInfo, TranscriptInfo, AlignmentEntryStatus } from '@/app/submit/components/AlignmentEntry/types';
 
-// Note: dynamic import of stage vs main src is currently not possible on client nor server
-import { getSpecies, getSingleGenomeLocation, resolveJBrowseRelease } from '@/utils/agrSpeciesConfig';
+import { getSpecies, getSingleGenomeLocation, gffFileUrl } from '@/utils/agrSpeciesConfig';
+import { fetchTranscriptsGff, GffTranscript } from '@/utils/tabixTranscripts';
 
 export interface UseTranscriptSelectionOptions {
     gene: GeneInfo | undefined;
@@ -20,21 +17,21 @@ export interface UseTranscriptSelectionOptions {
 }
 
 // Map transcript names (as they appear in the file / MultiSelect label,
-// e.g. "ENST00000269305.9") to the transcript feature ids the selection
-// state uses. Preserves transcriptList order; names not present are dropped.
+// e.g. "ENST00000269305.9") to the transcript ids the selection state uses.
+// Preserves transcriptList order; names not present are dropped.
 export function selectInitialTranscriptIds(
-    transcriptList: Feature[],
+    transcriptList: GffTranscript[],
     names: string[]
 ): string[] {
     const wanted = new Set(names);
     return transcriptList
-        .filter((t) => wanted.has(t.get('name') as string))
-        .map((t) => t.id());
+        .filter((t) => wanted.has(t.name))
+        .map((t) => t.id);
 }
 
 export interface UseTranscriptSelectionResult {
     // State
-    transcriptList: Feature[];
+    transcriptList: GffTranscript[];
     transcriptListLoading: boolean;
     transcriptLoadFailed: boolean;
     selectedTranscriptIds: string[];
@@ -50,30 +47,6 @@ export interface UseTranscriptSelectionResult {
     resetSelection: () => void;
 }
 
-// Convert relative positions (to parent feature) to absolute positions (to chromosome/contig)
-function jBrowseSubfeatureRelToRefPos(
-    subfeatureList: Array<Record<string, unknown>>,
-    featureStrand: FeatureStrand,
-    parentRefStart: number,
-    parentRefEnd: number
-): Array<Record<string, unknown>> {
-    return subfeatureList.map((subfeat) => {
-        const newSubfeat = { ...subfeat };
-        const start = subfeat['start'] as number;
-        const end = subfeat['end'] as number;
-
-        if (featureStrand === -1) {
-            newSubfeat['refStart'] = parentRefEnd - start;
-            newSubfeat['refEnd'] = parentRefEnd - end + 1;
-        } else {
-            newSubfeat['refStart'] = parentRefStart + start + 1;
-            newSubfeat['refEnd'] = parentRefStart + end;
-        }
-
-        return newSubfeat;
-    });
-}
-
 export function useTranscriptSelection(
     options: UseTranscriptSelectionOptions,
     transcriptMultiselectRef: RefObject<MultiSelect | null>
@@ -81,11 +54,10 @@ export function useTranscriptSelection(
     const { gene, agrjBrowseDataRelease, onStatusChange, setupCompleted, initialGeneId, initialTranscriptNames } = options;
 
     // Transcript state
-    const [transcriptList, setTranscriptList] = useState<Feature[]>([]);
+    const [transcriptList, setTranscriptList] = useState<GffTranscript[]>([]);
     const [transcriptListLoading, setTranscriptListLoading] = useState(true);
-    // True when a transcript fetch errored (e.g. the JBrowse NCList track data
-    // doesn't exist for this species' assembly/release — see zebrafish on
-    // GRCz12tu, which only ships GFF, not NCList). Distinct from "loaded but
+    // True when a transcript fetch errored (e.g. the tabix GFF / index could not
+    // be read for this species' assembly/release). Distinct from "loaded but
     // empty" so the UI can explain the difference.
     const [transcriptLoadFailed, setTranscriptLoadFailed] = useState(false);
     const [selectedTranscriptIds, setSelectedTranscriptIds] = useState<string[]>([]);
@@ -120,74 +92,26 @@ export function useTranscriptSelection(
                 transcriptIds.forEach((transcriptId) => {
                     console.log(`Finding transcript for ID ${transcriptId}...`);
 
-                    const transcript = transcriptList.find((r) => r.id() === transcriptId);
+                    const transcript = transcriptList.find((r) => r.id === transcriptId);
                     if (!transcript) {
                         console.error(`No transcript found for transcript ID ${transcriptId}`);
                         onStatusChange?.(AlignmentEntryStatus.FAILED_PROCESSING);
                     } else {
-                        console.log(`Found transcript ${transcript}.`);
-                        console.log(`Fetching exon info for transcript ${transcript}...`);
-
-                        const feature: any = new NCListFeature(transcript).toJSON();
-                        console.debug('Transcript feature:', feature);
-
-                        const { subfeatures = [] } = feature;
-
-                        const children = subfeatures
-                            .sort((a: { start: number }, b: { start: number }) => a.start - b.start)
-                            .map((sub: any) => ({
-                                ...sub,
-                                start: sub.start - feature.start,
-                                end: sub.end - feature.start,
-                            }));
-
-                        let exons: any[] = dedupe(children.filter((sub: { type: string }) => sub.type === 'exon'));
-                        let cds_regions: any[] = dedupe(children.filter((sub: { type: string }) => sub.type === 'CDS'));
-
-                        const transcript_length = transcript.get('end') - transcript.get('start');
-                        if (feature.strand === -1) {
-                            exons = revlist(exons, transcript_length);
-                            cds_regions = revlist(cds_regions, transcript_length);
-                        }
-
-                        // Convert relative positions (to transcript) to absolute positions (to chromosome/contig)
-                        exons = jBrowseSubfeatureRelToRefPos(
-                            exons,
-                            feature.strand,
-                            transcript.get('start'),
-                            transcript.get('end')
-                        );
-                        cds_regions = jBrowseSubfeatureRelToRefPos(
-                            cds_regions,
-                            feature.strand,
-                            transcript.get('start'),
-                            transcript.get('end')
-                        );
-
-                        console.log(`transcript ${transcript.get('name')} resulted in exons:`, exons);
-                        console.log(`transcript ${transcript.get('name')} resulted in cds regions:`, cds_regions);
-
-                        const rawProteinAccession =
-                            (transcript.get('Protein_id') as string | undefined) ||
-                            (transcript.get('protein_id') as string | undefined) ||
-                            (feature['Protein_id'] as string | undefined) ||
-                            (feature['protein_id'] as string | undefined);
-                        const proteinAccession =
-                            rawProteinAccession && rawProteinAccession !== 'None'
-                                ? rawProteinAccession
-                                : undefined;
-
+                        // GFF exon/CDS coordinates are already in the final frame
+                        // (1-based inclusive, forward-genomic, per-CDS phase, strand
+                        // carried separately) — the same frame the pipeline expects.
+                        // No NCList relative→reference transform is applied here.
                         const transcriptInfo: TranscriptInfo = {
-                            id: transcript.id(),
-                            curie: (transcript.get('curie') as string) ?? '',
-                            name: (transcript.get('name') as string) ?? '',
-                            strand: feature.strand as FeatureStrand,
-                            proteinAccession,
-                            exons: exons.map((e) => ({ refStart: e.refStart as number, refEnd: e.refEnd as number })),
-                            cds_regions: cds_regions.map((e) => ({
-                                refStart: e.refStart as number,
-                                refEnd: e.refEnd as number,
-                                phase: e.phase as 0 | 1 | 2,
+                            id: transcript.id,
+                            curie: transcript.curie ?? '',
+                            name: transcript.name ?? '',
+                            strand: transcript.strand,
+                            proteinAccession: transcript.proteinAccession,
+                            exons: transcript.exons.map((e) => ({ refStart: e.start, refEnd: e.end })),
+                            cds_regions: transcript.cds_regions.map((c) => ({
+                                refStart: c.start,
+                                refEnd: c.end,
+                                phase: c.phase,
                             })),
                         };
 
@@ -215,31 +139,25 @@ export function useTranscriptSelection(
 
                 setFastaFileUrl(speciesConfig.jBrowsefastaurl);
 
-                const jBrowsenclistbaseurl = speciesConfig.jBrowsenclistbaseurltemplate.replace(
-                    '{release}',
-                    resolveJBrowseRelease(speciesConfig, agrjBrowseDataRelease)
-                );
-
+                const gffUrl = gffFileUrl(speciesConfig, agrjBrowseDataRelease);
                 const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);
 
                 try {
-                    const transcripts = await fetchTranscripts({
+                    const transcripts = await fetchTranscriptsGff({
+                        gffUrl,
                         refseq: genomeLocation['chromosome'],
                         start: genomeLocation['start'],
                         end: genomeLocation['end'],
-                        gene: gene['symbol'],
-                        urltemplate: speciesConfig.jBrowseurltemplate,
-                        nclistbaseurl: jBrowsenclistbaseurl,
+                        geneSymbol: gene['symbol'],
                     });
                     console.log('transcripts received:', transcripts);
 
                     // Define transcripts list
                     setTranscriptList(transcripts);
                 } catch (e) {
-                    // fetchTranscripts rejects when the NCList track data can't be
-                    // read (e.g. a 404 because this assembly/release has no NCList
-                    // tracks published). Surface it instead of leaving a silent
-                    // empty dropdown.
+                    // fetchTranscriptsGff rejects when the tabix GFF / index can't
+                    // be read (e.g. a 404, or no GFF configured for the species).
+                    // Surface it instead of leaving a silent empty dropdown.
                     console.error(`Failed to fetch transcripts for ${gene.symbol}:`, e);
                     setTranscriptLoadFailed(true);
                     setTranscriptList([]);
@@ -294,10 +212,10 @@ export function useTranscriptSelection(
             }
             const canonicalTranscript =
                 transcriptList.find(
-                    (t) => t.get('name')?.includes('canonical') || t.get('is_canonical') === true
+                    (t) => t.name?.includes('canonical') || t.isCanonical === true
                 ) || transcriptList[0];
             if (canonicalTranscript) {
-                setSelectedTranscriptIds([canonicalTranscript.id()]);
+                setSelectedTranscriptIds([canonicalTranscript.id]);
             }
         }
     }, [initialGeneId, initialTranscriptNames, transcriptListLoading, transcriptList, selectedTranscriptIds.length]);

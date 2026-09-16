@@ -1,25 +1,23 @@
-// useTranscriptSelection imports this remote module at module scope; mock it so
+// useTranscriptSelection imports the species config at module scope; mock it so
 // the hook can be required in jsdom (mirrors AlignmentEntry.test.tsx).
 jest.mock(
     '@/utils/agrSpeciesConfig',
     () => ({
         getSpecies: jest.fn(() => ({
             jBrowsefastaurl: 'https://example.test/fasta.fa.gz',
-            jBrowsenclistbaseurltemplate: 'https://example.test/docker/{release}/zfin/zebrafish/',
-            jBrowseurltemplate: 'tracks/All_Genes/{refseq}/trackData.jsonz',
+            jBrowseGffurltemplate: 'https://example.test/docker/{release}/zfin/zebrafish/GFF_ZFIN.sorted.gff.gz',
         })),
         getSingleGenomeLocation: jest.fn(() => ({ chromosome: '5', start: 1, end: 2 })),
-        resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
-            sc?.jBrowseDataReleaseOverride ?? r,
+        gffFileUrl: (sc: { jBrowseGffurltemplate?: string }, r: string) =>
+            (sc?.jBrowseGffurltemplate ?? '').replace('{release}', r),
     })
 );
 
-// Control the transcript fetch so we can simulate a missing-NCList rejection.
+// Control the transcript fetch so we can simulate a missing-track rejection.
 const mockFetchTranscripts = jest.fn();
-jest.mock('generic-sequence-panel', () => ({
-    fetchTranscripts: (...a: any[]) => mockFetchTranscripts(...a),
+jest.mock('@/utils/tabixTranscripts', () => ({
+    fetchTranscriptsGff: (...a: any[]) => mockFetchTranscripts(...a),
 }));
-jest.mock('generic-sequence-panel/dist/NCListFeature', () => ({ __esModule: true, default: class {} }));
 
 import { renderHook, waitFor } from '@testing-library/react';
 
@@ -40,7 +38,7 @@ describe('useTranscriptSelection — transcript load failure', () => {
         mockFetchTranscripts.mockReset();
     });
 
-    it('flags transcriptLoadFailed when the NCList fetch rejects (missing track data)', async () => {
+    it('flags transcriptLoadFailed when the GFF fetch rejects (missing track data)', async () => {
         mockFetchTranscripts.mockRejectedValue(new Error('404 Not Found'));
 
         const { result } = renderHook(() =>
