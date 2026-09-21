@@ -33,8 +33,8 @@ describe('lookupVariantByHgvs', () => {
         expect(allele!.id).toBe('MGI:1856155');
         expect(allele!.displayName).toBe('Pax6Sey'); // HTML stripped
         expect(allele!.source).toBe('lookup');
-        const variants = allele!.variants instanceof Map
-            ? Array.from(allele!.variants.values()) : Object.values(allele!.variants as any);
+        const variants = (allele!.variants instanceof Map
+            ? Array.from(allele!.variants.values()) : Object.values(allele!.variants as any)) as Array<{ id: string; consequences: Array<Record<string, unknown>> }>;
         expect(variants).toHaveLength(1);
         expect(variants[0].id).toBe('NC_000068.8:g.105521966G>T');
         expect(variants[0].consequences[0]).toMatchObject({

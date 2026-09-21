@@ -30,8 +30,8 @@ const fetchNCListData = jest.fn(async () => [{ some: 'nclist' }]);
 jest.mock(
     'genomefeatures',
     () => ({
-        GenomeFeatureViewer: jest.fn((...args: unknown[]) => viewerCtor(...args)),
-        fetchNCListData: (arg: unknown) => fetchNCListData(arg),
+        GenomeFeatureViewer: jest.fn((...args: unknown[]) => (viewerCtor as (...a: unknown[]) => unknown)(...args)),
+        fetchNCListData: (arg: unknown) => (fetchNCListData as (a: unknown) => unknown)(arg),
     }),
     { virtual: true }
 );
@@ -67,7 +67,7 @@ describe('GenomeFeatureView', () => {
                 'https://s3.amazonaws.com/agrjbrowse/docker/8.2.0/human/tracks/All_Genes/17/trackData.jsonz',
         });
 
-        const [config, selector, width, height] = viewerCtor.mock.calls[0];
+        const [config, selector, width, height] = viewerCtor.mock.calls[0] as [{ genome: string; tracks: Array<{ type: string; trackData: unknown }> }, string, number, number];
         expect(selector).toMatch(/^#gfv-/);
         expect(width).toBe(800);
         expect(height).toBe(400);
