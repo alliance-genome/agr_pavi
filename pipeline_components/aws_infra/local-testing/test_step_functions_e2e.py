@@ -22,7 +22,7 @@ import os
 import sys
 import time
 import requests
-from typing import Optional
+from typing import Callable, Optional
 
 
 class StepFunctionsE2ETest:
@@ -38,7 +38,7 @@ class StepFunctionsE2ETest:
         print("PAVI Step Functions E2E Test")
         print("=" * 60)
 
-        tests = [
+        tests: list[tuple[str, Callable[..., bool]]] = [
             ("Health Check", self.test_health),
             ("Create Job", self.test_create_job),
             ("Poll Job Status", self.test_poll_job),

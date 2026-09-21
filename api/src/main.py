@@ -10,6 +10,7 @@ from typing import Any, Literal, Optional
 import json
 import re
 import subprocess
+from pathlib import Path
 from uuid import uuid1, UUID
 
 from constants import JobStatus
@@ -450,7 +451,7 @@ async def health() -> dict[str, Any]:
     description="Deployment status for all PAVI components",
     tags=["metadata"],
 )
-async def deployment_status() -> dict[str, Any]:
+async def deployment_status() -> dict[str, Any]:  # noqa: C901
     """
     Get deployment status for all PAVI components.
 
@@ -1034,7 +1035,7 @@ async def get_pipeline_job_export(
         )
 
     job_service = get_job_service()
-    db_path = job_db.db_path_for_job(job_service.local_results_path, str(uuid))
+    db_path = job_db.db_path_for_job(Path(job_service.local_results_path), str(uuid))
     if not db_path.exists():
         raise HTTPException(
             status_code=404,

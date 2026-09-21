@@ -13,13 +13,14 @@ import json
 import uuid
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from datetime import datetime
+from typing import Any, override
 
 # Store submitted jobs
-jobs = {}
+jobs: dict[str, dict[str, Any]] = {}
 
 
 class BatchMockHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
+    def do_POST(self) -> None:
         content_length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(content_length).decode("utf-8")
 
@@ -47,7 +48,7 @@ class BatchMockHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(response).encode("utf-8"))
         print(f"[MOCK BATCH] Response: {json.dumps(response, indent=2)}")
 
-    def handle_submit_job(self, request):
+    def handle_submit_job(self, request: dict[str, Any]) -> dict[str, Any]:
         job_id = str(uuid.uuid4())
         job_name = request.get("jobName", "mock-job")
         job_queue = request.get("jobQueue", "mock-queue")
@@ -71,7 +72,7 @@ class BatchMockHandler(BaseHTTPRequestHandler):
 
         return {"jobArn": job["jobArn"], "jobId": job_id, "jobName": job_name}
 
-    def handle_describe_jobs(self, request):
+    def handle_describe_jobs(self, request: dict[str, Any]) -> dict[str, Any]:
         job_ids = request.get("jobs", [])
 
         result_jobs = []
@@ -95,11 +96,12 @@ class BatchMockHandler(BaseHTTPRequestHandler):
 
         return {"jobs": result_jobs}
 
-    def log_message(self, format, *args):
+    @override
+    def log_message(self, format: str, *args: Any) -> None:  # noqa: U100
         print(f"[MOCK BATCH HTTP] {args[0]}")
 
 
-def main():
+def main() -> None:
     port = 8084
     server = HTTPServer(("0.0.0.0", port), BatchMockHandler)
     print(f"[MOCK BATCH] Starting mock Batch server on port {port}")

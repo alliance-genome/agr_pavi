@@ -13,15 +13,16 @@ import tempfile
 import uuid
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from datetime import datetime
+from typing import Any, override
 
 # Store job results
-alignment_jobs = {}
+alignment_jobs: dict[str, dict[str, Any]] = {}
 
 DATA_DIR = os.environ.get("DATA_DIR", "/data")
 
 
 class AlignmentHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
+    def do_POST(self) -> None:
         # Handle both Content-Length and chunked transfer encoding
         transfer_encoding = self.headers.get("Transfer-Encoding", "")
         content_length = int(self.headers.get("Content-Length", 0))
@@ -77,7 +78,7 @@ class AlignmentHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(response).encode("utf-8"))
         print(f"[ALIGNMENT] Response: {json.dumps(response, indent=2)}", flush=True)
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         if self.path == "/health":
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -87,7 +88,7 @@ class AlignmentHandler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
-    def handle_align(self, request):
+    def handle_align(self, request: dict[str, Any]) -> dict[str, Any]:
         """
         Run MAFFT alignment on provided sequences.
 
@@ -164,17 +165,17 @@ class AlignmentHandler(BaseHTTPRequestHandler):
         except Exception as e:
             return {"status": "FAILED", "job_id": job_id, "error": str(e)}
 
-    def handle_status(self, request):
+    def handle_status(self, request: dict[str, Any]) -> dict[str, Any]:
         job_id = request.get("job_id")
         if job_id in alignment_jobs:
             return alignment_jobs[job_id]
         return {"status": "NOT_FOUND", "job_id": job_id}
 
-    def parse_fasta(self, fasta_content):
+    def parse_fasta(self, fasta_content: str) -> list[dict[str, str]]:
         """Parse FASTA content into a list of sequence records."""
-        sequences = []
+        sequences: list[dict[str, str]] = []
         current_id = None
-        current_seq = []
+        current_seq: list[str] = []
 
         for line in fasta_content.strip().split("\n"):
             if line.startswith(">"):
@@ -192,11 +193,12 @@ class AlignmentHandler(BaseHTTPRequestHandler):
 
         return sequences
 
-    def log_message(self, format, *args):
+    @override
+    def log_message(self, format: str, *args: Any) -> None:  # noqa: U100
         print(f"[ALIGNMENT HTTP] {args[0]}")
 
 
-def main():
+def main() -> None:
     port = int(os.environ.get("PORT", 8085))
     os.makedirs(DATA_DIR, exist_ok=True)
 
