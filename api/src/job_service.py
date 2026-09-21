@@ -509,7 +509,7 @@ class JobService:
             raise
 
     def _start_local_execution(
-        self, job_id: str, seq_regions: list[dict[str, Any]]
+        self, job_id: str, seq_regions: list[dict[str, Any]]  # noqa: U100
     ) -> Optional[JobInfo]:
         """
         Start a local execution (fallback for development).

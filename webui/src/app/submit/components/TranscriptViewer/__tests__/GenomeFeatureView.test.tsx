@@ -30,8 +30,8 @@ const fetchNCListData = jest.fn(async () => [{ some: 'nclist' }]);
 jest.mock(
     'genomefeatures',
     () => ({
-        GenomeFeatureViewer: jest.fn((...args: unknown[]) => (viewerCtor as (...a: unknown[]) => unknown)(...args)),
-        fetchNCListData: (arg: unknown) => (fetchNCListData as (a: unknown) => unknown)(arg),
+        GenomeFeatureViewer: jest.fn((...args: unknown[]) => (viewerCtor as (..._a: unknown[]) => unknown)(...args)),
+        fetchNCListData: (arg: unknown) => (fetchNCListData as (_a: unknown) => unknown)(arg),
     }),
     { virtual: true }
 );

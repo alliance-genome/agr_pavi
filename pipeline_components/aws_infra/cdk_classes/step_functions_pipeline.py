@@ -147,7 +147,7 @@ class PaviStepFunctionsPipeline:
         cdk_tags.of(self.jobs_table).add("AppComponent", "pipeline")
 
     def _create_job_definitions(
-        self, job_queue: batch.IJobQueue, seq_retrieval_image: str, alignment_image: str
+        self, job_queue: batch.IJobQueue, seq_retrieval_image: str, alignment_image: str  # noqa: U100
     ) -> None:
         """
         Create Batch job definitions for pipeline components.
