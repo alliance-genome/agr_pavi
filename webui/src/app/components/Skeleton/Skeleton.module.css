@@ -1,0 +1,383 @@
+/* Skeleton Components - Loading State Styles */
+
+/* Base skeleton with shimmer animation */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--surface-200, #e5e7eb) 25%,
+        var(--surface-100, #f3f4f6) 50%,
+        var(--surface-200, #e5e7eb) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 4px;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .skeleton {
+        animation: none;
+        background: var(--surface-200, #e5e7eb);
+    }
+}
+
+/* SkeletonText variants */
+.text {
+    height: 1em;
+    width: 100%;
+}
+
+.textXs {
+    height: 0.75rem;
+}
+
+.textSm {
+    height: 0.875rem;
+}
+
+.textBase {
+    height: 1rem;
+}
+
+.textLg {
+    height: 1.25rem;
+}
+
+.textXl {
+    height: 1.5rem;
+}
+
+.text2xl {
+    height: 1.875rem;
+}
+
+.text3xl {
+    height: 2.25rem;
+}
+
+/* SkeletonText widths */
+.widthFull {
+    width: 100%;
+}
+
+.widthThreeQuarter {
+    width: 75%;
+}
+
+.widthHalf {
+    width: 50%;
+}
+
+.widthQuarter {
+    width: 25%;
+}
+
+.widthThird {
+    width: 33%;
+}
+
+.widthTwoThird {
+    width: 66%;
+}
+
+/* Paragraph skeleton with multiple lines */
+.paragraph {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.paragraphLine {
+    height: 1rem;
+    border-radius: 4px;
+}
+
+.paragraphLine:last-child {
+    width: 80%;
+}
+
+/* SkeletonButton */
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    min-width: 80px;
+}
+
+.buttonSm {
+    height: 32px;
+    min-width: 64px;
+}
+
+.buttonMd {
+    height: 40px;
+    min-width: 80px;
+}
+
+.buttonLg {
+    height: 48px;
+    min-width: 96px;
+}
+
+.buttonIcon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    padding: 0;
+}
+
+/* SkeletonCard */
+.card {
+    border-radius: 8px;
+    padding: 1rem;
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--surface-border, #e5e7eb);
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.cardAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.cardTitle {
+    flex: 1;
+}
+
+.cardTitleLine {
+    height: 1.25rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+}
+
+.cardSubtitleLine {
+    height: 0.875rem;
+    width: 60%;
+    border-radius: 4px;
+}
+
+.cardBody {
+    margin-bottom: 1rem;
+}
+
+.cardBodyLine {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+}
+
+.cardBodyLine:last-child {
+    width: 75%;
+    margin-bottom: 0;
+}
+
+.cardFooter {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--surface-border, #e5e7eb);
+}
+
+/* SkeletonTable */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tableRow {
+    display: flex;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--surface-border, #e5e7eb);
+}
+
+.tableRow:last-child {
+    border-bottom: none;
+}
+
+.tableHeader {
+    background: var(--surface-50, #f9fafb);
+    padding: 0.75rem 0;
+    border-bottom: 2px solid var(--surface-border, #e5e7eb);
+}
+
+.tableCell {
+    flex: 1;
+    height: 1rem;
+    border-radius: 4px;
+}
+
+.tableCellNarrow {
+    flex: 0.5;
+}
+
+.tableCellWide {
+    flex: 2;
+}
+
+/* SkeletonAvatar */
+.avatar {
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.avatarSm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatarMd {
+    width: 48px;
+    height: 48px;
+}
+
+.avatarLg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatarXl {
+    width: 96px;
+    height: 96px;
+}
+
+/* SkeletonImage */
+.image {
+    border-radius: 8px;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+}
+
+.imageSquare {
+    aspect-ratio: 1 / 1;
+}
+
+.imagePortrait {
+    aspect-ratio: 3 / 4;
+}
+
+/* SkeletonInput */
+.input {
+    height: 40px;
+    width: 100%;
+    border-radius: 6px;
+}
+
+.inputWithLabel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inputLabel {
+    height: 0.875rem;
+    width: 30%;
+    border-radius: 4px;
+}
+
+/* SkeletonBadge */
+.badge {
+    display: inline-block;
+    height: 1.25rem;
+    width: 60px;
+    border-radius: 12px;
+}
+
+/* SkeletonList */
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.listItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.listItemIcon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.listItemContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.listItemTitle {
+    height: 1rem;
+    width: 80%;
+    border-radius: 4px;
+}
+
+.listItemSubtitle {
+    height: 0.75rem;
+    width: 50%;
+    border-radius: 4px;
+}
+
+/* Animation delays for staggered effect */
+.delay100 {
+    animation-delay: 100ms;
+}
+
+.delay200 {
+    animation-delay: 200ms;
+}
+
+.delay300 {
+    animation-delay: 300ms;
+}
+
+.delay400 {
+    animation-delay: 400ms;
+}
+
+.delay500 {
+    animation-delay: 500ms;
+}
+
+/* Dark mode adjustments */
+:global([data-theme="dark"]) .skeleton,
+:global(.dark) .skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--surface-700, #374151) 25%,
+        var(--surface-600, #4b5563) 50%,
+        var(--surface-700, #374151) 75%
+    );
+    background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :global([data-theme="dark"]) .skeleton,
+    :global(.dark) .skeleton {
+        background: var(--surface-700, #374151);
+    }
+}

@@ -1,0 +1,138 @@
+{
+  "Comment": "PAVI Pipeline - With MAFFT Alignment Integration",
+  "StartAt": "InitializeJob",
+  "States": {
+    "InitializeJob": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:putItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Item": {
+          "job_id": { "S.$": "$.job_id" },
+          "status": { "S": "RUNNING" },
+          "stage": { "S": "INITIALIZING" },
+          "created_at": { "S.$": "$$.State.EnteredTime" }
+        }
+      },
+      "ResultPath": "$.dynamodb_init",
+      "Next": "PrepareExecution",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "MarkJobFailed"
+        }
+      ]
+    },
+
+    "PrepareExecution": {
+      "Type": "Pass",
+      "Comment": "Prepare execution parameters and sequences",
+      "Parameters": {
+        "job_id.$": "$.job_id",
+        "execution_id.$": "$$.Execution.Name",
+        "sequences.$": "$.sequences"
+      },
+      "Next": "UpdateStageAlignment"
+    },
+
+    "UpdateStageAlignment": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Key": { "job_id": { "S.$": "$.job_id" } },
+        "UpdateExpression": "SET stage = :stage",
+        "ExpressionAttributeValues": {
+          ":stage": { "S": "ALIGNMENT" }
+        }
+      },
+      "ResultPath": null,
+      "Next": "RunMafftAlignment"
+    },
+
+    "RunMafftAlignment": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:pavi-mafft-alignment",
+      "Parameters": {
+        "job_id.$": "$.job_id",
+        "sequences.$": "$.sequences"
+      },
+      "ResultPath": "$.alignment_result",
+      "Next": "CheckAlignmentResult",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "MarkJobFailed"
+        }
+      ]
+    },
+
+    "CheckAlignmentResult": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.alignment_result.status",
+          "StringEquals": "COMPLETED",
+          "Next": "MarkJobComplete"
+        }
+      ],
+      "Default": "MarkJobFailed"
+    },
+
+    "MarkJobComplete": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Key": { "job_id": { "S.$": "$.job_id" } },
+        "UpdateExpression": "SET #status = :status, stage = :stage, completed_at = :completed, result_uri = :result_uri, sequences_aligned = :seq_count",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": { "S": "COMPLETED" },
+          ":stage": { "S": "DONE" },
+          ":completed": { "S.$": "$$.State.EnteredTime" },
+          ":result_uri": { "S.$": "$.alignment_result.output_file" },
+          ":seq_count": { "N.$": "States.Format('{}', $.alignment_result.sequences_aligned)" }
+        }
+      },
+      "ResultPath": null,
+      "Next": "ReturnResults"
+    },
+
+    "ReturnResults": {
+      "Type": "Pass",
+      "Parameters": {
+        "job_id.$": "$.job_id",
+        "status": "COMPLETED",
+        "alignment.$": "$.alignment_result.alignment",
+        "output_file.$": "$.alignment_result.output_file",
+        "sequences_aligned.$": "$.alignment_result.sequences_aligned"
+      },
+      "End": true
+    },
+
+    "MarkJobFailed": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Parameters": {
+        "TableName": "pavi-jobs",
+        "Key": { "job_id": { "S.$": "$.job_id" } },
+        "UpdateExpression": "SET #status = :status, stage = :stage, failed_at = :failed, error_message = :error",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": { "S": "FAILED" },
+          ":stage": { "S": "ERROR" },
+          ":failed": { "S.$": "$$.State.EnteredTime" },
+          ":error": { "S.$": "States.JsonToString($.error)" }
+        }
+      },
+      "End": true
+    }
+  }
+}

@@ -1,0 +1,90 @@
+.container {
+    margin-bottom: 1.5rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--agr-gray-900);
+    margin: 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--agr-gray-500);
+}
+
+.value {
+    font-size: 0.9375rem;
+    color: var(--agr-gray-800);
+}
+
+.valueWithAction {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.875rem;
+    background: var(--agr-gray-100);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.genesList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.geneTag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--agr-primary-light);
+    color: var(--agr-primary-dark);
+    padding: 0.125rem 0.5rem;
+    border-radius: 1rem;
+}
+
+.moreGenes {
+    font-size: 0.75rem;
+    color: var(--agr-gray-500);
+    font-style: italic;
+}
+
+.actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--agr-gray-200);
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}

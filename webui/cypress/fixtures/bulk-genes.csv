@@ -1,0 +1,4 @@
+species,gene_symbol,transcript,variants
+Homo sapiens,TP53,,
+Mus musculus,Trp53,,
+ZzzNotAGene,Nope,,

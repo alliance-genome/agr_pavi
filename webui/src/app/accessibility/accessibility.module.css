@@ -1,0 +1,129 @@
+.container {
+    padding: 2rem 0;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--agr-gray-900);
+    margin: 1.5rem 0;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.section {
+    margin: 0;
+}
+
+.section h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--agr-primary);
+    margin: 0 0 1rem 0;
+}
+
+.section p {
+    color: var(--agr-gray-700);
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+}
+
+.section p:last-child {
+    margin-bottom: 0;
+}
+
+.section ul {
+    color: var(--agr-gray-700);
+    line-height: 1.6;
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.section li {
+    margin-bottom: 0.5rem;
+}
+
+.section li:last-child {
+    margin-bottom: 0;
+}
+
+.featureList {
+    list-style: none;
+    padding: 0;
+}
+
+.featureList li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.featureList li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--agr-success);
+    font-weight: bold;
+}
+
+.featureList li strong {
+    color: var(--agr-gray-900);
+}
+
+.section kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.4rem;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--agr-gray-100);
+    border: 1px solid var(--agr-gray-300);
+    border-radius: 4px;
+    box-shadow: 0 1px 0 1px var(--agr-gray-200);
+    color: var(--agr-gray-700);
+}
+
+.section code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.875rem;
+    background: var(--agr-gray-100);
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+    color: var(--agr-gray-800);
+}
+
+.section a {
+    color: var(--agr-primary);
+    text-decoration: none;
+}
+
+.section a:hover {
+    text-decoration: underline;
+}
+
+.lastUpdated {
+    color: var(--agr-gray-500);
+    font-size: 0.875rem;
+    font-style: italic;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .section kbd {
+        border: 2px solid #000;
+    }
+
+    .featureList li::before {
+        color: #000;
+    }
+}

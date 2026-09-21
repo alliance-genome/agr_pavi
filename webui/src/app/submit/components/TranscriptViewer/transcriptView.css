@@ -1,0 +1,30 @@
+/*
+ * Colours for the genomefeatures transcript viewer.
+ *
+ * The genomefeatures library draws isoform models with semantic CSS
+ * classes (.CDS, .UTR, .exon, .transcriptBackbone, .transArrow) but no
+ * inline colours, so every element defaults to black. These rules — scoped
+ * to our widget's `.pavi-transcript-view` svg — give the models a readable
+ * palette: coding regions stand out, UTRs recede, introns/strand are muted.
+ */
+
+.pavi-transcript-view .CDS {
+    fill: #20506e; /* coding sequence — Alliance dark blue */
+}
+
+.pavi-transcript-view .UTR {
+    fill: #a9cce3; /* untranslated region — light blue */
+}
+
+.pavi-transcript-view .exon {
+    fill: #2e6e9e; /* exon backdrop (sits under CDS/UTR) — mid blue */
+}
+
+.pavi-transcript-view .transcriptBackbone {
+    fill: #90a4ae; /* intron line — muted grey-blue */
+}
+
+.pavi-transcript-view .transArrow {
+    fill: #90a4ae; /* strand-direction arrow — muted grey-blue */
+    stroke: #90a4ae;
+}

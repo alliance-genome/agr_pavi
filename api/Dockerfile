@@ -65,6 +65,9 @@ EXPOSE 8080
 ENV API_NEXTFLOW_OUT_DIR="s3://agr-pavi-pipeline-nextflow/main/"
 ENV API_EXECUTION_ENV="aws"
 ENV API_PIPELINE_IMAGE_TAG="main"
+# Component version (e.g. api-vX.Y.Z-N-g<sha>), surfaced on /api/health.
+ARG PAVI_API_VERSION=""
+ENV PAVI_API_VERSION=${PAVI_API_VERSION}
 
 # Run the nextflow pipeline once to pre-download and install all required plugins
 RUN --mount=type=secret,id=AWS_PROFILE,env=AWS_PROFILE \

@@ -1,0 +1,85 @@
+name: CLI examples quick check
+on:
+  pull_request:
+    types: [synchronize, opened, reopened]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  schedule:
+    # Nightly catch for upstream Alliance API drift.
+    - cron: '17 6 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  cli-unit-tests:
+    name: pavi-cli unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pavi-cli with test extras
+        working-directory: tests/cli
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e ".[test]"
+      - name: Run unit tests
+        working-directory: tests/cli
+        run: .venv/bin/pytest -v
+
+  verify-alliance-shape:
+    name: Verify Alliance API shape (${{ matrix.env.label }})
+    runs-on: ubuntu-24.04
+    # `test` is the authoritative signal — that's where we trust a red
+    # status reflects a real catalog / shape regression. `prod` may lag
+    # behind on a partial re-index (e.g. the 2026-06 SCRUM-5973 +
+    # SCRUM-6147 indexer rewrite left curated alleles missing from
+    # /allele-variant-detail until the ES site_index repopulated), so
+    # it's marked soft. Compare both reports when one of them fails.
+    continue-on-error: ${{ matrix.env.soft }}
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - label: test
+            base_url: https://test.alliancegenome.org
+            soft: false
+          - label: prod
+            base_url: https://www.alliancegenome.org
+            soft: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pavi-cli
+        working-directory: tests/cli
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e .
+      - name: Run verify-alliance against ${{ matrix.env.label }}
+        working-directory: tests/cli
+        run: |
+          .venv/bin/pavi-cli verify-alliance \
+            --alliance-base-url ${{ matrix.env.base_url }} \
+            --json-report verify-alliance-${{ matrix.env.label }}.json
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-alliance-report-${{ matrix.env.label }}
+          path: tests/cli/verify-alliance-${{ matrix.env.label }}.json
+          if-no-files-found: warn

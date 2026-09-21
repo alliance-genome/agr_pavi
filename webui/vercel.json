@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install --strict-peer-deps",
+  "framework": "nextjs",
+  "env": {
+    "MOCK_API": "true"
+  },
+  "regions": ["iad1"]
+}

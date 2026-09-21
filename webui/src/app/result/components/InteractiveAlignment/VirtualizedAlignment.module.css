@@ -1,0 +1,1039 @@
+/* VirtualizedAlignment - Scientific Bioinformatics Aesthetic
+ * A refined, professional design for sequence alignment visualization
+ * Inspired by UCSC Genome Browser and EBI tools with modern refinements
+ */
+
+/* ============================================
+   Container & Layout
+   ============================================ */
+.alignmentContainer {
+  position: relative;
+  font-family: var(--agr-font-family);
+  background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+  border-radius: 12px;
+  border: 1px solid var(--agr-gray-200);
+  overflow: hidden;
+}
+
+.alignmentContainer:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--agr-primary-200);
+}
+
+/* ============================================
+   Toolbar - Control Panel
+   ============================================ */
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.75rem 0.75rem;
+  background: linear-gradient(180deg, #f8f9fb 0%, #f3f4f6 100%);
+  border-bottom: 1px solid var(--agr-gray-200);
+}
+
+.toolbarSection {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.toolbarLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--agr-gray-700);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.colorSchemeDropdown {
+  min-width: 180px;
+}
+
+/* Conservation toggle - custom styled checkbox */
+/* Overlay toggle panel (SAB mockup "Show:" panel) */
+.overlayPanel {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  border: 1px solid var(--agr-gray-300);
+  border-radius: 6px;
+}
+
+.overlayPanelLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--agr-gray-600);
+  margin-right: 0.25rem;
+}
+
+.overlayToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.15s;
+  transition: all 0.15s ease;
+}
+
+.overlayToggle:hover {
+  background: var(--agr-primary-100);
+}
+
+.overlayToggle input {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--agr-primary-500);
+}
+
+.overlayToggle span {
+  font-size: 0.75rem;
+  color: var(--agr-gray-700);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.overlayDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.overlayDisabled input {
+  cursor: not-allowed;
+}
+
+.overlayDisabled span {
+  color: var(--agr-gray-400);
+}
+
+/* Variant filters (SAB mockup slide 13) */
+.variantFilters {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  border-left: 1px solid var(--agr-gray-300);
+  margin-left: 0.125rem;
+}
+
+.filterLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--agr-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.filterChip {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  color: var(--agr-gray-600);
+  transition: background 0.15s;
+}
+
+.filterChip:hover {
+  background: var(--agr-primary-100);
+}
+
+.filterChip input {
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+  accent-color: var(--agr-primary-500);
+}
+
+.filterPosInput {
+  width: 4.5rem;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--agr-gray-300);
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  color: var(--agr-gray-700);
+}
+
+.filterPosInput:focus {
+  outline: none;
+  border-color: var(--agr-primary-400);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.filterDash {
+  font-size: 0.75rem;
+  color: var(--agr-gray-400);
+}
+
+/* Sequence count badge */
+.sequenceCount {
+  font-size: 0.75rem;
+  color: var(--agr-gray-600);
+  padding: 0.25rem 0.625rem;
+  background: white;
+  border: 1px solid var(--agr-gray-200);
+  border-radius: 20px;
+}
+
+.sequenceCount strong {
+  color: var(--agr-primary-600);
+  font-weight: 600;
+}
+
+/* ============================================
+   Species Legend
+   ============================================ */
+.speciesLegend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-bottom: 1px solid #bae6fd;
+}
+
+.speciesLegendLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--agr-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-right: 0.25rem;
+}
+
+.speciesBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.speciesColorDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Species color palette - distinct colors for different species */
+.speciesBadge:nth-child(2) { background: #dbeafe; color: #1e40af; }
+.speciesBadge:nth-child(2) .speciesColorDot { background: #3b82f6; }
+
+.speciesBadge:nth-child(3) { background: #fce7f3; color: #9d174d; }
+.speciesBadge:nth-child(3) .speciesColorDot { background: #ec4899; }
+
+.speciesBadge:nth-child(4) { background: #d1fae5; color: #065f46; }
+.speciesBadge:nth-child(4) .speciesColorDot { background: #10b981; }
+
+.speciesBadge:nth-child(5) { background: #fef3c7; color: #92400e; }
+.speciesBadge:nth-child(5) .speciesColorDot { background: #f59e0b; }
+
+.speciesBadge:nth-child(6) { background: #ede9fe; color: #5b21b6; }
+.speciesBadge:nth-child(6) .speciesColorDot { background: #8b5cf6; }
+
+.speciesBadge:nth-child(7) { background: #ffedd5; color: #9a3412; }
+.speciesBadge:nth-child(7) .speciesColorDot { background: #f97316; }
+
+.speciesBadge:nth-child(n+8) { background: #f3f4f6; color: #374151; }
+.speciesBadge:nth-child(n+8) .speciesColorDot { background: #6b7280; }
+
+.speciesSequenceCount {
+  font-size: 0.625rem;
+  color: inherit;
+  opacity: 0.7;
+  margin-left: 0.125rem;
+}
+
+/* Keyboard hints */
+.keyboardHints {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--agr-gray-500);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.keyHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.keyHint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--agr-gray-600);
+  background: white;
+  border: 1px solid var(--agr-gray-300);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 var(--agr-gray-200);
+}
+
+/* Full screen button */
+.fullScreenButton {
+  margin-left: 0.5rem;
+}
+
+/* ============================================
+   Variant Information Panel
+   ============================================ */
+.variantPanel {
+  margin: 0.5rem 0.5rem;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+  border: 1px solid #fde047;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(250, 204, 21, 0.15);
+}
+
+.variantPanelHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.variantIcon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fbbf24;
+  border-radius: 50%;
+  color: white;
+  font-size: 0.75rem;
+}
+
+.variantTitle {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #92400e;
+}
+
+.variantCount {
+  font-size: 0.75rem;
+  color: #b45309;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  background: rgba(251, 191, 36, 0.3);
+  border-radius: 10px;
+}
+
+.variantGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.625rem;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+/* Custom scrollbar for variant grid */
+.variantGrid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.variantGrid::-webkit-scrollbar-track {
+  background: rgba(251, 191, 36, 0.2);
+  border-radius: 3px;
+}
+
+.variantGrid::-webkit-scrollbar-thumb {
+  background: #fbbf24;
+  border-radius: 3px;
+}
+
+.variantCard {
+  padding: 0.625rem 0.75rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #fde68a;
+  transition: all 0.15s ease;
+}
+
+.variantCardClickable {
+  cursor: pointer;
+}
+
+.variantCardNonCoding {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.variantCard:hover {
+  border-color: #fbbf24;
+  box-shadow: 0 2px 4px rgba(251, 191, 36, 0.2);
+}
+
+.nonCodingLabel {
+  font-size: 0.625rem;
+  color: var(--agr-gray-400);
+  font-style: italic;
+  font-weight: 500;
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  border-bottom: 1px dotted var(--agr-gray-300);
+}
+
+.nonCodingLabel:hover {
+  color: var(--agr-gray-600);
+}
+
+.variantSpecies {
+  font-size: 0.6875rem;
+  font-style: italic;
+  color: var(--agr-gray-500);
+  font-weight: 500;
+  margin-bottom: 0.125rem;
+}
+
+.variantId {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--agr-primary-600);
+  margin-bottom: 0.25rem;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.variantNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: #3b82f6;
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.impactDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+}
+
+.impactHIGH {
+  background: #dc2626;
+}
+
+.impactMODERATE {
+  background: #ea580c;
+}
+
+.impactLOW {
+  background: #ca8a04;
+}
+
+.impactMODIFIER {
+  background: #16a34a;
+}
+
+.variantDetails {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.variantChange {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-size: 0.75rem;
+  color: var(--agr-gray-700);
+  background: var(--agr-gray-100);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+}
+
+.variantTypeBadge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+}
+
+.variantTypeBadge.deletion {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.variantTypeBadge.insertion {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.variantTypeBadge.substitution {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.variantPosition {
+  font-size: 0.6875rem;
+  color: var(--agr-gray-500);
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.variantAlnPos {
+  font-size: 0.625rem;
+  color: var(--agr-primary-500);
+  font-weight: 600;
+}
+
+.variantHgvs {
+  font-size: 0.6875rem;
+  color: var(--agr-gray-600);
+  font-style: italic;
+  margin-top: 0.125rem;
+}
+
+.variantConsequences {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.consequenceBadge {
+  font-size: 0.5625rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 3px;
+  background: var(--agr-primary-100);
+  color: var(--agr-primary-700);
+  font-weight: 500;
+}
+
+.variantAnnotationBadges {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.diseaseBadge {
+  font-size: 0.5625rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 3px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.phenotypeBadge {
+  font-size: 0.5625rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 3px;
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: 600;
+}
+
+/* ============================================
+   Alignment View Container
+   ============================================ */
+.alignmentViewWrapper {
+  padding: 0.5rem 0.5rem 0.75rem;
+}
+
+/* Track containers */
+.trackContainer {
+  margin-bottom: 0.375rem;
+}
+
+.trackLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--agr-gray-500);
+  margin-bottom: 0.25rem;
+  padding-left: 0.125rem;
+}
+
+.trackHint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--agr-gray-400);
+  font-style: italic;
+}
+
+/* Sequence selector for reordering */
+.sequenceSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: var(--agr-gray-100);
+  border: 1px solid var(--agr-gray-200);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.sequenceChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  background: white;
+  border: 1px solid var(--agr-gray-300);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.sequenceChip:hover {
+  background: var(--agr-primary-100);
+  border-color: var(--agr-primary-400);
+}
+
+.sequenceChip.isReference {
+  background: var(--agr-primary-500);
+  color: white;
+  border-color: var(--agr-primary-600);
+  font-weight: 600;
+}
+
+.sequenceChip.isReference::before {
+  content: '★ ';
+}
+
+.sequenceChip:not(.isReference):hover::before {
+  content: '↑ ';
+  color: var(--agr-primary-500);
+}
+
+.sequenceChipWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.variantSeqToggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.125rem;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  line-height: 1;
+  color: var(--agr-gray-600);
+  display: flex;
+  align-items: center;
+}
+
+.variantSeqToggle:hover {
+  opacity: 1;
+}
+
+.variantSeqToggleHidden {
+  opacity: 0.8;
+  color: var(--agr-gray-400);
+}
+
+/* Navigation track styling */
+.navigationTrack {
+  background: linear-gradient(180deg, #f8f9fb 0%, #ffffff 100%);
+  border: 1px solid var(--agr-gray-200);
+  border-radius: 6px;
+  padding: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Conservation track styling */
+.conservationTrack {
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+/* (legacy .variantTrack styling removed — replaced by pixel-positioned variant track below) */
+
+/* Variant position bar - clickable variant buttons */
+.variantPositionBar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(180deg, #fefce8 0%, #fef9c3 100%);
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.variantPositionLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #92400e;
+  white-space: nowrap;
+}
+
+.variantPositionLabel i {
+  color: #f59e0b;
+}
+
+.variantButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  border: 2px solid #b91c1c;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+}
+
+.variantButton:hover {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.4);
+  transform: translateY(-1px);
+}
+
+.variantButtonId {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+.variantButtonPos {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+/* Variant track — pixel-positioned numbered circles */
+.variantTrack {
+  position: relative;
+  overflow: hidden;
+  background: #f0f4f8;
+  border-bottom: 1px solid #cbd5e1;
+  height: 22px;
+}
+
+.variantTrackInner {
+  position: relative;
+  height: 100%;
+}
+
+.variantCircle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.variantIndicatorRow {
+  position: relative;
+  min-height: 22px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  margin-right: 5px;
+  overflow: hidden;
+}
+
+.variantIndicator {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+}
+
+.variantIndicatorLine {
+  width: 2px;
+  background: #dc2626;
+  border-radius: 1px;
+}
+
+.variantIndicatorLabel {
+  position: absolute;
+  left: 8px;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #dc2626;
+  background: white;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid #fecaca;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.variantOutOfView {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Variant zoom bar - detailed view in current range */
+.variantZoomBar {
+  position: relative;
+  height: 28px;
+  background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  overflow: visible;
+}
+
+.variantZoomMarker {
+  position: absolute;
+  top: 2px;
+  height: calc(100% - 4px);
+  min-width: 20px;
+  background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
+  border: 2px solid #ea580c;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(234, 88, 12, 0.3);
+}
+
+.variantZoomMarker:hover {
+  background: linear-gradient(180deg, #fdba74 0%, #fb923c 100%);
+  box-shadow: 0 4px 8px rgba(234, 88, 12, 0.4);
+  z-index: 10;
+}
+
+.variantZoomLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+/* ============================================
+   MSA Container
+   ============================================ */
+.msaContainer {
+  border: 1px solid var(--agr-gray-200);
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.msaScrollContainer {
+  position: relative;
+  overflow: auto;
+  background: linear-gradient(90deg, #f8f9fb 0, #f8f9fb var(--label-width, 120px), white var(--label-width, 120px));
+}
+
+/* Custom scrollbar for MSA */
+.msaScrollContainer::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.msaScrollContainer::-webkit-scrollbar-track {
+  background: var(--agr-gray-100);
+  border-radius: 5px;
+}
+
+.msaScrollContainer::-webkit-scrollbar-thumb {
+  background: var(--agr-gray-300);
+  border-radius: 5px;
+  border: 2px solid var(--agr-gray-100);
+}
+
+.msaScrollContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--agr-gray-400);
+}
+
+.msaScrollContainer::-webkit-scrollbar-corner {
+  background: var(--agr-gray-100);
+}
+
+/* Virtualization spacer */
+.msaSpacer {
+  position: absolute;
+  width: 1px;
+  pointer-events: none;
+}
+
+/* MSA content positioning */
+.msaContent {
+  position: relative;
+  will-change: transform;
+}
+
+/* Loading state */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--agr-gray-500);
+  gap: 0.75rem;
+}
+
+.loadingState i {
+  font-size: 1.5rem;
+  color: var(--agr-primary-500);
+}
+
+/* ============================================
+   Color Scheme Dropdown - Enhanced
+   ============================================ */
+.colorSchemeGroup {
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--agr-gray-500);
+  padding: 0.5rem 0.75rem 0.25rem;
+  border-top: 1px solid var(--agr-gray-100);
+}
+
+.colorSchemeGroup:first-child {
+  border-top: none;
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+@media (max-width: 768px) {
+  .toolbar {
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .keyboardHints {
+    display: none;
+  }
+
+  .colorSchemeDropdown {
+    min-width: 150px;
+  }
+
+  .variantGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbarLabel {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbarSection {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sequenceCount {
+    margin-left: auto;
+  }
+
+  .fullScreenButton {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+@media print {
+  .toolbar {
+    background: white;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .keyboardHints,
+  .fullScreenButton {
+    display: none;
+  }
+
+  .msaScrollContainer {
+    overflow: visible;
+    max-height: none !important;
+    height: auto !important;
+  }
+}

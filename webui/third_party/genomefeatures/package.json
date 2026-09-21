@@ -1,0 +1,43 @@
+{
+  "name": "genomefeatures",
+  "version": "1.0.5-pavi.maxrows100",
+  "type": "module",
+  "description": "A D3 based genome feature rendering",
+  "license": "MIT",
+  "repository": "https://github.com/GMOD/GenomeFeatureComponent",
+  "keywords": [
+    "genome feature viewer",
+    "genomics",
+    "genes",
+    "transcripts"
+  ],
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/genomefeatures.umd.cjs",
+  "module": "./dist/genomefeatures.js",
+  "types": "./dist/genomefeatures.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/genomefeatures.d.ts",
+      "import": "./dist/genomefeatures.js",
+      "require": "./dist/genomefeatures.umd.cjs"
+    },
+    "./style.css": "./dist/genomefeatures.css"
+  },
+  "dependencies": {
+    "@gmod/nclist": "^3.0.0",
+    "@gmod/tabix": "^3.0.2",
+    "@gmod/vcf": "^6.0.8",
+    "d3": "^7.9.0",
+    "d3-tip": "^0.9.1",
+    "generic-filehandle2": "^2.0.1",
+    "pako": "^2.1.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:storybook/recommended"
+    ]
+  },
+  "_pavi_note": "Vendored build of alliance-genome/genomefeatures @ e9a83e5b with IsoformTrack MAX_ROWS raised 10->100 so the transcript viewer can show all isoforms. Rebuild: clone that repo@sha, edit src/tracks/IsoformTrack.ts MAX_ROWS, npm i --legacy-peer-deps && npm run build, copy dist+package.json here."
+}

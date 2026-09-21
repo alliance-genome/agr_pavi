@@ -1,6 +1,6 @@
 [project]
 name = "pavi-api"
-version = "0.1.0"
+version = "0.5.0"
 description = "PAVI API component"
 readme = "README.md"
 authors = [
@@ -23,3 +23,17 @@ test = [
     "pytest-mock==3.15.*",
     "httpx==0.28.*"
 ]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "boto3.*",
+    "botocore.*",
+    "smart_open.*"
+]
+ignore_missing_imports = true

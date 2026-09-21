@@ -12,11 +12,19 @@ else:
     S3LocationTypeDef = object
 
 
-@click.command(context_settings={'show_default': True})
-@click.option("--eb_app_name", type=click.STRING, required=True,
-              help="The Elasticbeanstalk application name to deploy a new version for.")
-@click.option("--version_label", type=click.STRING, required=True,
-              help="The version label to assign to the EB application version.")
+@click.command(context_settings={"show_default": True})
+@click.option(
+    "--eb_app_name",
+    type=click.STRING,
+    required=True,
+    help="The Elasticbeanstalk application name to deploy a new version for.",
+)
+@click.option(
+    "--version_label",
+    type=click.STRING,
+    required=True,
+    help="The version label to assign to the EB application version.",
+)
 def main(eb_app_name: str, version_label: str) -> None:
     """
     Main method to deploy EB application versions. Receives input args from click.
@@ -31,34 +39,41 @@ def main(eb_app_name: str, version_label: str) -> None:
         print(f'Creating new application version with label "{version_label}".')
         # Create app zip
         dir_path = getcwd()
-        app_zip_path = 'eb_app.zip'
-        with ZipFile(app_zip_path, 'w') as zipObj:
+        app_zip_path = "eb_app.zip"
+        with ZipFile(app_zip_path, "w") as zipObj:
             ## Add docker-compose file
-            docker_compose_file = f'{dir_path}/../docker-compose.yml'
-            zipObj.write(docker_compose_file, path.basename(path.normpath(docker_compose_file)))
+            docker_compose_file = f"{dir_path}/../docker-compose.yml"
+            zipObj.write(
+                docker_compose_file, path.basename(path.normpath(docker_compose_file))
+            )
 
             ## Add all files in .ebextensions/
-            ebextensions_path = f'{dir_path}/.ebextensions/'
+            ebextensions_path = f"{dir_path}/.ebextensions/"
             for filename in listdir(ebextensions_path):
                 full_file_path = path.join(ebextensions_path, filename)
                 if path.isfile(full_file_path):
-                    zipObj.write(full_file_path, path.join('.ebextensions/', filename))
+                    zipObj.write(full_file_path, path.join(".ebextensions/", filename))
 
         # Upload app zip as s3 source bundle
         source_bundle: S3LocationTypeDef = upload_application_bundle(
             eb_app_name=eb_app_name,
             version_label=version_label,
-            bundle_path=app_zip_path)
+            bundle_path=app_zip_path,
+        )
 
         # Create new application version with label
         create_eb_app_version(
-            eb_app_name=eb_app_name, version_label=version_label,
+            eb_app_name=eb_app_name,
+            version_label=version_label,
             source_bundle=source_bundle,
-            tags=[{'Key': 'Product', 'Value': 'PAVI'},
-                  {'Key': 'CreatedBy', 'Value': 'PAVI'}])
+            tags=[
+                {"Key": "Product", "Value": "PAVI"},
+                {"Key": "CreatedBy", "Value": "PAVI"},
+            ],
+        )
     else:
         print(f'Application version with label "{version_label}" already exists.')
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

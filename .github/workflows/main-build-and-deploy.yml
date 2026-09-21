@@ -51,6 +51,8 @@ jobs:
     outputs:
       latest-commit-sha: ${{ steps.store-output.outputs.latest-commit-sha }}
       git-describe: ${{ steps.store-output.outputs.git-describe }}
+      api-version: ${{ steps.store-output.outputs.api-version }}
+      webui-version: ${{ steps.store-output.outputs.webui-version }}
     env:
       latest_commit_sha:
     steps:
@@ -115,6 +117,10 @@ jobs:
           echo "latest-commit-sha=${{ env.latest_commit_sha }}" >> "$GITHUB_OUTPUT"
           git_description=$(git describe --tags)
           echo "git-describe=${git_description}" >> $GITHUB_OUTPUT
+          # Independent per-component versions (fall back to the overall
+          # git-describe if a component has no reachable tag yet).
+          echo "api-version=$(git describe --tags --match 'api-v*' 2>/dev/null || echo ${git_description})" >> $GITHUB_OUTPUT
+          echo "webui-version=$(git describe --tags --match 'webui-v*' 2>/dev/null || echo ${git_description})" >> $GITHUB_OUTPUT
   build-pavi-shared-aws-module:
     name: Build pavi_shared_aws package
     runs-on: ubuntu-24.04
@@ -404,7 +410,7 @@ jobs:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-24.04
     env:
-      tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
+      tagname: ${{ needs.commit-deps-lock-updates.outputs.api-version }}
     steps:
     - name: Check out repository code
       uses: actions/checkout@v5
@@ -443,6 +449,8 @@ jobs:
         secret-files: |
           AWS_SHARED_CREDENTIALS_FILE=aws.credentials
           AWS_CONFIG_FILE=aws.config
+        build-args: |
+          PAVI_API_VERSION=${{ env.tagname }}
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ env.tagname }}
           ${{ steps.login-ecr.outputs.registry }}/agr_pavi/api:${{ github.event.pull_request.base.ref }}
@@ -456,7 +464,7 @@ jobs:
       id-token: write # This is required for requesting the JWT for gaining permissions to assume the IAM role to perform AWS actions
     runs-on: ubuntu-24.04
     env:
-      tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
+      tagname: ${{ needs.commit-deps-lock-updates.outputs.webui-version }}
     steps:
     - name: Check out repository code
       uses: actions/checkout@v5
@@ -486,7 +494,9 @@ jobs:
       env:
           DOCKER_BUILD_SUMMARY: false
       with:
-        build-args: NODE_VERSION=${{steps.nvmrc-node-version.outputs.content}}
+        build-args: |
+          NODE_VERSION=${{steps.nvmrc-node-version.outputs.content}}
+          NEXT_PUBLIC_APP_VERSION=${{ env.tagname }}
         context: ./webui/
         push: true
         tags: |
@@ -512,6 +522,8 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       tagname: ${{ needs.commit-deps-lock-updates.outputs.git-describe }}
+      api_tag: ${{ needs.commit-deps-lock-updates.outputs.api-version }}
+      webui_tag: ${{ needs.commit-deps-lock-updates.outputs.webui-version }}
     steps:
     - name: Check out repository code
       uses: actions/checkout@v5
@@ -539,13 +551,13 @@ jobs:
         python-version-file: "api/aws_infra/pyproject.toml"
     - name: API CDK validations (resource assertions and cdk diff)
       working-directory: api/aws_infra
-      run: make validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}"
+      run: make validate-application-stack validate-environment-stack PAVI_DEPLOY_VERSION_LABEL="${{ env.api_tag }}" PAVI_IMAGE_TAG="${{ env.api_tag }}"
     - name: Deploy API application (and version)
       working-directory: api/aws_infra
-      run: make deploy-application PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" ADD_CDK_ARGS="--require-approval never"
+      run: make deploy-application PAVI_DEPLOY_VERSION_LABEL="${{ env.api_tag }}" ADD_CDK_ARGS="--require-approval never"
     - name: Deploy API to main environment
       working-directory: api/aws_infra
-      run: make deploy-environment PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
+      run: make deploy-environment PAVI_DEPLOY_VERSION_LABEL="${{ env.api_tag }}" PAVI_IMAGE_TAG="${{ env.api_tag }}" \
             EB_ENV_CDK_STACK_NAME=PaviApiEbMainStack ADD_CDK_ARGS="--require-approval never"
     # webUI validation and deployment
     - name: Setup Python for webUI deployment
@@ -555,12 +567,12 @@ jobs:
     - name: webUI CDK validations (resource assertions and cdk diff)
       working-directory: webui/aws_infra
       run: make validate-application-stack validate-environment-stack PAVI_API_STACK_NAME="PaviApiEbMainStack" \
-            PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}"
+            PAVI_DEPLOY_VERSION_LABEL="${{ env.webui_tag }}" PAVI_IMAGE_TAG="${{ env.webui_tag }}"
     - name: Deploy webUI application (and version)
       working-directory: webui/aws_infra
-      run: make deploy-application PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" ADD_CDK_ARGS="--require-approval never"
+      run: make deploy-application PAVI_DEPLOY_VERSION_LABEL="${{ env.webui_tag }}" ADD_CDK_ARGS="--require-approval never"
     - name: Deploy webUI to main environment
       working-directory: webui/aws_infra
       run: make deploy-environment PAVI_API_STACK_NAME="PaviApiEbMainStack" \
-            PAVI_DEPLOY_VERSION_LABEL="${{ env.tagname }}" PAVI_IMAGE_TAG="${{ env.tagname }}" \
+            PAVI_DEPLOY_VERSION_LABEL="${{ env.webui_tag }}" PAVI_IMAGE_TAG="${{ env.webui_tag }}" \
             EB_ENV_CDK_STACK_NAME=PaviWebUiEbMainStack ADD_CDK_ARGS="--require-approval never"

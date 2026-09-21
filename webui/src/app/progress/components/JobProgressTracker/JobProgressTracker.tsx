@@ -1,135 +1,505 @@
 'use client';
 
-import React, { FunctionComponent, useCallback, useEffect, useState } from 'react';
-import { ProgressBar } from 'primereact/progressbar';
+import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react';
+import { Timeline } from 'primereact/timeline';
+import { Card } from 'primereact/card';
+import { Button } from 'primereact/button';
 import { useRouter } from 'next/navigation'
 
-import { fetchJobStatus } from './serverActions';
-import { JobProgressStatus } from './types';
+import { fetchJobStatusFull } from './serverActions';
+import { ProgressStep } from './types';
+import styles from './JobProgressTracker.module.css';
+import { dataCache, CACHE_CONFIGS } from '@/utils/dataCache';
+import { useJobHistory } from '@/hooks/useJobHistory';
+import { fetchAlignmentResults, fetchAlignmentSeqInfo } from '@/app/result/components/AlignmentResultView/serverActions';
+
+interface LogEntry {
+    timestamp: Date;
+    level: 'info' | 'success' | 'warning' | 'error';
+    message: string;
+}
 
 export interface JobProgressTrackerProps {
     readonly uuidStr: string
 }
+
+const INITIAL_STEPS: ProgressStep[] = [
+    { name: 'Job Submitted', status: 'success', message: 'Job created and queued' },
+    { name: 'Pipeline Started', status: 'pending' },
+    { name: 'Sequence Retrieval', status: 'pending', message: 'Fetching protein sequences' },
+    { name: 'Alignment', status: 'pending', message: 'Running Clustal Omega alignment' },
+    { name: 'Finalizing Results', status: 'pending' },
+];
+
 export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (props: JobProgressTrackerProps) => {
     const router = useRouter()
+    const { updateJob } = useJobHistory()
 
-    const [activeProgress, setActiveProgress] = useState<boolean>(true)
-    const [progressValue, setProgressValue] = useState<number>()
-    const [jobState, setJobState] = useState<JobProgressStatus>()
-    const [progressMessage, setProgressMessage] = useState<string>('Retrieving job progress...')
-    const [lastChecked, setLastChecked] = useState<number>()
-    const [lastCheckedMessage, setLastCheckedMessage] = useState<string>('')
+    const [steps, setSteps] = useState<ProgressStep[]>(INITIAL_STEPS.map(s => ({ ...s })))
+    const [isPolling, setIsPolling] = useState<boolean>(true)
+    const [lastStatus, setLastStatus] = useState<string>('')
+    const [errorMessage, setErrorMessage] = useState<string>('')
+    const [lastChecked, setLastChecked] = useState<Date | null>(null)
+    const isPollingRef = useRef<boolean>(true)
+    const [logs, setLogs] = useState<LogEntry[]>([])
+    const logContainerRef = useRef<HTMLDivElement>(null)
+    const hasInitializedRef = useRef<boolean>(false)
+    // Store interval ID in ref to track if polling is already running
+    const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null)
+    // Track which statuses we've already logged to prevent duplicates
+    const loggedStatusesRef = useRef<Set<string>>(new Set())
+    // Track which task events we've already logged to prevent duplicates
+    const loggedTaskEventsRef = useRef<Set<string>>(new Set())
 
-    const progressBarMode = () => (
-        activeProgress ? "indeterminate" : "determinate"
-    )
+    const updateStepsForStatus = useCallback((status: string, stage?: string, errorMsg?: string) => {
+        setSteps(prevSteps => {
+            const newSteps = prevSteps.map(s => ({ ...s }))
 
-    const updateLastCheckedMsg = useCallback((active: boolean, reportDate?: number) => {
-        let msg = ''
+            if (status === 'pending') {
+                // Job queued, waiting to start
+                newSteps[0] = { ...newSteps[0], status: 'success', timestamp: new Date() }
+                newSteps[1] = { ...newSteps[1], status: 'pending', message: 'Waiting in queue...' }
+            } else if (status === 'running') {
+                // Pipeline is running - use stage to determine progress
+                newSteps[0] = { ...newSteps[0], status: 'success' }
+                newSteps[1] = { ...newSteps[1], status: 'success', message: 'Pipeline initialized', timestamp: new Date() }
 
-        if( reportDate ){
-            msg = `Last checked at: ${new Date(reportDate)}`
-            if(active){
-                msg += ', updates every 10s'
+                if (stage === 'alignment') {
+                    // Sequence retrieval done, alignment running
+                    newSteps[2] = { ...newSteps[2], status: 'success', message: 'Sequences retrieved' }
+                    newSteps[3] = { ...newSteps[3], status: 'running', message: 'Running Clustal Omega alignment...' }
+                    newSteps[4] = { ...newSteps[4], status: 'pending' }
+                } else if (stage === 'done') {
+                    // Both done, finalizing
+                    newSteps[2] = { ...newSteps[2], status: 'success', message: 'Sequences retrieved' }
+                    newSteps[3] = { ...newSteps[3], status: 'success', message: 'Alignment complete' }
+                    newSteps[4] = { ...newSteps[4], status: 'running', message: 'Finalizing results...' }
+                } else {
+                    // Default: sequence retrieval in progress
+                    newSteps[2] = { ...newSteps[2], status: 'running', message: 'Retrieving sequences from genome...' }
+                    newSteps[3] = { ...newSteps[3], status: 'pending' }
+                    newSteps[4] = { ...newSteps[4], status: 'pending' }
+                }
+            } else if (status === 'completed') {
+                // All done
+                newSteps[0] = { ...newSteps[0], status: 'success' }
+                newSteps[1] = { ...newSteps[1], status: 'success', message: 'Pipeline initialized' }
+                newSteps[2] = { ...newSteps[2], status: 'success', message: 'Sequences retrieved' }
+                newSteps[3] = { ...newSteps[3], status: 'success', message: 'Alignment complete' }
+                newSteps[4] = { ...newSteps[4], status: 'success', message: 'Results ready!', timestamp: new Date() }
+            } else if (status === 'failed') {
+                // Mark current running step as error
+                newSteps[0] = { ...newSteps[0], status: 'success' }
+                const runningIdx = newSteps.findIndex(s => s.status === 'running' || s.status === 'pending')
+                if (runningIdx >= 0) {
+                    newSteps[runningIdx] = {
+                        ...newSteps[runningIdx],
+                        status: 'error',
+                        message: errorMsg || 'Pipeline failed',
+                        timestamp: new Date()
+                    }
+                    // Mark remaining as error
+                    for (let i = runningIdx + 1; i < newSteps.length; i++) {
+                        newSteps[i] = { ...newSteps[i], status: 'error', message: 'Skipped' }
+                    }
+                }
             }
-            msg += '.'
-        }
 
-        setLastCheckedMessage(msg)
+            return newSteps
+        })
     }, [])
 
-    const updateProgressMessage = useCallback((state?: JobProgressStatus) => {
-        let msg = ''
-        if(state !== undefined){
-            if( state === JobProgressStatus.completed ){
-                msg = `Job ${props.uuidStr} has completed, redirecting to results page in a few seconds...`
+    const stopPolling = useCallback(() => {
+        isPollingRef.current = false
+        setIsPolling(false)
+    }, [])
+
+    const pollJobStatus = useCallback(async () => {
+        const response = await fetchJobStatusFull(props.uuidStr)
+        setLastChecked(new Date())
+
+        if (!response) {
+            setErrorMessage(`Failed to fetch job status. Please check the job UUID.`)
+            setLogs(prev => [...prev, { timestamp: new Date(), level: 'error', message: 'Failed to fetch job status from server' }])
+            stopPolling()
+            updateStepsForStatus('failed', undefined, 'Could not connect to server')
+            return
+        }
+
+        // Track status and stage changes for logging
+        const stageKey = `${response.status}_${response.stage || 'none'}`
+        if (!loggedStatusesRef.current.has(stageKey)) {
+            // Log status change
+            if (!loggedStatusesRef.current.has(response.status)) {
+                loggedStatusesRef.current.add(response.status)
+
+                if (response.status === 'pending') {
+                    setLogs(prev => [...prev,
+                        { timestamp: new Date(), level: 'info', message: `Job ${props.uuidStr.slice(0, 8)}... queued` },
+                        { timestamp: new Date(), level: 'info', message: 'Waiting for pipeline worker to pick up job...' }
+                    ])
+                } else if (response.status === 'running') {
+                    setLogs(prev => [...prev,
+                        { timestamp: new Date(), level: 'success', message: 'Pipeline worker acquired job' },
+                        { timestamp: new Date(), level: 'info', message: 'Initializing Nextflow pipeline...' },
+                        { timestamp: new Date(), level: 'success', message: 'Pipeline started' }
+                    ])
+                } else if (response.status === 'completed') {
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'success', message: 'Alignment completed successfully' }])
+                } else if (response.status === 'failed') {
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'error', message: `Pipeline failed: ${response.error_message || 'Unknown error'}` }])
+                }
             }
-            else if( state === JobProgressStatus.failed ){
-                msg = `Job ${props.uuidStr} has failed, try to submit a new job or contact the developers if this error persists.`
-            }
-            else{
-                msg = `Job ${props.uuidStr} is ${JobProgressStatus[state]}.`
+
+            // Log stage changes within running status
+            loggedStatusesRef.current.add(stageKey)
+            if (response.status === 'running') {
+                if (response.stage === 'sequence_retrieval') {
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Retrieving protein sequences from genome database...' }])
+                } else if (response.stage === 'alignment') {
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Starting Clustal Omega alignment...' }])
+                } else if (response.stage === 'done') {
+                    setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Finalizing results...' }])
+                }
             }
         }
-        setProgressMessage(msg)
+
+        // Log task-level events (granular progress from Nextflow)
+        if (response.task_events && response.task_events.length > 0) {
+            console.log('task_events from API:', response.task_events)
+            console.log('already logged:', Array.from(loggedTaskEventsRef.current))
+            const newEvents: LogEntry[] = []
+            response.task_events.forEach(event => {
+                if (!loggedTaskEventsRef.current.has(event)) {
+                    console.log('Adding new event:', event)
+                    loggedTaskEventsRef.current.add(event)
+                    newEvents.push({ timestamp: new Date(), level: 'success', message: event })
+                }
+            })
+            if (newEvents.length > 0) {
+                setLogs(prev => [...prev, ...newEvents])
+            }
+        }
+
+        setLastStatus(response.status)
+        updateStepsForStatus(response.status, response.stage, response.error_message)
+
+        // Update job history with current status
+        if (response.status === 'running') {
+            updateJob(props.uuidStr, { status: 'running' })
+        } else if (response.status === 'completed') {
+            updateJob(props.uuidStr, {
+                status: 'completed',
+                completedAt: new Date().toISOString()
+            })
+        } else if (response.status === 'failed') {
+            updateJob(props.uuidStr, {
+                status: 'failed',
+                error: response.error_message || 'Pipeline failed'
+            })
+        }
+
+        if (response.status === 'completed') {
+            stopPolling()
+            setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Prefetching alignment results...' }])
+
+            // Prefetch results during the redirect delay (uses same cache keys as AlignmentResultView)
+            const alignmentCacheKey = `alignment_result_${props.uuidStr}`
+            const seqInfoCacheKey = `alignment_seqinfo_${props.uuidStr}`
+
+            // Fire off prefetch requests (don't await - let them run in parallel with redirect timer)
+            dataCache.getOrFetch(
+                alignmentCacheKey,
+                () => fetchAlignmentResults(props.uuidStr),
+                CACHE_CONFIGS.session
+            ).then(() => {
+                setLogs(prev => [...prev, { timestamp: new Date(), level: 'success', message: 'Alignment results cached' }])
+            }).catch(() => {
+                // Silent fail - results will be fetched on the results page
+            })
+
+            dataCache.getOrFetch(
+                seqInfoCacheKey,
+                () => fetchAlignmentSeqInfo(props.uuidStr),
+                CACHE_CONFIGS.session
+            ).then(() => {
+                setLogs(prev => [...prev, { timestamp: new Date(), level: 'success', message: 'Sequence info cached' }])
+            }).catch(() => {
+                // Silent fail
+            })
+
+            setLogs(prev => [...prev, { timestamp: new Date(), level: 'info', message: 'Redirecting to results page...' }])
+            // Redirect to results after a short delay
+            setTimeout(() => {
+                const params = new URLSearchParams()
+                params.set("uuid", props.uuidStr)
+                router.push(`/result?${params.toString()}`)
+            }, 2000)
+        } else if (response.status === 'failed') {
+            stopPolling()
+            setErrorMessage(response.error_message || 'Pipeline execution failed')
+        }
+    }, [props.uuidStr, router, updateStepsForStatus, stopPolling, updateJob])
+
+    // Auto-scroll logs to bottom when new entries are added
+    useEffect(() => {
+        if (logContainerRef.current) {
+            logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight
+        }
+    }, [logs])
+
+    // Add initial log on mount (use ref to prevent double-logging in Strict Mode)
+    useEffect(() => {
+        if (hasInitializedRef.current) return
+        hasInitializedRef.current = true
+        setLogs([
+            { timestamp: new Date(), level: 'info', message: `Tracking job: ${props.uuidStr}` },
+            { timestamp: new Date(), level: 'info', message: 'Connecting to pipeline server...' }
+        ])
+        return () => {
+            hasInitializedRef.current = false
+            loggedStatusesRef.current.clear()
+            loggedTaskEventsRef.current.clear()
+        }
     }, [props.uuidStr])
 
-    const updateJobStatus = useCallback(async function(initCheckDate: number, jobUuid: string){
-        const currentDate = Date.now()
-
-        // Stop checking for updates if >1h passed since starting checks
-        if( currentDate - initCheckDate > 1000 * 60 * 60 ){
-            const msg = `Job ${jobUuid} failed to report completion before timeout.`
-            console.warn(msg)
-            setProgressMessage(`${msg} Please try again or contact the developers.`)
-            setActiveProgress(false)
-            setProgressValue(0)
-            return Promise.resolve()
+    // Single consolidated polling effect
+    useEffect(() => {
+        // Clear any existing interval from previous mount (handles client-side navigation)
+        if (intervalIdRef.current) {
+            clearInterval(intervalIdRef.current)
+            intervalIdRef.current = null
         }
 
-        const newState = await fetchJobStatus(jobUuid)
-        setLastChecked(currentDate)
+        // Reset polling state for fresh start
+        isPollingRef.current = true
+        setIsPolling(true)
 
-        if(newState){
-            setJobState(newState)
+        let mounted = true
 
-            if( newState === JobProgressStatus.completed || newState === JobProgressStatus.failed ){
-                setActiveProgress(false)
-                setProgressValue(100)
+        const startPolling = async () => {
+            // Initial poll
+            await pollJobStatus()
 
-                //On successful completion, forward to results page.
-                if( newState === JobProgressStatus.completed ){
-                    const params = new URLSearchParams();
-                    params.set("uuid", jobUuid);
-
-                    setTimeout(
-                        () => {router.push(`/result?${params.toString()}`)},
-                        3000
-                    )
-                }
-
-                return Promise.resolve()
+            // Only set up interval if still mounted and should be polling
+            if (mounted && isPollingRef.current) {
+                intervalIdRef.current = setInterval(() => {
+                    // Check ref before each poll to ensure we should still be polling
+                    if (isPollingRef.current) {
+                        pollJobStatus()
+                    } else if (intervalIdRef.current) {
+                        clearInterval(intervalIdRef.current)
+                        intervalIdRef.current = null
+                    }
+                }, 5000)
             }
         }
-        else {
-            const msg = `Failed to fetch job status for uuid ${jobUuid}`
-            console.error(msg)
-            setProgressMessage(`${msg} Please reload the page to try again, check the URL uuid or contact the developers.`)
-            setActiveProgress(false)
-            setProgressValue(0)
-            return Promise.resolve()
+
+        startPolling()
+
+        return () => {
+            mounted = false
+            isPollingRef.current = false
+            if (intervalIdRef.current) {
+                clearInterval(intervalIdRef.current)
+                intervalIdRef.current = null
+            }
         }
+    }, [props.uuidStr]) // eslint-disable-line react-hooks/exhaustive-deps
 
-        //Repeat every 10s
-        setTimeout(updateJobStatus, 10000, initCheckDate, jobUuid)
-    }, [router])
+    const getStepIcon = (status: ProgressStep['status']) => {
+        switch (status) {
+            case 'success': return 'pi pi-check-circle'
+            case 'error': return 'pi pi-times-circle'
+            case 'running': return 'pi pi-spin pi-spinner'
+            default: return 'pi pi-circle'
+        }
+    }
 
-    //Start updating job status on page load
-    useEffect(() => {
-        console.log('JobProgressTracker mounted.')
-        const initCheckDate = Date.now()
-        updateJobStatus(initCheckDate, props.uuidStr)
-    }, [updateJobStatus, props.uuidStr]);
+    const getStepColor = (status: ProgressStep['status']) => {
+        switch (status) {
+            case 'success': return 'var(--agr-success, #22c55e)'
+            case 'error': return 'var(--agr-error, #ef4444)'
+            case 'running': return 'var(--agr-primary, #3b82f6)'
+            default: return 'var(--agr-gray-400, #9ca3af)'
+        }
+    }
 
-    useEffect(() => {
-        updateProgressMessage(jobState)
-    }, [updateProgressMessage, jobState]);
+    const handleRetry = () => {
+        router.push('/submit')
+    }
 
-    useEffect(() => {
-        updateLastCheckedMsg(activeProgress, lastChecked)
-    }, [updateLastCheckedMsg, activeProgress, lastChecked]);
+    const formatLogTime = (date: Date) => {
+        return date.toLocaleTimeString('en-US', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        })
+    }
 
     return (
-        <>
-            <div className="card">
-                <ProgressBar mode={progressBarMode()} value={progressValue} style={{ height: '6px' }}></ProgressBar>
+        <div className="agr-page-section">
+            <div className="agr-page-header">
+                <h1>Job Progress</h1>
+                <p className="agr-page-description">
+                    Tracking alignment job: <code className="agr-code">{props.uuidStr}</code>
+                </p>
             </div>
-            <div>
-                <p style={{margin:'0px', padding:'0px', fontSize:'12px'}}>{lastCheckedMessage}</p>
-                <p id="progress-msg">{progressMessage}</p>
+
+            <div className={styles.container}>
+                {/* Left side: Step graph */}
+                <div className={styles.stepsPanel}>
+                    <Card className="agr-card">
+                        <div className="agr-card-header" style={{ marginBottom: '1.5rem' }}>
+                            <h2 style={{ margin: 0 }}>Pipeline Progress</h2>
+                            {lastChecked && (
+                                <small style={{ color: 'var(--agr-gray-500)', fontWeight: 'normal' }}>
+                                    Last updated: {lastChecked.toLocaleTimeString()}
+                                    {isPolling && ' (auto-refreshing every 5s)'}
+                                </small>
+                            )}
+                        </div>
+
+                        <Timeline
+                            value={steps}
+                            marker={(item) => (
+                                <span
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '2rem',
+                                        height: '2rem',
+                                        borderRadius: '50%',
+                                        backgroundColor: item.status === 'running' ? 'var(--agr-primary-light, #dbeafe)' : 'transparent'
+                                    }}
+                                >
+                                    <i
+                                        className={`${getStepIcon(item.status)}${item.status === 'running' ? ' agr-spinner' : ''}`}
+                                        style={{
+                                            color: getStepColor(item.status),
+                                            fontSize: '1.25rem'
+                                        }}
+                                    />
+                                </span>
+                            )}
+                            content={(item) => (
+                                <div style={{ paddingBottom: '1.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <strong style={{
+                                            color: item.status === 'error' ? 'var(--agr-error)' : 'inherit'
+                                        }}>
+                                            {item.name}
+                                        </strong>
+                                        {item.status === 'running' && (
+                                            <span style={{
+                                                fontSize: '0.75rem',
+                                                padding: '0.125rem 0.5rem',
+                                                backgroundColor: 'var(--agr-primary-light, #dbeafe)',
+                                                color: 'var(--agr-primary, #3b82f6)',
+                                                borderRadius: '9999px'
+                                            }}>
+                                                In Progress
+                                            </span>
+                                        )}
+                                    </div>
+                                    {item.message && (
+                                        <p style={{
+                                            margin: '0.25rem 0 0 0',
+                                            fontSize: '0.875rem',
+                                            color: item.status === 'error' ? 'var(--agr-error)' : 'var(--agr-gray-600)'
+                                        }}>
+                                            {item.message}
+                                        </p>
+                                    )}
+                                    {item.timestamp && (
+                                        <small style={{ color: 'var(--agr-gray-400)' }}>
+                                            {item.timestamp.toLocaleTimeString()}
+                                        </small>
+                                    )}
+                                </div>
+                            )}
+                        />
+
+                        {errorMessage && (
+                            <div style={{
+                                marginTop: '1rem',
+                                padding: '1rem',
+                                backgroundColor: 'var(--agr-error-light, #fef2f2)',
+                                borderRadius: '0.5rem',
+                                border: '1px solid var(--agr-error, #ef4444)'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <i className="pi pi-exclamation-triangle" style={{ color: 'var(--agr-error)' }} />
+                                    <strong style={{ color: 'var(--agr-error)' }}>Error</strong>
+                                </div>
+                                <p style={{ margin: 0, color: 'var(--agr-error-dark, #991b1b)' }}>{errorMessage}</p>
+                                <Button
+                                    label="Submit New Job"
+                                    icon="pi pi-refresh"
+                                    className="p-button-sm p-button-outlined"
+                                    style={{ marginTop: '1rem' }}
+                                    onClick={handleRetry}
+                                />
+                            </div>
+                        )}
+
+                        {lastStatus === 'completed' && (
+                            <div style={{
+                                marginTop: '1rem',
+                                padding: '1rem',
+                                backgroundColor: 'var(--agr-success-light, #f0fdf4)',
+                                borderRadius: '0.5rem',
+                                border: '1px solid var(--agr-success, #22c55e)'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <i className="pi pi-check-circle" style={{ color: 'var(--agr-success)', fontSize: '1.25rem' }} />
+                                    <strong style={{ color: 'var(--agr-success-dark, #166534)' }}>
+                                        Alignment Complete!
+                                    </strong>
+                                </div>
+                                <p style={{ margin: '0.5rem 0 0 0', color: 'var(--agr-success-dark, #166534)' }}>
+                                    Redirecting to results page...
+                                </p>
+                            </div>
+                        )}
+                    </Card>
+                </div>
+
+                {/* Right side: Log viewer */}
+                <div className={styles.logPanel}>
+                    <div className={styles.logContainer} ref={logContainerRef}>
+                        <div className={styles.logHeader}>
+                            <div className={styles.logTitle}>
+                                <i className="pi pi-desktop" />
+                                <span>Pipeline Log</span>
+                            </div>
+                            <span className={styles.logCount}>{logs.length} entries</span>
+                        </div>
+                        <div className={styles.logContent}>
+                            {logs.length === 0 ? (
+                                <div className={styles.emptyLog}>
+                                    <i className="pi pi-inbox" />
+                                    <p>Waiting for log entries...</p>
+                                </div>
+                            ) : (
+                                logs.map((log, index) => (
+                                    <div key={index} className={styles.logEntry}>
+                                        <span className={styles.logTimestamp}>{formatLogTime(log.timestamp)}</span>
+                                        <span className={`${styles.logLevel} ${styles[log.level]}`}>
+                                            {log.level}
+                                        </span>
+                                        <span className={`${styles.logMessage} ${styles[log.level]}`}>
+                                            {log.message}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
-        </>
+        </div>
     )
 }
-
-//TODO: add unit (component) testing for progress tracking

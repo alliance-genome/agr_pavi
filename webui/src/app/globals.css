@@ -1,5 +1,99 @@
 @import "primeicons/primeicons.css";
 
+/* Ensure PrimeReact and PrimeIcons loading spinners animate */
+.p-icon-spin,
+.pi-spin {
+    animation: p-icon-spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes p-icon-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 body {
     font-family: var(--font-family);
+}
+
+/* Global accessibility styles - enhanced focus indicators */
+*:focus-visible {
+    outline: 3px solid var(--agr-primary);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+.p-button:focus-visible {
+    outline: 3px solid var(--agr-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25);
+}
+
+a:focus-visible {
+    outline: 3px solid var(--agr-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.p-inputtext:focus-visible {
+    outline: 3px solid var(--agr-primary);
+    outline-offset: 0;
+    border-color: var(--agr-primary);
+}
+
+/* High contrast mode - global adjustments */
+@media (prefers-contrast: high) {
+    *:focus-visible {
+        outline: 4px solid #000 !important;
+        outline-offset: 3px !important;
+    }
+}
+
+/* Reduced motion preferences - global adjustments */
+@media (prefers-reduced-motion: reduce) {
+    *:not(.agr-spinner),
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* PrimeReact dropdown panel z-index fix */
+/* Ensures dropdown panels appear above other page content */
+.p-dropdown-panel {
+    z-index: 9999 !important;
+}
+
+/* Spinner animation for progress indicators */
+@keyframes agr-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.agr-spinner {
+    animation: agr-spin 1s linear infinite !important;
+}
+
+i.agr-spinner {
+    display: inline-block;
+    animation: agr-spin 1s linear infinite !important;
+}
+
+/* Fix blurry canvas rendering in Nightingale MSA */
+nightingale-msa,
+nightingale-msa canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+}
+
+#alignment-view-container canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }

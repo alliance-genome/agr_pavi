@@ -4,16 +4,22 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@examples/*": [
+        "../tests/examples/*"
       ]
     },
     "downlevelIteration": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "target": "ES2017"
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "../tests/examples/**/*.ts",
+    "../tests/examples/**/*.json",
     ".next/types/**/*.ts"
   ],
   "exclude": [

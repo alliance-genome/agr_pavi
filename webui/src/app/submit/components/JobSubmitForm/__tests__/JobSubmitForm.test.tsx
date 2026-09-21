@@ -3,14 +3,16 @@ import { describe, expect, it } from '@jest/globals';
 import { render, fireEvent } from '@testing-library/react'
 import { JobSubmitForm } from '../JobSubmitForm'
 
-jest.mock('https://raw.githubusercontent.com/alliance-genome/agr_ui/main/src/lib/utils.js',
+jest.mock('@/utils/agrSpeciesConfig',
     () => {
         return {
+            gffFileUrl: jest.fn(() => 'https://example.test/gff.gff.gz'),
             getSpecies: jest.fn(() => {}),
-            getSingleGenomeLocation: jest.fn(() => {})
+            getSingleGenomeLocation: jest.fn(() => {}),
+            resolveJBrowseRelease: (sc: { jBrowseDataReleaseOverride?: string }, r: string) =>
+                sc?.jBrowseDataReleaseOverride ?? r,
         }
-    },
-    {virtual: true}
+    }
 )
 
 // Mock useRouter:
@@ -39,7 +41,8 @@ describe('AlignmentEntry', () => {
             <JobSubmitForm agrjBrowseDataRelease='0.0.0' />
         )
 
-        const submitBtn = result.container.querySelector('button[aria-label="Submit"]')
+        // Button has label="Submit Job" which renders as span with text
+        const submitBtn = result.container.querySelector('button.p-button-lg')
         expect(submitBtn).not.toBeNull()  // Expect submit button to be found
         expect(submitBtn).toBeDisabled()
     })
@@ -73,15 +76,23 @@ describe('AlignmentEntry', () => {
         const initialInputGroups = result.container.querySelectorAll('div.p-inputgroup')
         expect(initialInputGroups).toHaveLength(1)
 
-        // Expect exactly one remove-record button to be found
-        const removeRecordBtn = result.container.querySelectorAll('button#remove-record')
-        expect(removeRecordBtn).toHaveLength(1)
+        // Remove button only appears when there are >1 entries, so add one first
+        const addRecordBtn = result.container.querySelector('button#add-record')
+        expect(addRecordBtn).not.toBeNull()
+        fireEvent.click(addRecordBtn!)
 
-        // Clicking the add-record button should remove a input group (exactly one extra, so 0 left)
+        const inputGroupsAfterAdd = result.container.querySelectorAll('div.p-inputgroup')
+        expect(inputGroupsAfterAdd).toHaveLength(2)  // Now we have two entries
+
+        // Now the remove button should be visible
+        const removeRecordBtn = result.container.querySelectorAll('button#remove-record')
+        expect(removeRecordBtn.length).toBeGreaterThan(0)
+
+        // Clicking the remove-record button should remove an input group
         fireEvent.click(removeRecordBtn[0])
 
         const newInputGroups = result.container.querySelectorAll('div.p-inputgroup')
-        expect(newInputGroups).toHaveLength(0)
+        expect(newInputGroups).toHaveLength(1)  // One left after removal
     })
 
     //TODO: add tests for API payload generation

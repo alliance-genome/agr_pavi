@@ -26,19 +26,17 @@ template = assertions.Template.from_stack(stack)
 #      (or delete the images if no longer relevant)
 #    * Delete the old ECR repository
 def test_pipeline_seq_retrieval_ecr_repo() -> None:
-    template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
-        "Properties": {
-            "RepositoryName": "agr_pavi/pipeline_seq_retrieval"
-        }
-    })
+    template.has_resource(
+        type=ResourceType.ECR_REPOSITORY.compliance_resource_type,
+        props={"Properties": {"RepositoryName": "agr_pavi/pipeline_seq_retrieval"}},
+    )
 
 
 def test_pipeline_alignment_ecr_repo() -> None:
-    template.has_resource(type=ResourceType.ECR_REPOSITORY.compliance_resource_type, props={
-        "Properties": {
-            "RepositoryName": "agr_pavi/pipeline_alignment"
-        }
-    })
+    template.has_resource(
+        type=ResourceType.ECR_REPOSITORY.compliance_resource_type,
+        props={"Properties": {"RepositoryName": "agr_pavi/pipeline_alignment"}},
+    )
 
 
 # Ensure any change to the bucket name is intentional, and if so, take below
@@ -51,39 +49,41 @@ def test_pipeline_alignment_ecr_repo() -> None:
 #       and delete all files that are no longer relevant (such as intermediate work directory files)
 #     * Delete the old S3 bucket
 def test_pipeline_nf_s3_bucket() -> None:
-    template.has_resource(type=ResourceType.S3_BUCKET.compliance_resource_type, props={
-        "Properties": {
-            "BucketName": "agr-pavi-pipeline-nextflow"
-        }
-    })
+    template.has_resource(
+        type=ResourceType.S3_BUCKET.compliance_resource_type,
+        props={"Properties": {"BucketName": "agr-pavi-pipeline-nextflow"}},
+    )
 
 
 # The Nextflow AWS execution policy is assigned to the GH-actions role for PAVI, in addition to PAVI-managed resources.
 # Changing the name of this policy might require the gh-actions role to be updated to include the new role, along
 # with changing all references to the role in other PAVI CDK stacks.
 def test_pipeline_nf_s3_bucket_policy() -> None:
-    template.has_resource(type=ResourceType.of('AWS::IAM::ManagedPolicy').compliance_resource_type, props={
-        "Properties": {
-            "ManagedPolicyName": "agr-pavi-pipeline-nf-aws-execution-policy"
-        }
-    })
+    template.has_resource(
+        type=ResourceType.of("AWS::IAM::ManagedPolicy").compliance_resource_type,
+        props={
+            "Properties": {
+                "ManagedPolicyName": "agr-pavi-pipeline-nf-aws-execution-policy"
+            }
+        },
+    )
 
 
 # Below tests check for resource that must be available in the stack,
 # but which can be replaced/renamed without manual interventions other than
 # updating all references to those resources to use the new name (check all code).
 def test_pipeline_execution_environment() -> None:
-    template.has_resource(type=ResourceType.BATCH_COMPUTE_ENVIRONMENT.compliance_resource_type, props={})
-    template.has_resource(type=ResourceType.BATCH_JOB_QUEUE.compliance_resource_type, props={
-        "Properties": {
-            "JobQueueName": "pavi_pipeline"
-        }
-    })
+    template.has_resource(
+        type=ResourceType.BATCH_COMPUTE_ENVIRONMENT.compliance_resource_type, props={}
+    )
+    template.has_resource(
+        type=ResourceType.BATCH_JOB_QUEUE.compliance_resource_type,
+        props={"Properties": {"JobQueueName": "pavi_pipeline"}},
+    )
 
 
 def test_pipeline_logs_group() -> None:
-    template.has_resource(type='AWS::Logs::LogGroup', props={
-        "Properties": {
-            "LogGroupName": "pavi/pipeline-batch-jobs"
-        }
-    })
+    template.has_resource(
+        type="AWS::Logs::LogGroup",
+        props={"Properties": {"LogGroupName": "pavi/pipeline-batch-jobs"}},
+    )

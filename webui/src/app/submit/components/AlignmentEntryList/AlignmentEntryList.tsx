@@ -5,10 +5,13 @@ import React, { FunctionComponent, useEffect, useState } from 'react';
 
 import { AlignmentEntry, AlignmentEntryProps } from '../AlignmentEntry/AlignmentEntry'
 import { InputPayloadDispatchAction } from '../JobSubmitForm/types';
+import { ExampleGene } from '../ExampleDataLoader/ExampleDataLoader';
 
 interface AlignmentEntryListProps {
     readonly agrjBrowseDataRelease: string
     readonly dispatchInputPayloadPart: React.Dispatch<InputPayloadDispatchAction>
+    readonly initialGenes?: ExampleGene[]
+    readonly loadVersion?: number
 }
 export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (props: AlignmentEntryListProps) => {
 
@@ -19,12 +22,18 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
         agrjBrowseDataRelease: props.agrjBrowseDataRelease,
         dispatchInputPayloadPart: props.dispatchInputPayloadPart
     }
-    const initListItem = (index: number) => {
-        console.log(`Initiating list item for index ${index}`)
+    const initListItem = (index: number, initialGene?: ExampleGene) => {
+        console.log(`Initiating list item for index ${index}${initialGene ? ` with initialGeneId: ${initialGene.geneId}` : ''}`)
+        if (initialGene?.alleleIds) {
+            console.log(`  with ${initialGene.alleleIds.length} initial allele(s)`)
+        }
         return(
             {props: {
                 ...alignmentEntryBaseProps,
-                index: index
+                index: index,
+                initialGeneId: initialGene?.geneId,
+                initialAlleleIds: initialGene?.alleleIds,
+                initialTranscriptNames: initialGene?.transcriptNames
             }}
         ) as AlignmentEntryListItem
     }
@@ -84,19 +93,52 @@ export const AlignmentEntryList: FunctionComponent<AlignmentEntryListProps> = (p
         return cleanupAlignmentEntries
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Handle loading initial genes (e.g., from example data)
+    useEffect(() => {
+        if (props.initialGenes && props.initialGenes.length > 0) {
+            console.log(`Loading ${props.initialGenes.length} initial genes:`, props.initialGenes)
+            setAlignmentEntries(() => {
+                const newState = new Map<number, AlignmentEntryListItem>()
+                props.initialGenes!.forEach((gene, index) => {
+                    newState.set(index, initListItem(index, gene))
+                })
+                return newState
+            })
+        }
+    }, [props.initialGenes]) // eslint-disable-line react-hooks/exhaustive-deps
+
     return (
-        <table>
-            <tbody>
-                {Array.from(alignmentEntries.values()).map((listEntry) => (
-                    <tr key={listEntry.props.index}>
-                        <td><Button text id="remove-record" icon="pi pi-trash" onClick={() => removeAlignmentEntry(listEntry.props.index)} /></td>
-                        <td>< AlignmentEntry {...listEntry.props} /></td>
-                    </tr>))
-                }
-                <tr><td>
-                    <Button text id="add-record" icon="pi pi-plus" onClick={() => addAlignmentEntry()} />
-                </td></tr>
-            </tbody>
-        </table>
+        <div className="agr-alignment-list">
+            {Array.from(alignmentEntries.values()).map((listEntry) => (
+                <div key={`${props.loadVersion ?? 0}-${listEntry.props.index}`} className="agr-alignment-entry">
+                    {alignmentEntries.size > 1 && (
+                        <div className="agr-alignment-entry-controls">
+                            <Button
+                                text
+                                severity="danger"
+                                id="remove-record"
+                                icon="pi pi-trash"
+                                onClick={() => removeAlignmentEntry(listEntry.props.index)}
+                                tooltip="Remove this entry"
+                                tooltipOptions={{ position: 'top' }}
+                            />
+                        </div>
+                    )}
+                    <div className="agr-alignment-entry-fields">
+                        <AlignmentEntry {...listEntry.props} />
+                    </div>
+                </div>
+            ))}
+            <div className="agr-alignment-add">
+                <Button
+                    text
+                    id="add-record"
+                    icon="pi pi-plus"
+                    label="Add Another Gene"
+                    onClick={() => addAlignmentEntry()}
+                    className="p-button-outlined"
+                />
+            </div>
+        </div>
     )
 }

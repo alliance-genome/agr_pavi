@@ -16,38 +16,56 @@ class AlignmentEmbeddedVariant(SeqEmbeddedVariant):
     alignment_end_pos: int
     """The relative end position of the variant in the alignment sequence (1-based)."""
 
-    def __init__(self, embedded_variant: SeqEmbeddedVariant, alignment_record: Optional[SeqRecord] = None, alignment_start_pos: Optional[int] = None, alignment_end_pos: Optional[int] = None):
+    def __init__(
+        self,
+        embedded_variant: SeqEmbeddedVariant,
+        alignment_record: Optional[SeqRecord] = None,
+        alignment_start_pos: Optional[int] = None,
+        alignment_end_pos: Optional[int] = None,
+    ):
         self.__dict__.update(vars(embedded_variant))
 
         if alignment_record is not None:
-            self.alignment_start_pos = seq_to_alignment_position(alignment_record, embedded_variant.seq_start_pos)
-            self.alignment_end_pos = seq_to_alignment_position(alignment_record, embedded_variant.seq_end_pos)
+            self.alignment_start_pos = seq_to_alignment_position(
+                alignment_record, embedded_variant.seq_start_pos
+            )
+            self.alignment_end_pos = seq_to_alignment_position(
+                alignment_record, embedded_variant.seq_end_pos
+            )
         else:
             if alignment_start_pos is None or alignment_end_pos is None:
-                raise ValueError('alignment_record or (alignment_start_pos and alignment_end_pos) must be provided')
+                raise ValueError(
+                    "alignment_record or (alignment_start_pos and alignment_end_pos) must be provided"
+                )
             self.alignment_start_pos = alignment_start_pos
             self.alignment_end_pos = alignment_end_pos
 
     @override
     @classmethod
-    def from_dict(cls, alignment_embedded_variant_dict: dict[str, Any]) -> 'AlignmentEmbeddedVariant':
-        if 'alignment_start_pos' not in alignment_embedded_variant_dict:
-            raise KeyError('alignment_start_pos not in alignment_embedded_variant_dict')
-        elif not isinstance(alignment_embedded_variant_dict['alignment_start_pos'], int):
-            raise TypeError('alignment_start_pos must be an integer')
+    def from_dict(
+        cls, alignment_embedded_variant_dict: dict[str, Any]
+    ) -> "AlignmentEmbeddedVariant":
+        if "alignment_start_pos" not in alignment_embedded_variant_dict:
+            raise KeyError("alignment_start_pos not in alignment_embedded_variant_dict")
+        elif not isinstance(
+            alignment_embedded_variant_dict["alignment_start_pos"], int
+        ):
+            raise TypeError("alignment_start_pos must be an integer")
 
-        if 'alignment_end_pos' not in alignment_embedded_variant_dict:
-            raise KeyError('alignment_end_pos not in alignment_embedded_variant_dict')
-        elif not isinstance(alignment_embedded_variant_dict['alignment_end_pos'], int):
-            raise TypeError('alignment_end_pos must be an integer')
+        if "alignment_end_pos" not in alignment_embedded_variant_dict:
+            raise KeyError("alignment_end_pos not in alignment_embedded_variant_dict")
+        elif not isinstance(alignment_embedded_variant_dict["alignment_end_pos"], int):
+            raise TypeError("alignment_end_pos must be an integer")
 
         seq_embedded_variant_dict = alignment_embedded_variant_dict.copy()
-        del seq_embedded_variant_dict['alignment_start_pos']
-        del seq_embedded_variant_dict['alignment_end_pos']
+        del seq_embedded_variant_dict["alignment_start_pos"]
+        del seq_embedded_variant_dict["alignment_end_pos"]
 
-        return cls(embedded_variant=SeqEmbeddedVariant.from_dict(seq_embedded_variant_dict),
-                   alignment_start_pos=alignment_embedded_variant_dict['alignment_start_pos'],
-                   alignment_end_pos=alignment_embedded_variant_dict['alignment_end_pos'])
+        return cls(
+            embedded_variant=SeqEmbeddedVariant.from_dict(seq_embedded_variant_dict),
+            alignment_start_pos=alignment_embedded_variant_dict["alignment_start_pos"],
+            alignment_end_pos=alignment_embedded_variant_dict["alignment_end_pos"],
+        )
 
 
 class AlignmentEmbeddedVariantsList(list[AlignmentEmbeddedVariant]):
@@ -76,13 +94,17 @@ def seq_to_alignment_position(seq_record: SeqRecord, pos: int) -> int:
     if seq_record.seq is None:
         raise ValueError(f"Sequence record '{seq_record.id}' has no sequence.")
 
-    no_gap_seq_len: int = len(seq_record.seq) - seq_record.seq.count('-')
-    '''The ungapped sequence length of the sequence record'''
+    no_gap_seq_len: int = len(seq_record.seq) - seq_record.seq.count("-")
+    """The ungapped sequence length of the sequence record"""
 
     if pos < 1:
-        raise ValueError(f"Out of bounds: sequence position ({pos}) before start of sequence.")
+        raise ValueError(
+            f"Out of bounds: sequence position ({pos}) before start of sequence."
+        )
     elif pos > (no_gap_seq_len + 1):
-        raise ValueError(f"Out of bounds: sequence position ({pos}) after end of sequence (({no_gap_seq_len})+1).")
+        raise ValueError(
+            f"Out of bounds: sequence position ({pos}) after end of sequence (({no_gap_seq_len})+1)."
+        )
 
     covered_ungapped_seq_len: int = 0
     alignment_pos = 0

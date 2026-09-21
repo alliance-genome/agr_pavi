@@ -1,0 +1,77 @@
+# Local testing Dockerfile - no AWS credentials required
+# Skips Nextflow plugin pre-download (will download on first run if needed)
+
+FROM ubuntu:24.04 AS base-image
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt upgrade -y
+
+
+FROM base-image AS install-python
+RUN apt install -y bash curl git build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+
+# Install python through pyenv
+RUN curl -fsSL https://pyenv.run | bash
+ENV HOME="/root"
+ENV PYENV_ROOT="${HOME}/.pyenv"
+ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+
+ENV PYTHON_VERSION=3.12
+RUN pyenv install ${PYTHON_VERSION}
+RUN pyenv global ${PYTHON_VERSION}
+
+WORKDIR /usr/src/app/
+COPY requirements.txt ./
+RUN python -m venv .venv/
+RUN .venv/bin/pip install --no-cache-dir -r requirements.txt
+
+
+FROM base-image AS application-deps-collection
+
+WORKDIR /usr/src/app
+
+RUN apt install -y make curl
+
+COPY src/ ./
+
+# Nextflow runtime requirements, executable and configs
+COPY pipeline_workflow/Makefile workflow_makefile
+RUN make -f workflow_makefile nextflow.sh
+COPY pipeline_workflow/nextflow.config nextflow.config
+COPY pipeline_workflow/protein-msa.nf protein-msa.nf
+
+
+FROM base-image AS application-image
+
+# Setup python
+COPY --from=install-python /root/.pyenv /root/.pyenv
+ENV HOME="/root"
+ENV PYENV_ROOT="${HOME}/.pyenv"
+ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+
+# Setup application files
+WORKDIR /usr/src/app
+COPY --from=application-deps-collection /usr/src/app ./
+
+# Setup python venv environment
+COPY --from=install-python /usr/src/app/.venv /usr/src/app/.venv
+ENV PATH="/usr/src/app/.venv/bin:${PATH}"
+
+# Nextflow runtime requirements
+RUN apt install -y default-jre curl
+
+# Expose necessary ports
+EXPOSE 8080
+
+# Local testing environment variables
+ENV API_EXECUTION_ENV="local"
+ENV API_RESULTS_PATH_PREFIX="/usr/src/app/results/"
+
+# Create results directory
+RUN mkdir -p /usr/src/app/results
+
+# Skip Nextflow plugin pre-download for local testing
+# Plugins will download on first pipeline run if needed
+
+# Start the API server application
+CMD [ "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8080"]

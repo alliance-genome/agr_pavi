@@ -1,0 +1,75 @@
+# Complete local testing environment for PAVI overhaul
+# Run: docker compose -f docker-compose-local-test.yml up --build
+
+services:
+  # PAVI API (FastAPI + Nextflow)
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.local
+    container_name: pavi-local-api
+    ports:
+      - "8080:8080"
+    environment:
+      - API_EXECUTION_ENV=local
+      - API_RESULTS_PATH_PREFIX=/app/results/
+      # For Step Functions testing (toggle USE_STEP_FUNCTIONS)
+      - USE_STEP_FUNCTIONS=false
+      - STEP_FUNCTIONS_ENDPOINT=http://stepfunctions:8083
+      - STEP_FUNCTIONS_STATE_MACHINE_ARN=arn:aws:states:us-east-1:123456789012:stateMachine:pavi-pipeline-sfn-poc
+    volumes:
+      - pavi-results:/app/results
+    networks:
+      - pavi-local
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PAVI WebUI (Next.js)
+  webui:
+    build:
+      context: ./webui
+      args:
+        NODE_VERSION: 20
+    container_name: pavi-local-webui
+    ports:
+      - "3000:3000"
+    environment:
+      - PAVI_API_BASE_URL=http://api:8080
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      - pavi-local
+
+  # Step Functions Local (new pipeline - for testing the overhaul)
+  stepfunctions:
+    image: amazon/aws-stepfunctions-local:latest
+    container_name: pavi-local-stepfunctions
+    ports:
+      - "8083:8083"
+    environment:
+      - AWS_DEFAULT_REGION=us-east-1
+      - BATCH_ENDPOINT=http://mock-batch:8084
+    networks:
+      - pavi-local
+
+  # Mock Batch (simulates AWS Batch locally)
+  mock-batch:
+    build:
+      context: ./pipeline_components/aws_infra/local-testing
+      dockerfile: Dockerfile.mock-batch
+    container_name: pavi-local-mock-batch
+    ports:
+      - "8084:8084"
+    networks:
+      - pavi-local
+
+volumes:
+  pavi-results:
+
+networks:
+  pavi-local:
+    driver: bridge

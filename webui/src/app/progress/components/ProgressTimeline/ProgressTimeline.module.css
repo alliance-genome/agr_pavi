@@ -1,0 +1,173 @@
+.container {
+    margin-bottom: 1.5rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--agr-gray-900);
+    margin: 0;
+}
+
+.summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stepCount {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--agr-primary);
+    background: var(--agr-primary-light);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+}
+
+.estimate {
+    font-size: 0.875rem;
+    color: var(--agr-gray-600);
+}
+
+.progressBarContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.progressBar {
+    flex: 1;
+    height: 8px;
+    background: var(--agr-gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--agr-primary), var(--agr-primary-dark));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progressLabel {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--agr-gray-700);
+    min-width: 3rem;
+    text-align: right;
+}
+
+.timeline {
+    margin-top: 1rem;
+}
+
+.marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    font-size: 1rem;
+}
+
+.marker.pending {
+    background: var(--agr-gray-100);
+    color: var(--agr-gray-400);
+    border: 2px dashed var(--agr-gray-300);
+}
+
+.marker.running {
+    background: var(--agr-primary-light);
+    color: var(--agr-primary);
+    border: 2px solid var(--agr-primary);
+}
+
+.marker.completed {
+    background: var(--agr-success-light);
+    color: var(--agr-success);
+    border: 2px solid var(--agr-success);
+}
+
+.marker.failed {
+    background: var(--agr-error-light);
+    color: var(--agr-error);
+    border: 2px solid var(--agr-error);
+}
+
+.content {
+    padding: 0.5rem 0 1rem 0;
+}
+
+.content .header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.label {
+    font-weight: 600;
+    color: var(--agr-gray-900);
+}
+
+.content.pending .label {
+    color: var(--agr-gray-500);
+}
+
+.content.running .label {
+    color: var(--agr-primary);
+}
+
+.content.completed .label {
+    color: var(--agr-success-dark);
+}
+
+.content.failed .label {
+    color: var(--agr-error);
+}
+
+.duration {
+    font-size: 0.75rem;
+    color: var(--agr-gray-500);
+    background: var(--agr-gray-100);
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.description {
+    font-size: 0.875rem;
+    color: var(--agr-gray-600);
+    margin: 0;
+}
+
+.content.pending .description {
+    color: var(--agr-gray-400);
+}
+
+.timestamp {
+    font-size: 0.75rem;
+    color: var(--agr-gray-400);
+    display: block;
+    margin-top: 0.25rem;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .progressFill {
+        transition: none;
+    }
+}

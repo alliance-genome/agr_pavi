@@ -1,0 +1,9 @@
+.venv/
+*.egg-info/
+__pycache__/
+*.pyc
+.pytest_cache/
+run-all-report.json
+verify-alliance-report.json
+verify-alliance-test.json
+verify-alliance-prod.json

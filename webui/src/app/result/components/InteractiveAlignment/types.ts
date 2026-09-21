@@ -2,9 +2,27 @@ export interface SeqInfoDict {
     [key:string]: SeqInfo
 }
 
+export interface NonCodingVariant {
+    variant_id: string,
+    genomic_seq_id: string,
+    genomic_start_pos: number,
+    genomic_end_pos: number,
+    genomic_ref_seq: string,
+    genomic_alt_seq: string,
+    seq_substitution_type: string,
+    molecular_consequences?: string[],
+    hgvs_protein?: string,
+    hgvs_coding?: string,
+    impact?: string,
+    gene_id?: string
+}
+
 export interface SeqInfo {
     embedded_variants?: EmbeddedVariant[],
-    error?: string
+    non_coding_variants?: NonCodingVariant[],
+    requested_variant_ids?: string[],
+    error?: string,
+    species?: string
 }
 
 export interface EmbeddedVariant {
@@ -19,5 +37,19 @@ export interface EmbeddedVariant {
     genomic_end_pos: number,
     genomic_ref_seq: string,
     genomic_alt_seq: string,
-    seq_substitution_type: string
+    seq_substitution_type: string,
+    molecular_consequences?: string[],
+    hgvs_protein?: string,
+    hgvs_coding?: string,
+    impact?: string,
+    gene_id?: string
 }
+
+export interface VariantAnnotation {
+    alleleId: string;
+    alleleSymbol: string;
+    hasDisease: boolean;
+    hasPhenotype: boolean;
+}
+
+export type VariantAnnotationMap = Record<string, VariantAnnotation>;

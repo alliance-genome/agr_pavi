@@ -21,7 +21,14 @@ class SeqEmbeddedVariant(Variant):
     embedded_ref_seq_len: int
     """The length of the variant's reference sequence portion embedded in the sequence."""
 
-    def __init__(self, variant: 'Variant', seq_start_pos: int, seq_end_pos: int, embedded_ref_seq_len: int, embedded_alt_seq_len: int):
+    def __init__(
+        self,
+        variant: "Variant",
+        seq_start_pos: int,
+        seq_end_pos: int,
+        embedded_ref_seq_len: int,
+        embedded_alt_seq_len: int,
+    ):
         self.__dict__.update(vars(variant))
         self.seq_start_pos = seq_start_pos
         self.seq_end_pos = seq_end_pos
@@ -30,39 +37,45 @@ class SeqEmbeddedVariant(Variant):
 
     @override
     @classmethod
-    def from_dict(cls, seq_embedded_variant_dict: dict[str, Any]) -> 'SeqEmbeddedVariant':
-        if 'seq_start_pos' not in seq_embedded_variant_dict:
-            raise KeyError('seq_start_pos not in seq_embedded_variant_dict')
-        elif not isinstance(seq_embedded_variant_dict['seq_start_pos'], int):
-            raise TypeError('seq_start_pos must be an integer')
+    def from_dict(
+        cls, seq_embedded_variant_dict: dict[str, Any]
+    ) -> "SeqEmbeddedVariant":
+        if "seq_start_pos" not in seq_embedded_variant_dict:
+            raise KeyError("seq_start_pos not in seq_embedded_variant_dict")
+        elif not isinstance(seq_embedded_variant_dict["seq_start_pos"], int):
+            raise TypeError("seq_start_pos must be an integer")
 
-        if 'seq_end_pos' not in seq_embedded_variant_dict:
-            raise KeyError('seq_end_pos not in seq_embedded_variant_dict')
-        elif not isinstance(seq_embedded_variant_dict['seq_end_pos'], int):
-            raise TypeError('seq_end_pos must be an integer')
+        if "seq_end_pos" not in seq_embedded_variant_dict:
+            raise KeyError("seq_end_pos not in seq_embedded_variant_dict")
+        elif not isinstance(seq_embedded_variant_dict["seq_end_pos"], int):
+            raise TypeError("seq_end_pos must be an integer")
 
-        if 'embedded_ref_seq_len' not in seq_embedded_variant_dict:
-            raise KeyError('embedded_ref_seq_len not in seq_embedded_variant_dict')
-        elif not isinstance(seq_embedded_variant_dict['embedded_ref_seq_len'], int):
-            raise TypeError('embedded_ref_seq_len must be an integer')
+        if "embedded_ref_seq_len" not in seq_embedded_variant_dict:
+            raise KeyError("embedded_ref_seq_len not in seq_embedded_variant_dict")
+        elif not isinstance(seq_embedded_variant_dict["embedded_ref_seq_len"], int):
+            raise TypeError("embedded_ref_seq_len must be an integer")
 
-        if 'embedded_alt_seq_len' not in seq_embedded_variant_dict:
-            raise KeyError('embedded_alt_seq_len not in seq_embedded_variant_dict')
-        elif not isinstance(seq_embedded_variant_dict['embedded_alt_seq_len'], int):
-            raise TypeError('embedded_alt_seq_len must be an integer')
+        if "embedded_alt_seq_len" not in seq_embedded_variant_dict:
+            raise KeyError("embedded_alt_seq_len not in seq_embedded_variant_dict")
+        elif not isinstance(seq_embedded_variant_dict["embedded_alt_seq_len"], int):
+            raise TypeError("embedded_alt_seq_len must be an integer")
 
         variant_dict = seq_embedded_variant_dict.copy()
-        del variant_dict['seq_start_pos']
-        del variant_dict['seq_end_pos']
-        del variant_dict['embedded_ref_seq_len']
-        del variant_dict['embedded_alt_seq_len']
+        del variant_dict["seq_start_pos"]
+        del variant_dict["seq_end_pos"]
+        del variant_dict["embedded_ref_seq_len"]
+        del variant_dict["embedded_alt_seq_len"]
 
-        return cls(Variant.from_dict(variant_dict),
-                   seq_embedded_variant_dict['seq_start_pos'], seq_embedded_variant_dict['seq_end_pos'],
-                   seq_embedded_variant_dict['embedded_ref_seq_len'], seq_embedded_variant_dict['embedded_alt_seq_len'])
+        return cls(
+            Variant.from_dict(variant_dict),
+            seq_embedded_variant_dict["seq_start_pos"],
+            seq_embedded_variant_dict["seq_end_pos"],
+            seq_embedded_variant_dict["embedded_ref_seq_len"],
+            seq_embedded_variant_dict["embedded_alt_seq_len"],
+        )
 
-    def fuse_to_end(self, other: 'SeqEmbeddedVariant') -> 'SeqEmbeddedVariant':
-        '''
+    def fuse_to_end(self, other: "SeqEmbeddedVariant") -> "SeqEmbeddedVariant":
+        """
         Fuses the `other` SeqEmbeddedVariant to the end of `self`.
         Assumes that the two SeqEmbeddedVariants come from the same Variant,
         are located on the adjacent edges of two disjoined regions of the sequence (with independent seq start and end positions) which are being joined into one sequence.
@@ -75,12 +88,22 @@ class SeqEmbeddedVariant(Variant):
 
         Raises:
             ValueError: If the two SeqEmbeddedVariants do not come from the same Variant
-        '''
+        """
         if self.variant_id != other.variant_id:
-            raise ValueError('Fusion of SeqEmbeddedVariants from different variants is not supported')
+            raise ValueError(
+                "Fusion of SeqEmbeddedVariants from different variants is not supported"
+            )
 
-        if not (other.seq_start_pos == 1 or (self.seq_substitution_type == SeqSubstitutionType.DELETION and other.seq_start_pos == 0)):
-            raise ValueError(f'`other` SeqEmbeddedVariant must start at the start of its sequence to be fusable ({other.seq_start_pos} is not a start position for substitution type {self.seq_substitution_type}).')
+        if not (
+            other.seq_start_pos == 1
+            or (
+                self.seq_substitution_type == SeqSubstitutionType.DELETION
+                and other.seq_start_pos == 0
+            )
+        ):
+            raise ValueError(
+                f"`other` SeqEmbeddedVariant must start at the start of its sequence to be fusable ({other.seq_start_pos} is not a start position for substitution type {self.seq_substitution_type})."
+            )
 
         fused_seq_embedded_variant: SeqEmbeddedVariant = deepcopy(self)
 
@@ -90,12 +113,15 @@ class SeqEmbeddedVariant(Variant):
 
         # In case of deletions, seq_end_pos of first seq region would be at flanking base to the region end,
         # so must be adjusted.
-        if fused_seq_embedded_variant.seq_substitution_type == SeqSubstitutionType.DELETION:
+        if (
+            fused_seq_embedded_variant.seq_substitution_type
+            == SeqSubstitutionType.DELETION
+        ):
             fused_seq_embedded_variant.seq_end_pos -= 1
 
         return fused_seq_embedded_variant
 
-    def to_translated(self) -> 'SeqEmbeddedVariant':
+    def to_translated(self) -> "SeqEmbeddedVariant":
         """
         Converts the SeqEmbeddedVariant to represent embedment in it's corresponding translated (protein) sequence.
 
@@ -123,9 +149,10 @@ class SeqEmbeddedVariant(Variant):
         no_flank_start: int
         no_flank_end: int
 
-        if self.seq_substitution_type == SeqSubstitutionType.SUBSTITUTION \
-           or self.seq_substitution_type == SeqSubstitutionType.INDEL:
-
+        if (
+            self.seq_substitution_type == SeqSubstitutionType.SUBSTITUTION
+            or self.seq_substitution_type == SeqSubstitutionType.INDEL
+        ):
             translated_start_pos = translate_seq_position(self.seq_start_pos)
             translated_end_pos = translate_seq_position(self.seq_end_pos)
 
@@ -156,17 +183,27 @@ class SeqEmbeddedVariant(Variant):
 
             # For complete-codon deletion starting at codon start (in-frame with reference),
             # include start-flanking AA (end-flanking AA is current translated_end_pos)
-            if self.embedded_ref_seq_len >= 3 and self.embedded_ref_seq_len % 3 == 0 and no_flank_start % 3 == 1:
+            if (
+                self.embedded_ref_seq_len >= 3
+                and self.embedded_ref_seq_len % 3 == 0
+                and no_flank_start % 3 == 1
+            ):
                 translated_start_pos -= 1
 
         else:
-            raise ValueError(f"Unsupported substitution type: {self.seq_substitution_type}")
+            raise ValueError(
+                f"Unsupported substitution type: {self.seq_substitution_type}"
+            )
 
         translated_seq_embedded_variant: SeqEmbeddedVariant = deepcopy(self)
         translated_seq_embedded_variant.seq_start_pos = translated_start_pos
         translated_seq_embedded_variant.seq_end_pos = translated_end_pos
-        translated_seq_embedded_variant.embedded_ref_seq_len = translate_seq_position(self.embedded_ref_seq_len)
-        translated_seq_embedded_variant.embedded_alt_seq_len = translate_seq_position(self.embedded_alt_seq_len)
+        translated_seq_embedded_variant.embedded_ref_seq_len = translate_seq_position(
+            self.embedded_ref_seq_len
+        )
+        translated_seq_embedded_variant.embedded_alt_seq_len = translate_seq_position(
+            self.embedded_alt_seq_len
+        )
         return translated_seq_embedded_variant
 
 
@@ -193,7 +230,9 @@ class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):
             variant.seq_end_pos += shift
 
     @classmethod
-    def trimmed_on_rel_positions(cls, variants_list: 'SeqEmbeddedVariantsList', trim_end: int) -> 'SeqEmbeddedVariantsList':
+    def trimmed_on_rel_positions(
+        cls, variants_list: "SeqEmbeddedVariantsList", trim_end: int
+    ) -> "SeqEmbeddedVariantsList":
         """
         Trims the `variants_list` to only include variants within relative positions 1 to `trim_end`.
         Additionally trims the seq_end_pos positions of all variants in the list that overlap `trim_end`.
@@ -209,7 +248,11 @@ class SeqEmbeddedVariantsList(list[SeqEmbeddedVariant]):
             if embedded_variant.seq_start_pos > trim_end:
                 # Embedded variant completely outside of in-frame window
                 del list_copy[index]
-            elif embedded_variant.seq_start_pos == trim_end and embedded_variant.seq_substitution_type == SeqSubstitutionType.DELETION:
+            elif (
+                embedded_variant.seq_start_pos == trim_end
+                and embedded_variant.seq_substitution_type
+                == SeqSubstitutionType.DELETION
+            ):
                 # Embedded variant is deletions just outside of in-frame window
                 del list_copy[index]
             elif embedded_variant.seq_end_pos > trim_end:

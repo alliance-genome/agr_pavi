@@ -1,0 +1,54 @@
+{
+  "StateMachines": {
+    "PaviPipelinePOC": {
+      "Type": "EXPRESS",
+      "StateMachineArn": "arn:aws:states:us-east-1:123456789012:stateMachine:pavi-pipeline-sfn-poc",
+      "DefinitionPath": "/home/stepfunctions/state-machine.asl.json",
+      "ExecutionTimeoutSeconds": 1800
+    }
+  },
+  "MockedResponses": {
+    "SequenceRetrievalMock": {
+      "0": {
+        "Return": {
+          "JobArn": "arn:aws:batch:us-east-1:123456789012:job/mock-seq-retrieval-001",
+          "JobId": "mock-seq-retrieval-001",
+          "JobName": "seq-retrieval-test",
+          "Status": "SUCCEEDED",
+          "Container": {
+            "ExitCode": 0,
+            "LogStreamName": "pavi/seq-retrieval/mock-001"
+          }
+        }
+      }
+    },
+    "AlignmentMock": {
+      "0": {
+        "Return": {
+          "JobArn": "arn:aws:batch:us-east-1:123456789012:job/mock-alignment-001",
+          "JobId": "mock-alignment-001",
+          "JobName": "alignment-test",
+          "Status": "SUCCEEDED",
+          "Container": {
+            "ExitCode": 0,
+            "LogStreamName": "pavi/alignment/mock-001"
+          }
+        }
+      }
+    },
+    "CollectSeqInfoMock": {
+      "0": {
+        "Return": {
+          "JobArn": "arn:aws:batch:us-east-1:123456789012:job/mock-collect-001",
+          "JobId": "mock-collect-001",
+          "JobName": "collect-seqinfo-test",
+          "Status": "SUCCEEDED",
+          "Container": {
+            "ExitCode": 0,
+            "LogStreamName": "pavi/collect/mock-001"
+          }
+        }
+      }
+    }
+  }
+}

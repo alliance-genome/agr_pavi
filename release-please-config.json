@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "separate-pull-requests": true,
+  "include-component-in-tag": true,
+  "tag-separator": "-",
+  "packages": {
+    "webui": {
+      "release-type": "node",
+      "component": "webui",
+      "package-name": "pavi-webui"
+    },
+    "api": {
+      "release-type": "python",
+      "component": "api",
+      "package-name": "pavi-api"
+    }
+  }
+}

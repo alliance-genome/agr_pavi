@@ -1,9 +1,10 @@
 // Server-generated page
 
+import { Breadcrumbs } from '../components/Breadcrumbs'
 import { AlignmentResultView } from './components/AlignmentResultView/AlignmentResultView'
 import { redirect } from 'next/navigation'
 
-export default async function Page( props: any ) {
+export default async function ResultPage( props: any ) {
 
     const searchParams: Record<string, any> = (await props.searchParams)
     const jobUuidStr = searchParams['uuid'] as string
@@ -13,6 +14,14 @@ export default async function Page( props: any ) {
     }
 
     return (
-        <AlignmentResultView uuidStr={jobUuidStr} />
+        <article>
+            <Breadcrumbs
+                items={[
+                    { label: 'Home', href: '/' },
+                    { label: 'Results' },
+                ]}
+            />
+            <AlignmentResultView uuidStr={jobUuidStr} />
+        </article>
     )
 }

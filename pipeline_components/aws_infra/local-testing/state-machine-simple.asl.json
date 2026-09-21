@@ -1,0 +1,93 @@
+{
+  "Comment": "PAVI Pipeline - Simplified for Local Testing (no DynamoDB)",
+  "StartAt": "PrepareExecution",
+  "States": {
+    "PrepareExecution": {
+      "Type": "Pass",
+      "Comment": "Prepare execution parameters",
+      "Parameters": {
+        "job_id.$": "$.job_id",
+        "execution_id.$": "$$.Execution.Name",
+        "input_regions.$": "$.seq_regions",
+        "s3_bucket": "agr-pavi-pipeline-dev",
+        "s3_work_prefix.$": "States.Format('jobs/{}/work', $.job_id)",
+        "s3_results_prefix.$": "States.Format('jobs/{}/results', $.job_id)"
+      },
+      "Next": "ParallelSequenceRetrieval"
+    },
+
+    "ParallelSequenceRetrieval": {
+      "Type": "Map",
+      "Comment": "Retrieve sequences in parallel for each input region",
+      "ItemsPath": "$.input_regions",
+      "MaxConcurrency": 10,
+      "Parameters": {
+        "region.$": "$$.Map.Item.Value",
+        "index.$": "$$.Map.Item.Index",
+        "job_id.$": "$.job_id",
+        "s3_bucket.$": "$.s3_bucket",
+        "s3_work_prefix.$": "$.s3_work_prefix"
+      },
+      "Iterator": {
+        "StartAt": "MockSequenceRetrieval",
+        "States": {
+          "MockSequenceRetrieval": {
+            "Type": "Pass",
+            "Comment": "Mock sequence retrieval (would be Batch job in prod)",
+            "Parameters": {
+              "status": "SUCCESS",
+              "region.$": "$.region",
+              "output_file.$": "States.Format('s3://{}/{}/seq_{}.fasta', $.s3_bucket, $.s3_work_prefix, $.index)"
+            },
+            "End": true
+          }
+        }
+      },
+      "ResultPath": "$.retrieval_results",
+      "Next": "AlignmentStep",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "FailedState"
+        }
+      ]
+    },
+
+    "AlignmentStep": {
+      "Type": "Pass",
+      "Comment": "Mock alignment (would be Batch job in prod)",
+      "Parameters": {
+        "job_id.$": "$.job_id",
+        "retrieval_results.$": "$.retrieval_results",
+        "s3_bucket.$": "$.s3_bucket",
+        "s3_results_prefix.$": "$.s3_results_prefix",
+        "alignment_status": "SUCCESS",
+        "alignment_output.$": "States.Format('s3://{}/{}/alignment.aln', $.s3_bucket, $.s3_results_prefix)"
+      },
+      "Next": "CollectResults"
+    },
+
+    "CollectResults": {
+      "Type": "Pass",
+      "Comment": "Mock results collection",
+      "Parameters": {
+        "job_id.$": "$.job_id",
+        "status": "COMPLETED",
+        "result_uri.$": "$.alignment_output",
+        "sequences_processed.$": "States.ArrayLength($.retrieval_results)",
+        "completed_at.$": "$$.State.EnteredTime"
+      },
+      "End": true
+    },
+
+    "FailedState": {
+      "Type": "Pass",
+      "Parameters": {
+        "status": "FAILED",
+        "error.$": "$.error"
+      },
+      "End": true
+    }
+  }
+}

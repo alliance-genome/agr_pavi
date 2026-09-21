@@ -13,6 +13,7 @@
 /cypress/visual-tests/cypress-image-diff-screenshots/*
 !/cypress/visual-tests/cypress-image-diff-screenshots/baseline/
 /cypress/test-resources/
+/cypress/results/
 
 # next.js
 /.next/
@@ -39,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Vendored patched genomefeatures build (raised isoform cap) — keep its dist.
+!/third_party/genomefeatures/dist/
+!/third_party/genomefeatures/dist/**
+/third_party/genomefeatures/node_modules/

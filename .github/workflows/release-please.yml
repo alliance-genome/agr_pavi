@@ -1,0 +1,31 @@
+name: release-please
+
+# Auto-versioning for the two independently-versioned components.
+# On merges to main, release-please reads conventional commits and opens a
+# per-component "release PR" (bumping webui/package.json or api/pyproject.toml).
+# Merging that PR creates the tag: webui-vX.Y.Z or api-vX.Y.Z.
+# Config lives in release-please-config.json + .release-please-manifest.json.
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Never run two release-please passes concurrently.
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

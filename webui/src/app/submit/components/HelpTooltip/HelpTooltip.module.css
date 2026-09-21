@@ -1,0 +1,93 @@
+.helpButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--agr-gray-500);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    vertical-align: middle;
+}
+
+.helpButton:hover,
+.helpButton:focus {
+    color: var(--agr-primary);
+    outline: none;
+}
+
+.helpButton:focus-visible {
+    outline: 2px solid var(--agr-primary);
+    outline-offset: 2px;
+    border-radius: 50%;
+}
+
+.helpButton svg {
+    display: block;
+}
+
+/* Icon sizes */
+.iconSmall {
+    width: 14px;
+    height: 14px;
+}
+
+.iconSmall svg {
+    width: 14px;
+    height: 14px;
+}
+
+.iconMedium {
+    width: 18px;
+    height: 18px;
+}
+
+.iconMedium svg {
+    width: 18px;
+    height: 18px;
+}
+
+.iconLarge {
+    width: 22px;
+    height: 22px;
+}
+
+.iconLarge svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Tooltip styling */
+.tooltip {
+    max-width: 300px;
+}
+
+.tooltipContent {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+
+.tooltipContent strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--agr-gray-900);
+    font-size: 0.875rem;
+}
+
+.tooltipContent p {
+    margin: 0 0 0.5rem 0;
+    color: var(--agr-gray-700);
+}
+
+.tooltipContent p:last-child {
+    margin-bottom: 0;
+}
+
+.tooltipContent code {
+    background-color: var(--agr-gray-100);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--agr-border-radius-sm);
+    font-family: var(--agr-font-mono);
+    color: var(--agr-gray-800);
+}

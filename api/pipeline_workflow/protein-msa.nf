@@ -24,9 +24,9 @@ process sequence_retrieval {
         alt_seq_name_suffix = request_map.alt_seq_name_suffix ?: '_alt'
         """
         seq_retrieval.py --output_type protein \
-            --unique_entry_id ${request_map.unique_entry_id} --base_seq_name ${request_map.base_seq_name} --seq_id ${request_map.seq_id} --seq_strand ${request_map.seq_strand} \
-            --fasta_file_url ${request_map.fasta_file_url} --exon_seq_regions '${encoded_exon_regions}' --cds_seq_regions '${encoded_cds_regions}' \
-            --variant_ids '${variant_ids}' --alt_seq_name_suffix ${alt_seq_name_suffix}
+            --unique_entry_id '${request_map.unique_entry_id}' --base_seq_name '${request_map.base_seq_name}' --seq_id '${request_map.seq_id}' --seq_strand '${request_map.seq_strand}' \
+            --fasta_file_url '${request_map.fasta_file_url}' --exon_seq_regions '${encoded_exon_regions}' --cds_seq_regions '${encoded_cds_regions}' \
+            --variant_ids '${variant_ids}' --alt_seq_name_suffix '${alt_seq_name_suffix}'
         """
 }
 

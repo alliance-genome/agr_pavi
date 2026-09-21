@@ -18,6 +18,8 @@ const config = [
         extends: ["next/core-web-vitals", "next/typescript", "eslint:recommended"],
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
+            'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+            '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
         }
     }),
     {

@@ -8,8 +8,6 @@ from pavi_shared_aws.agr_aws_env import agr_aws_environment
 
 app = App()
 
-SharedInfraStack(
-    app, "PaviSharedResourcesMainStack",
-    env=agr_aws_environment)
+SharedInfraStack(app, "PaviSharedResourcesMainStack", env=agr_aws_environment)
 
 app.synth()

@@ -1,0 +1,67 @@
+services:
+  stepfunctions-local:
+    image: amazon/aws-stepfunctions-local:latest
+    container_name: pavi-stepfunctions-local
+    ports:
+      - "8083:8083"
+    environment:
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=fake
+      - AWS_SECRET_ACCESS_KEY=fake
+      - BATCH_ENDPOINT=http://mock-batch:8084
+      - DYNAMODB_ENDPOINT=http://dynamodb-local:8000
+      - LAMBDA_ENDPOINT=http://alignment-service:8085
+    volumes:
+      - ./mock-config.json:/home/stepfunctions/MockConfigFile.json:ro
+      - ./state-machine.asl.json:/home/stepfunctions/state-machine.asl.json:ro
+    depends_on:
+      - dynamodb-local
+      - alignment-service
+    networks:
+      - pavi-local
+
+  # DynamoDB Local for job tracking
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: pavi-dynamodb-local
+    ports:
+      - "8000:8000"
+    command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
+    networks:
+      - pavi-local
+
+  # Mock Batch service for local testing
+  mock-batch:
+    image: python:3.12-slim
+    container_name: pavi-mock-batch
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./mock-batch-server.py:/app/server.py:ro
+    working_dir: /app
+    command: python server.py
+    networks:
+      - pavi-local
+
+  # MAFFT alignment service
+  alignment-service:
+    image: staphb/mafft:latest
+    container_name: pavi-alignment-service
+    ports:
+      - "8085:8085"
+    environment:
+      - PORT=8085
+      - DATA_DIR=/data
+    volumes:
+      - ./alignment-service.py:/app/alignment-service.py:ro
+      - ./test-data:/data
+    working_dir: /app
+    entrypoint: []
+    command: >
+      sh -c "apt-get update && apt-get install -y python3 && python3 alignment-service.py"
+    networks:
+      - pavi-local
+
+networks:
+  pavi-local:
+    driver: bridge

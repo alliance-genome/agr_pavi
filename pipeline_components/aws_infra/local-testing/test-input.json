@@ -1,0 +1,26 @@
+{
+  "job_id": "test-job-001",
+  "seq_regions": [
+    {
+      "unique_entry_id": "test-001",
+      "base_seq_name": "C54H2.5.1",
+      "seq_id": "X",
+      "seq_strand": "-",
+      "exon_seq_regions": ["5780644..5780722", "5780278..5780585"],
+      "cds_seq_regions": ["5780644..5780722", "5780278..5780585"],
+      "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+      "variant_ids": []
+    },
+    {
+      "unique_entry_id": "test-002",
+      "base_seq_name": "Y48G1C.5.1",
+      "seq_id": "III",
+      "seq_strand": "+",
+      "exon_seq_regions": ["1234567..1234890"],
+      "cds_seq_regions": ["1234567..1234890"],
+      "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+      "variant_ids": []
+    }
+  ],
+  "job_queue_arn": "arn:aws:batch:us-east-1:123456789012:job-queue/mock-queue"
+}

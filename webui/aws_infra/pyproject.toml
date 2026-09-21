@@ -11,6 +11,8 @@ requires-python = "==3.12.*"
 dependencies = [
     # CDK requirements
     "aws-cdk-lib==2.*",
+    # CDK Alpha constructs for Amplify
+    "aws-cdk.aws-amplify-alpha==2.*",
     # PAVI shared AWS module
     "pavi_shared_aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl"
 ]

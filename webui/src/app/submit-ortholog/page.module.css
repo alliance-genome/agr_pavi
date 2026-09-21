@@ -1,0 +1,131 @@
+.autocompletePanel {
+  color: #1a1a1a;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--agr-gray-900);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--agr-gray-500);
+  margin-bottom: 1.5rem;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.sectionLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--agr-gray-700);
+  margin-bottom: 0.5rem;
+}
+
+.geneSearchRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.geneSearchRow :global(.p-autocomplete) {
+  flex: 1;
+}
+
+.orthologList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--agr-gray-200);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.orthologItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.orthologItem:hover {
+  background: var(--agr-gray-50);
+}
+
+.orthologSymbol {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--agr-gray-900);
+  min-width: 100px;
+}
+
+.orthologSpecies {
+  font-size: 0.8125rem;
+  color: var(--agr-gray-500);
+  font-style: italic;
+  flex: 1;
+}
+
+.orthologId {
+  font-size: 0.75rem;
+  color: var(--agr-gray-400);
+  font-family: monospace;
+}
+
+.batchActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.selectedCount {
+  font-size: 0.8125rem;
+  color: var(--agr-gray-600);
+  margin-bottom: 0.75rem;
+}
+
+.submitSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--agr-gray-200);
+}
+
+.statusMessage {
+  font-size: 0.8125rem;
+  color: var(--agr-gray-500);
+}
+
+.errorMessage {
+  font-size: 0.8125rem;
+  color: var(--agr-error);
+  padding: 0.75rem;
+  background: #fef2f2;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+}
+
+.loadingRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: var(--agr-gray-500);
+  font-size: 0.875rem;
+}

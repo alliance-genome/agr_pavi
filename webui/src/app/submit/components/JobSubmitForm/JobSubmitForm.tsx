@@ -6,16 +6,26 @@ import { Button } from 'primereact/button';
 import React, { FunctionComponent, useCallback, useEffect, useReducer, useState } from 'react';
 import { submitNewPipelineJob } from './serverActions';
 
+import { useJobHistory } from '@/hooks/useJobHistory';
 import { AlignmentEntryList } from '../AlignmentEntryList/AlignmentEntryList';
 import { AlignmentEntryStatus } from '../AlignmentEntry/types';
+import { ExampleDataLoader, ExampleData, ExampleGene } from '../ExampleDataLoader/ExampleDataLoader';
+import { FormIntroduction } from '../FormIntroduction';
+import { ValidationSummary } from '../ValidationMessage';
 
 import { JobType, JobSumbissionPayloadRecord, InputPayloadDispatchAction, InputPayloadPart, InputPayloadPartMap } from './types';
 
 interface JobSumbitProps {
     readonly agrjBrowseDataRelease: string
+    readonly initialGenes?: ExampleGene[]
+    // When embedded in another flow (e.g. the bulk-upload page), hide the
+    // standalone onboarding intro and the "Load Example" affordance — the
+    // caller has already supplied the genes.
+    readonly embedded?: boolean
 }
 export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbitProps) => {
     const router = useRouter()
+    const { addJob } = useJobHistory()
 
     console.info(`agrjBrowseDataRelease: ${props.agrjBrowseDataRelease}`)
 
@@ -24,6 +34,10 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
         const entityIndex = action.index
 
         switch (action.type) {
+            case 'CLEAR': {
+                console.log('inputPayloadReducer: clearing all entries')
+                return new Map() as InputPayloadPartMap
+            }
             case 'ADD': {
                 console.log('inputPayloadReducer ADD action called.')
                 /* istanbul ignore else */
@@ -83,7 +97,9 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     function generate_complete_payload() {
         let payload = [] as JobSumbissionPayloadRecord[]
 
-        inputPayloadParts.forEach((part) => {
+        console.log('generate_complete_payload: inputPayloadParts size =', inputPayloadParts.size)
+        inputPayloadParts.forEach((part, index) => {
+            console.log(`generate_complete_payload: part[${index}] status=${part.status}, hasPayload=${!!part.payloadPart}`)
             if(part.payloadPart){
                 payload = payload.concat(part.payloadPart)
             }
@@ -99,6 +115,8 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     }
 
     const submitDisabled = () => {
+        const statuses = [...inputPayloadParts.values()].map(r => r.status)
+        console.log('submitDisabled: entry statuses =', statuses)
         const non_ready = [...inputPayloadParts.values()].some(
             (record) => record.status !== AlignmentEntryStatus.READY
         )
@@ -112,6 +130,21 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
     }
     const [job, setJob] = useState(initJob)
     const [displayMsg, setDisplayMsg] = useState('')
+    const [validationErrors, setValidationErrors] = useState<string[]>([])
+    const [initialGenes, setInitialGenes] = useState<ExampleGene[] | undefined>(props.initialGenes)
+    // Bump this counter on example load to force remount of AlignmentEntry components,
+    // ensuring their useEffect mount handler re-runs (clears stale internal state and
+    // re-dispatches ADD to inputPayloadParts).
+    const [loadVersion, setLoadVersion] = useState(0)
+
+    const handleLoadExample = useCallback((example: ExampleData) => {
+        console.log('Loading example:', example.name)
+        console.log('Genes to load:', example.genes)
+        dispatchInputPayloadPart({ type: 'CLEAR', index: 0, value: {} })
+        setInitialGenes(example.genes)
+        setLoadVersion(v => v + 1)
+        setValidationErrors([])
+    }, [dispatchInputPayloadPart])
 
     const jobDisplayMsg = useCallback( () => {
         if (job['status'] === 'expected' || job['status'] === 'submitting') {
@@ -134,6 +167,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
 
     const handleSubmit = async() => {
         console.log('Generating payload:')
+        setValidationErrors([])
 
         setJob({
             uuid: undefined,
@@ -152,6 +186,7 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
         }
         else{
             console.warn('No payload to submit.')
+            setValidationErrors(['At least two sequences are required for alignment.'])
 
             setJob({
                 uuid: undefined,
@@ -160,6 +195,32 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
             })
         }
     }
+
+    // When entries are provided by a parent (e.g. the bulk-upload page),
+    // load them once on mount just as selecting an example would.
+    useEffect(() => {
+        if (props.initialGenes && props.initialGenes.length > 0) {
+            setLoadVersion(v => v + 1)
+            return
+        }
+
+        // Otherwise, check for a stashed "Edit these sequences" selection
+        // (set by the Result page / My Jobs, read once and discarded here).
+        try {
+            const stashed = sessionStorage.getItem('pavi_edit')
+            if (stashed) {
+                sessionStorage.removeItem('pavi_edit')
+                const parsed = JSON.parse(stashed) as ExampleGene[]
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setInitialGenes(parsed)
+                    setLoadVersion(v => v + 1)
+                }
+            }
+        } catch (e) {
+            console.error('Failed to read pavi_edit stash from sessionStorage:', e)
+        }
+        // Mount-only: the parent passes a fresh entry set per navigation.
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         console.log('New inputPayloadParts: ', inputPayloadParts)
@@ -170,6 +231,40 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
         () => {
             if( job['status'] === 'pending' ){
                 if(job['uuid']){
+                    // Extract gene names and transcript count for job history
+                    const genes: string[] = [];
+                    let transcriptCount = 0;
+                    const inputGenes: ExampleGene[] = [];
+                    inputPayloadParts.forEach((part) => {
+                        if (part.payloadPart) {
+                            part.payloadPart.forEach((record) => {
+                                if (record.base_seq_name && !genes.includes(record.base_seq_name)) {
+                                    genes.push(record.base_seq_name);
+                                }
+                                transcriptCount++;
+                            });
+                        }
+                        if (part.formInput) {
+                            inputGenes.push({
+                                geneId: part.formInput.geneId,
+                                geneName: '',
+                                species: '',
+                                transcriptNames: part.formInput.transcriptNames,
+                                alleleIds: part.formInput.alleleIds,
+                            });
+                        }
+                    });
+
+                    // Save job to history
+                    addJob({
+                        uuid: job['uuid'],
+                        status: 'pending',
+                        genes,
+                        transcriptCount,
+                        title: genes.length > 0 ? genes.join(', ') : undefined,
+                        inputGenes: inputGenes.length > 0 ? inputGenes : undefined,
+                    });
+
                     const params = new URLSearchParams();
                     params.set("uuid", job['uuid']);
                     router.push(`/progress?${params.toString()}`)
@@ -182,18 +277,35 @@ export const JobSubmitForm: FunctionComponent<JobSumbitProps> = (props: JobSumbi
                 setDisplayMsg(jobDisplayMsg())
             }
         },
-        [job, jobDisplayMsg, router]
+        [job, jobDisplayMsg, router, inputPayloadParts, addJob]
     );
 
     return (
-        <div>
-            <AlignmentEntryList agrjBrowseDataRelease={props.agrjBrowseDataRelease}
-                                dispatchInputPayloadPart={dispatchInputPayloadPart} />
-            <Button label='Submit' onClick={handleSubmit} icon="pi pi-check"
-                    loading={job['status'] === 'submitting'}
-                    disabled={submitDisabled()}
-                    /><br />
-            <div id="display-message">{displayMsg}</div>
+        <div className="agr-page-section">
+            {!props.embedded && <FormIntroduction />}
+
+            <ValidationSummary errors={validationErrors} />
+
+            <div className="agr-card">
+                <div className="agr-card-header">
+                    <h2>Alignment Entries</h2>
+                    {!props.embedded && <ExampleDataLoader onLoadExample={handleLoadExample} />}
+                </div>
+                <div className="agr-card-body">
+                    <AlignmentEntryList agrjBrowseDataRelease={props.agrjBrowseDataRelease}
+                                        dispatchInputPayloadPart={dispatchInputPayloadPart}
+                                        initialGenes={initialGenes}
+                                        loadVersion={loadVersion} />
+                </div>
+                <div className="agr-card-footer">
+                    <Button label='Submit Job' onClick={handleSubmit} icon="pi pi-check"
+                            loading={job['status'] === 'submitting'}
+                            disabled={submitDisabled()}
+                            className="p-button-lg"
+                            />
+                    {displayMsg && <div className="agr-message agr-message-error">{displayMsg}</div>}
+                </div>
+            </div>
         </div>
     );
 }

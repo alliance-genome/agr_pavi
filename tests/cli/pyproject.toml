@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pavi-cli"
+version = "0.1.0"
+description = "End-to-end validation harness for PAVI example datasets"
+requires-python = ">=3.12"
+dependencies = [
+    "requests~=2.32",
+    "click~=8.1",
+    "biopython~=1.85",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest~=8.3",
+]
+
+[project.scripts]
+pavi-cli = "pavi_cli.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["pavi_cli*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

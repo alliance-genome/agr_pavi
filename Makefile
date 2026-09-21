@@ -3,13 +3,28 @@ include $(mkfile_dir)/common_make
 
 LAST_MODIFIED_TIMESTAMP ?= $(shell find . -type f -printf '%T@\n' | sort -nr | head -1 | xargs -I £ date -d @£ -u +%Y%m%d-%H%M%S)
 BRANCH_NAME ?= $(shell git rev-parse --abbrev-ref HEAD)
-PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --dirty=-dirty_${BRANCH_NAME}_${LAST_MODIFIED_TIMESTAMP})
+# Overall release version (plain v* tags, e.g. v0.5.0). Component tags
+# (api-v*, webui-v*) start with a letter so "v*" never matches them.
+PAVI_DEPLOY_VERSION_LABEL ?= $(shell git describe --tags --match "v[0-9]*" --dirty=-dirty_${BRANCH_NAME}_${LAST_MODIFIED_TIMESTAMP})
 PAVI_CONTAINER_IMAGE_TAG ?= ${PAVI_DEPLOY_VERSION_LABEL}
+
+# Independent per-component versions, auto-derived from component-scoped tags.
+# Bump a component by tagging api-vX.Y.Z or webui-vX.Y.Z; the version then
+# auto-increments as "api-vX.Y.Z-<N>-g<sha>" for the N commits since that tag.
+# Hyphenated (not slashed) so they are valid container image tags.
+API_VERSION ?= $(shell git describe --tags --match "api-v*" --dirty=-dirty_${BRANCH_NAME}_${LAST_MODIFIED_TIMESTAMP})
+WEBUI_VERSION ?= $(shell git describe --tags --match "webui-v*" --dirty=-dirty_${BRANCH_NAME}_${LAST_MODIFIED_TIMESTAMP})
 
 .PHONY: install-% run-% update-% _vars-%
 
 print-deploy-version-label:
 	@echo ${PAVI_DEPLOY_VERSION_LABEL}
+
+print-api-version:
+	@echo ${API_VERSION}
+
+print-webui-version:
+	@echo ${WEBUI_VERSION}
 
 update-install-shared-aws:
 	make -C shared_aws/py_package/ clean build install

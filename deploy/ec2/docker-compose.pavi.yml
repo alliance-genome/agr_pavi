@@ -1,0 +1,34 @@
+# Overlay for the TEST WebUI instance, run by deploy-test.sh next to
+# production. Shares the base compose network so it can reach the `api`
+# service by name.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.pavi.yml up -d --no-deps --build webui-pavi
+#
+# Env (set by deploy-test.sh):
+#   TEST_BASE_PATH  URL base path baked into the build; "" = root, "/pavi" = path  (default: /pavi)
+#   TEST_PORT       host port for the test WebUI                                    (default: 3100)
+#   PAVI_SRC_DIR    repo checkout used as the build context
+services:
+  webui-pavi:
+    build:
+      context: ${PAVI_SRC_DIR:-../..}/webui
+      dockerfile: Dockerfile
+      args:
+        NODE_VERSION: "24"
+        NEXT_PUBLIC_BASE_PATH: ${TEST_BASE_PATH-/pavi}
+    image: agr_pavi/webui:test-local
+    ports:
+      - "${TEST_PORT:-3100}:3000"
+    environment:
+      - PAVI_API_BASE_URL=http://api:8080
+      - NODE_ENV=production
+    restart: always
+    depends_on:
+      - api
+    healthcheck:
+      # Health route sits under the base path (e.g. /pavi/health, or /health at root).
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000${TEST_BASE_PATH-/pavi}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
