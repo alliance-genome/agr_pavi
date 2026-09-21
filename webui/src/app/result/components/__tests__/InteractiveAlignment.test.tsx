@@ -104,7 +104,8 @@ describe('molecular_consequences filter logic', () => {
         variant_id: 'var:none', genomic_seq_id: 'chr1',
         genomic_start_pos: 400, genomic_end_pos: 400,
         genomic_ref_seq: 'T', genomic_alt_seq: 'A',
-        seq_substitution_type: 'substitution'
+        seq_substitution_type: 'substitution',
+        molecular_consequences: [] as string[]
     };
 
     const allVariants = [missenseVariant, frameshiftVariant, multiConsequenceVariant, noConsequenceVariant];

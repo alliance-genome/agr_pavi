@@ -8,6 +8,7 @@ from typing import Any, override, Optional
 
 from variant import (
     AlignmentEmbeddedVariant,
+    Variant,
     AlignmentEmbeddedVariantsList,
     SeqEmbeddedVariant,
     SeqEmbeddedVariantsList,
@@ -27,7 +28,7 @@ class SeqInfo:
     """An error message, if any occured during sequence retrieval."""
     species: Optional[str]
     """The species name for this sequence."""
-    non_coding_variants: Optional[list]
+    non_coding_variants: Optional[list[Variant]]
     """Variants that were requested but filtered out because they don't affect the protein sequence (e.g., UTR, intronic)."""
 
     def __init__(
@@ -39,7 +40,7 @@ class SeqInfo:
         requested_variant_ids: Optional[list[str]] = None,
         error: Optional[str] = None,
         species: Optional[str] = None,
-        non_coding_variants: Optional[list] = None,
+        non_coding_variants: Optional[list[Variant]] = None,
     ):
         if sequence is not None:
             self.sequence = sequence
