@@ -41,8 +41,8 @@ class SeqRegionDict(TypedDict):
 
 
 def validate_strand_param(
-    ctx: click.Context, param: click.Parameter, value: str
-) -> SeqRegion.STRAND_TYPE:  # noqa: U100
+    ctx: click.Context, param: click.Parameter, value: str  # noqa: U100
+) -> SeqRegion.STRAND_TYPE:
     """
     Processes and normalises the value of click input argument `strand`.
 
@@ -64,8 +64,8 @@ def validate_strand_param(
 
 
 def process_seq_regions_param(
-    ctx: click.Context, param: click.Parameter, value: str
-) -> List[SeqRegionDict]:  # noqa: U100
+    ctx: click.Context, param: click.Parameter, value: str  # noqa: U100
+) -> List[SeqRegionDict]:
     """
     Parse the value of click input parameter seq_regions and validate it's structure.
 
@@ -140,8 +140,8 @@ def process_seq_regions_param(
 
 
 def process_variants_param(
-    ctx: click.Context, param: click.Parameter, value: str
-) -> set[str]:  # noqa: U100
+    ctx: click.Context, param: click.Parameter, value: str  # noqa: U100
+) -> set[str]:
     """
     Parse the value of click input parameter variants and validate it's structure.
 
@@ -362,7 +362,7 @@ def write_output(
     help="""Species name to include in output sequence info.""",
 )
 @click.option("--debug", is_flag=True, help="""Flag to enable debug printing.""")
-def main(
+def main(  # noqa: C901
     seq_id: str,
     seq_strand: SeqRegion.STRAND_TYPE,
     exon_seq_regions: List[SeqRegionDict],
