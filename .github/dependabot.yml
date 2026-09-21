@@ -7,7 +7,7 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
   - package-ecosystem: "pip"
     directories:
       - "**/aws_infra/"
@@ -68,7 +68,7 @@ updates:
           - version-update:semver-minor
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 20
+    open-pull-requests-limit: 3
   - package-ecosystem: "pip"
     directory: "/api/"
     groups:
@@ -115,7 +115,7 @@ updates:
       - dependency-name: "email-validator"
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
   - package-ecosystem: "npm"
     directories:
       - "**/aws_infra/"
@@ -144,7 +144,7 @@ updates:
           - version-update:semver-minor
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
   - package-ecosystem: "pip"
     directory: "/pipeline_components/seq_retrieval/"
     ignore:
@@ -167,7 +167,7 @@ updates:
           - version-update:semver-patch
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
   - package-ecosystem: "npm"
     directory: "/webui/"
     groups:
@@ -259,4 +259,4 @@ updates:
           - version-update:semver-patch
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
