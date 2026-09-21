@@ -85,7 +85,7 @@ The execution mode is determined by these variables, evaluated in priority order
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PAVI_API_BASE_URL` | `"http://localhost:8000"` | Backend API base URL |
-| `MOCK_API` | `"false"` | Enable mock API for visual testing |
+| `MOCK_API` | `"false"` | Serve mock API responses instead of proxying to the backend. Used for Vercel/Percy visual testing. **Must stay `false` in real deployments** — `next start` auto-loads `webui/.env.production`, so a stray `MOCK_API=true` there makes a self-hosted box boot on fake data. |
 
 **Usage examples:**
 ```bash
@@ -217,7 +217,7 @@ ENABLE_STEP_FUNCTIONS_ROLLOUT=false
 
 | File | Purpose |
 |------|---------|
-| `webui/.env.production` | Production defaults (sets `MOCK_API=true` for Vercel) |
+| `webui/.env.production` | Loaded by `next start` on **both** Vercel and the self-hosted box. Keeps `MOCK_API=false` so the box never boots on mock data; Vercel previews still mock because `vercel.json` sets `MOCK_API=true` (platform env overrides this file). |
 | `webui/.env.local` | Local overrides (not committed) |
 
 ### Docker Compose Files
