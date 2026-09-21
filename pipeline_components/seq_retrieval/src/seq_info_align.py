@@ -69,7 +69,6 @@ def upload_to_s3(local_path: str, s3_prefix: str) -> None:
         local_path: Path to the local file to upload
         s3_prefix: S3 URI prefix (e.g., s3://bucket/prefix/)
     """
-    import os
     filename = path.basename(local_path)
     s3_uri = s3_prefix.rstrip('/') + '/' + filename
 
@@ -147,7 +146,7 @@ def process_alignment_result_file_param(ctx: click.Context, param: click.Paramet
               help="S3 URI prefix for results (S3 mode). Downloads alignment.aln from here and uploads aligned_seq_info.json.")
 @click.option("--debug", is_flag=True,
               help="""Flag to enable debug printing.""")
-def main(alignment_result_file: Optional[str], sequence_info_files: Optional[str],
+def main(alignment_result_file: Optional[str], sequence_info_files: Optional[str],  # noqa: C901
          s3_work_prefix: Optional[str], s3_results_prefix: Optional[str], debug: bool) -> None:
     if debug:
         set_log_level(logging.DEBUG)
@@ -159,6 +158,7 @@ def main(alignment_result_file: Optional[str], sequence_info_files: Optional[str
 
     if s3_mode:
         logger.info("Running in S3 mode")
+        assert s3_work_prefix is not None and s3_results_prefix is not None
         # Download sequence info files from S3 work prefix
         work_dir = '/tmp/seq_info_work'
         results_dir = '/tmp/seq_info_results'
@@ -215,8 +215,8 @@ def main(alignment_result_file: Optional[str], sequence_info_files: Optional[str
     # * Read each of the sequence_info_files (JSON) and merge into a single dict
     for file in seq_info_file_list:
         try:
-            with open(file, 'r') as f:
-                sequence_info_json_dict: dict[str, Any] = json.load(f)
+            with open(file, 'r') as in_fh:
+                sequence_info_json_dict: dict[str, Any] = json.load(in_fh)
                 sequence_info_dict: dict[str, SeqInfo] = {}
                 for key, value in sequence_info_json_dict.items():
                     sequence_info_dict[key] = SeqInfo.from_dict(value)
@@ -271,13 +271,14 @@ def main(alignment_result_file: Optional[str], sequence_info_files: Optional[str
     jsonpickle.register(Enum, EnumValueHandler, base=True)
 
     output_file = 'aligned_seq_info.json'
-    with open(output_file, 'w') as f:
-        f.write(jsonpickle.encode(aligned_seq_info_dict, make_refs=False, unpicklable=False))
+    with open(output_file, 'w') as out_fh:
+        out_fh.write(jsonpickle.encode(aligned_seq_info_dict, make_refs=False, unpicklable=False))
 
     logger.info(f"Wrote aligned sequence info to {output_file}")
 
     # Upload to S3 if in S3 mode
     if s3_mode:
+        assert s3_results_prefix is not None
         upload_to_s3(output_file, s3_results_prefix)
         logger.info("S3 upload complete")
 
