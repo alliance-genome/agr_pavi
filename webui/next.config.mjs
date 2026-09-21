@@ -25,7 +25,19 @@ const nextConfig = {
             'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/',
             'https://raw.githubusercontent.com/alliance-genome/agr_ui/test/',
             'https://raw.githubusercontent.com/alliance-genome/agr_ui/stage/'
-        ]
+        ],
+        // Served behind the Alliance edge (alliancegenome.org/pavi rewrites to
+        // the pavi.alliancegenome.org origin), so the browser Origin
+        // (www.alliancegenome.org) differs from x-forwarded-host. Whitelist the
+        // public hosts or Server Actions abort with "Invalid Server Actions request".
+        serverActions: {
+            allowedOrigins: [
+                'alliancegenome.org',
+                'www.alliancegenome.org',
+                'pavi.alliancegenome.org',
+                'dev-pavi.alliancegenome.org',
+            ],
+        },
     },
     ...(basePath ? { basePath } : {}),
     env: {
