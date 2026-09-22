@@ -8,6 +8,9 @@ import logging
 
 from .helper_fns import poll_job_progress
 
+# FastAPI >= 0.132 only parses a JSON body when Content-Type says so.
+JSON_HEADERS = {"Content-Type": "application/json"}
+
 from httpx import Client, codes, ReadTimeout, Timeout
 
 from log_mgmt import get_logger, set_log_level
@@ -39,7 +42,7 @@ def test_success_pipeline_workflow() -> None:
     ) as input_file:
         input_data = input_file.read()
 
-    response = client.post(url="/api/pipeline-job/", content=input_data)
+    response = client.post(url="/api/pipeline-job/", content=input_data, headers=JSON_HEADERS)
     assert response.status_code == 201
 
     response_dict: dict[str, Any] = response.json()
@@ -93,7 +96,7 @@ def test_invalid_pipeline_submission() -> None:
     with open("../tests/resources/invalid_seq_regions.json", mode="r") as input_file:
         invalid_input_data = input_file.read()
 
-    response = client.post(url="/api/pipeline-job/", content=invalid_input_data)
+    response = client.post(url="/api/pipeline-job/", content=invalid_input_data, headers=JSON_HEADERS)
     assert codes.is_client_error(response.status_code)
 
 
@@ -105,7 +108,7 @@ def test_fail_pipeline_workflow() -> None:
     ) as input_file:
         input_data = input_file.read()
 
-    response = client.post(url="/api/pipeline-job/", content=input_data)
+    response = client.post(url="/api/pipeline-job/", content=input_data, headers=JSON_HEADERS)
     assert response.status_code == 201
 
     response_dict: dict[str, Any] = response.json()
