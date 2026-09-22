@@ -11,13 +11,17 @@ requires-python = "==3.12.*"
 dependencies = [
     # CDK requirements
     "aws-cdk-lib==2.*",
-    # CDK Alpha constructs for Amplify
-    "aws-cdk.aws-amplify-alpha==2.*",
     # PAVI shared AWS module
     "pavi_shared_aws @ file:///tmp/pavi_shared_aws-0.0.0-py3-none-any.whl"
 ]
 
 [project.optional-dependencies]
+# Only needed when PAVI_WEBUI_DEPLOYMENT_METHOD=amplify (see cdk_app.py).
+# Alpha constructs are only published as pre-releases (e.g. 2.x.0a0), which
+# "==2.*" never matches, so the range explicitly admits pre-releases.
+amplify = [
+    "aws-cdk.aws-amplify-alpha>=2.0.0a0,<3",
+]
 test = [
     "flake8==7.3.*",
     "flake8-unused-arguments==0.0.*",
