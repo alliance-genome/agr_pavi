@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.1](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.6.0...webui-v0.6.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* **ci:** green the code-checks debt ([#927](https://github.com/alliance-genome/agr_pavi/issues/927)) ([b73159b](https://github.com/alliance-genome/agr_pavi/commit/b73159b7b2377dc5a151952ff1ebc9b6147131be))
+* **ci:** green the code-checks debt tracked in [#927](https://github.com/alliance-genome/agr_pavi/issues/927) ([2394e35](https://github.com/alliance-genome/agr_pavi/commit/2394e3594a6cdb5f719537960d068af62da345b0))
+* **deps:** bump urllib3 2.6.3 -&gt; 2.8.0 across remaining manifests ([#985](https://github.com/alliance-genome/agr_pavi/issues/985)) ([f4e8d62](https://github.com/alliance-genome/agr_pavi/commit/f4e8d62e7bfb86eaacd4b6829357217d355d6c0a))
+* **webui-infra:** make amplify-alpha an optional extra so the lock resolves ([#988](https://github.com/alliance-genome/agr_pavi/issues/988)) ([185eec5](https://github.com/alliance-genome/agr_pavi/commit/185eec59a902eed329668f468f40d57d6e6106a1)), closes [#927](https://github.com/alliance-genome/agr_pavi/issues/927)
+* **webui:** override vulnerable transitive deps (2 critical, 10 high) ([#986](https://github.com/alliance-genome/agr_pavi/issues/986)) ([7c4c380](https://github.com/alliance-genome/agr_pavi/commit/7c4c3801d0fde337edff52027ec5ab23f9fadc05))
+
 ## [0.6.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.5.0...webui-v0.6.0) (2026-09-21)
 
 
