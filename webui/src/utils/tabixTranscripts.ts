@@ -119,6 +119,29 @@ function attrList(attr: Record<string, any> | undefined, key: string): string[] 
         .filter(Boolean);
 }
 
+/**
+ * GFF `tag` values that mark a gene's reference transcript. The Alliance GFFs
+ * carry these as a comma-separated `tag` attribute (e.g. mouse:
+ * `tag=gencode_basic,gencode_primary,Ensembl_canonical`), not as a separate
+ * `is_canonical` attribute. Compared lowercase.
+ */
+const CANONICAL_TAGS = new Set(['ensembl_canonical', 'mane_select', 'refseq select']);
+
+/**
+ * Choose the transcript to preselect for a gene. PAVI aligns proteins, so a
+ * protein-coding transcript always wins over a non-coding one, even one that
+ * is flagged canonical. Order: canonical + coding, any coding, canonical, first.
+ */
+export function pickDefaultTranscript<T extends Pick<GffTranscript, 'isCanonical' | 'cds_regions'>>(
+    transcripts: T[]
+): T | undefined {
+    const coding = (t: T) => t.cds_regions.length > 0;
+    return transcripts.find((t) => t.isCanonical === true && coding(t))
+        ?? transcripts.find(coding)
+        ?? transcripts.find((t) => t.isCanonical === true)
+        ?? transcripts[0];
+}
+
 interface ChildRow {
     parentId: string;
     type: 'exon' | 'CDS';
@@ -209,7 +232,9 @@ export function reconstructTranscriptsFromRows(rows: GffRow[], geneSymbol: strin
                     ?? id,
                 curie: (stripDbPrefix(firstAttr(attr, 'curie', 'transcript_id')) ?? '') as string,
                 isCanonical: firstAttr(attr, 'is_canonical') === 'true'
-                    || firstAttr(attr, 'canonical') === 'true' || undefined,
+                    || firstAttr(attr, 'canonical') === 'true'
+                    || attrList(attr, 'tag').some((t) => CANONICAL_TAGS.has(t.toLowerCase()))
+                    || undefined,
                 exons: [],
                 cds: [],
             });

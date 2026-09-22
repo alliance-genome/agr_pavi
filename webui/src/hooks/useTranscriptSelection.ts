@@ -5,7 +5,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import { GeneInfo, TranscriptInfo, AlignmentEntryStatus } from '@/app/submit/components/AlignmentEntry/types';
 
 import { getSpecies, getSingleGenomeLocation, gffFileUrl } from '@/utils/agrSpeciesConfig';
-import { fetchTranscriptsGff, GffTranscript } from '@/utils/tabixTranscripts';
+import { fetchTranscriptsGff, GffTranscript, pickDefaultTranscript } from '@/utils/tabixTranscripts';
 
 export interface UseTranscriptSelectionOptions {
     gene: GeneInfo | undefined;
@@ -210,12 +210,9 @@ export function useTranscriptSelection(
                     return;
                 }
             }
-            const canonicalTranscript =
-                transcriptList.find(
-                    (t) => t.name?.includes('canonical') || t.isCanonical === true
-                ) || transcriptList[0];
-            if (canonicalTranscript) {
-                setSelectedTranscriptIds([canonicalTranscript.id]);
+            const defaultTranscript = pickDefaultTranscript(transcriptList);
+            if (defaultTranscript) {
+                setSelectedTranscriptIds([defaultTranscript.id]);
             }
         }
     }, [initialGeneId, initialTranscriptNames, transcriptListLoading, transcriptList, selectedTranscriptIds.length]);

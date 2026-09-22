@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { reconstructTranscriptsFromRows, GffRow } from '../tabixTranscripts';
+import { reconstructTranscriptsFromRows, GffRow, pickDefaultTranscript, GffTranscript } from '../tabixTranscripts';
 
 // Build a parsed GFF row (the shape @gmod/gff.util.parseFeature yields:
 // attribute values are arrays, and a comma-joined GFF3 value is pre-split).
@@ -116,5 +116,60 @@ describe('reconstructTranscriptsFromRows', () => {
             const result = reconstructTranscriptsFromRows(oneGene, 'DisplaySymbol');
             expect(result.map((t) => t.id)).toEqual(['t1']);
         });
+    });
+});
+
+describe('canonical transcript detection and default selection', () => {
+    // Mirrors mouse Sod1 (MGI GFF, release 9.1.0): a non-coding lncRNA is listed
+    // first; the canonical mRNA is only marked via the comma-joined `tag`.
+    const sod1Rows: GffRow[] = [
+        row('gene', 100, 900, { ID: ['gene-Sod1'], Name: ['Sod1'] }),
+        row('lncRNA', 100, 400, { ID: ['rna-lnc'], Parent: ['gene-Sod1'], transcript_id: ['ENSEMBL:ENSMUST00000232505'] }),
+        row('exon', 100, 400, { ID: ['e0'], Parent: ['rna-lnc'] }),
+        row('mRNA', 100, 900, {
+            ID: ['rna-canon'], Parent: ['gene-Sod1'], transcript_id: ['ENSEMBL:ENSMUST00000023707'],
+            tag: ['gencode_basic', 'gencode_primary', 'Ensembl_canonical'],
+        }),
+        row('exon', 100, 300, { ID: ['e1'], Parent: ['rna-canon'] }),
+        row('exon', 600, 900, { ID: ['e2'], Parent: ['rna-canon'] }),
+        row('CDS', 150, 300, { ID: ['c1'], Parent: ['rna-canon'] }, { phase: 0 }),
+        row('CDS', 600, 800, { ID: ['c1'], Parent: ['rna-canon'] }, { phase: 0 }),
+    ];
+
+    it('flags a transcript whose GFF tag list contains Ensembl_canonical', () => {
+        const byName = Object.fromEntries(reconstructTranscriptsFromRows(sod1Rows, 'Sod1').map((t) => [t.name, t]));
+        expect(byName['ENSMUST00000023707'].isCanonical).toBe(true);
+        expect(byName['ENSMUST00000232505'].isCanonical).toBeUndefined();
+    });
+
+    it('recognises MANE_Select and RefSeq Select tags, case-insensitively', () => {
+        const rows: GffRow[] = [
+            row('gene', 1, 100, { ID: ['g'], Name: ['G'] }),
+            row('mRNA', 1, 100, { ID: ['m'], Parent: ['g'], transcript_id: ['M'], tag: ['MANE_Select'] }),
+            row('mRNA', 1, 100, { ID: ['r'], Parent: ['g'], transcript_id: ['R'], tag: ['RefSeq Select'] }),
+            row('mRNA', 1, 100, { ID: ['x'], Parent: ['g'], transcript_id: ['X'], tag: ['basic'] }),
+        ];
+        const flags = reconstructTranscriptsFromRows(rows, 'G').map((t) => [t.name, t.isCanonical]);
+        expect(flags).toEqual([['M', true], ['R', true], ['X', undefined]]);
+    });
+
+    it('preselects the canonical coding transcript, not the first-listed non-coding one', () => {
+        const picked = pickDefaultTranscript(reconstructTranscriptsFromRows(sod1Rows, 'Sod1'));
+        expect(picked?.name).toBe('ENSMUST00000023707');
+    });
+
+    const tx = (name: string, isCanonical: boolean | undefined, coding: boolean): GffTranscript => ({
+        id: name, name, curie: name, strand: 1, isCanonical, exons: [],
+        cds_regions: coding ? [{ start: 1, end: 3, phase: 0 }] : [],
+    });
+
+    it('prefers any coding transcript over a canonical-but-non-coding one', () => {
+        expect(pickDefaultTranscript([tx('canonNc', true, false), tx('coding', undefined, true)])?.name).toBe('coding');
+    });
+
+    it('falls back to canonical, then to the first, when nothing is coding', () => {
+        expect(pickDefaultTranscript([tx('a', undefined, false), tx('canon', true, false)])?.name).toBe('canon');
+        expect(pickDefaultTranscript([tx('a', undefined, false), tx('b', undefined, false)])?.name).toBe('a');
+        expect(pickDefaultTranscript([])).toBeUndefined();
     });
 });

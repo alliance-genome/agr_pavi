@@ -16,7 +16,7 @@ import { JobSumbissionPayloadRecord } from '@/app/submit/components/JobSubmitFor
 import { fetchOrthologs, OrthologInfo } from './serverActions';
 
 import { getSpecies, getSingleGenomeLocation, gffFileUrl } from '@/utils/agrSpeciesConfig';
-import { fetchTranscriptsGff } from '@/utils/tabixTranscripts';
+import { fetchTranscriptsGff, pickDefaultTranscript } from '@/utils/tabixTranscripts';
 
 import styles from './page.module.css';
 
@@ -148,8 +148,8 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                 return { record: null, error: `${gene.symbol}: no transcripts found` };
             }
 
-            // Pick the first protein-coding transcript (with CDS), else the first.
-            const transcript = transcripts.find((t) => t.cds_regions.length > 0) ?? transcripts[0];
+            // Canonical protein-coding transcript first (see pickDefaultTranscript).
+            const transcript = pickDefaultTranscript(transcripts) ?? transcripts[0];
 
             if (transcript.cds_regions.length === 0) {
                 return { record: null, error: `${gene.symbol}: no CDS regions` };
