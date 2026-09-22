@@ -3,10 +3,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 import styles from './Header.module.css';
-
-// Ortholog Alignment and Bulk Upload are hidden in the production release.
-// Set NEXT_PUBLIC_SHOW_EXPERIMENTAL=true (e.g. in dev) to show them again.
-const showExperimental = process.env.NEXT_PUBLIC_SHOW_EXPERIMENTAL === 'true';
+import { showExperimental } from '../../../utils/featureFlags';
 
 export const Header: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

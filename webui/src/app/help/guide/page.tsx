@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { withBasePath } from '../../../utils/basePath';
+import { showExperimental } from '../../../utils/featureFlags';
 import styles from './guide.module.css';
 
 export const metadata: Metadata = {
@@ -43,8 +44,12 @@ export default function GuidePage() {
                         <li><a className={styles.tocLink} href="#quickstart">Quick start</a></li>
                         <li><a className={styles.tocLink} href="#submit">Submitting a job</a></li>
                         <li><a className={styles.tocLink} href="#variants">Adding specific variants</a></li>
-                        <li><a className={styles.tocLink} href="#ortholog">Ortholog alignment</a></li>
-                        <li><a className={styles.tocLink} href="#bulk">Bulk upload</a></li>
+                        {showExperimental && (
+                            <>
+                                <li><a className={styles.tocLink} href="#ortholog">Ortholog alignment</a></li>
+                                <li><a className={styles.tocLink} href="#bulk">Bulk upload</a></li>
+                            </>
+                        )}
                         <li><a className={styles.tocLink} href="#progress">Tracking progress</a></li>
                         <li><a className={styles.tocLink} href="#results">Reading your results</a></li>
                         <li><a className={styles.tocLink} href="#jobs">My Jobs</a></li>
@@ -358,6 +363,7 @@ export default function GuidePage() {
                         </div>
                     </section>
 
+                    {showExperimental && (<>
                     <section id="ortholog" className={`${styles.section} ${styles.prose}`}>
                         <p className={styles.secEyebrow}>One gene, many species</p>
                         <h2 className={styles.sec}>Ortholog alignment</h2>
@@ -457,6 +463,7 @@ export default function GuidePage() {
                             into an <strong>editable, pre-filled submit form</strong>.
                         </p>
                     </section>
+                    </>)}
 
                     <section id="progress" className={`${styles.section} ${styles.prose}`}>
                         <p className={styles.secEyebrow}>While it runs</p>

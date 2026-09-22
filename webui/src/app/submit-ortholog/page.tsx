@@ -1,5 +1,7 @@
+import { notFound } from 'next/navigation';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { OrthologForm } from './OrthologForm';
+import { showExperimental } from '../../utils/featureFlags';
 
 const PUBLIC_DATA_PORTAL_URL = 'https://www.alliancegenome.org';
 
@@ -19,6 +21,8 @@ async function getAgrDataRelease(publicDataPortalUrl: string): Promise<string> {
 }
 
 export default async function OrthologSubmitPage() {
+    if (!showExperimental) notFound();
+
     const agrDataRelease = await getAgrDataRelease(PUBLIC_DATA_PORTAL_URL);
 
     return (
