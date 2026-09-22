@@ -825,8 +825,6 @@ jobs:
     name: API unit and integration testing
     needs:
       - api-update-dependency-lock-files
-      - pipeline-seq-retrieval-container-image-build
-      - pipeline-alignment-container-image-build
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -846,26 +844,22 @@ jobs:
         with:
           name: api_tests_deps_lock
           path: api/tests
-      - name: Download seq_retrieval image artifact (from previous job)
-        uses: actions/download-artifact@v5
-        with:
-          name: seq_retrieval_image
-          path: /tmp
-      - name: Download alignment image artifact (from previous job)
-        uses: actions/download-artifact@v5
-        with:
-          name: alignment_image
-          path: /tmp
-      - name: Load seq_retrieval Docker image
-        run: |
-          docker load --input /tmp/pavi_seq_retrieval_docker_image.tar
-      - name: Load alignment Docker image
-        run: |
-          docker load --input /tmp/pavi_alignment_docker_image.tar
       - uses: actions/setup-python@v6
         with:
           python-version-file: "api/pyproject.toml"
+      # Integration tests run the API in local pipeline mode, the mode production
+      # uses: seq_retrieval runs from its own venv and alignment calls clustalo.
+      - name: Install Clustal Omega
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq clustalo
+          clustalo --version
+      - name: Set up seq_retrieval environment for the local pipeline
+        working-directory: ./pipeline_components/seq_retrieval/
+        run: |
+          make install-deps
       - name: Run unit and integration tests
+        env:
+          USE_LOCAL_PIPELINE: "true"
         run: |
           make run-tests
   api-container-integration-testing:
