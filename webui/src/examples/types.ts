@@ -1,4 +1,4 @@
-// Shared types for the example catalog (`tests/examples/catalog.json`).
+// Shared types for the example catalog (`webui/src/examples/catalog.json`).
 // Consumed by the WebUI ExampleDataLoader and by the pavi-cli runner via
 // catalog.json (the CLI parses JSON directly; the WebUI imports this
 // module which re-exports the typed payload).

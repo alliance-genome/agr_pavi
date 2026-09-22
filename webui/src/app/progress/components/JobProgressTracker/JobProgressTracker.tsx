@@ -252,14 +252,17 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     useEffect(() => {
         if (hasInitializedRef.current) return
         hasInitializedRef.current = true
+        // Both refs hold one Set for the component's lifetime; capture them for cleanup.
+        const loggedStatuses = loggedStatusesRef.current
+        const loggedTaskEvents = loggedTaskEventsRef.current
         setLogs([
             { timestamp: new Date(), level: 'info', message: `Tracking job: ${props.uuidStr}` },
             { timestamp: new Date(), level: 'info', message: 'Connecting to pipeline server...' }
         ])
         return () => {
             hasInitializedRef.current = false
-            loggedStatusesRef.current.clear()
-            loggedTaskEventsRef.current.clear()
+            loggedStatuses.clear()
+            loggedTaskEvents.clear()
         }
     }, [props.uuidStr])
 

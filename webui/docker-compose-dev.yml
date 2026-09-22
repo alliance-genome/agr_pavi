@@ -18,4 +18,6 @@ services:
     network_mode: host
     volumes:
       - ./cypress:/app/cypress:rw
-    command: ["npx", "cypress", "run", "--e2e", "--env", "API_BASE_URL=${PAVI_API_BASE_URL}"]
+    # The cypress image has no Python venv, so skip the pavi-cli UniProt check here;
+    # run `pavi-cli verify-sequences` on cypress/results/alignments/ instead.
+    command: ["npx", "cypress", "run", "--e2e", "--env", "API_BASE_URL=${PAVI_API_BASE_URL},SKIP_SEQUENCE_CHECK=1"]

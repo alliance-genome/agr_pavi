@@ -18,7 +18,7 @@ make list            # prints the example catalog
 ## Verify the Alliance API shape (fast, no pipeline)
 
 The `verify-alliance` command walks every gene (and pinned allele) in
-`tests/examples/catalog.json` and checks that the live Alliance API
+`webui/src/examples/catalog.json` and checks that the live Alliance API
 still returns a parseable response under the v9 shape adapters in
 `pavi_cli/alliance_client.py`. This is the cheap CI signal — no
 pipeline run, no payload fixture required.
@@ -107,7 +107,7 @@ then snapshot it:
 make capture-payload EXAMPLE=tp53-orthologs JOB_UUID=<uuid>
 
 # 3. Commit the new fixture:
-git add ../examples/fixtures/tp53-orthologs/payload.json
+git add fixtures/tp53-orthologs/payload.json
 ```
 
 The capture step reads `input_data` from the API's local SQLite job
@@ -141,7 +141,7 @@ Produces a per-example pass/fail summary plus
 Tolerant by design — Alliance data drift over time will shift exact
 identity percentages, so we only assert biologically sane bounds rather
 than golden-file diffs. Each example carries an `expectations` block in
-`tests/examples/catalog.json`:
+`webui/src/examples/catalog.json`:
 
 | Field | What it asserts |
 |---|---|
@@ -150,7 +150,7 @@ than golden-file diffs. Each example carries an `expectations` block in
 | `minEmbeddedVariantsTotal` | Sum of `embedded_variants` across the alignment. Examples without `alleleIds` set this to 0. |
 | `expectedConsequenceCategories` | Every entry must appear in at least one variant's `molecular_consequences`. |
 
-See `tests/examples/types.ts` for the schema and
+See `webui/src/examples/types.ts` for the schema and
 `pavi_cli/assertions.py` for the implementation.
 
 ## Limits of Phase 1

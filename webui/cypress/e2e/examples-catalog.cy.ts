@@ -8,7 +8,7 @@
  * submits, waits for the result page, then asserts against the same
  * tolerant expectations the pavi-cli harness uses.
  *
- * Catalog lives in `tests/examples/catalog.json` and is shared with
+ * Catalog lives in `webui/src/examples/catalog.json` and is shared with
  * the Python CLI runner.
  *
  * Environment:
@@ -17,8 +17,8 @@
  *   CYPRESS_JOB_TIMEOUT_MS - per-example max wait for pipeline completion (default 600000)
  */
 
-import { exampleCatalog } from '../../../tests/examples/index'
-import type { CatalogExample } from '../../../tests/examples/index'
+import { exampleCatalog } from '../../src/examples/index'
+import type { CatalogExample } from '../../src/examples/index'
 
 const API_BASE = Cypress.env('API_BASE_URL') || 'http://localhost:8000'
 const JOB_TIMEOUT_MS = Number(Cypress.env('JOB_TIMEOUT_MS') || 600_000)
@@ -29,7 +29,8 @@ const ONLY_EXAMPLE = (Cypress.env('ONLY_EXAMPLE') as string | undefined) || ''
 // is the only check in the sweep that validates against an outside source
 // rather than the pipeline's own output. Disable with SKIP_SEQUENCE_CHECK=1
 // (e.g. environments without the Python venv or outbound network).
-const RUN_SEQUENCE_CHECK = Cypress.env('SKIP_SEQUENCE_CHECK') !== '1'
+// `--env SKIP_SEQUENCE_CHECK=1` arrives as the number 1, so compare as a string.
+const RUN_SEQUENCE_CHECK = String(Cypress.env('SKIP_SEQUENCE_CHECK') ?? '') !== '1'
 // Paths are relative to the Cypress project root (webui/), which is also
 // cy.exec's working directory.
 const PAVI_CLI = '../tests/cli/.venv/bin/pavi-cli'
@@ -146,7 +147,7 @@ describe('catalog examples end-to-end', () => {
 
             cy.url().then((url) => {
                 const m = url.match(/uuid=([A-Za-z0-9-]+)/)
-                expect(m, 'job uuid in /result URL').to.not.be.null
+                expect(m, 'job uuid in /result URL').to.not.equal(null)
                 const uuid = m![1]
 
                 // --- Alignment: parse + max pairwise identity ----------
@@ -160,18 +161,17 @@ describe('catalog examples end-to-end', () => {
 
                     if (example.expectations.minMaxPairwiseIdentityPct > 0) {
                         const maxId = maxPairwiseIdentity(seqs)
-                        expect(maxId, 'pairwise identity computable').to.not.be.null
+                        expect(maxId, 'pairwise identity computable').to.not.equal(null)
                         expect(
                             maxId as number,
                             `maxPairwiseIdentity >= ${example.expectations.minMaxPairwiseIdentityPct}%`
                         ).to.be.at.least(example.expectations.minMaxPairwiseIdentityPct)
                     }
 
-                    // Persist the alignment so the post-step UniProt check
-                    // (and any debugging) has the exact bytes we asserted on.
-                    if (RUN_SEQUENCE_CHECK) {
-                        cy.writeFile(`${ALN_DIR}/${example.id}.aln`, res.body as string)
-                    }
+                    // Persist the alignment so the UniProt check (here, or run
+                    // separately with pavi-cli when SKIP_SEQUENCE_CHECK=1) and any
+                    // debugging have the exact bytes we asserted on.
+                    cy.writeFile(`${ALN_DIR}/${example.id}.aln`, res.body as string)
                 })
 
                 // --- Seq-info: embedded variants + consequence categories ----------
