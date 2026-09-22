@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.0...api-v0.6.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* **api:** patch orphaned security deps (anyio, urllib3, python-multipart) ([#982](https://github.com/alliance-genome/agr_pavi/issues/982)) ([f377637](https://github.com/alliance-genome/agr_pavi/commit/f3776377091a124fcc20398413e2e914cf8132fd))
+* **deps:** bump urllib3 2.6.3 -&gt; 2.8.0 across remaining manifests ([#985](https://github.com/alliance-genome/agr_pavi/issues/985)) ([f4e8d62](https://github.com/alliance-genome/agr_pavi/commit/f4e8d62e7bfb86eaacd4b6829357217d355d6c0a))
+
 ## [0.6.0](https://github.com/alliance-genome/agr_pavi/compare/api-v0.5.0...api-v0.6.0) (2026-09-21)
 
 
