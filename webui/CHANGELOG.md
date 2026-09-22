@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.2](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.6.1...webui-v0.6.2) (2026-09-22)
+
+
+### Bug Fixes
+
+* **deps:** patch remaining fixable Dependabot alerts (round 2) ([#992](https://github.com/alliance-genome/agr_pavi/issues/992)) ([441d557](https://github.com/alliance-genome/agr_pavi/commit/441d5579fcfc542781ad6610b0613144cfe6353f))
+* **webui:** fully hide ortholog alignment and bulk upload in production ([#989](https://github.com/alliance-genome/agr_pavi/issues/989)) ([cda5f90](https://github.com/alliance-genome/agr_pavi/commit/cda5f90448b38493bf1d6270697613a712aae197))
+* **webui:** preselect the canonical protein-coding transcript ([#990](https://github.com/alliance-genome/agr_pavi/issues/990)) ([a5a8520](https://github.com/alliance-genome/agr_pavi/commit/a5a852029376a8cc58ff04f3d6e8a821e993f259))
+
 ## [0.6.1](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.6.0...webui-v0.6.1) (2026-09-22)
 
 
