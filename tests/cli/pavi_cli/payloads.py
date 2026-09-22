@@ -7,7 +7,8 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-PAYLOAD_FIXTURE_ROOT = Path(__file__).resolve().parents[2] / "examples" / "fixtures"
+# CLI-only test data: kept under tests/cli/, not with the catalog in webui/src/examples/.
+PAYLOAD_FIXTURE_ROOT = Path(__file__).resolve().parents[1] / "fixtures"
 
 
 def payload_fixture_path(example_id: str) -> Path:

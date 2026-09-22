@@ -5,8 +5,8 @@ that ship with PAVI's submit form. Three consumers share it:
 
 | Consumer | Path | How it reads the catalog |
 |---|---|---|
-| WebUI submit form | `webui/src/app/submit/components/ExampleDataLoader/ExampleDataLoader.tsx` | Imports `tests/examples` (`index.ts` re-exports a typed `exampleCatalog`). |
-| CLI test harness | `tests/cli/pavi_cli/` | `json.load(open('tests/examples/catalog.json'))`. |
+| WebUI submit form | `webui/src/app/submit/components/ExampleDataLoader/ExampleDataLoader.tsx` | Imports `@/examples` (`index.ts` re-exports a typed `exampleCatalog`). |
+| CLI test harness | `tests/cli/pavi_cli/` | `json.load(open('webui/src/examples/catalog.json'))`. |
 | Playwright suite | `webui/playwright/fixtures/catalog.ts` | Same TS import as WebUI. |
 
 Adding or editing an example = single edit to `catalog.json`. All three

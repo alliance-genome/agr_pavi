@@ -1,4 +1,4 @@
-"""Read the shared `tests/examples/catalog.json`."""
+"""Read the shared `webui/src/examples/catalog.json`."""
 
 from __future__ import annotations
 
@@ -8,9 +8,10 @@ from pathlib import Path
 from typing import Iterable
 
 # Resolve catalog path relative to this file so the CLI works regardless of
-# the cwd it is invoked from. `tests/cli/pavi_cli/catalog.py` ->
-# `tests/examples/catalog.json` is two `parents` up + `examples`.
-CATALOG_PATH = Path(__file__).resolve().parents[2] / "examples" / "catalog.json"
+# the cwd it is invoked from. `tests/cli/pavi_cli/catalog.py` -> repo root is
+# three `parents` up. The catalog lives inside webui/ so the webui build (sparse
+# checkout, Docker context) can import it.
+CATALOG_PATH = Path(__file__).resolve().parents[3] / "webui" / "src" / "examples" / "catalog.json"
 
 
 @dataclass(frozen=True)

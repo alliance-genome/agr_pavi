@@ -17,8 +17,10 @@ const nextConfig = {
     eslint: {
         dirs: ['src', 'cypress/e2e', 'cypress/support'],
     },
-    // Remove 'output: standalone' for Vercel deployment compatibility
-    // Use 'standalone' only for Docker builds
+    // Standalone output is opt-in: the Dockerfile sets NEXT_OUTPUT=standalone
+    // (its runner copies .next/standalone). Vercel and `next start` on EC2 need
+    // the default output.
+    ...(process.env.NEXT_OUTPUT === 'standalone' ? { output: 'standalone' } : {}),
     skipTrailingSlashRedirect: true,
     experimental: {
         urlImports: [

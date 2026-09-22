@@ -1,7 +1,7 @@
 """Catalog-driven Alliance API shape verification.
 
 Walks every gene (and, where pinned, every allele) declared in
-`tests/examples/catalog.json` and confirms the live Alliance response
+`webui/src/examples/catalog.json` and confirms the live Alliance response
 still adapts cleanly to our normalized `GeneInfo` / `AlleleSummary`
 shapes. This is the cheap-and-fast PR signal: no pipeline run, no
 payload fixtures, just HTTP + shape adapters.
