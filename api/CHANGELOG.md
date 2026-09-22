@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.3](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.2...api-v0.6.3) (2026-09-22)
+
+
+### Bug Fixes
+
+* **ci:** repair lock-comment size limit, post-merge deploy and three check failures ([#995](https://github.com/alliance-genome/agr_pavi/issues/995)) ([74e0fdd](https://github.com/alliance-genome/agr_pavi/commit/74e0fdd1e823dd7c72c122f05b8cef6d0a22580f))
+* **pipeline:** stop silently dropping sequences; make parallel retrieval safe ([#998](https://github.com/alliance-genome/agr_pavi/issues/998)) ([7a7152d](https://github.com/alliance-genome/agr_pavi/commit/7a7152ddd7b694f54f544747bea6fc0feb44bdbc))
+
 ## [0.6.2](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.1...api-v0.6.2) (2026-09-22)
 
 
