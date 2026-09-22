@@ -12,7 +12,7 @@ dependencies = [
     "biopython==1.85",
     "click==8.3.*",
     "pysam==0.23.*",
-    "requests==2.32.*",
+    "requests==2.34.*",
     "jsonpickle==4.1.*"
 ]
 
@@ -22,6 +22,6 @@ test = [
     "flake8-unused-arguments==0.0.*",
     "mypy==1.18.*",
     "responses==0.25.*",
-    "pytest==8.4.*",
+    "pytest==9.0.*",
     "pytest-cov==7.0.*"
 ]
