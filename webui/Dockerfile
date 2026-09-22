@@ -22,6 +22,9 @@ ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH}
 # Component version (e.g. webui-vX.Y.Z-N-g<sha>), baked in for the footer.
 ARG NEXT_PUBLIC_APP_VERSION=""
 ENV NEXT_PUBLIC_APP_VERSION=${NEXT_PUBLIC_APP_VERSION}
+# The runner stage copies .next/standalone, which next.config.mjs only emits
+# when this is set.
+ENV NEXT_OUTPUT=standalone
 RUN npm run build;
 
 # Production image, copy all the files and run next

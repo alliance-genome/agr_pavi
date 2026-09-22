@@ -5,6 +5,17 @@
 // shows the unresolvable one.
 
 describe('bulk gene-list upload', () => {
+    // Bulk upload is hidden (404) unless the webui is built with
+    // NEXT_PUBLIC_SHOW_EXPERIMENTAL=true; only exercise it where it is enabled.
+    before(function () {
+        cy.request({ url: '/submit-bulk', failOnStatusCode: false }).then((res) => {
+            if (res.status === 404) {
+                cy.log('Bulk upload disabled in this build (NEXT_PUBLIC_SHOW_EXPERIMENTAL not set); skipping.');
+                this.skip();
+            }
+        });
+    });
+
     Cypress.on('uncaught:exception', (err) => {
         if (err.message.includes('CanvasRenderingContext2D')) return false;
         return undefined;

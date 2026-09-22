@@ -4,3 +4,5 @@
 !tsconfig.json
 !cypress.config.ts
 !cypress-image-diff.config.cjs
+# Example catalog imported by cypress/e2e/examples-catalog.cy.ts (cypress/ itself is mounted at run time)
+!src/examples

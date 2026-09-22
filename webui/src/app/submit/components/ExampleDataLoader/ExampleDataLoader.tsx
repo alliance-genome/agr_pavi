@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import styles from './ExampleDataLoader.module.css';
-import { exampleCatalog, CatalogExample, CatalogGene } from '@examples/index';
+import { exampleCatalog, CatalogExample, CatalogGene } from '@/examples/index';
 
 export interface ExampleData {
     id: string;
@@ -22,7 +22,7 @@ export interface ExampleGene {
     transcriptNames?: string[];
 }
 
-// Pre-defined example datasets are sourced from `tests/examples/catalog.json`,
+// Pre-defined example datasets are sourced from `webui/src/examples/catalog.json`,
 // the same file the CLI test harness and Playwright suite consume. Editing an
 // example here used to require parallel updates in those other places; now a
 // single edit to catalog.json propagates everywhere.

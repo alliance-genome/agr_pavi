@@ -1,0 +1,16 @@
+{
+  "//": "The app tsconfig excludes cypress/ (its chai types clash with jest's), so Cypress needs its own config to compile specs.",
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["cypress", "node"],
+    "isolatedModules": false
+  },
+  "include": [
+    "**/*.ts",
+    "../src/examples/**/*.ts",
+    "../src/examples/**/*.json"
+  ],
+  "exclude": [
+    "example-e2e"
+  ]
+}
