@@ -7,7 +7,7 @@ nor network access.
 
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import Any
+from typing import Any, Callable
 from unittest.mock import patch
 
 import pytest
@@ -39,7 +39,7 @@ def runner(tmp_path: Path) -> LocalPipelineRunner:
     )
 
 
-def _fake_run(outputs_for: set[str]) -> Any:
+def _fake_run(outputs_for: set[str]) -> Callable[..., CompletedProcess[str]]:
     """subprocess.run stand-in: writes seq_retrieval outputs for the given entries, fails the rest."""
 
     def run(cmd: list[str], cwd: str, **_kwargs: Any) -> CompletedProcess[str]:  # noqa: U101
