@@ -5,6 +5,8 @@ from uuid import uuid1, UUID
 
 from pytest_mock import MockerFixture
 
+from src.job_service import JobInfo, JobStatus as SFJobStatus
+
 client = TestClient(app, follow_redirects=False)
 
 NOT_FOUND_UUID: UUID = UUID("00000000-0000-0000-0000-000000000000")
@@ -42,15 +44,23 @@ def test_alignment_result_not_found() -> None:
     assert response.status_code == 404
 
 
-def test_result_alignment(mocker: MockerFixture) -> None:
-    def mock_alignment_open(uri: None = None, **kwargs):  # type: ignore  # noqa: U100
-        return open("../tests/resources/submit-workflow-success-output.aln", **kwargs)
+def _mock_completed_job_service(mocker: MockerFixture, alignment: bytes = b"", seqinfo: bytes = b"") -> None:
+    """Result endpoints read through the job service (local pipeline / Step Functions mode)."""
+    service = mocker.MagicMock()
+    service.get_job_with_sync.return_value = JobInfo(job_id=str(mock_uuid), status=SFJobStatus.COMPLETED)
+    service.get_job_result_alignment.return_value = alignment
+    service.get_job_result_seqinfo.return_value = seqinfo
+    mocker.patch("src.main.get_job_service", return_value=service)
 
-    mocker.patch("smart_open.open", side_effect=mock_alignment_open)
+
+def test_result_alignment(mocker: MockerFixture) -> None:
+    with open("../tests/resources/submit-workflow-success-output.aln", "rb") as f:
+        expected = f.read()
+    _mock_completed_job_service(mocker, alignment=expected)
     response = client.get(f"/api/pipeline-job/{mock_uuid}/result/alignment")
 
     assert response.status_code == 200
-    assert response.text == mock_alignment_open().read()
+    assert response.content == expected
 
 
 def test_alignment_result_read_error(mocker: MockerFixture) -> None:
@@ -61,16 +71,13 @@ def test_alignment_result_read_error(mocker: MockerFixture) -> None:
 
 
 def test_result_seq_info(mocker: MockerFixture) -> None:
-    def mock_seq_info_open(uri: None = None, **kwargs):  # type: ignore  # noqa: U100
-        return open(
-            "../tests/resources/submit-workflow-success/aligned_seq_info.json", **kwargs
-        )
-
-    mocker.patch("smart_open.open", side_effect=mock_seq_info_open)
+    with open("../tests/resources/submit-workflow-success/aligned_seq_info.json", "rb") as f:
+        expected = f.read()
+    _mock_completed_job_service(mocker, seqinfo=expected)
     response = client.get(f"/api/pipeline-job/{mock_uuid}/result/seq-info")
 
     assert response.status_code == 200
-    assert response.text == mock_seq_info_open().read()
+    assert response.content == expected
 
 
 def test_alignment_result_seq_info_not_found() -> None:

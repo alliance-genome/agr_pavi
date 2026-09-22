@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.3](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.6.2...webui-v0.6.3) (2026-09-22)
+
+
+### Bug Fixes
+
+* **ci:** repair lock-comment size limit, post-merge deploy and three check failures ([#995](https://github.com/alliance-genome/agr_pavi/issues/995)) ([74e0fdd](https://github.com/alliance-genome/agr_pavi/commit/74e0fdd1e823dd7c72c122f05b8cef6d0a22580f))
+
 ## [0.6.2](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.6.1...webui-v0.6.2) (2026-09-22)
 
 

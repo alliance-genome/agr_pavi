@@ -2,9 +2,11 @@
 Module used to find, access and copy files at/to/from remote locations
 """
 
+import fcntl
 import os.path
 from pathlib import Path
 import requests
+import tempfile
 from typing import Dict, Optional
 from urllib.parse import urlparse, unquote
 
@@ -103,15 +105,7 @@ def fetch_file(
             local_file_path = os.path.join(dest_dir, filename)
 
             if reuse_local_cache is True:
-                try:
-                    local_path = find_local_file(local_file_path)
-                except FileNotFoundError:
-                    logger.info(
-                        f"File for {url} not found on download destination, downloading from remote to {dest_dir}."
-                    )
-                    local_path = download_from_url(url, local_file_path)
-                else:
-                    logger.info(f"Found file for {url} in local file cache.")
+                local_path = _fetch_into_local_cache(url, local_file_path)
 
             else:
                 logger.info(f"Downloading {url} from remote to {dest_dir}.")
@@ -125,6 +119,26 @@ def fetch_file(
         _stored_files[url] = local_path
 
     return local_path
+
+
+def _fetch_into_local_cache(url: str, local_file_path: str) -> str:
+    """
+    Return the cached copy of `url` at `local_file_path`, downloading it if absent.
+
+    Parallel seq_retrieval processes (one per sequence in a job) commonly need the
+    same genome FASTA at the same moment. An exclusive lock on a sibling `.lock`
+    file makes exactly one process download it; the others wait, then find it.
+    """
+    Path(os.path.dirname(local_file_path)).mkdir(parents=True, exist_ok=True)
+    with open(f"{local_file_path}.lock", "w") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            local_path = find_local_file(local_file_path)
+        except FileNotFoundError:
+            logger.info(f"File for {url} not found in local file cache, downloading to {local_file_path}.")
+            return download_from_url(url, local_file_path)
+        logger.info(f"Found file for {url} in local file cache.")
+        return local_path
 
 
 def find_local_file(path: str) -> str:
@@ -178,22 +192,29 @@ def download_from_url(url: str, dest_filepath: str, chunk_size: int = 10 * 1024)
 
         Path(os.path.dirname(dest_filepath)).mkdir(parents=True, exist_ok=True)
 
-        if os.path.exists(dest_filepath) and os.path.isfile(dest_filepath):
-            logger.warning(
-                f"Pre-existing file {dest_filepath} found at download destination, deleting before download."
-            )
-            os.remove(dest_filepath)
+        if os.path.isfile(dest_filepath):
+            logger.warning(f"Pre-existing file {dest_filepath} at download destination will be replaced.")
 
         logger.debug(f"Downloading {url}...")
-        # Download file through streaming to support large files
-        tmp_file_path = f"{dest_filepath}.part"
-        response = requests.get(url, stream=True)
-
-        with open(tmp_file_path, mode="wb") as local_file:
-            for chunk in response.iter_content(chunk_size=chunk_size):
-                local_file.write(chunk)
-
-        os.rename(tmp_file_path, dest_filepath)
+        # Stream into a temp file unique to this download, then atomically replace
+        # the destination. A shared "<dest>.part" name let concurrent downloads of
+        # the same file rename it out from under each other, and deleting the old
+        # file first could break a process that was reading it.
+        fd, tmp_file_path = tempfile.mkstemp(
+            dir=os.path.dirname(os.path.abspath(dest_filepath)),
+            prefix=f"{os.path.basename(dest_filepath)}.",
+            suffix=".part",
+        )
+        try:
+            response = requests.get(url, stream=True)
+            with os.fdopen(fd, mode="wb") as local_file:
+                for chunk in response.iter_content(chunk_size=chunk_size):
+                    local_file.write(chunk)
+            os.replace(tmp_file_path, dest_filepath)
+        except BaseException:
+            if os.path.exists(tmp_file_path):
+                os.remove(tmp_file_path)
+            raise
         logger.debug(f"Download of {url} completed.")
 
         return find_local_file(dest_filepath)

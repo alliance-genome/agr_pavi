@@ -207,21 +207,13 @@ class LocalPipelineRunner:
         fasta_files: list[Path] = []
         seqinfo_files: list[Path] = []
         errors: list[str] = []
+        results: dict[str, tuple[Path, Path]] = {}
 
         sequences_completed = 0
 
-        def run_single_retrieval(seq_region: dict[str, Any]) -> tuple[Optional[Path], Optional[Path]]:
-            """Run seq_retrieval for a single region."""
-            unique_entry_id = seq_region.get("unique_entry_id", "unknown")
-            try:
-                return self._invoke_seq_retrieval(seq_region, work_dir)
-            except Exception as e:
-                log.error(f"Sequence retrieval failed for {unique_entry_id}: {e}")
-                return None, None
-
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = {
-                executor.submit(run_single_retrieval, sr): sr
+                executor.submit(self._invoke_seq_retrieval, sr, work_dir): sr
                 for sr in seq_regions
             }
 
@@ -231,26 +223,40 @@ class LocalPipelineRunner:
 
                 try:
                     fasta_file, seqinfo_file = future.result()
-                    if fasta_file and fasta_file.exists():
-                        fasta_files.append(fasta_file)
-                    if seqinfo_file and seqinfo_file.exists():
-                        seqinfo_files.append(seqinfo_file)
+                    if not fasta_file.exists():
+                        raise LocalPipelineError(
+                            f"seq_retrieval produced no FASTA output for {unique_entry_id}",
+                            stage="SEQUENCE_RETRIEVAL",
+                        )
+                    results[unique_entry_id] = (fasta_file, seqinfo_file)
 
                     sequences_completed += 1
                     self._update_progress(job_id, "SEQUENCE_RETRIEVAL", sequences_completed)
 
                 except Exception as e:
-                    errors.append(f"{unique_entry_id}: {str(e)}")
+                    detail = e.cause if isinstance(e, LocalPipelineError) and e.cause else str(e)
+                    log.error(f"Sequence retrieval failed for {unique_entry_id}: {detail}")
+                    errors.append(f"{unique_entry_id}: {detail}")
 
+        # An alignment silently missing some of the requested sequences is worse
+        # than a failed job, so any failed retrieval fails the whole job.
         if errors:
-            log.warning(f"Some sequence retrievals failed: {errors}")
-
-        if not fasta_files:
             raise LocalPipelineError(
-                f"All sequence retrievals failed: {errors}",
+                f"Sequence retrieval failed for {len(errors)} of {len(seq_regions)} "
+                f"entries: {', '.join(e.split(':', 1)[0] for e in errors)}",
                 stage="SEQUENCE_RETRIEVAL",
                 cause="; ".join(errors),
             )
+
+        # Futures complete in arbitrary order and Clustal keeps input order, so order
+        # the outputs by unique_entry_id. Its numeric prefix (000_, 001_, ...) is the
+        # entry's position in the submit form, and the Nextflow pipeline orders the
+        # same way, so result rows are deterministic and match it.
+        for unique_entry_id in sorted(results):
+            fasta_file, seqinfo_file = results[unique_entry_id]
+            fasta_files.append(fasta_file)
+            if seqinfo_file.exists():
+                seqinfo_files.append(seqinfo_file)
 
         return fasta_files, seqinfo_files
 
@@ -272,12 +278,14 @@ class LocalPipelineRunner:
         unique_entry_id = seq_region["unique_entry_id"]
         base_seq_name = seq_region["base_seq_name"]
         seq_id = seq_region["seq_id"]
-        seq_strand = seq_region.get("seq_strand", "+")
+        # Optional fields default to None in the API model, so they arrive as
+        # present-but-None keys: use `or` rather than a .get() default.
+        seq_strand = seq_region.get("seq_strand") or "+"
         exon_seq_regions = seq_region["exon_seq_regions"]
-        cds_seq_regions = seq_region.get("cds_seq_regions", [])
+        cds_seq_regions = seq_region.get("cds_seq_regions") or []
         fasta_file_url = seq_region["fasta_file_url"]
-        variant_ids = seq_region.get("variant_ids", [])
-        alt_seq_name_suffix = seq_region.get("alt_seq_name_suffix", "_alt")
+        variant_ids = seq_region.get("variant_ids") or []
+        alt_seq_name_suffix = seq_region.get("alt_seq_name_suffix") or "_alt"
         species = seq_region.get("species")
 
         # Build command - use seq_retrieval's venv Python which has required packages

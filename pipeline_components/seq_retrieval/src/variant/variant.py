@@ -350,6 +350,11 @@ class Variant:
             if gene_ids:
                 gene_id = gene_ids[0]
 
+        if seq_id is None or start is None or end is None:
+            raise ValueError(
+                f"Alliance API returned no genomic location for variant {variant_id}."
+            )
+
         return cls(
             variant_id=variant_id,
             seq_id=seq_id,
