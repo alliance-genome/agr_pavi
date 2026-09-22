@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.2](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.1...api-v0.6.2) (2026-09-22)
+
+
+### Bug Fixes
+
+* **api:** upgrade fastapi to 0.133 so starlette can move to 1.x ([#993](https://github.com/alliance-genome/agr_pavi/issues/993)) ([c7439d3](https://github.com/alliance-genome/agr_pavi/commit/c7439d352246e59b64dc6a43ecc36519a5fc3bde))
+* **deps:** patch remaining fixable Dependabot alerts (round 2) ([#992](https://github.com/alliance-genome/agr_pavi/issues/992)) ([441d557](https://github.com/alliance-genome/agr_pavi/commit/441d5579fcfc542781ad6610b0613144cfe6353f))
+
 ## [0.6.1](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.0...api-v0.6.1) (2026-09-22)
 
 
