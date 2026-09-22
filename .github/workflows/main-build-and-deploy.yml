@@ -88,11 +88,18 @@ jobs:
           workflow_conclusion: success
           workflow_search: false
           allow_forks: false
-          if_no_artifact_found: fail
+          # Lock updates are only committed from a PR-validation run that succeeded.
+          # A PR merged without one (e.g. admin bypass while CI is red) has no
+          # bundle; skip the lock commit instead of blocking the whole deployment.
+          if_no_artifact_found: warn
       - name: Unpack the bundle
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}
         run: |
-          tar -xzv -f deps-lock-files.tar.gz
+          if [ -f deps-lock-files.tar.gz ]; then
+            tar -xzv -f deps-lock-files.tar.gz
+          else
+            echo "::warning::No deps_lock_files_bundle from a successful PR validation; no lock file updates committed."
+          fi
       - name: commit dependency lock file changes
         id: deps-lock-commit
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-deps-lock-updates') }}

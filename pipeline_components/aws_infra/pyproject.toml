@@ -26,3 +26,8 @@ test = [
 [tool.setuptools.packages.find]
 # include = ["cdk_classes/*"]
 exclude = ["node_modules/*"]
+
+[tool.pytest.ini_options]
+# local-testing/ holds manual e2e scripts that need a running stack and extra
+# deps (requests); keep them out of the unit-test run.
+testpaths = ["tests"]

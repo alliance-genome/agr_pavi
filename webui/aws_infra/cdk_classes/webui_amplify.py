@@ -11,12 +11,8 @@ AWS Amplify provides optimized hosting for Next.js applications with:
 
 from aws_cdk import (
     aws_amplify_alpha as amplify,
-    aws_iam as iam,
-    aws_route53 as route53,
-    aws_secretsmanager as secretsmanager,
     CfnOutput,
     Fn as CfnFn,
-    RemovalPolicy,
     SecretValue,
     Stack,
     Tags as cdk_tags
