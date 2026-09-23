@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.6.3...webui-v0.7.0) (2026-09-23)
+
+
+### Features
+
+* **webui:** preselect the MANE Select transcript for human genes ([#1004](https://github.com/alliance-genome/agr_pavi/issues/1004)) ([d8272ea](https://github.com/alliance-genome/agr_pavi/commit/d8272eaa76812e62cd162cf7df4ae24812551e4c))
+
+
+### Bug Fixes
+
+* **webui:** build and test the webui from webui/ alone; repair Cypress ([#999](https://github.com/alliance-genome/agr_pavi/issues/999)) ([70c6acf](https://github.com/alliance-genome/agr_pavi/commit/70c6acfd0fdd859a5b24cb91d92f8160902a4fab))
+
 ## [0.6.3](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.6.2...webui-v0.6.3) (2026-09-22)
 
 
