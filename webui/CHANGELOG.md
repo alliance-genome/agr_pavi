@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.7.0...webui-v0.8.0) (2026-09-23)
+
+
+### Features
+
+* **webui:** preselect and label the canonical transcript for searched genes ([#1005](https://github.com/alliance-genome/agr_pavi/issues/1005)) ([372a5df](https://github.com/alliance-genome/agr_pavi/commit/372a5df26b8edbb7cbc0480a30bae3703b57eaa2))
+
 ## [0.7.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.6.3...webui-v0.7.0) (2026-09-23)
 
 
