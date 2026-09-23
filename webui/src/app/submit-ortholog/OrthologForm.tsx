@@ -17,6 +17,7 @@ import { fetchOrthologs, OrthologInfo } from './serverActions';
 
 import { getSpecies, getSingleGenomeLocation, gffFileUrl } from '@/utils/agrSpeciesConfig';
 import { fetchTranscriptsGff, pickDefaultTranscript } from '@/utils/tabixTranscripts';
+import { withManeSelect } from '@/utils/maneSelect';
 
 import styles from './page.module.css';
 
@@ -136,13 +137,16 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
 
             const gffUrl = gffFileUrl(speciesConfig, agrjBrowseDataRelease);
 
-            const transcripts = await fetchTranscriptsGff({
-                gffUrl,
-                refseq: genomeLocation['chromosome'],
-                start: genomeLocation['start'],
-                end: genomeLocation['end'],
-                geneSymbol: gene['symbol'],
-            });
+            const transcripts = await withManeSelect(
+                await fetchTranscriptsGff({
+                    gffUrl,
+                    refseq: genomeLocation['chromosome'],
+                    start: genomeLocation['start'],
+                    end: genomeLocation['end'],
+                    geneSymbol: gene['symbol'],
+                }),
+                gene.species.taxonId,
+            );
 
             if (!transcripts || transcripts.length === 0) {
                 return { record: null, error: `${gene.symbol}: no transcripts found` };

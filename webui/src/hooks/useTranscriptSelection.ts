@@ -6,6 +6,7 @@ import { GeneInfo, TranscriptInfo, AlignmentEntryStatus } from '@/app/submit/com
 
 import { getSpecies, getSingleGenomeLocation, gffFileUrl } from '@/utils/agrSpeciesConfig';
 import { fetchTranscriptsGff, GffTranscript, pickDefaultTranscript } from '@/utils/tabixTranscripts';
+import { withManeSelect } from '@/utils/maneSelect';
 
 export interface UseTranscriptSelectionOptions {
     gene: GeneInfo | undefined;
@@ -143,13 +144,16 @@ export function useTranscriptSelection(
                 const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);
 
                 try {
-                    const transcripts = await fetchTranscriptsGff({
-                        gffUrl,
-                        refseq: genomeLocation['chromosome'],
-                        start: genomeLocation['start'],
-                        end: genomeLocation['end'],
-                        geneSymbol: gene['symbol'],
-                    });
+                    const transcripts = await withManeSelect(
+                        await fetchTranscriptsGff({
+                            gffUrl,
+                            refseq: genomeLocation['chromosome'],
+                            start: genomeLocation['start'],
+                            end: genomeLocation['end'],
+                            geneSymbol: gene['symbol'],
+                        }),
+                        gene.species.taxonId,
+                    );
                     console.log('transcripts received:', transcripts);
 
                     // Define transcripts list
