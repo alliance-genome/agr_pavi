@@ -16,6 +16,7 @@ jest.mock(
 // Control the transcript fetch so we can simulate a missing-track rejection.
 const mockFetchTranscripts = jest.fn();
 jest.mock('@/utils/tabixTranscripts', () => ({
+    ...jest.requireActual('@/utils/tabixTranscripts'),
     fetchTranscriptsGff: (...a: any[]) => mockFetchTranscripts(...a),
 }));
 

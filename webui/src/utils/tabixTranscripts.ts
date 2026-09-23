@@ -61,6 +61,8 @@ export interface GffTranscript {
     strand: FeatureStrand;
     proteinAccession?: string;
     isCanonical?: boolean;
+    /** Why the transcript is canonical, for display (e.g. "MANE Select"). */
+    canonicalLabel?: string;
     exons: GffExon[];
     cds_regions: GffCds[];
 }
@@ -125,7 +127,21 @@ function attrList(attr: Record<string, any> | undefined, key: string): string[] 
  * `tag=gencode_basic,gencode_primary,Ensembl_canonical`), not as a separate
  * `is_canonical` attribute. Compared lowercase.
  */
-const CANONICAL_TAGS = new Set(['ensembl_canonical', 'mane_select', 'refseq select']);
+const CANONICAL_TAGS = new Map([
+    ['mane_select', 'MANE Select'],
+    ['ensembl_canonical', 'Ensembl canonical'],
+    ['refseq select', 'RefSeq Select'],
+]);
+
+/** Display label for a canonical transcript, or undefined when it is not flagged. */
+function canonicalLabelFor(attr: Record<string, any>): string | undefined {
+    const tags = attrList(attr, 'tag').map((t) => t.toLowerCase());
+    for (const [tag, label] of CANONICAL_TAGS) {
+        if (tags.includes(tag)) return label;
+    }
+    if (firstAttr(attr, 'is_canonical') === 'true' || firstAttr(attr, 'canonical') === 'true') return 'canonical';
+    return undefined;
+}
 
 /**
  * Choose the transcript to preselect for a gene. PAVI aligns proteins, so a
@@ -140,6 +156,16 @@ export function pickDefaultTranscript<T extends Pick<GffTranscript, 'isCanonical
         ?? transcripts.find(coding)
         ?? transcripts.find((t) => t.isCanonical === true)
         ?? transcripts[0];
+}
+
+/**
+ * Order transcripts for display: canonical protein-coding ones first (the one
+ * pickDefaultTranscript preselects), everything else after, each group keeping
+ * its original order.
+ */
+export function orderForDisplay<T extends Pick<GffTranscript, 'isCanonical' | 'cds_regions'>>(transcripts: T[]): T[] {
+    const preferred = (t: T) => t.isCanonical === true && t.cds_regions.length > 0;
+    return [...transcripts.filter(preferred), ...transcripts.filter((t) => !preferred(t))];
 }
 
 interface ChildRow {
@@ -158,6 +184,7 @@ interface TranscriptAcc {
     name: string;
     curie: string;
     isCanonical?: boolean;
+    canonicalLabel?: string;
     proteinAccession?: string;
     exons: GffExon[];
     cds: GffCds[];
@@ -231,10 +258,8 @@ export function reconstructTranscriptsFromRows(rows: GffRow[], geneSymbol: strin
                     ?? stripDbPrefix(firstAttr(attr, 'Name'))
                     ?? id,
                 curie: (stripDbPrefix(firstAttr(attr, 'curie', 'transcript_id')) ?? '') as string,
-                isCanonical: firstAttr(attr, 'is_canonical') === 'true'
-                    || firstAttr(attr, 'canonical') === 'true'
-                    || attrList(attr, 'tag').some((t) => CANONICAL_TAGS.has(t.toLowerCase()))
-                    || undefined,
+                canonicalLabel: canonicalLabelFor(attr),
+                isCanonical: canonicalLabelFor(attr) ? true : undefined,
                 exons: [],
                 cds: [],
             });
@@ -303,6 +328,7 @@ export function reconstructTranscriptsFromRows(rows: GffRow[], geneSymbol: strin
             strand: t.strand,
             proteinAccession: t.proteinAccession,
             isCanonical: t.isCanonical,
+            canonicalLabel: t.canonicalLabel,
             exons: t.exons,
             cds_regions: t.cds,
         });

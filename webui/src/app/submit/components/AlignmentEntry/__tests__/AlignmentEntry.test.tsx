@@ -64,6 +64,7 @@ const mockTranscript2 = {
 jest.mock('@/utils/tabixTranscripts',
     () => {
         return {
+            ...jest.requireActual('@/utils/tabixTranscripts'),
             fetchTranscriptsGff: jest.fn(
                 async () => [mockTranscript1, mockTranscript2]
             )

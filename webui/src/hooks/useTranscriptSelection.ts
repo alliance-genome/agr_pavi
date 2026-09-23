@@ -1,11 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState, RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, RefObject } from 'react';
 import { MultiSelect } from 'primereact/multiselect';
 import { GeneInfo, TranscriptInfo, AlignmentEntryStatus } from '@/app/submit/components/AlignmentEntry/types';
 
 import { getSpecies, getSingleGenomeLocation, gffFileUrl } from '@/utils/agrSpeciesConfig';
-import { fetchTranscriptsGff, GffTranscript, pickDefaultTranscript } from '@/utils/tabixTranscripts';
+import { fetchTranscriptsGff, GffTranscript, orderForDisplay, pickDefaultTranscript } from '@/utils/tabixTranscripts';
 import { withManeSelect } from '@/utils/maneSelect';
 
 export interface UseTranscriptSelectionOptions {
@@ -13,6 +13,7 @@ export interface UseTranscriptSelectionOptions {
     agrjBrowseDataRelease: string;
     onStatusChange?: (_status: AlignmentEntryStatus, _payloadPart?: undefined) => void;
     setupCompleted?: boolean;
+    /** @deprecated No longer needed: the default transcript is now preselected for every gene. */
     initialGeneId?: string;
     initialTranscriptNames?: string[];
 }
@@ -52,7 +53,7 @@ export function useTranscriptSelection(
     options: UseTranscriptSelectionOptions,
     transcriptMultiselectRef: RefObject<MultiSelect | null>
 ): UseTranscriptSelectionResult {
-    const { gene, agrjBrowseDataRelease, onStatusChange, setupCompleted, initialGeneId, initialTranscriptNames } = options;
+    const { gene, agrjBrowseDataRelease, onStatusChange, setupCompleted, initialTranscriptNames } = options;
 
     // Transcript state
     const [transcriptList, setTranscriptList] = useState<GffTranscript[]>([]);
@@ -144,7 +145,7 @@ export function useTranscriptSelection(
                 const genomeLocation = getSingleGenomeLocation(gene.genomeLocations);
 
                 try {
-                    const transcripts = await withManeSelect(
+                    const transcripts = orderForDisplay(await withManeSelect(
                         await fetchTranscriptsGff({
                             gffUrl,
                             refseq: genomeLocation['chromosome'],
@@ -153,7 +154,7 @@ export function useTranscriptSelection(
                             geneSymbol: gene['symbol'],
                         }),
                         gene.species.taxonId,
-                    );
+                    ));
                     console.log('transcripts received:', transcripts);
 
                     // Define transcripts list
@@ -202,11 +203,16 @@ export function useTranscriptSelection(
         }
     }, [setupCompleted, selectedTranscriptIds, transcriptListFocused, transcriptListOpened, processTranscriptEntry]);
 
-    // Select initial transcripts once the list has loaded: explicit names
-    // from the caller take priority; otherwise fall back to the canonical
-    // (or first) transcript, preserving the prior initialGeneId behavior.
+    // Select initial transcripts once per loaded transcript list: explicit names
+    // from the caller (bulk upload) take priority; otherwise preselect the
+    // canonical protein-coding transcript (MANE Select for human genes). This
+    // applies to genes picked through the search box as well as examples. It
+    // runs once per list, so a selection the user clears stays cleared.
+    const defaultAppliedForListRef = useRef<GffTranscript[] | null>(null);
     useEffect(() => {
-        if ((initialGeneId || initialTranscriptNames?.length) && !transcriptListLoading && transcriptList.length > 0 && selectedTranscriptIds.length === 0) {
+        if (!transcriptListLoading && transcriptList.length > 0 && selectedTranscriptIds.length === 0
+            && defaultAppliedForListRef.current !== transcriptList) {
+            defaultAppliedForListRef.current = transcriptList;
             if (initialTranscriptNames && initialTranscriptNames.length > 0) {
                 const matched = selectInitialTranscriptIds(transcriptList, initialTranscriptNames);
                 if (matched.length > 0) {
@@ -219,7 +225,7 @@ export function useTranscriptSelection(
                 setSelectedTranscriptIds([defaultTranscript.id]);
             }
         }
-    }, [initialGeneId, initialTranscriptNames, transcriptListLoading, transcriptList, selectedTranscriptIds.length]);
+    }, [initialTranscriptNames, transcriptListLoading, transcriptList, selectedTranscriptIds.length]);
 
     return {
         // State
