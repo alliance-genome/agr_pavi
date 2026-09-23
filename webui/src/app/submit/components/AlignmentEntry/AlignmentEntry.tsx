@@ -5,6 +5,7 @@ import { AutoComplete, AutoCompleteState, AutoCompletePassThroughMethodOptions }
 import { Button } from 'primereact/button';
 import { Message } from 'primereact/message';
 import { MultiSelect } from 'primereact/multiselect';
+import { Tag } from 'primereact/tag';
 import React, { createRef, FunctionComponent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useGeneSearch, useTranscriptSelection, useAlleleSelection } from '@/hooks';
@@ -570,13 +571,20 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                         onBlur={() => transcriptSelection.setTranscriptListFocused(false)}
                         onHide={() => transcriptSelection.setTranscriptListOpened(false)}
                         onShow={() => transcriptSelection.setTranscriptListOpened(true)}
-                        itemTemplate={(option: { key: string; value: string; label: string; proteinAccession?: string }) => (
+                        itemTemplate={(option: { key: string; value: string; label: string; proteinAccession?: string; canonicalLabel?: string }) => (
                             <span>
                                 {option.label}
                                 {option.proteinAccession && (
                                     <span style={{ color: 'var(--agr-text-secondary, #6c757d)', marginLeft: '0.4rem', fontSize: '0.85rem' }}>
                                         ({option.proteinAccession})
                                     </span>
+                                )}
+                                {option.canonicalLabel && (
+                                    <Tag
+                                        value={option.canonicalLabel}
+                                        severity="info"
+                                        style={{ marginLeft: '0.5rem', fontSize: '0.7rem', padding: '0.05rem 0.4rem' }}
+                                    />
                                 )}
                             </span>
                         )}
@@ -586,6 +594,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                                 value: r.id,
                                 label: r.name,
                                 proteinAccession: r.proteinAccession,
+                                canonicalLabel: r.canonicalLabel,
                             };
                         })}
                     />

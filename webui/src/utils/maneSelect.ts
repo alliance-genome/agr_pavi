@@ -31,7 +31,9 @@ const unversioned = (accession: string): string => accession.replace(/\.\d+$/, '
 /** Mark MANE Select transcripts as canonical, so pickDefaultTranscript prefers them. */
 export function applyManeSelect(transcripts: GffTranscript[], maneSelect: Set<string>): GffTranscript[] {
     return transcripts.map((t) =>
-        !t.isCanonical && maneSelect.has(unversioned(t.name)) ? { ...t, isCanonical: true } : { ...t },
+        !t.isCanonical && maneSelect.has(unversioned(t.name))
+            ? { ...t, isCanonical: true, canonicalLabel: 'MANE Select' }
+            : { ...t },
     );
 }
 
