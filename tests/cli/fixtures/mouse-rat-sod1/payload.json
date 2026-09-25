@@ -1,0 +1,120 @@
+[
+  {
+    "alt_seq_name_suffix": "_alt1",
+    "base_seq_name": "Sod1_ENSMUST00000023707",
+    "cds_seq_regions": [
+      {
+        "end": 90017817,
+        "frame": 0,
+        "start": 90017746
+      },
+      {
+        "end": 90019764,
+        "frame": 0,
+        "start": 90019668
+      },
+      {
+        "end": 90021313,
+        "frame": 2,
+        "start": 90021244
+      },
+      {
+        "end": 90022150,
+        "frame": 1,
+        "start": 90022033
+      },
+      {
+        "end": 90023145,
+        "frame": 0,
+        "start": 90023038
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 90017817,
+        "start": 90017642
+      },
+      {
+        "end": 90019764,
+        "start": 90019668
+      },
+      {
+        "end": 90021313,
+        "start": 90021244
+      },
+      {
+        "end": 90022150,
+        "start": 90022033
+      },
+      {
+        "end": 90023217,
+        "start": 90023038
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001635.27_GRCm39_genomic.fna.gz",
+    "seq_id": "16",
+    "seq_strand": "+",
+    "species": "Mus musculus",
+    "unique_entry_id": "000_Sod1_ENSMUST00000023707",
+    "variant_ids": []
+  },
+  {
+    "alt_seq_name_suffix": "_alt2",
+    "base_seq_name": "Sod1_ENSRNOT00000002885.8",
+    "cds_seq_regions": [
+      {
+        "end": 42942987,
+        "frame": 0,
+        "start": 42942916
+      },
+      {
+        "end": 42944879,
+        "frame": 0,
+        "start": 42944783
+      },
+      {
+        "end": 42946445,
+        "frame": 2,
+        "start": 42946376
+      },
+      {
+        "end": 42947251,
+        "frame": 1,
+        "start": 42947134
+      },
+      {
+        "end": 42948307,
+        "frame": 0,
+        "start": 42948200
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 42942987,
+        "start": 42942678
+      },
+      {
+        "end": 42944879,
+        "start": 42944783
+      },
+      {
+        "end": 42946445,
+        "start": 42946376
+      },
+      {
+        "end": 42947251,
+        "start": 42947134
+      },
+      {
+        "end": 42948399,
+        "start": 42948200
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_036323735.1_GRCr8_genomic.fna.gz",
+    "seq_id": "11",
+    "seq_strand": "+",
+    "species": "Rattus norvegicus",
+    "unique_entry_id": "001_Sod1_ENSRNOT00000002885.8",
+    "variant_ids": []
+  }
+]

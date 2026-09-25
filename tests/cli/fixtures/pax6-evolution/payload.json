@@ -1,0 +1,427 @@
+[
+  {
+    "alt_seq_name_suffix": "_alt1",
+    "base_seq_name": "PAX6_ENST00000640368.2",
+    "cds_seq_regions": [
+      {
+        "end": 31790019,
+        "frame": 2,
+        "start": 31789934
+      },
+      {
+        "end": 31790860,
+        "frame": 0,
+        "start": 31790710
+      },
+      {
+        "end": 31793553,
+        "frame": 2,
+        "start": 31793438
+      },
+      {
+        "end": 31793802,
+        "frame": 0,
+        "start": 31793652
+      },
+      {
+        "end": 31794114,
+        "frame": 2,
+        "start": 31794032
+      },
+      {
+        "end": 31794788,
+        "frame": 2,
+        "start": 31794630
+      },
+      {
+        "end": 31800856,
+        "frame": 0,
+        "start": 31800691
+      },
+      {
+        "end": 31801776,
+        "frame": 0,
+        "start": 31801561
+      },
+      {
+        "end": 31801912,
+        "frame": 0,
+        "start": 31801871
+      },
+      {
+        "end": 31802834,
+        "frame": 2,
+        "start": 31802704
+      },
+      {
+        "end": 31806411,
+        "frame": 0,
+        "start": 31806402
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 31790019,
+        "start": 31789026
+      },
+      {
+        "end": 31790860,
+        "start": 31790710
+      },
+      {
+        "end": 31793553,
+        "start": 31793438
+      },
+      {
+        "end": 31793802,
+        "start": 31793652
+      },
+      {
+        "end": 31794114,
+        "start": 31794032
+      },
+      {
+        "end": 31794788,
+        "start": 31794630
+      },
+      {
+        "end": 31800856,
+        "start": 31800691
+      },
+      {
+        "end": 31801776,
+        "start": 31801561
+      },
+      {
+        "end": 31801912,
+        "start": 31801871
+      },
+      {
+        "end": 31802834,
+        "start": 31802704
+      },
+      {
+        "end": 31806462,
+        "start": 31806402
+      },
+      {
+        "end": 31806925,
+        "start": 31806849
+      },
+      {
+        "end": 31811015,
+        "start": 31810828
+      },
+      {
+        "end": 31811322,
+        "start": 31811115
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001405.40_GRCh38.p14_genomic.fna.gz",
+    "seq_id": "11",
+    "seq_strand": "-",
+    "species": "Homo sapiens",
+    "unique_entry_id": "000_PAX6_ENST00000640368.2",
+    "variant_ids": []
+  },
+  {
+    "alt_seq_name_suffix": "_alt2",
+    "base_seq_name": "Pax6_ENSMUST00000111087",
+    "cds_seq_regions": [
+      {
+        "end": 105510652,
+        "frame": 0,
+        "start": 105510643
+      },
+      {
+        "end": 105514303,
+        "frame": 2,
+        "start": 105514173
+      },
+      {
+        "end": 105515447,
+        "frame": 0,
+        "start": 105515232
+      },
+      {
+        "end": 105516288,
+        "frame": 0,
+        "start": 105516123
+      },
+      {
+        "end": 105522068,
+        "frame": 2,
+        "start": 105521910
+      },
+      {
+        "end": 105522621,
+        "frame": 2,
+        "start": 105522539
+      },
+      {
+        "end": 105522965,
+        "frame": 0,
+        "start": 105522815
+      },
+      {
+        "end": 105523197,
+        "frame": 2,
+        "start": 105523082
+      },
+      {
+        "end": 105525801,
+        "frame": 0,
+        "start": 105525651
+      },
+      {
+        "end": 105526700,
+        "frame": 2,
+        "start": 105526615
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 105499394,
+        "start": 105499245
+      },
+      {
+        "end": 105510234,
+        "start": 105510155
+      },
+      {
+        "end": 105510652,
+        "start": 105510592
+      },
+      {
+        "end": 105514303,
+        "start": 105514173
+      },
+      {
+        "end": 105515447,
+        "start": 105515232
+      },
+      {
+        "end": 105516288,
+        "start": 105516123
+      },
+      {
+        "end": 105522068,
+        "start": 105521910
+      },
+      {
+        "end": 105522621,
+        "start": 105522539
+      },
+      {
+        "end": 105522965,
+        "start": 105522815
+      },
+      {
+        "end": 105523197,
+        "start": 105523082
+      },
+      {
+        "end": 105525801,
+        "start": 105525651
+      },
+      {
+        "end": 105527709,
+        "start": 105526615
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001635.27_GRCm39_genomic.fna.gz",
+    "seq_id": "2",
+    "seq_strand": "+",
+    "species": "Mus musculus",
+    "unique_entry_id": "001_Pax6_ENSMUST00000111087",
+    "variant_ids": []
+  },
+  {
+    "alt_seq_name_suffix": "_alt3",
+    "base_seq_name": "ey_FB:FBtr0089235",
+    "cds_seq_regions": [
+      {
+        "end": 714512,
+        "frame": 0,
+        "start": 714044
+      },
+      {
+        "end": 717300,
+        "frame": 2,
+        "start": 717127
+      },
+      {
+        "end": 717929,
+        "frame": 2,
+        "start": 717654
+      },
+      {
+        "end": 719628,
+        "frame": 2,
+        "start": 719274
+      },
+      {
+        "end": 720922,
+        "frame": 1,
+        "start": 720322
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 697883,
+        "start": 697689
+      },
+      {
+        "end": 711082,
+        "start": 710917
+      },
+      {
+        "end": 712673,
+        "start": 712493
+      },
+      {
+        "end": 714512,
+        "start": 713858
+      },
+      {
+        "end": 717300,
+        "start": 717127
+      },
+      {
+        "end": 717929,
+        "start": 717654
+      },
+      {
+        "end": 719628,
+        "start": 719274
+      },
+      {
+        "end": 721173,
+        "start": 720322
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/dmel-all-chromosome-r6.67.fasta.gz",
+    "seq_id": "4",
+    "seq_strand": "+",
+    "species": "Drosophila melanogaster",
+    "unique_entry_id": "002_ey_FB:FBtr0089235",
+    "variant_ids": []
+  },
+  {
+    "alt_seq_name_suffix": "_alt4",
+    "base_seq_name": "vab-3_WB:F14F3.1a.1",
+    "cds_seq_regions": [
+      {
+        "end": 10505994,
+        "frame": 0,
+        "start": 10505988
+      },
+      {
+        "end": 10509600,
+        "frame": 2,
+        "start": 10509453
+      },
+      {
+        "end": 10511054,
+        "frame": 1,
+        "start": 10510977
+      },
+      {
+        "end": 10511249,
+        "frame": 1,
+        "start": 10511123
+      },
+      {
+        "end": 10511421,
+        "frame": 0,
+        "start": 10511318
+      },
+      {
+        "end": 10512413,
+        "frame": 1,
+        "start": 10512298
+      },
+      {
+        "end": 10516493,
+        "frame": 2,
+        "start": 10516371
+      },
+      {
+        "end": 10516642,
+        "frame": 2,
+        "start": 10516560
+      },
+      {
+        "end": 10517701,
+        "frame": 0,
+        "start": 10517424
+      },
+      {
+        "end": 10518009,
+        "frame": 1,
+        "start": 10517840
+      },
+      {
+        "end": 10518651,
+        "frame": 2,
+        "start": 10518518
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 10500105,
+        "start": 10499890
+      },
+      {
+        "end": 10505994,
+        "start": 10505902
+      },
+      {
+        "end": 10509600,
+        "start": 10509453
+      },
+      {
+        "end": 10511054,
+        "start": 10510977
+      },
+      {
+        "end": 10511249,
+        "start": 10511123
+      },
+      {
+        "end": 10511421,
+        "start": 10511318
+      },
+      {
+        "end": 10512413,
+        "start": 10512298
+      },
+      {
+        "end": 10516493,
+        "start": 10516371
+      },
+      {
+        "end": 10516642,
+        "start": 10516560
+      },
+      {
+        "end": 10517701,
+        "start": 10517424
+      },
+      {
+        "end": 10518009,
+        "start": 10517840
+      },
+      {
+        "end": 10519579,
+        "start": 10518518
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+    "seq_id": "X",
+    "seq_strand": "+",
+    "species": "Caenorhabditis elegans",
+    "unique_entry_id": "003_vab-3_WB:F14F3.1a.1",
+    "variant_ids": []
+  }
+]
