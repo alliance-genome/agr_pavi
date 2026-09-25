@@ -1,0 +1,195 @@
+[
+  {
+    "alt_seq_name_suffix": "_alt1",
+    "base_seq_name": "ACTB_ENST00000646664.1",
+    "cds_seq_regions": [
+      {
+        "end": 5527891,
+        "frame": 0,
+        "start": 5527748
+      },
+      {
+        "end": 5528185,
+        "frame": 2,
+        "start": 5528004
+      },
+      {
+        "end": 5528719,
+        "frame": 0,
+        "start": 5528281
+      },
+      {
+        "end": 5529400,
+        "frame": 0,
+        "start": 5529161
+      },
+      {
+        "end": 5529657,
+        "frame": 0,
+        "start": 5529535
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 5527891,
+        "start": 5527148
+      },
+      {
+        "end": 5528185,
+        "start": 5528004
+      },
+      {
+        "end": 5528719,
+        "start": 5528281
+      },
+      {
+        "end": 5529400,
+        "start": 5529161
+      },
+      {
+        "end": 5529663,
+        "start": 5529535
+      },
+      {
+        "end": 5530601,
+        "start": 5530524
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001405.40_GRCh38.p14_genomic.fna.gz",
+    "seq_id": "7",
+    "seq_strand": "-",
+    "species": "Homo sapiens",
+    "unique_entry_id": "000_ACTB_ENST00000646664.1",
+    "variant_ids": []
+  },
+  {
+    "alt_seq_name_suffix": "_alt2",
+    "base_seq_name": "Actb_ENSMUST00000100497",
+    "cds_seq_regions": [
+      {
+        "end": 142889696,
+        "frame": 0,
+        "start": 142889553
+      },
+      {
+        "end": 142890003,
+        "frame": 2,
+        "start": 142889822
+      },
+      {
+        "end": 142890537,
+        "frame": 0,
+        "start": 142890099
+      },
+      {
+        "end": 142891231,
+        "frame": 0,
+        "start": 142890992
+      },
+      {
+        "end": 142891441,
+        "frame": 0,
+        "start": 142891319
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 142889696,
+        "start": 142888870
+      },
+      {
+        "end": 142890003,
+        "start": 142889822
+      },
+      {
+        "end": 142890537,
+        "start": 142890099
+      },
+      {
+        "end": 142891231,
+        "start": 142890992
+      },
+      {
+        "end": 142891447,
+        "start": 142891319
+      },
+      {
+        "end": 142892509,
+        "start": 142892407
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001635.27_GRCm39_genomic.fna.gz",
+    "seq_id": "5",
+    "seq_strand": "-",
+    "species": "Mus musculus",
+    "unique_entry_id": "001_Actb_ENSMUST00000100497",
+    "variant_ids": []
+  },
+  {
+    "alt_seq_name_suffix": "_alt3",
+    "base_seq_name": "actb2_NM_181601.5",
+    "cds_seq_regions": [
+      {
+        "end": 39481060,
+        "frame": 0,
+        "start": 39480917
+      },
+      {
+        "end": 39481327,
+        "frame": 2,
+        "start": 39481146
+      },
+      {
+        "end": 39481851,
+        "frame": 0,
+        "start": 39481413
+      },
+      {
+        "end": 39482379,
+        "frame": 0,
+        "start": 39482140
+      },
+      {
+        "end": 39482592,
+        "frame": 0,
+        "start": 39482470
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 39481060,
+        "start": 39480312
+      },
+      {
+        "end": 39481327,
+        "start": 39481146
+      },
+      {
+        "end": 39481851,
+        "start": 39481413
+      },
+      {
+        "end": 39482379,
+        "start": 39482140
+      },
+      {
+        "end": 39482599,
+        "start": 39482470
+      },
+      {
+        "end": 39484050,
+        "start": 39483961
+      },
+      {
+        "end": 39485288,
+        "start": 39485276
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_049306965.1_GRCz12tu_genomic.fna.gz",
+    "seq_id": "3",
+    "seq_strand": "-",
+    "species": "Danio rerio",
+    "unique_entry_id": "002_actb2_NM_181601.5",
+    "variant_ids": []
+  }
+]

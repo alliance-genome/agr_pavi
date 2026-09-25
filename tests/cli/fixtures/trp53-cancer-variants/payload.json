@@ -1,0 +1,332 @@
+[
+  {
+    "alt_seq_name_suffix": "_alt1",
+    "base_seq_name": "Trp53_ENSMUST00000108658",
+    "cds_seq_regions": [
+      {
+        "end": 69477799,
+        "frame": 0,
+        "start": 69477717
+      },
+      {
+        "end": 69478104,
+        "frame": 1,
+        "start": 69478083
+      },
+      {
+        "end": 69478458,
+        "frame": 0,
+        "start": 69478198
+      },
+      {
+        "end": 69479373,
+        "frame": 0,
+        "start": 69479190
+      },
+      {
+        "end": 69479564,
+        "frame": 2,
+        "start": 69479452
+      },
+      {
+        "end": 69480076,
+        "frame": 0,
+        "start": 69479967
+      },
+      {
+        "end": 69480535,
+        "frame": 1,
+        "start": 69480399
+      },
+      {
+        "end": 69480688,
+        "frame": 2,
+        "start": 69480615
+      },
+      {
+        "end": 69481588,
+        "frame": 0,
+        "start": 69481482
+      },
+      {
+        "end": 69482257,
+        "frame": 1,
+        "start": 69482176
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 69471341,
+        "start": 69471185
+      },
+      {
+        "end": 69477799,
+        "start": 69477717
+      },
+      {
+        "end": 69478104,
+        "start": 69478083
+      },
+      {
+        "end": 69478458,
+        "start": 69478198
+      },
+      {
+        "end": 69479373,
+        "start": 69479190
+      },
+      {
+        "end": 69479564,
+        "start": 69479452
+      },
+      {
+        "end": 69480076,
+        "start": 69479967
+      },
+      {
+        "end": 69480535,
+        "start": 69480399
+      },
+      {
+        "end": 69480688,
+        "start": 69480615
+      },
+      {
+        "end": 69481588,
+        "start": 69481482
+      },
+      {
+        "end": 69482698,
+        "start": 69482176
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001635.27_GRCm39_genomic.fna.gz",
+    "seq_id": "11",
+    "seq_strand": "+",
+    "species": "Mus musculus",
+    "unique_entry_id": "000_Trp53_ENSMUST00000108658_alt1",
+    "variant_ids": [
+      "NC_000077.7:g.69482682A>C",
+      "NC_000077.7:g.69480434G>A",
+      "NC_000077.7:g.69480448C>T",
+      "NC_000077.7:g.69480010A>G",
+      "NC_000077.7:g.69481498G>C"
+    ]
+  },
+  {
+    "alt_seq_name_suffix": "_alt2",
+    "base_seq_name": "TP53_ENST00000269305.9",
+    "cds_seq_regions": [
+      {
+        "end": 7669690,
+        "frame": 1,
+        "start": 7669609
+      },
+      {
+        "end": 7670715,
+        "frame": 0,
+        "start": 7670609
+      },
+      {
+        "end": 7673608,
+        "frame": 2,
+        "start": 7673535
+      },
+      {
+        "end": 7673837,
+        "frame": 1,
+        "start": 7673701
+      },
+      {
+        "end": 7674290,
+        "frame": 0,
+        "start": 7674181
+      },
+      {
+        "end": 7674971,
+        "frame": 2,
+        "start": 7674859
+      },
+      {
+        "end": 7675236,
+        "frame": 0,
+        "start": 7675053
+      },
+      {
+        "end": 7676272,
+        "frame": 0,
+        "start": 7675994
+      },
+      {
+        "end": 7676403,
+        "frame": 1,
+        "start": 7676382
+      },
+      {
+        "end": 7676594,
+        "frame": 0,
+        "start": 7676521
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 7669690,
+        "start": 7668421
+      },
+      {
+        "end": 7670715,
+        "start": 7670609
+      },
+      {
+        "end": 7673608,
+        "start": 7673535
+      },
+      {
+        "end": 7673837,
+        "start": 7673701
+      },
+      {
+        "end": 7674290,
+        "start": 7674181
+      },
+      {
+        "end": 7674971,
+        "start": 7674859
+      },
+      {
+        "end": 7675236,
+        "start": 7675053
+      },
+      {
+        "end": 7676272,
+        "start": 7675994
+      },
+      {
+        "end": 7676403,
+        "start": 7676382
+      },
+      {
+        "end": 7676622,
+        "start": 7676521
+      },
+      {
+        "end": 7687490,
+        "start": 7687377
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000001405.40_GRCh38.p14_genomic.fna.gz",
+    "seq_id": "17",
+    "seq_strand": "-",
+    "species": "Homo sapiens",
+    "unique_entry_id": "001_TP53_ENST00000269305.9",
+    "variant_ids": []
+  },
+  {
+    "alt_seq_name_suffix": "_alt3",
+    "base_seq_name": "tp53_NM_001271820.1",
+    "cds_seq_regions": [
+      {
+        "end": 24743607,
+        "frame": 0,
+        "start": 24743555
+      },
+      {
+        "end": 24743896,
+        "frame": 1,
+        "start": 24743845
+      },
+      {
+        "end": 24744165,
+        "frame": 0,
+        "start": 24743989
+      },
+      {
+        "end": 24747041,
+        "frame": 0,
+        "start": 24746858
+      },
+      {
+        "end": 24747867,
+        "frame": 2,
+        "start": 24747755
+      },
+      {
+        "end": 24748977,
+        "frame": 0,
+        "start": 24748868
+      },
+      {
+        "end": 24750219,
+        "frame": 1,
+        "start": 24750080
+      },
+      {
+        "end": 24750387,
+        "frame": 2,
+        "start": 24750293
+      },
+      {
+        "end": 24753169,
+        "frame": 0,
+        "start": 24753066
+      },
+      {
+        "end": 24753402,
+        "frame": 1,
+        "start": 24753306
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 24742915,
+        "start": 24742747
+      },
+      {
+        "end": 24743607,
+        "start": 24743553
+      },
+      {
+        "end": 24743896,
+        "start": 24743845
+      },
+      {
+        "end": 24744165,
+        "start": 24743989
+      },
+      {
+        "end": 24747041,
+        "start": 24746858
+      },
+      {
+        "end": 24747867,
+        "start": 24747755
+      },
+      {
+        "end": 24748977,
+        "start": 24748868
+      },
+      {
+        "end": 24750219,
+        "start": 24750080
+      },
+      {
+        "end": 24750387,
+        "start": 24750293
+      },
+      {
+        "end": 24753169,
+        "start": 24753066
+      },
+      {
+        "end": 24754325,
+        "start": 24753306
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_049306965.1_GRCz12tu_genomic.fna.gz",
+    "seq_id": "5",
+    "seq_strand": "+",
+    "species": "Danio rerio",
+    "unique_entry_id": "002_tp53_NM_001271820.1",
+    "variant_ids": []
+  }
+]
