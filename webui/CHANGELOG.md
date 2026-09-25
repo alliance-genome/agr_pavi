@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.8.0...webui-v0.8.1) (2026-09-25)
+
+
+### Bug Fixes
+
+* **webui:** show why a job's results are unavailable ([#1016](https://github.com/alliance-genome/agr_pavi/issues/1016)) ([d38fa53](https://github.com/alliance-genome/agr_pavi/commit/d38fa53c6928af2b3e1b5910469cdee751a243de)), closes [#1006](https://github.com/alliance-genome/agr_pavi/issues/1006)
+
 ## [0.8.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.7.0...webui-v0.8.0) (2026-09-23)
 
 
