@@ -1,5 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, FastAPI, HTTPException, Query
-from fastapi.responses import Response, StreamingResponse
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from io import StringIO, BytesIO
 import os
 from os import getenv
@@ -247,8 +248,21 @@ def run_pipeline_local(
             logger.error(f"Failed to update job status after error: {update_err}")
 
 
-app = FastAPI()
+app = FastAPI(docs_url=None)
 router = APIRouter(prefix="/api")
+
+
+@app.get("/docs", include_in_schema=False)
+def swagger_ui() -> HTMLResponse:
+    """Swagger UI that loads the spec by a relative URL.
+
+    The docs are reached at /docs (direct), /api/docs (proxied) and
+    /pavi/api/docs (under the webui's base path). "../openapi.json" resolves
+    to the spec next to each of them, where the default "/openapi.json" only
+    works at the host root.
+    """
+    return get_swagger_ui_html(openapi_url="../openapi.json", title=f"{app.title} - Swagger UI")
+
 
 # Legacy in-memory job storage (used when USE_STEP_FUNCTIONS=false)
 jobs: dict[UUID, Pipeline_job] = {}
