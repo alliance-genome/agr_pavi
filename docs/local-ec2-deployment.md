@@ -657,6 +657,14 @@ dev-pavi.alliancegenome.org {
 
     # Or for public access, remove "tls internal" to use Let's Encrypt
 
+    # The API serves its docs at /docs; /openapi.json is the spec they load
+    handle /api/docs {
+        rewrite * /docs
+        reverse_proxy localhost:8000
+    }
+    handle /openapi.json {
+        reverse_proxy localhost:8000
+    }
     handle /api/* {
         reverse_proxy localhost:8000
     }

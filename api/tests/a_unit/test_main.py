@@ -32,6 +32,16 @@ def test_api_root_accessible() -> None:
     assert response.status_code == 200
 
 
+def test_docs_load_spec_by_relative_url() -> None:
+    # The docs are served at /docs, /api/docs and /pavi/api/docs, so the
+    # spec URL must resolve next to each of them, not at the host root.
+    response = client.get("/docs")
+
+    assert response.status_code == 200
+    assert "url: '../openapi.json'" in response.text
+    assert client.get("/openapi.json").status_code == 200
+
+
 def test_job_not_found() -> None:
     response = client.get(f"/api/pipeline-job/{NOT_FOUND_UUID}")
 
