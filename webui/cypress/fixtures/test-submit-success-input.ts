@@ -17,7 +17,7 @@ const formInputData: testInputType[] = [
         },
         "transcripts": [
             "ENST00000346798.8",
-            "ENST00000357903.7"
+            "NM_000484.4"
         ],
         "delete": true
     },
@@ -41,7 +41,7 @@ const formInputData: testInputType[] = [
             "C42D8.8a.1"
         ],
         "alleles": [
-            "NC_003284.9:g.5113285_5115215del"
+            "yn10"
         ]
     },
     {
@@ -82,8 +82,8 @@ const formInputData: testInputType[] = [
             "type": "FB:FBgn0000108"
         },
         "transcripts": [
-            "Appl-RA",
-            "Appl-RB"
+            "FBtr0070109",
+            "FBtr0307291"
         ]
     },
     {
