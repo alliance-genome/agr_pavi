@@ -141,6 +141,14 @@ Internet → Caddy (HTTPS/Let's Encrypt) → localhost:3000 (WebUI)
 **Caddyfile** (`/etc/caddy/Caddyfile`):
 ```
 dev-pavi.alliancegenome.org {
+    # The API serves its docs at /docs; /openapi.json is the spec they load
+    handle /api/docs {
+        rewrite * /docs
+        reverse_proxy localhost:8000
+    }
+    handle /openapi.json {
+        reverse_proxy localhost:8000
+    }
     handle /api/* {
         reverse_proxy localhost:8000
     }
