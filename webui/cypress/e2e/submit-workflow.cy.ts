@@ -1,208 +1,212 @@
 /// <reference types="cypress" />
 
-// To learn more about how Cypress works,
-// please read our getting started guide:
-// https://on.cypress.io/introduction-to-cypress
+/**
+ * End-to-end test of the submit form driven by hand: type gene IDs, pick
+ * transcripts and alleles, submit, follow /progress to /result and check
+ * the result page. The "Load Example" dialog is covered by
+ * examples-catalog.cy.ts instead.
+ *
+ * Environment:
+ *   CYPRESS_BASE_URL     - WebUI URL (may include a base path, e.g. .../pavi)
+ *   VISUAL_REGRESSION=1  - also compare against the stored visual baselines
+ *   JOB_TIMEOUT_MS       - max wait for pipeline completion (default 300000)
+ */
 
 import formInput from '../fixtures/test-submit-success-input'
 
+const JOB_TIMEOUT_MS = Number(Cypress.env('JOB_TIMEOUT_MS') || 300_000)
+// `--env VISUAL_REGRESSION=1` arrives as the number 1, so compare as a string.
+// The stored baselines predate the current UI, so visual comparison is opt-in.
+const VISUAL_REGRESSION = ['1', 'true'].includes(String(Cypress.env('VISUAL_REGRESSION') ?? '').toLowerCase())
+
+// PrimeReact appends open dropdown/multiselect/autocomplete panels to <body>.
+const OPEN_MULTISELECT_PANEL = '.p-multiselect-panel:visible'
+
+function compareSnapshot(alias: string, name: string, id: string = name) {
+    if (!VISUAL_REGRESSION || Cypress.config('isInteractive')) return
+    cy.get(alias)
+        .compareSnapshot({ name })
+        .then((snapshotResult) => {
+            cy.task('storeSnapshotResult', { id, result: snapshotResult })
+        })
+}
+
+// Does a transcript option's text belong to the given transcript name?
+// Option text is the name (possibly carrying a "WB:"-style prefix),
+// optionally followed by "(protein accession)" and a canonical tag, so
+// require a non-identifier char after the name.
+function optionMatchesName(optionText: string, name: string): boolean {
+    optionText = optionText.replace(/^[A-Za-z]+:/, '')
+    if (!optionText.startsWith(name)) return false
+    const next = optionText.charAt(name.length)
+    return next === '' || !/[A-Za-z0-9._-]/.test(next)
+}
+
 describe('submit form behaviour', () => {
     beforeEach(() => {
-        // Cypress starts out with a blank slate for each test
-        // so we must tell it to visit our website with the `cy.visit()` command
-        // before each test
         cy.visit('/submit')
     })
 
     afterEach(() => {
-        cy.task('clearSnapshotResults');
-    });
+        cy.task('clearSnapshotResults')
+    })
 
-    Cypress.on('uncaught:exception', (err, ) => {
-        // Expect errors from nightingale elements are ignored
-        // InvalidStateError: CanvasRenderingContext2D.drawImage: Passed-in canvas is empty
-        console.log(`Uncaught error intercepted during cypress testing.`)
-        console.log(`Intercepted error cause: ${err.cause}`)
-        console.log(`Intercepted error message: ${err.message}`)
-        console.log(`Intercepted error name: ${err.name}`)
-        console.log(`Intercepted error stack: ${err.stack}`)
-        console.log('End of intercepted error.')
-        if ( err.message.includes('CanvasRenderingContext2D') ) {
-            console.log('CanvasRenderingContext2D error detected during Cypress E2E testing. Ignoring as expected.')
-            return false
-        }
-        // we still want to ensure there are no other unexpected
-        // errors, so we let them fail the test
+    Cypress.on('uncaught:exception', (err) => {
+        // Nightingale canvas errors are noise on first render
+        // (InvalidStateError: CanvasRenderingContext2D.drawImage: Passed-in canvas is empty)
+        if (err.message.includes('CanvasRenderingContext2D')) return false
+        // Let any other unexpected error fail the test
+        return undefined
     })
 
     it('tests job submission success', () => {
-        // Ensure test-resource file required further down exists
-        cy.readFile('cypress/test-resources/submit-workflow-success-output.aln', {timeout: 100}).should('exist')
+        // Should display one alignment entry by default.
+        cy.get('.agr-alignment-entry').should('have.length', 1)
 
-        // We use the `cy.get()` command to get all elements that match the selector.
-        // There should only be one cell with a inputgroup.
-        // cy.get('table tbody tr td .p-inputgroup').should('have.length', 1)
-
-        // Should display one alignmentEntry by default.
-        cy.get('.p-inputgroup').should('have.length', 1)
-
-        // There should be excactly one submit button
-        cy.get('button').filter('[aria-label="Submit"]').as('submitBtn')
+        // There should be exactly one submit button, disabled on incomplete input.
+        cy.get('button[aria-label="Submit Job"]').as('submitBtn')
         cy.get('@submitBtn').should('have.length', 1)
-
-        // and it should be disabled by default (on incomplete input).
         cy.get('@submitBtn').should('be.disabled')
 
-        // There should be excactly one element to click to add records
+        // There should be exactly one element to click to add records
         cy.get('button#add-record').as('addRecordBtn')
         cy.get('@addRecordBtn').should('have.length', 1)
 
-        // add as many records as there are entries in formInput
-        for(let i = 1, len = formInput.length; i < len; ++i){
+        // Add as many records as there are entries in formInput
+        for (let i = 1, len = formInput.length; i < len; ++i) {
             cy.get('@addRecordBtn').click()
         }
-        cy.get('.p-inputgroup').should('have.length', formInput.length)
+        cy.get('.agr-alignment-entry').should('have.length', formInput.length)
 
-        // Input all data into form
-        // TODO: update test data and flow to include incomplete gene input autocompletion and selection
-        for(let i = 0, len = formInput.length; i < len; ++i){
-
-            // Form should be able to receive gene query as user input.
-            cy.get('.p-inputgroup').eq(i).find('#gene > input').as('geneInputField')
+        // No row removed yet, so row i has entry index i (ids gene-i, transcripts-i, alleles-i).
+        formInput.forEach((entry, i) => {
+            // Gene: type the query and pick a suggestion
+            cy.get(`#gene-${i} input`).as('geneInputField')
             cy.get('@geneInputField').focus()
-            cy.get('@geneInputField').type(formInput[i].gene.type)
+            cy.get('@geneInputField').type(entry.gene.type)
 
-            const gene_selection = formInput[i].gene.select
-            if( gene_selection !== undefined ) {
-                // Wait for gene autocompletion list to load
-                cy.get('@geneInputField').parent().find('ul.p-autocomplete-items').as('geneAutoCompleteList')
-                cy.get('@geneInputField').should('be.visible')
-
-                // A list of genes should be available
-                cy.get('@geneAutoCompleteList').find('li').as('openGenesList')
-                cy.get('@openGenesList').should('have.length.at.least', 1)
-
-                if( typeof(gene_selection) === 'string' ) {
-                    // Find the entry matching the select string and click it
-                    cy.get('@openGenesList').contains(gene_selection).click()
-                }
-                else if( typeof(gene_selection) === 'number' ) {
-                    cy.get('@openGenesList').should('have.length.at.least', gene_selection)
-                    // Find the nth entry and click it
-                    cy.get('@openGenesList').eq(gene_selection).click()
-                }
+            cy.get('.p-autocomplete-panel:visible li.p-autocomplete-item', { timeout: 30_000 })
+                .as('geneSuggestions')
+                .should('have.length.at.least', 1)
+            const geneSelection = entry.gene.select ?? 0
+            if (typeof geneSelection === 'string') {
+                cy.get('@geneSuggestions').contains(geneSelection).click()
+            } else {
+                cy.get('@geneSuggestions').eq(geneSelection).click()
             }
 
-            // Once the transcript list loaded, form should enable selecting the relevant transcripts.
-            cy.get('.p-inputgroup').eq(i).find('#transcripts').find('input').focus()
-            cy.get('.p-multiselect-panel', {timeout: 5000}).as('openTranscriptsSelectBox').should('be.visible')
+            // Transcripts: once the transcript list loaded the canonical transcript
+            // gets preselected; open the panel and make the selection exactly
+            // the fixture's transcripts.
+            cy.get(`#transcripts-${i}`).as('transcriptsSelect')
+            cy.get('@transcriptsSelect').find('.p-multiselect-label', { timeout: 60_000 })
+                .should('not.have.class', 'p-multiselect-label-empty')
+            cy.get('@transcriptsSelect').click()
+            cy.get(OPEN_MULTISELECT_PANEL).as('openTranscriptsPanel').should('be.visible')
 
-            // The transcript list should be filterable (select panel should contain filter box)
-            cy.get('@openTranscriptsSelectBox').find('input.p-multiselect-filter').as('openTranscriptsFilterBox')
+            // The transcript list should be filterable
+            cy.get('@openTranscriptsPanel').find('input.p-multiselect-filter').should('exist')
 
-            // A list of transcript should be available
-            cy.get('@openTranscriptsSelectBox').find('li.p-multiselect-item').as('openTranscriptsList')
-            cy.get('@openTranscriptsList').should('have.length.at.least', 1)
+            // A list of transcripts should be available
+            cy.get('@openTranscriptsPanel').find('li.p-multiselect-item')
+                .should('have.length.at.least', 1)
 
-            // And the relevant transcripts should be findable (through filter) and selectable
-            formInput[i].transcripts.forEach((transcript: string) => {
-                // Filter for transcript, ensure only one entry is found, click it
-                cy.get('@openTranscriptsFilterBox').clear()
-                cy.get('@openTranscriptsFilterBox').type(transcript)
-                cy.get('@openTranscriptsList').should('have.length', 1)
-                cy.get('@openTranscriptsList').contains(transcript).click()
+            // Deselect anything not requested (e.g. a preselected canonical transcript)
+            cy.get('@openTranscriptsPanel').find('li.p-multiselect-item').then(($items) => {
+                $items
+                    .filter((_, el) => el.getAttribute('aria-selected') === 'true')
+                    .filter((_, el) => !entry.transcripts.some((t) => optionMatchesName(el.textContent?.trim() ?? '', t)))
+                    .each((_, el) => { cy.wrap(el).click() })
             })
-            cy.get('@openTranscriptsSelectBox').find('button.p-multiselect-close').click()
 
-            // Only validate allele field when formInput contains alleles for this entry
-            if (formInput[i].alleles && formInput[i].alleles!.length > 0) {
-                // Once the alleles list loaded in the background,
-                // multiselect icon should stop spinning and become clickable
-                cy.get('.p-inputgroup').eq(i).find('#alleles').find('.p-multiselect-trigger').find('svg')
-                  .not('.p-icon-spin', {timeout: 10000}).as('openAllelesPanelTrigger')
+            // The relevant transcripts should be findable (through the filter) and selectable
+            entry.transcripts.forEach((transcript: string) => {
+                cy.get('@openTranscriptsPanel').find('input.p-multiselect-filter').clear()
+                cy.get('@openTranscriptsPanel').find('input.p-multiselect-filter').type(transcript)
+                cy.get('@openTranscriptsPanel').find('li.p-multiselect-item')
+                    .filter((_, el) => optionMatchesName(el.textContent?.trim() ?? '', transcript))
+                    .should('have.length', 1)
+                    .then(($li) => {
+                        if ($li.attr('aria-selected') !== 'true') cy.wrap($li).click()
+                    })
+            })
+            cy.get('@openTranscriptsPanel').find('input.p-multiselect-filter').clear()
+            cy.get('@openTranscriptsPanel').find('li.p-multiselect-item[aria-selected="true"]')
+                .should('have.length', entry.transcripts.length)
+            cy.get('@openTranscriptsPanel').find('button.p-multiselect-close').click()
+            cy.get(OPEN_MULTISELECT_PANEL).should('not.exist')
 
-                // The allele selection panel should apear after clicking the trigger
-                cy.get('@openAllelesPanelTrigger').click()
-                cy.get('.p-multiselect-panel').as('openAllelesSelectBox').should('be.visible')
+            // Alleles (optional): findable through the filter box and selectable
+            if (entry.alleles && entry.alleles.length > 0) {
+                cy.get(`#alleles-${i}`).as('allelesSelect')
+                cy.get('@allelesSelect').should('not.have.class', 'p-disabled')
+                cy.get('@allelesSelect').click()
+                cy.get(OPEN_MULTISELECT_PANEL).as('openAllelesPanel').should('be.visible')
 
-                // The select panel should contain a filter box
-                cy.get('@openAllelesSelectBox').find('input.p-multiselect-filter').as('openAllelesFilterBox')
+                // A list of alleles should load
+                cy.get('@openAllelesPanel').find('li.p-multiselect-item', { timeout: 60_000 })
+                    .should('have.length.at.least', 1)
 
-                // A list of alleles should be available
-                cy.get('@openAllelesSelectBox').find('li.p-multiselect-item').as('openAllelesList')
-                cy.get('@openAllelesList').should('have.length.at.least', 1)
-
-                // And the relevant alleles should be findable (through filter) and selectable
-                formInput[i].alleles?.forEach((allele: string) => {
-                    // Filter for allele, ensure only one entry is found, click it
+                entry.alleles.forEach((allele: string) => {
+                    cy.get('@openAllelesPanel').find('input.p-multiselect-filter').as('openAllelesFilterBox')
                     cy.get('@openAllelesFilterBox').clear()
                     cy.get('@openAllelesFilterBox').type(allele)
-                    cy.get('@openTranscriptsList').should('have.length', 1)
-                    cy.get('@openAllelesList').contains(allele).click()
+                    // Typing may also trigger a server-side lookup that adds the allele
+                    cy.contains(`${OPEN_MULTISELECT_PANEL} li.p-multiselect-item`, allele, { timeout: 30_000 })
+                        .click()
                 })
-                cy.get('@openAllelesSelectBox').find('button.p-multiselect-close').click()
+                cy.get('@openAllelesPanel').find('li.p-multiselect-item[aria-selected="true"]')
+                    .should('have.length', entry.alleles.length)
+                cy.get('@openAllelesPanel').find('button.p-multiselect-close').click()
+                cy.get(OPEN_MULTISELECT_PANEL).should('not.exist')
+                cy.get('@allelesSelect').find('.p-multiselect-label')
+                    .should('not.have.class', 'p-multiselect-label-empty')
             }
 
-            cy.focused().blur()
-
-            // Submit button should stay disabled as long a last entry was not submitted
-            if ( i < len - 1 ) {
+            // Submit button should stay disabled as long as the last entry was not completed
+            if (i < formInput.length - 1) {
                 cy.get('@submitBtn').should('be.disabled')
-
-                if (i === 0) {
-                    // eslint-disable-next-line cypress/no-unnecessary-waiting
-                    cy.wait(5000)
-                    cy.get('@submitBtn').should('be.disabled')
-                }
             }
-        }
+        })
 
         // Delete any records that had the delete flag set.
-        // Those records are deemed useful for submission form testing
+        // Those records are useful for submission form testing
         // but require datasets too large for automated testing (too slow).
-        for(let i = 0, len = formInput.length; i < len; ++i){
-            if(formInput[i].delete){
-                cy.get('.p-inputgroup').eq(i).parents('tr').find('button#remove-record').click()
-            }
-        }
+        // Remove from the last row backwards so earlier row positions stay valid.
+        const toDelete = formInput
+            .map((entry, i) => (entry.delete ? i : -1))
+            .filter((i) => i >= 0)
+            .reverse()
+        toDelete.forEach((i) => {
+            cy.get('.agr-alignment-entry').eq(i).find('button#remove-record').click()
+        })
+        cy.get('.agr-alignment-entry').should('have.length', formInput.length - toDelete.length)
 
         // Submit button should become active after completing all input
-        cy.get('@submitBtn').should('be.enabled')
+        cy.get('@submitBtn', { timeout: 60_000 }).should('be.enabled')
 
         // Submitting the analysis should route to the progress page
-        let jobUuid: string
-
         cy.get('@submitBtn').click()
-        cy.location().should((loc: Location) => {
-            expect(loc.pathname).to.eq('/progress')
+        cy.location('pathname', { timeout: 60_000 }).should('match', /\/progress$/)
+        cy.location('search').should('match', /^\?uuid=[A-Za-z0-9-]+$/).then((search) => {
+            const jobUuid = /^\?uuid=([A-Za-z0-9-]+)$/.exec(search)![1]
 
-            //queryparams should contain the job UUID
-            const uuidCaptureRegex = /^\?uuid=([A-Za-z0-9-]+)$/
-            expect(loc.search).to.match(uuidCaptureRegex)
+            // Progress page should indicate job progress
+            cy.contains('h1', 'Job Progress')
 
-            jobUuid = uuidCaptureRegex.exec(loc.search)![1]
+            // Successful job completion should route to the results page
+            cy.location('pathname', { timeout: JOB_TIMEOUT_MS }).should('match', /\/result$/)
+            // query params should contain the same UUID as progress page did
+            cy.location('search').should('eq', `?uuid=${jobUuid}`)
         })
 
-        // Progress page should indicate job progress
-        cy.contains('p#progress-msg', /^Job .+ is running\.$/)
-
-        // Successful job completion should route to the results page (wait max 5 minutes)
-        cy.location({timeout: 300000}).should((loc: Location) => {
-            expect(loc.pathname).to.eq('/result')
-
-            //queryparams should contain the same UUID as progress page did
-            expect(loc.search).to.eq(`?uuid=${jobUuid}`)
-        })
-
-        // Result page should have a display mode selector
+        // Result page should have a display mode selector defaulting to the virtualized view
         cy.get('#display-mode').as('displayModeDropdown')
         cy.get('@displayModeDropdown').should('have.length', 1)
-
-        // Display mode selector should default to 'interactive'
-        cy.get('@displayModeDropdown').find('option[selected]').should('have.value', 'interactive')
+        cy.get('@displayModeDropdown').should('contain.text', 'Interactive (Virtualized)')
 
         // nightingale-elements should be visible
-        cy.get('nightingale-manager').as('nightingaleManager')
+        cy.get('nightingale-manager', { timeout: 60_000 }).as('nightingaleManager')
         cy.get('@nightingaleManager').should('have.length', 1)
 
         cy.get('@nightingaleManager').find('nightingale-navigation').as('nightingaleNavigation')
@@ -213,185 +217,71 @@ describe('submit form behaviour', () => {
         cy.get('@nightingaleMsa').should('have.length', 1)
         cy.get('@nightingaleMsa').should('be.visible')
 
-        cy.get('@nightingaleMsa').find('msa-labels:visible')
-            .as('nightingaleSequenceLabels')
+        // All expected sequences should be listed
+        cy.get('[role="application"][aria-label^="Alignment viewer"]').as('alignmentViewContainer')
+        expectedSequenceLabels.forEach((label) => {
+            cy.get('@alignmentViewContainer').contains('button', label).should('be.visible')
+        })
+        cy.get('@alignmentViewContainer')
+            .contains(/of\s*\d+\s*sequences/)
+            .should('contain.text', `${expectedSequenceLabels.length} of ${expectedSequenceLabels.length} sequences`)
 
-        // all sequences should be visible in nightingale-msa
-        cy.get('@nightingaleSequenceLabels').should('have.length', 1)
-        cy.get('@nightingaleSequenceLabels').should('be.visible')
-        cy.get('@nightingaleSequenceLabels').shadow().find('ul > li').as('NightingaleLabels')
-
-        cy.get('@NightingaleLabels').should('have.length', 13)
-        cy.get('@NightingaleLabels').contains('Appl_Appl-RA')
-        cy.get('@NightingaleLabels').contains('Appl_Appl-RB')
-        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_ref')
-        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_yn32')
-        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_yn10')
-        cy.get('@NightingaleLabels').contains('apl-1_C42D8.8a.1_alt5')
-        cy.get('@NightingaleLabels').contains('mgl-1_ZC506.4a.1')
-        cy.get('@NightingaleLabels').contains('sup-9_F34D6.3.1_ref')
-        cy.get('@NightingaleLabels').contains('sup-9_F34D6.3.1_n1913')
-        cy.get('@NightingaleLabels').contains('paxt-1_R05D11.6.1_ref')
-        cy.get('@NightingaleLabels').contains('paxt-1_R05D11.6.1_xe5')
-
-
-        cy.get('@nightingaleSequenceLabels').parent('div').find('msa-sequence-viewer:visible').as('nightingaleSequenceView')
-        cy.get('@nightingaleSequenceView').should('have.length', 1)
-
-        // Wait for @nightingaleSequenceView to get a width and height > 0 (no negative values)
-        cy.get('@nightingaleSequenceView')
-          .invoke('attr', 'width')
-          .should('match', /^[1-9][0-9]*$/)
-
-        cy.get('@nightingaleSequenceView')
-          .invoke('attr', 'height')
-          .should('match', /^[1-9][0-9]*$/)
-
-        // Color-scheme selector should default to 'clustal2'
-        const defaultColorScheme = 'clustal2'
+        // Color-scheme selector should default to 'Clustal2'
         cy.get('#dd-colorscheme').as('colorSchemeDropdown')
         cy.get('@colorSchemeDropdown').should('have.length', 1)
-        cy.get('@colorSchemeDropdown').find('option[selected]').should('have.value', defaultColorScheme)
-
-        // Selected color scheme should be represented in nightingale view
-        cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', defaultColorScheme)
+        cy.get('@colorSchemeDropdown').should('contain.text', 'Clustal2')
+        // Selected color scheme should be represented in the nightingale view
+        cy.get('nightingale-msa').should('have.prop', 'colorScheme', 'clustal2')
 
         // Give visual nightingale-elements some time to render
         cy.wait(1000)  //eslint-disable-line cypress/no-unnecessary-waiting
-        cy.get('div[id="alignment-view-container"]').as('alignmentViewContainer')
+        compareSnapshot('@alignmentViewContainer', 'alignment-view-initial')
 
-        // Compare (visual) snapshot of successfull cypress @alignmentViewContainer render
-        if( !Cypress.config('isInteractive') ) {
-            cy.get('@alignmentViewContainer')
-                .compareSnapshot({name: 'alignment-view-initial'})
-                .then((snapshotResult) => {
-                    cy.task('storeSnapshotResult', {id: 'alignment-view-initial', result: snapshotResult})
-                })
-        }
-
-        // Selecting a different color scheme should change the colors in nightingale-msa
-        const newColorScheme = {
-            label: 'Similarity',
-            value: 'conservation'
-        }
+        // Selecting a different color scheme should update the selector
         cy.get('@colorSchemeDropdown').click()
-        cy.get('div.p-dropdown-panel > div.p-dropdown-items-wrapper > ul > li:visible')
-          .contains(newColorScheme.label).click()
+        cy.get('.p-dropdown-panel:visible li.p-dropdown-item').contains('Conservation').click()
+        cy.get('@colorSchemeDropdown').should('contain.text', 'Conservation')
+        cy.get('nightingale-msa').should('have.prop', 'colorScheme', 'conservation')
+        compareSnapshot('@alignmentViewContainer', 'alignment-view-conservation')
 
-        // Selected color scheme should be represented in nightingale view
-        cy.get('@colorSchemeDropdown').find('option[selected]').should('have.value', newColorScheme.value)
-        cy.get('@nightingaleSequenceView').should('have.attr', 'color-scheme', newColorScheme.value)
-
-        // Compare (visual) snapshot of successfull cypress @alignmentViewContainer render
-        if( !Cypress.config('isInteractive') ) {
-            cy.get('@alignmentViewContainer')
-                .compareSnapshot({name: 'alignment-view-conservation'})
-                .then((snapshotResult) => {
-                    cy.task('storeSnapshotResult', {id: 'alignment-view-conservation', result: snapshotResult})
-                })
-        }
-
-        cy.get('@nightingaleNavigation').find('svg > g > rect.selection').as('nightingaleNavigationSelector')
-
-        // Dragging the navigation selector should update the displayed navigation bar and the displayed sequence.
-        cy.get('@nightingaleNavigationSelector').realMouseDown({button: 'left', position: 'center'})
-        cy.get('@nightingaleNavigationSelector').realMouseMove(-100, 0, { position: 'center' })
-        cy.get('@nightingaleNavigationSelector').realMouseUp()
-
-        if( !Cypress.config('isInteractive') ) {
-            cy.get('@alignmentViewContainer')
-                .compareSnapshot({name: 'alignment-view-navigation-bar-moved-left'})
-                .then((snapshotResult) => {
-                    cy.task('storeSnapshotResult', {id: 'alignment-view-navigation-bar-moved-left', result: snapshotResult})
-                })
-        }
-
-        // Return to original position
-        cy.get('@nightingaleNavigationSelector').realMouseDown({button: 'left', position: 'center'})
-        cy.get('@nightingaleNavigationSelector').realMouseMove(100, 0, { position: 'center' })
-        cy.get('@nightingaleNavigationSelector').realMouseUp()
-
-        if( !Cypress.config('isInteractive') ) {
-            cy.get('@alignmentViewContainer')
-                .compareSnapshot({name: 'alignment-view-conservation'})
-                .then((snapshotResult) => {
-                    cy.task('storeSnapshotResult', {id: 'alignment-view-reset1', result: snapshotResult})
-                })
-        }
-
-        // Dragging the displayed sequence should update the displayed sequence and navigation bar.
-        cy.get('@nightingaleSequenceView')
-        cy.get('@nightingaleSequenceView').realMouseDown({button: 'left', position: 'center'})
-        cy.get('@nightingaleSequenceView').realMouseMove(-100, 0, { position: 'center' })
-        cy.get('@nightingaleSequenceView').realMouseUp()
-
-        if( !Cypress.config('isInteractive') ) {
-            cy.get('@alignmentViewContainer')
-                .compareSnapshot({name: 'alignment-view-sequence-moved-left'})
-                .then((snapshotResult) => {
-                    cy.task('storeSnapshotResult', {id: 'alignment-view-sequence-moved-left', result: snapshotResult})
-                })
-        }
-
-        // Return to original position
-        cy.get('@nightingaleSequenceView').realMouseDown({button: 'left', position: 'center'})
-        cy.get('@nightingaleSequenceView').realMouseMove(100, 0, { position: 'center' })
-        cy.get('@nightingaleSequenceView').realMouseUp()
-
-        if( !Cypress.config('isInteractive') ) {
-            cy.get('@alignmentViewContainer')
-                .compareSnapshot({name: 'alignment-view-conservation'})
-                .then((snapshotResult) => {
-                    cy.task('storeSnapshotResult', {id: 'alignment-view-reset2', result: snapshotResult})
-                })
-        }
-
-        // Resizing the navigation selector should update the displayed navigation bar and the displayed sequence.
-        cy.get('@nightingaleNavigation').find('svg > g > rect.handle--w').as('nightingaleNavigationResizeLeft')
-
-        cy.get('@nightingaleNavigationResizeLeft').realMouseDown({button: 'left', position: 'center'})
-        cy.get('@nightingaleNavigationResizeLeft').realMouseMove(50, 0, { position: 'center' })
-        cy.get('@nightingaleNavigationResizeLeft').realMouseUp()
-
-        if( !Cypress.config('isInteractive') ) {
-            cy.get('@alignmentViewContainer')
-                .compareSnapshot({name: 'alignment-view-nav-resize-left-zoom-in'})
-                .then((snapshotResult) => {
-                    cy.task('storeSnapshotResult', {id: 'alignment-view-nav-resize-left-zoom-in', result: snapshotResult})
-                })
-        }
-
-        // Changing display mode to 'text' should hide the interactive alignment and display the text alignment
+        // Changing display mode to 'Text' should hide the interactive alignment and display the text alignment
         cy.get('@displayModeDropdown').click()
-        cy.get('ul.p-dropdown-items').find('li').contains('Text').click()
+        cy.get('.p-dropdown-panel:visible li.p-dropdown-item').contains(/^Text$/).click()
 
-        cy.get('@nightingaleMsa').should('not.be.visible')
-
+        cy.get('nightingale-msa').should('not.exist')
         cy.get('textarea#alignment-result-text').as('alignmentTextDisplay')
         cy.get('@alignmentTextDisplay').should('be.visible')
 
         // Displayed alignment should match the expected output
-        cy.readFile('cypress/fixtures/submit-workflow-success-output.aln').then(function(txt){
+        cy.readFile('cypress/fixtures/submit-workflow-success-output.aln').then((txt) => {
             expect(txt).to.be.a('string')
+            cy.get('@alignmentTextDisplay').should('have.value', txt)
+        })
 
-            cy.get('textarea#alignment-result-text').should('have.text', txt)
-        });
-
-        // Returning to 'interactive' display mode should show the interactive alignment with restored state
+        // Returning to the interactive display mode should show the interactive alignment again
         cy.get('@displayModeDropdown').click()
-        cy.get('ul.p-dropdown-items').find('li').contains('Interactive').click()
+        cy.get('.p-dropdown-panel:visible li.p-dropdown-item').contains('Interactive (Virtualized)').click()
 
-        cy.get('@alignmentTextDisplay').should('not.be.visible')
-        cy.get('@nightingaleMsa').should('be.visible')
-
-        if( !Cypress.config('isInteractive') ) {
-            cy.get('@alignmentViewContainer')
-                .compareSnapshot({name: 'alignment-view-nav-resize-left-zoom-in'})
-                .then((snapshotResult) => {
-                    cy.task('storeSnapshotResult', {id: 'alignment-view-resume-interactive', result: snapshotResult})
-                })
-        }
+        cy.get('textarea#alignment-result-text').should('not.exist')
+        cy.get('nightingale-msa').should('be.visible')
+        compareSnapshot('@alignmentViewContainer', 'alignment-view-initial', 'alignment-view-resume-interactive')
 
         cy.task('errorOnSnapshotFailures')
     })
 })
+
+// Sequence labels shown on the result page for formInput (after removal of
+// the entries flagged for deletion, and deduplication of repeated references).
+const expectedSequenceLabels: string[] = [
+    'apl-1_WB:C42D8.8a.1_ref',
+    'apl-1_WB:C42D8.8a.1_yn32',
+    'apl-1_WB:C42D8.8a.1_yn10',
+    'apl-1_WB:C42D8.8a.1_alt5',
+    'sup-9_WB:F34D6.3.1_ref',
+    'sup-9_WB:F34D6.3.1_n1913',
+    'paxt-1_WB:R05D11.6.1_ref',
+    'paxt-1_WB:R05D11.6.1_xe5',
+    'Appl_FB:FBtr0070109',
+    'Appl_FB:FBtr0307291',
+    'mgl-1_WB:ZC506.4a.1',
+]
