@@ -9,6 +9,8 @@ import { Button } from 'primereact/button';
 import { Menu } from 'primereact/menu';
 
 import { fetchAlignmentResults, fetchAlignmentSeqInfo } from './serverActions';
+import { fetchJobStatusFull } from '@/app/progress/components/JobProgressTracker/serverActions';
+import { describeResultsUnavailable, ResultsUnavailable } from '../../utils/resultsUnavailable';
 import { displayModeType } from './types';
 import { TextAlignment } from '../TextAlignment/TextAlignment';
 import { SeqInfoDict } from '../InteractiveAlignment/types';
@@ -46,7 +48,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const [alignmentSeqInfo, setAlignmentSeqInfo] = useState<SeqInfoDict>({})
     const [seqFailures, setSeqFailures] = useState<Map<string, string>>(new Map<string, string>())
     const [isLoading, setIsLoading] = useState<boolean>(true)
-    const [loadError, setLoadError] = useState<string | null>(null)
+    const [loadError, setLoadError] = useState<ResultsUnavailable | null>(null)
     const [loadedAt, setLoadedAt] = useState<Date | undefined>(undefined)
     const [figureDialogVisible, setFigureDialogVisible] = useState<boolean>(false)
 
@@ -67,7 +69,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         setDisplayMode(displayMode)
     }
 
-    const getAlignmentResult = useCallback(async () => {
+    const getAlignmentResult = useCallback(async (retried: boolean = false): Promise<void> => {
         setIsLoading(true)
         setLoadError(null)
 
@@ -90,8 +92,14 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         )
 
         if (!rawResult) {
-            console.log('Failed to retrieve alignment results.')
-            setLoadError('Failed to retrieve alignment results. The job may have failed or expired.')
+            console.log('Failed to retrieve alignment results; checking the job status for the reason.')
+            const unavailable = describeResultsUnavailable(await fetchJobStatusFull(props.uuidStr))
+            // A job that finishes between the two requests reports completed
+            // while its results were still missing: fetch them once more.
+            if (unavailable.kind === 'unknown' && !retried) {
+                return getAlignmentResult(true)
+            }
+            setLoadError(unavailable)
             setIsLoading(false)
             return
         }
@@ -207,8 +215,10 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                 <h1>Alignment Results</h1>
             </div>
 
-            {/* Results Summary Panel — collapsible with inline stats */}
-            {(() => {
+            {/* Results Summary Panel — collapsible with inline stats.
+                Hidden when results could not be loaded: its green check would
+                suggest success next to the error. */}
+            {!loadError && (() => {
                 const seqCount = alignmentSeqInfo ? Object.keys(alignmentSeqInfo).length : 0;
                 const alnLength = alignmentResult ? (alignmentResult.split('\n').find(l => l && !l.startsWith('>'))?.length || 0) : 0;
                 let variantCount = 0;
@@ -329,7 +339,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                         >
                             {isLoading && 'Loading alignment results...'}
                             {!isLoading && alignmentResult && 'Alignment results loaded successfully.'}
-                            {!isLoading && loadError && `Error: ${loadError}`}
+                            {!isLoading && loadError && `${loadError.title}: ${loadError.message}`}
                         </div>
 
                         {isLoading ? (
@@ -337,16 +347,36 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                         ) : loadError ? (
                             <div className="agr-empty-state">
                                 <i className="pi pi-exclamation-circle" style={{ fontSize: '3rem', color: 'var(--agr-error)' }} aria-hidden="true"></i>
-                                <h3>Unable to Load Results</h3>
-                                <p>{loadError}</p>
-                                <button
-                                    className="p-button p-button-outlined"
-                                    onClick={() => getAlignmentResult()}
-                                    style={{ marginTop: '1rem' }}
-                                >
-                                    <i className="pi pi-refresh" style={{ marginRight: '0.5rem' }}></i>
-                                    Try Again
-                                </button>
+                                <h3>{loadError.title}</h3>
+                                <p style={{ maxWidth: '40rem', overflowWrap: 'anywhere' }}>{loadError.message}</p>
+                                {loadError.kind === 'running' ? (
+                                    <button
+                                        className="p-button p-button-outlined"
+                                        onClick={() => router.push(`/progress?uuid=${props.uuidStr}`)}
+                                        style={{ marginTop: '1rem' }}
+                                    >
+                                        <i className="pi pi-spinner" style={{ marginRight: '0.5rem' }}></i>
+                                        View progress
+                                    </button>
+                                ) : loadError.kind === 'failed' ? (
+                                    <button
+                                        className="p-button p-button-outlined"
+                                        onClick={() => router.push('/submit')}
+                                        style={{ marginTop: '1rem' }}
+                                    >
+                                        <i className="pi pi-plus" style={{ marginRight: '0.5rem' }}></i>
+                                        Submit a new job
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="p-button p-button-outlined"
+                                        onClick={() => getAlignmentResult()}
+                                        style={{ marginTop: '1rem' }}
+                                    >
+                                        <i className="pi pi-refresh" style={{ marginRight: '0.5rem' }}></i>
+                                        Try Again
+                                    </button>
+                                )}
                             </div>
                         ) : alignmentResult ? (
                             <>

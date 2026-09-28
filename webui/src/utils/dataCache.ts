@@ -57,7 +57,7 @@ class DataCacheImpl {
 
         // Check memory cache first
         const memoryEntry = this.memoryCache.get(key) as CacheEntry<T> | undefined;
-        if (memoryEntry && !this.isExpired(memoryEntry)) {
+        if (memoryEntry && !this.isExpired(memoryEntry) && memoryEntry.data != null) {
             this.stats.hits++;
             return memoryEntry.data;
         }
@@ -65,7 +65,9 @@ class DataCacheImpl {
         // Check localStorage if persistence is enabled
         if (persist && typeof window !== 'undefined') {
             const storageEntry = this.getFromStorage<T>(key);
-            if (storageEntry && !this.isExpired(storageEntry)) {
+            // An entry without data is a failed fetch cached by an older version:
+            // treat it as a miss so it is refetched (and removed below).
+            if (storageEntry && !this.isExpired(storageEntry) && storageEntry.data != null) {
                 // Restore to memory cache
                 this.memoryCache.set(key, storageEntry as CacheEntry<unknown>);
                 this.stats.hits++;
@@ -172,9 +174,13 @@ class DataCacheImpl {
             return cached;
         }
 
-        // Fetch fresh data
+        // Fetch fresh data. An empty result (undefined/null) is how failed
+        // fetches report, so it is not cached: caching it would serve the
+        // failure back for the whole TTL, even after the data becomes available.
         const data = await fetcher();
-        this.set(key, data, options);
+        if (data != null) {
+            this.set(key, data, options);
+        }
         return data;
     }
 
