@@ -1,0 +1,79 @@
+[
+  {
+    "alt_seq_name_suffix": "_alt1",
+    "base_seq_name": "hsp-1_WB:F26D10.3.1",
+    "cds_seq_regions": [
+      {
+        "end": 17279168,
+        "frame": 0,
+        "start": 17278964
+      },
+      {
+        "end": 17280007,
+        "frame": 2,
+        "start": 17279220
+      },
+      {
+        "end": 17280882,
+        "frame": 0,
+        "start": 17280202
+      },
+      {
+        "end": 17281185,
+        "frame": 0,
+        "start": 17280937
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 17279168,
+        "start": 17278959
+      },
+      {
+        "end": 17280007,
+        "start": 17279220
+      },
+      {
+        "end": 17280882,
+        "start": 17280202
+      },
+      {
+        "end": 17281330,
+        "start": 17280937
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/GCF_000002985.6_WBcel235_genomic.fna.gz",
+    "seq_id": "IV",
+    "seq_strand": "+",
+    "species": "Caenorhabditis elegans",
+    "unique_entry_id": "000_hsp-1_WB:F26D10.3.1",
+    "variant_ids": []
+  },
+  {
+    "alt_seq_name_suffix": "_alt2",
+    "base_seq_name": "Hsc70-4_FB:FBtr0083057",
+    "cds_seq_regions": [
+      {
+        "end": 15246315,
+        "frame": 0,
+        "start": 15244360
+      }
+    ],
+    "exon_seq_regions": [
+      {
+        "end": 15242799,
+        "start": 15242687
+      },
+      {
+        "end": 15246614,
+        "start": 15244360
+      }
+    ],
+    "fasta_file_url": "https://s3.amazonaws.com/agrjbrowse/fasta/dmel-all-chromosome-r6.67.fasta.gz",
+    "seq_id": "3R",
+    "seq_strand": "+",
+    "species": "Drosophila melanogaster",
+    "unique_entry_id": "001_Hsc70-4_FB:FBtr0083057",
+    "variant_ids": []
+  }
+]
