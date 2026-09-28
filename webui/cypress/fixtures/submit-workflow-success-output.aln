@@ -1,347 +1,277 @@
 CLUSTAL O(1.2.4) multiple sequence alignment
 
+apl-1_WB:C42D8.8a.1_ref       -----------------------------------------------MTVGKLMIGLLIP
+apl-1_WB:C42D8.8a.1_yn32      -----------------------------------------------MTVGKLMIGLLIP
+apl-1_WB:C42D8.8a.1_yn10      -----------------------------------------------MTVGKLMIGLLIP
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      -----------------------------------------------MTVGKLMIGLLIP
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           ---------------------------------------MCAAL-----RRNLLLRSLWV
+Appl_FB:FBtr0307291           ---------------------------------------MCAAL-----RRNLLLRSLWV
+mgl-1_WB:ZC506.4a.1           MVPKPPSIIRHMFSVLALAIQILANVNVVAQTTEAVDLAPPPKVRQIRIPGDILIGGVFP
 
-apl-1_C42D8.8a.1_ref       -----------------------------------------------MTVGKLMIGLLIP	13
-apl-1_C42D8.8a.1_yn32      -----------------------------------------------MTVGKLMIGLLIP	13
-apl-1_C42D8.8a.1_ref       -----------------------------------------------MTVGKLMIGLLIP	13
-apl-1_C42D8.8a.1_yn10      -----------------------------------------------MTVGKLMIGLLIP	13
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       -----------------------------------------------MTVGKLMIGLLIP	13
-apl-1_C42D8.8a.1_alt5      -----------------------------------------------MTVGKLMIGLLIP	13
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	0
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	0
-Appl_Appl-RA               ---------------------------------------MCAAL-----RRNLLLRSLWV	16
-Appl_Appl-RB               ---------------------------------------MCAAL-----RRNLLLRSLWV	16
-mgl-1_ZC506.4a.1           MVPKPPSIIRHMFSVLALAIQILANVNVVAQTTEAVDLAPPPKVRQIRIPGDILIGGVFP	60
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF
+apl-1_WB:C42D8.8a.1_yn32      ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF
+apl-1_WB:C42D8.8a.1_yn10      ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           V-----LAIGTAQVQAASPRWEPQIAVLCEAGQIYQPQYLSEEGRWVTDLSKKTTGPTCL
+Appl_FB:FBtr0307291           V-----LAIGTAQVQAASPRWEPQIAVLCEAGQIYQPQYLSEEGRWVTDLSKKTTGPTCL
+mgl-1_WB:ZC506.4a.1           VHSKSLNGD-EPCGEIAETRGVHR----VEA-MLYALDQIN-------SQND---FLRGY
 
-apl-1_C42D8.8a.1_ref       ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF	66
-apl-1_C42D8.8a.1_yn32      ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF	66
-apl-1_C42D8.8a.1_ref       ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF	66
-apl-1_C42D8.8a.1_yn10      ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF	66
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF	66
-apl-1_C42D8.8a.1_alt5      ILVATVYAEGSPAGSKRHEKFIPM----VAFSCGYRNQYMTEEGSWKTDDER---YATCF	66
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	0
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	0
-Appl_Appl-RA               V-----LAIGTAQVQAASPRWEPQIAVLCEAGQIYQPQYLSEEGRWVTDLSKKTTGPTCL	71
-Appl_Appl-RB               V-----LAIGTAQVQAASPRWEPQIAVLCEAGQIYQPQYLSEEGRWVTDLSKKTTGPTCL	71
-mgl-1_ZC506.4a.1           VHSKSLNGD-EPCGEIAETRGVHR----VEA-MLYALDQIN-------SQND---FLRGY	104
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG
+apl-1_WB:C42D8.8a.1_yn32      SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG
+apl-1_WB:C42D8.8a.1_yn10      SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           RDKMDLLDYCKKAYPNRDITNIVESSHYQKIGGWCRQGALNAAKCKGSHRWIKPFRCL-G
+Appl_FB:FBtr0307291           RDKMDLLDYCKKAYPNRDITNIVESSHYQKIGGWCRQGALNAAKCKGSHRWIKPFRCL-G
+mgl-1_WB:ZC506.4a.1           KLGALILDSCSNP--AYALNQSLDFVRDMI----------------GSSE-ASDYVCLDG
 
-apl-1_C42D8.8a.1_ref       SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG	122
-apl-1_C42D8.8a.1_yn32      SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG	122
-apl-1_C42D8.8a.1_ref       SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG	122
-apl-1_C42D8.8a.1_yn10      SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG	122
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG	122
-apl-1_C42D8.8a.1_alt5      SGKLDILKYCRKAYPSMNITNIVEYSHEVSISDWCREEG---SPCKWTHS-VRPYHCIDG	122
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	0
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	0
-Appl_Appl-RA               RDKMDLLDYCKKAYPNRDITNIVESSHYQKIGGWCRQGALNAAKCKGSHRWIKPFRCL-G	130
-Appl_Appl-RB               RDKMDLLDYCKKAYPNRDITNIVESSHYQKIGGWCRQGALNAAKCKGSHRWIKPFRCL-G	130
-mgl-1_ZC506.4a.1           KLGALILDSCSNP--AYALNQSLDFVRDMI----------------GSSE-ASDYVCLDG	145
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVRSF-AVL--
+apl-1_WB:C42D8.8a.1_yn32      EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVRSF-AVL--
+apl-1_WB:C42D8.8a.1_yn10      EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVIGD-VHHRY
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVRSF-AVL--
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           PFQSDALLVPEGCLFDHIHNASRCWPFVRWNQTGAAACQERG------MQMRSFAML---
+Appl_FB:FBtr0307291           PFQSDALLVPEGCLFDHIHNASRCWPFVRWNQTGAAACQERG------MQMRSFAML---
+mgl-1_WB:ZC506.4a.1           SDPNLKKQSQKKNV-------------------------AAVVGGSYSSVSVQLANLLRL
 
-apl-1_C42D8.8a.1_ref       EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVRSF-AVL--	179
-apl-1_C42D8.8a.1_yn32      EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVRSF-AVL--	179
-apl-1_C42D8.8a.1_ref       EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVRSF-AVL--	179
-apl-1_C42D8.8a.1_yn10      EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVIGD-VHHRY	181
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVRSF-AVL--	179
-apl-1_C42D8.8a.1_alt5      EFHSEALQVPHDCQFSHVNSRDQCNDYQHWKDEAGKQCKTKKSKGNKDMIVRSF-AVL--	179
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	0
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	0
-Appl_Appl-RA               PFQSDALLVPEGCLFDHIHNASRCWPFVRWNQTGAAACQERG------MQMRSFAML---	181
-Appl_Appl-RB               PFQSDALLVPEGCLFDHIHNASRCWPFVRWNQTGAAACQERG------MQMRSFAML---	181
-mgl-1_ZC506.4a.1           SDPNLKKQSQKKNV-------------------------AAVVGGSYSSVSVQLANLLRL	180
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       ------------EPCALDMFTGVEFVCCPNDQTNKTD-VQKT------------------
+apl-1_WB:C42D8.8a.1_yn32      ------------EPCALDMFTGVEFVCCPNDQTNKTD-VQKT------------------
+apl-1_WB:C42D8.8a.1_yn10      LHHRLCHHQRSSSPCHARFHRGRRLHTR--------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      ------------EPCALDMFTGVEFVCCPNDQTNKTD-VQKT------------------
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           ------------LPCGISVFSGVEFVCCPKHFKTDEIHVKKTDLPVMPAAQINSANDELV
+Appl_FB:FBtr0307291           ------------LPCGISVFSGVEFVCCPKHFKTDEIHVKKTDLPVMPAAQINSANDELV
+mgl-1_WB:ZC506.4a.1           FR--IA--QVSPASTNADLSDKN-------------------------------------
 
-apl-1_C42D8.8a.1_ref       ------------EPCALDMFTGVEFVCCPNDQTNKTD-VQKT------------------	208
-apl-1_C42D8.8a.1_yn32      ------------EPCALDMFTGVEFVCCPNDQTNKTD-VQKT------------------	208
-apl-1_C42D8.8a.1_ref       ------------EPCALDMFTGVEFVCCPNDQTNKTD-VQKT------------------	208
-apl-1_C42D8.8a.1_yn10      LHHRLCHHQRSSSPCHARFHRGRRLHTR--------------------------------	209
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       ------------EPCALDMFTGVEFVCCPNDQTNKTD-VQKT------------------	208
-apl-1_C42D8.8a.1_alt5      ------------EPCALDMFTGVEFVCCPNDQTNKTD-VQKT------------------	208
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	0
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	0
-Appl_Appl-RA               ------------LPCGISVFSGVEFVCCPKHFKTDEIHVKKTDLPVMPAAQINSANDELV	229
-Appl_Appl-RB               ------------LPCGISVFSGVEFVCCPKHFKTDEIHVKKTDLPVMPAAQINSANDELV	229
-mgl-1_ZC506.4a.1           FR--IA--QVSPASTNADLSDKN-------------------------------------	199
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       KE--------------DEDDDD--------------------------------------
+apl-1_WB:C42D8.8a.1_yn32      KE--------------DEDDDD--------------------------------------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      KE--------------DEDDDD--------------------------------------
+paxt-1_WB:R05D11.6.1_ref      ---------------------------------------------------------MGK
+paxt-1_WB:R05D11.6.1_xe5      ---------------------------------------------------------MGK
+Appl_FB:FBtr0070109           MNDEDDSNDSNYSKDANEDDLDDEDDLMGDDEEDDMVADEAATAGGSPNTGSSGDSNSGS
+Appl_FB:FBtr0307291           MNDEDDSNDSNYSKDANEDDLDDEDDLMGDDEEDDMVADEAATAGGSPNTGSSGDSNSGS
+mgl-1_WB:ZC506.4a.1           ------------------------------------------------------------
 
-apl-1_C42D8.8a.1_ref       KE--------------DEDDDD--------------------------------------	216
-apl-1_C42D8.8a.1_yn32      KE--------------DEDDDD--------------------------------------	216
-apl-1_C42D8.8a.1_ref       KE--------------DEDDDD--------------------------------------	216
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	209
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       KE--------------DEDDDD--------------------------------------	216
-apl-1_C42D8.8a.1_alt5      KE--------------DEDDDD--------------------------------------	216
-paxt-1_R05D11.6.1_ref      ---------------------------------------------------------MGK	3
-paxt-1_R05D11.6.1_xe5      ---------------------------------------------------------MGK	3
-Appl_Appl-RA               MNDEDDSNDSNYSKDANEDDLDDEDDLMGDDEEDDMVADEAATAGGSPNTGSSGDSNSGS	289
-Appl_Appl-RB               MNDEDDSNDSNYSKDANEDDLDDEDDLMGDDEEDDMVADEAATAGGSPNTGSSGDSNSGS	289
-mgl-1_ZC506.4a.1           ------------------------------------------------------------	199
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       -----------DEDDAYEDDYSEESDEK--------------------------------
+apl-1_WB:C42D8.8a.1_yn32      -----------DEDDAYEDDYSEESDEK--------------------------------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      -----------DEDDAYEDDYSEESDEK--------------------------------
+paxt-1_WB:R05D11.6.1_ref      LEDVEAEKKLWESDDAWELRKAF------MLAHYDDYPKIQLQCLS--------------
+paxt-1_WB:R05D11.6.1_xe5      LEDVEAEKKLWESDDAWEWEFAT------GKRR---------------------------
+Appl_FB:FBtr0070109           LDDINAEYDSGEEGDNYEEDGAGSESEAEVEASWDQSGGAKVVSLKSDSSSPSSAPVAPA
+Appl_FB:FBtr0307291           LDDINAEYDSGEEGDNYEEDGAGSESEAEVEASWDQSGGAKVVSLKSDSSSPSSAPVAPA
+mgl-1_WB:ZC506.4a.1           ------------------------------------------------------------
 
-apl-1_C42D8.8a.1_ref       -----------DEDDAYEDDYSEESDEK--------------------------------	233
-apl-1_C42D8.8a.1_yn32      -----------DEDDAYEDDYSEESDEK--------------------------------	233
-apl-1_C42D8.8a.1_ref       -----------DEDDAYEDDYSEESDEK--------------------------------	233
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	209
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       -----------DEDDAYEDDYSEESDEK--------------------------------	233
-apl-1_C42D8.8a.1_alt5      -----------DEDDAYEDDYSEESDEK--------------------------------	233
-paxt-1_R05D11.6.1_ref      LEDVEAEKKLWESDDAWELRKAF------MLAHYDDYPKIQLQCLS--------------	43
-paxt-1_R05D11.6.1_xe5      LEDVEAEKKLWESDDAWEWEFAT------GKRR---------------------------	30
-Appl_Appl-RA               LDDINAEYDSGEEGDNYEEDGAGSESEAEVEASWDQSGGAKVVSLKSDSSSPSSAPVAPA	349
-Appl_Appl-RB               LDDINAEYDSGEEGDNYEEDGAGSESEAEVEASWDQSGGAKVVSLKSDSSSPSSAPVAPA	349
-mgl-1_ZC506.4a.1           ------------------------------------------------------------	199
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       ---------------------------------------DEEEPSSQDPYFKIANWTNEH
+apl-1_WB:C42D8.8a.1_yn32      ---------------------------------------DEEEPSSQDPYFKIANWTNEH
+apl-1_WB:C42D8.8a.1_yn10      ---------------------------------------------GASCRWNASQWL---
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      ---------------------------------------DEEEPSSQDPYFKIANWTNEH
+paxt-1_WB:R05D11.6.1_ref      --------QLFINVTLLGCEYSQTLMQKIRT--MGAGIAANKDRTKTGSYVKASAA-KKR
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           PEKAPVKSESVTSTPQLSASAAAFVAANSGNSGTGAGAPPSTAQPTSDPYFTHFDPHYEH
+Appl_FB:FBtr0307291           PEKAPVKSESVTSTPQLSASAAAFVAANSGNSGTGAGAPPSTAQPTSDPYFTHFDPHYEH
+mgl-1_WB:ZC506.4a.1           -------------------------------------------------RFEYFARTVPS
 
-apl-1_C42D8.8a.1_ref       ---------------------------------------DEEEPSSQDPYFKIANWTNEH	254
-apl-1_C42D8.8a.1_yn32      ---------------------------------------DEEEPSSQDPYFKIANWTNEH	254
-apl-1_C42D8.8a.1_ref       ---------------------------------------DEEEPSSQDPYFKIANWTNEH	254
-apl-1_C42D8.8a.1_yn10      ---------------------------------------------GASCRWNASQWL---	221
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       ---------------------------------------DEEEPSSQDPYFKIANWTNEH	254
-apl-1_C42D8.8a.1_alt5      ---------------------------------------DEEEPSSQDPYFKIANWTNEH	254
-paxt-1_R05D11.6.1_ref      --------QLFINVTLLGCEYSQTLMQKIRT--MGAGIAANKDRTKTGSYVKASAA-KKR	92
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               PEKAPVKSESVTSTPQLSASAAAFVAANSGNSGTGAGAPPSTAQPTSDPYFTHFDPHYEH	409
-Appl_Appl-RB               PEKAPVKSESVTSTPQLSASAAAFVAANSGNSGTGAGAPPSTAQPTSDPYFTHFDPHYEH	409
-mgl-1_ZC506.4a.1           -------------------------------------------------RFEYFARTVPS	210
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       DDFKKAEMRMDEKHRKKVDKVMKEWGDLETRYNEQKAKDPKGAEKFKSQ---------MN
+apl-1_WB:C42D8.8a.1_yn32      DDFKKAEMRMDEKHRKKVDKVMKEWGDLETRYNEQKAKDPKGAEKFKSQ---------MN
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      DDFKKAEMRMDEKHRKKVDKVMKEWGDLETRYNEQKAKDPKAAEKFKSQ---------MN
+paxt-1_WB:R05D11.6.1_ref      QAVK--TSDLEGA------------SDESKKVKMEKSPSPVARESFDERLGKLKASL---
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           QSYKVSQKRLEESHREKVTRVMKDWSDLEEKYQDMRLADPKAAQSFKQRMTARF------
+Appl_FB:FBtr0307291           QSYKVSQKRLEESHREKVTRVMKDWSDLEEKYQDMRLADPKAAQSFKQRMTARF------
+mgl-1_WB:ZC506.4a.1           DDYQAMAM--VE------IAVKFKWSYVSLVYSADEYG-ELGADAFKKEARKKGICIALE
 
-apl-1_C42D8.8a.1_ref       DDFKKAEMRMDEKHRKKVDKVMKEWGDLETRYNEQKAKDPKGAEKFKSQ---------MN	305
-apl-1_C42D8.8a.1_yn32      DDFKKAEMRMDEKHRKKVDKVMKEWGDLETRYNEQKAKDPKGAEKFKSQ---------MN	305
-apl-1_C42D8.8a.1_ref       DDFKKAEMRMDEKHRKKVDKVMKEWGDLETRYNEQKAKDPKGAEKFKSQ---------MN	305
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       DDFKKAEMRMDEKHRKKVDKVMKEWGDLETRYNEQKAKDPKGAEKFKSQ---------MN	305
-apl-1_C42D8.8a.1_alt5      DDFKKAEMRMDEKHRKKVDKVMKEWGDLETRYNEQKAKDPKAAEKFKSQ---------MN	305
-paxt-1_R05D11.6.1_ref      QAVK--TSDLEGA------------SDESKKVKMEKSPSPVARESFDERLGKLKASL---	135
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               QSYKVSQKRLEESHREKVTRVMKDWSDLEEKYQDMRLADPKAAQSFKQRMTARF------	463
-Appl_Appl-RB               QSYKVSQKRLEESHREKVTRVMKDWSDLEEKYQDMRLADPKAAQSFKQRMTARF------	463
-mgl-1_ZC506.4a.1           DDYQAMAM--VE------IAVKFKWSYVSLVYSADEYG-ELGADAFKKEARKKGICIALE	261
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       ARFQKTVSSLEEEH---KRMRKEIEAVHEERVQAM-------------------------
+apl-1_WB:C42D8.8a.1_yn32      ARFQKTVSSLEEEH---KRMRKEIEAVHEERVQAM-------------------------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      ARFQKTVSSLEEEH---KRMRKEIEAVHEERVQAM-------------------------
+paxt-1_WB:R05D11.6.1_ref      ---AMTPHHLTGEQMMKTATNSCLMKWHVNKINQKIEITIDRYVAFRHTFSQYCVDPRDC
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           ---QTSVQALEEEG---NAEKHQLAAMHQQRVLA--------------------------
+Appl_FB:FBtr0307291           ---QTSVQALEEEG---NAEKHQLAAMHQQRVLA--------------------------
+mgl-1_WB:ZC506.4a.1           ERIQNKKESFTESI---NNL-----------VQKL-------------------------
 
-apl-1_C42D8.8a.1_ref       ARFQKTVSSLEEEH---KRMRKEIEAVHEERVQAM-------------------------	337
-apl-1_C42D8.8a.1_yn32      ARFQKTVSSLEEEH---KRMRKEIEAVHEERVQAM-------------------------	337
-apl-1_C42D8.8a.1_ref       ARFQKTVSSLEEEH---KRMRKEIEAVHEERVQAM-------------------------	337
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       ARFQKTVSSLEEEH---KRMRKEIEAVHEERVQAM-------------------------	337
-apl-1_C42D8.8a.1_alt5      ARFQKTVSSLEEEH---KRMRKEIEAVHEERVQAM-------------------------	337
-paxt-1_R05D11.6.1_ref      ---AMTPHHLTGEQMMKTATNSCLMKWHVNKINQKIEITIDRYVAFRHTFSQYCVDPRDC	192
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               ---QTSVQALEEEG---NAEKHQLAAMHQQRVLA--------------------------	491
-Appl_Appl-RB               ---QTSVQALEEEG---NAEKHQLAAMHQQRVLA--------------------------	491
-mgl-1_ZC506.4a.1           ERIQNKKESFTESI---NNL-----------VQKL-------------------------	282
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       -LNEKKRDATHDYRQALATHV-NKPNKHSVLQSLKAYIRAE---EKDRMHTLN--RYRHL
+apl-1_WB:C42D8.8a.1_yn32      -LNEKKRDATHDYRQALATHV-NKPNKHSVLQSLKAYIRAE---KKDRMHTLN--RYRHL
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      -LNEKKRDATHDYRQALATHV-NKPNKHSVLQSLKAYIRAE---EKDRMHTLN--RYRHL
+paxt-1_WB:R05D11.6.1_ref      AINTLIESILSCDAAVHEESYEIRFDGVPVDE---CYAKSVTR-------RLA--KIKSA
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           HINQRKREAMTCYTQALT---EQPPNAHHVEK---CLQKLLRALHKDRAHALA--HYRHL
+Appl_FB:FBtr0307291           HINQRKREAMTCYTQALT---EQPPNAHHVEK---CLQKLLRALHKDRAHALA--HYRHL
+mgl-1_WB:ZC506.4a.1           -QPEKNVGAT-----------------VVVLFVGTEYIPDILRYTAERMKLTSGAKKRII
 
-apl-1_C42D8.8a.1_ref       -LNEKKRDATHDYRQALATHV-NKPNKHSVLQSLKAYIRAE---EKDRMHTLN--RYRHL	390
-apl-1_C42D8.8a.1_yn32      -LNEKKRDATHDYRQALATHV-NKPNKHSVLQSLKAYIRAE---KKDRMHTLN--RYRHL	390
-apl-1_C42D8.8a.1_ref       -LNEKKRDATHDYRQALATHV-NKPNKHSVLQSLKAYIRAE---EKDRMHTLN--RYRHL	390
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       -LNEKKRDATHDYRQALATHV-NKPNKHSVLQSLKAYIRAE---EKDRMHTLN--RYRHL	390
-apl-1_C42D8.8a.1_alt5      -LNEKKRDATHDYRQALATHV-NKPNKHSVLQSLKAYIRAE---EKDRMHTLN--RYRHL	390
-paxt-1_R05D11.6.1_ref      AINTLIESILSCDAAVHEESYEIRFDGVPVDE---CYAKSVTR-------RLA--KIKSA	240
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               HINQRKREAMTCYTQALT---EQPPNAHHVEK---CLQKLLRALHKDRAHALA--HYRHL	543
-Appl_Appl-RB               HINQRKREAMTCYTQALT---EQPPNAHHVEK---CLQKLLRALHKDRAHALA--HYRHL	543
-mgl-1_ZC506.4a.1           -QPEKNVGAT-----------------VVVLFVGTEYIPDILRYTAERMKLTSGAKKRII	324
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       -LKADSK---EAAAYKPTVIHRLRYIDLRINGTLAM---LRDFPDLEKYVRPIA------
+apl-1_WB:C42D8.8a.1_yn32      -LKADSK---EAAAYKPTVIHRLRYIDLRINGTLAM---LRDFPDLEKYVRPIA------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      -LKADSK---EAAAYKPTVIHRLRYIDLRINGTLAM---LRDFPDLEKYVRPIA------
+paxt-1_WB:R05D11.6.1_ref      VS------------NGAHTVKGLTTYLDAVNMS--M---IQNTQKLEGWSQQLDLVTADL
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           LNSGGPGGLEAAASERPRTLERLIDIDRAVNQSMTM---LKRYPE---LSAKIAQLMNDY
+Appl_FB:FBtr0307291           LNSGGPGGLEAAASERPRTLERLIDIDRAVNQSMTM---LKRYPE---LSAKIAQLMNDY
+mgl-1_WB:ZC506.4a.1           WLASESWDR-NNDKYTAG------DNRLAAQGAIVLMLASQKVPSFEEYFMSLHPGTEAF
 
-apl-1_C42D8.8a.1_ref       -LKADSK---EAAAYKPTVIHRLRYIDLRINGTLAM---LRDFPDLEKYVRPIA------	437
-apl-1_C42D8.8a.1_yn32      -LKADSK---EAAAYKPTVIHRLRYIDLRINGTLAM---LRDFPDLEKYVRPIA------	437
-apl-1_C42D8.8a.1_ref       -LKADSK---EAAAYKPTVIHRLRYIDLRINGTLAM---LRDFPDLEKYVRPIA------	437
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       -LKADSK---EAAAYKPTVIHRLRYIDLRINGTLAM---LRDFPDLEKYVRPIA------	437
-apl-1_C42D8.8a.1_alt5      -LKADSK---EAAAYKPTVIHRLRYIDLRINGTLAM---LRDFPDLEKYVRPIA------	437
-paxt-1_R05D11.6.1_ref      VS------------NGAHTVKGLTTYLDAVNMS--M---IQNTQKLEGWSQQLDLVTADL	283
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               LNSGGPGGLEAAASERPRTLERLIDIDRAVNQSMTM---LKRYPE---LSAKIAQLMNDY	597
-Appl_Appl-RB               LNSGGPGGLEAAASERPRTLERLIDIDRAVNQSMTM---LKRYPE---LSAKIAQLMNDY	597
-mgl-1_ZC506.4a.1           WLASESWDR-NNDKYTAG------DNRLAAQGAIVLMLASQKVPSFEEYFMSLHPGTEAF	377
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       -V-----TYWK-DYRD--------------------------------------------
+apl-1_WB:C42D8.8a.1_yn32      -V-----TYWK-DYRD--------------------------------------------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      -V-----TYWK-DYRD--------------------------------------------
+paxt-1_WB:R05D11.6.1_ref      -----LL-----SSRVL-SSTECTKPAM----ATIAN-----------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           -----IL-----ALRSK-DDIPG-----------SSL-----------------------
+Appl_FB:FBtr0307291           -----IL-----ALRSK-DDIPG-----------SSL-----------------------
+mgl-1_WB:ZC506.4a.1           ERNKWLRELWQVKYKCEFDTPPGSTASRCEDIKQSTEGFNADDKVQFVIDAVYAIAHGLQ
 
-apl-1_C42D8.8a.1_ref       -V-----TYWK-DYRD--------------------------------------------	446
-apl-1_C42D8.8a.1_yn32      -V-----TYWK-DYRD--------------------------------------------	446
-apl-1_C42D8.8a.1_ref       -V-----TYWK-DYRD--------------------------------------------	446
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       -V-----TYWK-DYRD--------------------------------------------	446
-apl-1_C42D8.8a.1_alt5      -V-----TYWK-DYRD--------------------------------------------	446
-paxt-1_R05D11.6.1_ref      -----LL-----SSRVL-SSTECTKPAM----ATIAN-----------------------	305
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               -----IL-----ALRSK-DDIPG-----------SSL-----------------------	612
-Appl_Appl-RB               -----IL-----ALRSK-DDIPG-----------SSL-----------------------	612
-mgl-1_ZC506.4a.1           ERNKWLRELWQVKYKCEFDTPPGSTASRCEDIKQSTEGFNADDKVQFVIDAVYAIAHGLQ	437
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       ----EVSPDISVEDSELT------------PIIHDDEFSKNAKLDVKAPTTT--------
+apl-1_WB:C42D8.8a.1_yn32      ----EVSPDISVEDSELT------------PIIHDDEFSKNAKLDVKAPTTT--------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      ----EVSPDISVEDSELT------------PIIHDDEFSKNAKLDVKAPTTT--------
+paxt-1_WB:R05D11.6.1_ref      QMSEDVCQLI----------------------------LND-KINVINSMKSHSSLAFQ-
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           GMSEEAEAGI----------------------------LDKYRVEIERKVAEKERLRLAE
+Appl_FB:FBtr0307291           GMSEEAEAGI----------------------------LDKYRVEIERKVAEKERLRLAE
+mgl-1_WB:ZC506.4a.1           SMKQAICPDDAIENHWISRYSKQPEICHAMQNIDGSDFYQNYLLKVNFTDIVGKRFRFSP
 
-apl-1_C42D8.8a.1_ref       ----EVSPDISVEDSELT------------PIIHDDEFSKNAKLDVKAPTTT--------	482
-apl-1_C42D8.8a.1_yn32      ----EVSPDISVEDSELT------------PIIHDDEFSKNAKLDVKAPTTT--------	482
-apl-1_C42D8.8a.1_ref       ----EVSPDISVEDSELT------------PIIHDDEFSKNAKLDVKAPTTT--------	482
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       ----EVSPDISVEDSELT------------PIIHDDEFSKNAKLDVKAPTTT--------	482
-apl-1_C42D8.8a.1_alt5      ----EVSPDISVEDSELT------------PIIHDDEFSKNAKLDVKAPTTT--------	482
-paxt-1_R05D11.6.1_ref      QMSEDVCQLI----------------------------LND-KINVINSMKSHSSLAFQ-	335
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               GMSEEAEAGI----------------------------LDKYRVEIERKVAEKERLRLAE	644
-Appl_Appl-RB               GMSEEAEAGI----------------------------LDKYRVEIERKVAEKERLRLAE	644
-mgl-1_ZC506.4a.1           SMKQAICPDDAIENHWISRYSKQPEICHAMQNIDGSDFYQNYLLKVNFTDIVGKRFRFSP	497
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       --------------------AKPVKETDNAKVLPTEASDSEEEADEYYEDEDD-------
+apl-1_WB:C42D8.8a.1_yn32      --------------------AKPVKETDNAKVLPTEASDSEEEADEYYEDEDD-------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      --------------------AKPVKETDNAKVLPTEASDSEEEADEYYEDEDD-------
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           KQRKEQRAAEREKLREEKLRLEAKKV---DDMLKSQVAEQQSQPTQSSTQSQA-------
+Appl_FB:FBtr0307291           KQRKEQRAAEREKLREEKLRLEAKKV---DDMLKSQVAEQQSQPTQSSTQSQA-------
+mgl-1_WB:ZC506.4a.1           QGDGPAS---Y-----TILTYKPKSMDKKRRM-----TDDESSPSDYVEIGHWSENNLTI
 
-apl-1_C42D8.8a.1_ref       --------------------AKPVKETDNAKVLPTEASDSEEEADEYYEDEDD-------	515
-apl-1_C42D8.8a.1_yn32      --------------------AKPVKETDNAKVLPTEASDSEEEADEYYEDEDD-------	515
-apl-1_C42D8.8a.1_ref       --------------------AKPVKETDNAKVLPTEASDSEEEADEYYEDEDD-------	515
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ------------------------------------------------------------	0
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       --------------------AKPVKETDNAKVLPTEASDSEEEADEYYEDEDD-------	515
-apl-1_C42D8.8a.1_alt5      --------------------AKPVKETDNAKVLPTEASDSEEEADEYYEDEDD-------	515
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	335
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               KQRKEQRAAEREKLREEKLRLEAKKV---DDMLKSQVAEQQSQPTQSSTQSQA-------	694
-Appl_Appl-RB               KQRKEQRAAEREKLREEKLRLEAKKV---DDMLKSQVAEQQSQPTQSSTQSQA-------	694
-mgl-1_ZC506.4a.1           QGDGPAS---Y-----TILTYKPKSMDKKRRM-----TDDESSPSDYVEIGHWSENNLTI	544
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       --EQVKKTPDMKKKVKVVDIKPKEIKV-----------TIEEEKKAPKLVET--------
+apl-1_WB:C42D8.8a.1_yn32      --EQVKKTPDMKKKVKVVDIKPKEIKV-----------TIEEEKKAPKLVET--------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ---------MKRQNIRTLSLIVCTLTYLLVGAAVFDALETENEILQRKLVQRVREKL---
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      --EQVKKTPDMKKKVKVVDIKPKEIKV-----------TIEEEKKAPKLVET--------
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           -----------QQQQQEKSLPGKELGPD---A---------------ALVTAANPNLETT
+Appl_FB:FBtr0307291           -----------QQQQQEKSLPGKELGPD---A---------------ALVTAANPNLETT
+mgl-1_WB:ZC506.4a.1           YEKNLWWDPDHT-PVSVCS-LPCKIGFRKQ--------LIKDEQCC---WA---------
 
-apl-1_C42D8.8a.1_ref       --EQVKKTPDMKKKVKVVDIKPKEIKV-----------TIEEEKKAPKLVET--------	554
-apl-1_C42D8.8a.1_yn32      --EQVKKTPDMKKKVKVVDIKPKEIKV-----------TIEEEKKAPKLVET--------	554
-apl-1_C42D8.8a.1_ref       --EQVKKTPDMKKKVKVVDIKPKEIKV-----------TIEEEKKAPKLVET--------	554
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ---------MKRQNIRTLSLIVCTLTYLLVGAAVFDALETENEILQRKLVQRVREKL---	48
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       --EQVKKTPDMKKKVKVVDIKPKEIKV-----------TIEEEKKAPKLVET--------	554
-apl-1_C42D8.8a.1_alt5      --EQVKKTPDMKKKVKVVDIKPKEIKV-----------TIEEEKKAPKLVET--------	554
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	335
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               -----------QQQQQEKSLPGKELGPD---A---------------ALVTAANPNLETT	725
-Appl_Appl-RB               -----------QQQQQEKSLPGKELGPD---A---------------ALVTAANPNLETT	725
-mgl-1_ZC506.4a.1           YEKNLWWDPDHT-PVSVCS-LPCKIGFRKQ--------LIKDEQCC---WA---------	582
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       --SVQTDDEDDDEDSSSSTSSES---DEDEDKNIKELRVD--------------IEP---
+apl-1_WB:C42D8.8a.1_yn32      --SVQTDDEDDDEDSSSSTSSES---DEDEDKNIKELRVD--------------IEP---
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        KTKYNMSNADYEILEATIVK-----------------SVPHKAGYQWKFSGAFYFATTVI
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      --SVQTDDEDDDEDSSSSTSSES---DEDEDKNIKELRVD--------------IEP---
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           KSEKDLSDTEYGEATVSSTKVQ-TVLPTVDDDAVQR-AVEDVAAAVA----HQEAEPQVQ
+Appl_FB:FBtr0307291           KSEKDLSDTEYGEATVS-TKVQ-TVLPTVDDDAVQR-AVEDVAAAVA----HQEAEPQVQ
+mgl-1_WB:ZC506.4a.1           --CSKCEDYEYLINETHCVGCEQGWWPTKDRKGCFDLSLSQLKYMRWRS--MYSLVPTIL
 
-apl-1_C42D8.8a.1_ref       --SVQTDDEDDDEDSSSSTSSES---DEDEDKNIKELRVD--------------IEP---	592
-apl-1_C42D8.8a.1_yn32      --SVQTDDEDDDEDSSSSTSSES---DEDEDKNIKELRVD--------------IEP---	592
-apl-1_C42D8.8a.1_ref       --SVQTDDEDDDEDSSSSTSSES---DEDEDKNIKELRVD--------------IEP---	592
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        KTKYNMSNADYEILEATIVK-----------------SVPHKAGYQWKFSGAFYFATTVI	91
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       --SVQTDDEDDDEDSSSSTSSES---DEDEDKNIKELRVD--------------IEP---	592
-apl-1_C42D8.8a.1_alt5      --SVQTDDEDDDEDSSSSTSSES---DEDEDKNIKELRVD--------------IEP---	592
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	335
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               KSEKDLSDTEYGEATVSSTKVQ-TVLPTVDDDAVQR-AVEDVAAAVA----HQEAEPQVQ	779
-Appl_Appl-RB               KSEKDLSDTEYGEATVS-TKVQ-TVLPTVDDDAVQR-AVEDVAAAVA----HQEAEPQVQ	778
-mgl-1_ZC506.4a.1           --CSKCEDYEYLINETHCVGCEQGWWPTKDRKGCFDLSLSQLKYMRWRS--MYSLVPTIL	638
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       -----IIDEPASFYRHD---KLIQSPEVERSASSVFQPYVLASAMFITAICIIAFAITNA
+apl-1_WB:C42D8.8a.1_yn32      -----IIDEPASFYRHD---KLIQSPEVERSASSVFQPYVLASAMFITAICIIAFAITNA
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ----TTI-------------GYGHSTPMTDAG---------------KVFCMLYALAGIP
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      -----IIDEPASFYRHD---KLIQSPEVERSASSVFQPYVLASAMFITAICIIAFAITNA
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           HFMTHDLGHRESSFSL--RREFAQHAHAAKEGRNVYFTLSFAGI-----ALMAAVFVGVA
+Appl_FB:FBtr0307291           HFMTHDLGHRESSFSL--RREFAQHAHAAKEGRNVYFTLSFAGI-----ALMAAVFVGVA
+mgl-1_WB:ZC506.4a.1           ----AVFGIIATLFVIVVYVIYNETPVVKASGR--ELSYILLISMI-MCYCMTFVLLSKP
 
-apl-1_C42D8.8a.1_ref       -----IIDEPASFYRHD---KLIQSPEVERSASSVFQPYVLASAMFITAICIIAFAITNA	644
-apl-1_C42D8.8a.1_yn32      -----IIDEPASFYRHD---KLIQSPEVERSASSVFQPYVLASAMFITAICIIAFAITNA	644
-apl-1_C42D8.8a.1_ref       -----IIDEPASFYRHD---KLIQSPEVERSASSVFQPYVLASAMFITAICIIAFAITNA	644
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ----TTI-------------GYGHSTPMTDAG---------------KVFCMLYALAGIP	119
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       -----IIDEPASFYRHD---KLIQSPEVERSASSVFQPYVLASAMFITAICIIAFAITNA	644
-apl-1_C42D8.8a.1_alt5      -----IIDEPASFYRHD---KLIQSPEVERSASSVFQPYVLASAMFITAICIIAFAITNA	644
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	335
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               HFMTHDLGHRESSFSL--RREFAQHAHAAKEGRNVYFTLSFAGI-----ALMAAVFVGVA	832
-Appl_Appl-RB               HFMTHDLGHRESSFSL--RREFAQHAHAAKEGRNVYFTLSFAGI-----ALMAAVFVGVA	831
-mgl-1_ZC506.4a.1           ----AVFGIIATLFVIVVYVIYNETPVVKASGR--ELSYILLISMI-MCYCMTFVLLSKP	691
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       ------RRRRAMRGFIEVDVYTP----E--------------------------ERHVAG
+apl-1_WB:C42D8.8a.1_yn32      ------RRRRAMRGFIEVDVYTP----E--------------------------ERHVAG
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        LGL-IMF----------QSIGERMNTFAAKLLRFIRRAAGKQP-IVTSSDLIIFCTGWGG
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      ------RRRRAMRGFIEVDVYTP----E--------------------------ERHVAG
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           VAKWRTSRSPHAQGFIEVDQ----NVT-------------------THHPIVREEKIVPN
+Appl_FB:FBtr0307291           VAKWRTSRSPHAQGFIEVDQVGCQNVT-------------------THHPIVREEKIVPN
+mgl-1_WB:ZC506.4a.1           SAI-VCAIKRTGIGFAFSCLYSAMFVKTNRIFRIFSTRSAQRPRFISPISQVVMTAMLAG
 
-apl-1_C42D8.8a.1_ref       ------RRRRAMRGFIEVDVYTP----E--------------------------ERHVAG	668
-apl-1_C42D8.8a.1_yn32      ------RRRRAMRGFIEVDVYTP----E--------------------------ERHVAG	668
-apl-1_C42D8.8a.1_ref       ------RRRRAMRGFIEVDVYTP----E--------------------------ERHVAG	668
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        LGL-IMF----------QSIGERMNTFAAKLLRFIRRAAGKQP-IVTSSDLIIFCTGWGG	167
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	0
-apl-1_C42D8.8a.1_ref       ------RRRRAMRGFIEVDVYTP----E--------------------------ERHVAG	668
-apl-1_C42D8.8a.1_alt5      ------RRRRAMRGFIEVDVYTP----E--------------------------ERHVAG	668
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	335
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               VAKWRTSRSPHAQGFIEVDQ----NVT-------------------THHPIVREEKIVPN	869
-Appl_Appl-RB               VAKWRTSRSPHAQGFIEVDQVGCQNVT-------------------THHPIVREEKIVPN	872
-mgl-1_ZC506.4a.1           SAI-VCAIKRTGIGFAFSCLYSAMFVKTNRIFRIFSTRSAQRPRFISPISQVVMTAMLAG	750
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       MQVNGY-------ENPTYS-----------------------------------------
+apl-1_WB:C42D8.8a.1_yn32      MQVNGY-------ENPTYS-----------------------------------------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        LLIFGGAFMFSSYE--NWTY--------------------FDAVYYC-------------
+sup-9_WB:F34D6.3.1_n1913      ----------------------MKRDKISEPCHLSSAH----------------------
+apl-1_WB:C42D8.8a.1_alt5      MQVNGY-------ENPTYS-----------------------------------------
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           MQINGY-------ENPTYKYFEVKE-----------------------------------
+Appl_FB:FBtr0307291           MQINGY-------ENPTYKYFEVKE-----------------------------------
+mgl-1_WB:ZC506.4a.1           VQLIGS-LIWLSVVPPGWRHHYPTRDQVVLTCNVPDHHFLYSLAYDGFLIVLCTTYAVKT
 
-apl-1_C42D8.8a.1_ref       MQVNGY-------ENPTYS-----------------------------------------	680
-apl-1_C42D8.8a.1_yn32      MQVNGY-------ENPTYS-----------------------------------------	680
-apl-1_C42D8.8a.1_ref       MQVNGY-------ENPTYS-----------------------------------------	680
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        LLIFGGAFMFSSYE--NWTY--------------------FDAVYYC-------------	192
-sup-9_F34D6.3.1_n1913      ----------------------MKRDKISEPCHLSSAH----------------------	16
-apl-1_C42D8.8a.1_ref       MQVNGY-------ENPTYS-----------------------------------------	680
-apl-1_C42D8.8a.1_alt5      MQVNGY-------ENPTYS-----------------------------------------	680
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	335
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               MQINGY-------ENPTYKYFEVKE-----------------------------------	887
-Appl_Appl-RB               MQINGY-------ENPTYKYFEVKE-----------------------------------	890
-mgl-1_ZC506.4a.1           VQLIGS-LIWLSVVPPGWRHHYPTRDQVVLTCNVPDHHFLYSLAYDGFLIVLCTTYAVKT	809
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       -----------------------------------------FFDSKA-------------
+apl-1_WB:C42D8.8a.1_yn32      -----------------------------------------FFDSKA-------------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        ------FVTLTTIGFGDYVALQKRGSLQTQPEYVFFSLVFILFGLTVI----------SA
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      -----------------------------------------FFDSKA-------------
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           ------------------------------------------------------------
+Appl_FB:FBtr0307291           ------------------------------------------------------------
+mgl-1_WB:ZC506.4a.1           RKVPENFNETKFIGFSMYT-----------TCVVWLSWIFFFFGTGSDFQIQTSSLCISI
 
-apl-1_C42D8.8a.1_ref       -----------------------------------------FFDSKA-------------	686
-apl-1_C42D8.8a.1_yn32      -----------------------------------------FFDSKA-------------	686
-apl-1_C42D8.8a.1_ref       -----------------------------------------FFDSKA-------------	686
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        ------FVTLTTIGFGDYVALQKRGSLQTQPEYVFFSLVFILFGLTVI----------SA	236
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	16
-apl-1_C42D8.8a.1_ref       -----------------------------------------FFDSKA-------------	686
-apl-1_C42D8.8a.1_alt5      -----------------------------------------FFDSKA-------------	686
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	335
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               ------------------------------------------------------------	887
-Appl_Appl-RB               ------------------------------------------------------------	890
-mgl-1_ZC506.4a.1           RKVPENFNETKFIGFSMYT-----------TCVVWLSWIFFFFGTGSDFQIQTSSLCISI	858
-                                                                                       
+apl-1_WB:C42D8.8a.1_ref       ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_yn32      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_yn10      ------------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        AM------------NLLVLRFLTMNTEDERRDEQEAILAAQGLVRVGDPTADDDFGRLPL
+sup-9_WB:F34D6.3.1_n1913      ------------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_ref      ------------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      ------------------------------------------------------------
+Appl_FB:FBtr0070109           ------------------------------------------------------------
+Appl_FB:FBtr0307291           ------------------------------------------------------------
+mgl-1_WB:ZC506.4a.1           SMSANVALACIFSPKLWIILF--EKHKNVRKQEGESMLNKS-------------------
 
-apl-1_C42D8.8a.1_ref       ------------------------------------------------------------	686
-apl-1_C42D8.8a.1_yn32      ------------------------------------------------------------	686
-apl-1_C42D8.8a.1_ref       ------------------------------------------------------------	686
-apl-1_C42D8.8a.1_yn10      ------------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        AM------------NLLVLRFLTMNTEDERRDEQEAILAAQGLVRVGDPTADDDFGRLPL	284
-sup-9_F34D6.3.1_n1913      ------------------------------------------------------------	16
-apl-1_C42D8.8a.1_ref       ------------------------------------------------------------	686
-apl-1_C42D8.8a.1_alt5      ------------------------------------------------------------	686
-paxt-1_R05D11.6.1_ref      ------------------------------------------------------------	335
-paxt-1_R05D11.6.1_xe5      ------------------------------------------------------------	30
-Appl_Appl-RA               ------------------------------------------------------------	887
-Appl_Appl-RB               ------------------------------------------------------------	890
-mgl-1_ZC506.4a.1           SMSANVALACIFSPKLWIILF--EKHKNVRKQEGESMLNKS-------------------	897
-                                                                                       
-
-apl-1_C42D8.8a.1_ref       -----------------------------------------------------------	686
-apl-1_C42D8.8a.1_yn32      -----------------------------------------------------------	686
-apl-1_C42D8.8a.1_ref       -----------------------------------------------------------	686
-apl-1_C42D8.8a.1_yn10      -----------------------------------------------------------	221
-sup-9_F34D6.3.1_ref        SDNVSLASCSCY--------------QLPDEKLRHRHRKHTEPHGGPPTFSGMTTRPKY	329
-sup-9_F34D6.3.1_n1913      -----------------------------------------------------------	16
-apl-1_C42D8.8a.1_ref       -----------------------------------------------------------	686
-apl-1_C42D8.8a.1_alt5      -----------------------------------------------------------	686
-paxt-1_R05D11.6.1_ref      -----------------------------------------------------------	335
-paxt-1_R05D11.6.1_xe5      -----------------------------------------------------------	30
-Appl_Appl-RA               -----------------------------------------------------------	887
-Appl_Appl-RB               -----------------------------------------------------------	890
-mgl-1_ZC506.4a.1           --SRSLGNCSSRLCANSIDEPNQYTALLTDSTRRRSSRKTSQPTSTSSAHDTFL-----	949
-                                                                                      
+apl-1_WB:C42D8.8a.1_ref       -----------------------------------------------------------
+apl-1_WB:C42D8.8a.1_yn32      -----------------------------------------------------------
+apl-1_WB:C42D8.8a.1_yn10      -----------------------------------------------------------
+sup-9_WB:F34D6.3.1_ref        SDNVSLASCSCY--------------QLPDEKLRHRHRKHTEPHGGPPTFSGMTTRPKY
+sup-9_WB:F34D6.3.1_n1913      -----------------------------------------------------------
+apl-1_WB:C42D8.8a.1_alt5      -----------------------------------------------------------
+paxt-1_WB:R05D11.6.1_ref      -----------------------------------------------------------
+paxt-1_WB:R05D11.6.1_xe5      -----------------------------------------------------------
+Appl_FB:FBtr0070109           -----------------------------------------------------------
+Appl_FB:FBtr0307291           -----------------------------------------------------------
+mgl-1_WB:ZC506.4a.1           --SRSLGNCSSRLCANSIDEPNQYTALLTDSTRRRSSRKTSQPTSTSSAHDTFL-----

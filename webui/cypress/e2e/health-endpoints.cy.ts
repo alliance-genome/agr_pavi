@@ -22,14 +22,19 @@ describe('check all health endpoints', () => {
             expect(cache_control_map).to.include.any.keys('no-cache', 'no-store')
         })
 
-        cy.intercept('/health', () => {
-            console.log('/health GET call intercepted.')
+        // Under a base path (prod: https://www.alliancegenome.org/pavi) the page
+        // is requested as /pavi/health, so build the path from the baseUrl.
+        const basePath = new URL(Cypress.config('baseUrl') ?? 'http://localhost').pathname.replace(/\/$/, '')
+        const healthPath = `${basePath}/health`
+
+        cy.intercept({ method: 'GET', pathname: healthPath }, () => {
+            console.log(`${healthPath} GET call intercepted.`)
         }).as('healthCall')
 
         cy.visit('/health')
         cy.wait('@healthCall')
         cy.location().should((loc: Location) => {
-            expect(loc.pathname).to.eq('/health')
+            expect(loc.pathname).to.eq(healthPath)
         })
         cy.get('div').contains('This the web application is healthy and ready to receive!')
 
