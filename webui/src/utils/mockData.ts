@@ -111,6 +111,11 @@ export const mockJobLogs = `[2024-01-19 10:15:23] Job submitted with UUID: 123e4
  * Get mock response based on endpoint and method
  */
 export function getMockResponse(endpoint: string, method: string = 'GET'): any {
+    // API health (queried by the webUI /health page)
+    if (endpoint.match(/^\/api\/health\/?(\?.*)?$/) && method === 'GET') {
+        return { status: 'ok' };
+    }
+
     // Job submission
     if (endpoint.includes('/pipeline-job/') && method === 'POST') {
         return mockJobSubmissionResponse;

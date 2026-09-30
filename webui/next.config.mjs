@@ -15,7 +15,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     eslint: {
-        dirs: ['src', 'cypress/e2e', 'cypress/support'],
+        dirs: ['src', 'e2e', 'cypress/e2e', 'cypress/support'],
     },
     // Standalone output is opt-in: the Dockerfile sets NEXT_OUTPUT=standalone
     // (its runner copies .next/standalone). Vercel and `next start` on EC2 need
