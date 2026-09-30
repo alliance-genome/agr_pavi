@@ -22,6 +22,15 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
 
+### E2E smoke testing (Playwright)
+The [e2e](./e2e/) subdirectory contains a [Playwright](https://playwright.dev/) smoke suite.
+It starts `next dev` in mock-API mode (`MOCK_API=true`), so no API server or pipeline is required:
+```bash
+npx playwright install chromium   # first run only
+make run-e2e-smoke-tests
+```
+The specs rely on the mock API data (`src/utils/mockData.ts`); set `PLAYWRIGHT_BASE_URL` to reuse a webUI already started with `npm run dev:mock`.
+
 ### E2E testing
 The [cypress](./cypress/) subdirectory contains the specs and configurations to run end-to-end testing on PAVI.
 To run the E2E testing locally in interactive mode, run:

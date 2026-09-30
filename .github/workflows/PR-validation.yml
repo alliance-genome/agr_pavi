@@ -277,6 +277,45 @@ jobs:
           make run-style-checks
       - name: Unit tests
         run: make run-unit-tests
+  webui-e2e-smoke-tests:
+    name: webUI e2e smoke tests (Playwright, mock API)
+    needs:
+      - webui-update-dependency-lock-files
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./webui/
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            common_make
+            webui/
+      - name: Download updated webui dependencies lock file
+        uses: actions/download-artifact@v5
+        with:
+          name: webui_deps_lock
+          path: webui
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: "webui/.nvmrc"
+      - name: Install dependencies
+        run: make install-test-deps
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Run smoke tests
+        run: make run-e2e-smoke-tests
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: webui_playwright_report
+          path: |
+            webui/playwright-report/
+            webui/test-results/
+          if-no-files-found: ignore
   webui-container-image-build:
     name: webUI container-image build
     needs:
