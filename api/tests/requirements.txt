@@ -182,9 +182,9 @@ fastapi-cli[standard-no-fastapi-cloud-cli]==0.0.32 \
     --hash=sha256:38024d2345275e1b37ce8848727a580d84901b570e96b3256d9d36a9a5039424 \
     --hash=sha256:8dcc286fa32f01bbd3f65dd09cfd5a2540ed5f2230b77db7fd30978d6165f3c4
     # via fastapi
-flake8==7.3.0 \
-    --hash=sha256:b9696257b9ce8beb888cdbe31cf885c90d31928fe202be0889a7cdafad32f01e \
-    --hash=sha256:fe044858146b9fc69b551a4b490d69cf960fcb78ad1edcb84e7fbb1b4a8e3872
+flake8==7.4.1 \
+    --hash=sha256:78480274a6d7289d9cb8eafeda241fac57d4ea687d26e32dfdca37b72cdeddad \
+    --hash=sha256:84ea5afcaf344487b0ea5baaebb8100f4cfaebc01f755998f75876664029f587
     # via
     #   flake8-unused-arguments
     #   pavi-api (pyproject.toml)
