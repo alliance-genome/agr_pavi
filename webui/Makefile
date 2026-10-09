@@ -87,6 +87,13 @@ run-unit-tests-dev: install-test-deps
 	$(eval $(shell $(MAKE) --no-print-directory _vars-node-npm-exec))
 	${NPM_EXEC} run test:dev
 
+# Playwright smoke suite against `next dev` in mock-API mode (no backend needed).
+# First run may need `npx playwright install chromium`.
+run-e2e-smoke-tests: install-test-deps
+	$(eval NPM_EXEC:=)
+	$(eval $(shell $(MAKE) --no-print-directory _vars-node-npm-exec))
+	${NPM_EXEC} run test:e2e
+
 run-e2e-tests: cypress/test-resources/
 	if [ "${DEBUG}" = 1 ]; then export ELECTRON_ENABLE_LOGGING=1; fi; \
 	PAVI_API_BASE_URL=${PAVI_API_BASE_URL} docker compose -f docker-compose-dev.yml --env-file dev.env \
