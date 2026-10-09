@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { reconstructTranscriptsFromRows, GffRow, pickDefaultTranscript, GffTranscript } from '../tabixTranscripts';
+import { reconstructTranscriptsFromRows, GffRow, pickDefaultTranscript, orderForDisplay, GffTranscript } from '../tabixTranscripts';
 
 // Build a parsed GFF row (the shape @gmod/gff.util.parseFeature yields:
 // attribute values are arrays, and a comma-joined GFF3 value is pre-split).
@@ -171,5 +171,44 @@ describe('canonical transcript detection and default selection', () => {
         expect(pickDefaultTranscript([tx('a', undefined, false), tx('canon', true, false)])?.name).toBe('canon');
         expect(pickDefaultTranscript([tx('a', undefined, false), tx('b', undefined, false)])?.name).toBe('a');
         expect(pickDefaultTranscript([])).toBeUndefined();
+    });
+
+    // Species whose GFF tags no canonical transcript (fly, worm, frog, yeast):
+    // the first-listed coding transcript is often a partial isoform (#1007).
+    const coding = (name: string, cdsLen: number, isCanonical?: boolean): GffTranscript => ({
+        id: name, name, curie: name, strand: 1, isCanonical, exons: [],
+        cds_regions: [{ start: 1, end: cdsLen, phase: 0 }],
+    });
+
+    it('picks the longest coding transcript when none is canonical (fly ey)', () => {
+        // CDS lengths from the 9.1.0 FlyBase GFF: ey-RB, -RA, -RD, -RC
+        const ey = [coding('FBtr0089235', 1875), coding('FBtr0089236', 2517), coding('FBtr0100396', 2697), coding('FBtr0100395', 2574)];
+        expect(pickDefaultTranscript(ey)?.name).toBe('FBtr0100396');
+    });
+
+    it('skips a longer CDS that is not a whole number of codons', () => {
+        expect(pickDefaultTranscript([coding('whole', 300), coding('malformed', 1432)])?.name).toBe('whole');
+    });
+
+    it('falls back to the longest CDS when none is a whole number of codons', () => {
+        expect(pickDefaultTranscript([coding('a', 301), coding('b', 401)])?.name).toBe('b');
+    });
+
+    it('keeps list order between equally long transcripts', () => {
+        expect(pickDefaultTranscript([coding('first', 300), coding('second', 300)])?.name).toBe('first');
+    });
+
+    it('still prefers a canonical coding transcript over a longer one', () => {
+        expect(pickDefaultTranscript([coding('long', 3000), coding('canon', 300, true)])?.name).toBe('canon');
+    });
+
+    it('lists the picked transcript first when none is canonical', () => {
+        const ordered = orderForDisplay([coding('short', 300), coding('long', 900), coding('mid', 600)]);
+        expect(ordered.map((t) => t.name)).toEqual(['long', 'short', 'mid']);
+    });
+
+    it('lists canonical coding transcripts first, in their original order', () => {
+        const ordered = orderForDisplay([coding('a', 900), coding('c1', 300, true), coding('b', 600), coding('c2', 300, true)]);
+        expect(ordered.map((t) => t.name)).toEqual(['c1', 'c2', 'a', 'b']);
     });
 });

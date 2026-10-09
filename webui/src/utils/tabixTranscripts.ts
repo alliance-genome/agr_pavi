@@ -143,29 +143,46 @@ function canonicalLabelFor(attr: Record<string, any>): string | undefined {
     return undefined;
 }
 
+type PickableTranscript = Pick<GffTranscript, 'isCanonical' | 'cds_regions'>;
+
+const cdsLength = (t: PickableTranscript) => t.cds_regions.reduce((n, c) => n + c.end - c.start + 1, 0);
+
+/** The transcript with the longest CDS; the earliest-listed one wins a tie. */
+function longestCds<T extends PickableTranscript>(transcripts: T[]): T | undefined {
+    return transcripts.reduce<T | undefined>((best, t) => (!best || cdsLength(t) > cdsLength(best) ? t : best), undefined);
+}
+
 /**
  * Choose the transcript to preselect for a gene. PAVI aligns proteins, so a
  * protein-coding transcript always wins over a non-coding one, even one that
- * is flagged canonical. Order: canonical + coding, any coding, canonical, first.
+ * is flagged canonical. Order: canonical + coding, then the coding transcript
+ * with the longest CDS, then canonical, then first.
+ *
+ * Fly, worm, frog and yeast GFFs tag no canonical transcript, and their
+ * first-listed coding transcript is often a partial isoform (fly ey: 624 of
+ * UniProt's 857 aa). The longest CDS that is a whole number of codons matches
+ * the UniProt canonical length as often or more, and is rarely truncated
+ * (#1007); the whole-codon condition skips malformed models.
  */
-export function pickDefaultTranscript<T extends Pick<GffTranscript, 'isCanonical' | 'cds_regions'>>(
-    transcripts: T[]
-): T | undefined {
-    const coding = (t: T) => t.cds_regions.length > 0;
-    return transcripts.find((t) => t.isCanonical === true && coding(t))
-        ?? transcripts.find(coding)
+export function pickDefaultTranscript<T extends PickableTranscript>(transcripts: T[]): T | undefined {
+    const coding = transcripts.filter((t) => t.cds_regions.length > 0);
+    return coding.find((t) => t.isCanonical === true)
+        ?? longestCds(coding.filter((t) => cdsLength(t) % 3 === 0))
+        ?? longestCds(coding)
         ?? transcripts.find((t) => t.isCanonical === true)
         ?? transcripts[0];
 }
 
 /**
- * Order transcripts for display: canonical protein-coding ones first (the one
- * pickDefaultTranscript preselects), everything else after, each group keeping
- * its original order.
+ * Order transcripts for display: the preferred protein-coding ones first (all
+ * canonical coding transcripts, or else the one pickDefaultTranscript
+ * preselects), everything else after, each group keeping its original order.
  */
-export function orderForDisplay<T extends Pick<GffTranscript, 'isCanonical' | 'cds_regions'>>(transcripts: T[]): T[] {
-    const preferred = (t: T) => t.isCanonical === true && t.cds_regions.length > 0;
-    return [...transcripts.filter(preferred), ...transcripts.filter((t) => !preferred(t))];
+export function orderForDisplay<T extends PickableTranscript>(transcripts: T[]): T[] {
+    const canonical = transcripts.filter((t) => t.isCanonical === true && t.cds_regions.length > 0);
+    const picked = pickDefaultTranscript(transcripts);
+    const preferred = canonical.length > 0 ? canonical : picked && picked.cds_regions.length > 0 ? [picked] : [];
+    return [...preferred, ...transcripts.filter((t) => !preferred.includes(t))];
 }
 
 interface ChildRow {
