@@ -14,20 +14,12 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    eslint: {
-        dirs: ['src', 'cypress/e2e', 'cypress/support'],
-    },
     // Standalone output is opt-in: the Dockerfile sets NEXT_OUTPUT=standalone
     // (its runner copies .next/standalone). Vercel and `next start` on EC2 need
     // the default output.
     ...(process.env.NEXT_OUTPUT === 'standalone' ? { output: 'standalone' } : {}),
     skipTrailingSlashRedirect: true,
     experimental: {
-        urlImports: [
-            'https://raw.githubusercontent.com/alliance-genome/agr_ui/main/',
-            'https://raw.githubusercontent.com/alliance-genome/agr_ui/test/',
-            'https://raw.githubusercontent.com/alliance-genome/agr_ui/stage/'
-        ],
         // Served behind the Alliance edge (alliancegenome.org/pavi rewrites to
         // the pavi.alliancegenome.org origin), so the browser Origin
         // (www.alliancegenome.org) differs from x-forwarded-host. Whitelist the

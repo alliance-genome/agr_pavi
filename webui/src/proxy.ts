@@ -11,8 +11,9 @@ const NEXTJS_API_ROUTES = [
     '/api/mock', // Mock API routes for visual testing
 ];
 
-// This function can be marked `async` if using `await` inside
-export function middleware(request: NextRequest) {
+// Next.js proxy (formerly middleware). This function can be marked `async`
+// if using `await` inside.
+export function proxy(request: NextRequest) {
 
     const request_path = request.nextUrl.pathname
 
@@ -49,7 +50,7 @@ export function middleware(request: NextRequest) {
     }
 }
 
-// Only apply middleware to API paths (and supporting /openapi.json call)
+// Only apply the proxy to API paths (and supporting /openapi.json call)
 export const config = {
     matcher: ['/api/:path*', '/openapi.json'],
 }
