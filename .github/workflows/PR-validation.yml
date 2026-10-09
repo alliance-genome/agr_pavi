@@ -51,7 +51,7 @@ jobs:
           sparse-checkout: |
             common_make
             pipeline_components/seq_retrieval/
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version-file: "pipeline_components/seq_retrieval/pyproject.toml"
       - name: Update lock files
@@ -84,7 +84,7 @@ jobs:
           sparse-checkout: |
             common_make
             api/
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version-file: "api/pyproject.toml"
       - name: Update lock files
@@ -157,7 +157,7 @@ jobs:
         with:
           name: pipeline_seq_retrieval_tests_deps_lock
           path: pipeline_components/seq_retrieval/tests
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version-file: "pipeline_components/seq_retrieval/pyproject.toml"
       - name: Code typing test
@@ -195,7 +195,7 @@ jobs:
         with:
           name: api_tests_deps_lock
           path: api/tests
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version-file: "api/pyproject.toml"
       - name: Code typing test
@@ -227,7 +227,7 @@ jobs:
         with:
           name: api_tests_deps_lock
           path: api/tests
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version-file: "api/pyproject.toml"
       # Integration tests run the API in local pipeline mode, the mode production
