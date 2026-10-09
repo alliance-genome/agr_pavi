@@ -1,27 +1,28 @@
 import pluginJest from 'eslint-plugin-jest';
 import pluginCypress from 'eslint-plugin-cypress/flat';
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
-});
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 
 const config = [
-    ...compat.config({
-        extends: ["next/core-web-vitals", "next/typescript", "eslint:recommended"],
+    ...nextCoreWebVitals,
+    ...nextTypescript,
+    js.configs.recommended,
+    {
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
             'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
             '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+            // React Compiler rules added by eslint-plugin-react-hooks v7 (bundled
+            // with eslint-config-next 16) that existing code does not meet yet.
+            // Off to keep lint where it was on Next 15; to be adopted gradually.
+            'react-hooks/set-state-in-effect': 'off',
+            'react-hooks/immutability': 'off',
+            'react-hooks/purity': 'off',
+            'react-hooks/refs': 'off',
+            'react-hooks/static-components': 'off',
         }
-    }),
+    },
     {
         files: ["**/__tests__/**/*.[jt]s?(x)", "**/__mocks__/**/*.[jt]s?(x)"],
 
