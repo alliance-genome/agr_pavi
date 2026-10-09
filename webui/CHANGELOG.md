@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.2](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.8.1...webui-v0.8.2) (2026-10-09)
+
+
+### Bug Fixes
+
+* **webui:** finish the Next.js 16 upgrade so webui checks pass again ([#1051](https://github.com/alliance-genome/agr_pavi/issues/1051)) ([c913239](https://github.com/alliance-genome/agr_pavi/commit/c913239fa8e48f9b95c62505d4dbb69217bac213))
+* **webui:** update next to 16.3.8 and handlebars to 4.7.10 ([#1054](https://github.com/alliance-genome/agr_pavi/issues/1054)) ([10716ba](https://github.com/alliance-genome/agr_pavi/commit/10716baf9084758762d442f210c0123cc4d474ed))
+
 ## [0.8.1](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.8.0...webui-v0.8.1) (2026-09-28)
 
 
