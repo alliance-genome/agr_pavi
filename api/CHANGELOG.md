@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.4](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.3...api-v0.6.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **api:** make the API docs work behind the EC2 proxy and /pavi ([#1018](https://github.com/alliance-genome/agr_pavi/issues/1018)) ([9b77d32](https://github.com/alliance-genome/agr_pavi/commit/9b77d3238303e010e06de808ea0cca2998becadb))
+
 ## [0.6.3](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.2...api-v0.6.3) (2026-09-22)
 
 
