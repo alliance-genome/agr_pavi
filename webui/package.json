@@ -8,7 +8,7 @@
         "build": "next build",
         "build:analyze": "ANALYZE=true next build",
         "start": "next start",
-        "lint": "next lint --max-warnings 0",
+        "lint": "eslint --max-warnings 0 src cypress/e2e cypress/support",
         "typecheck": "tsc --noEmit --strict",
         "test": "jest --silent",
         "test:dev": "jest --silent=false",
