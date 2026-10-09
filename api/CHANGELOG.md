@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.6.4](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.3...api-v0.6.4) (2026-10-01)
+## [0.6.4](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.3...api-v0.6.4) (2026-10-09)
 
 
 ### Bug Fixes
