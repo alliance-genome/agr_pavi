@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.3](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.8.2...webui-v0.8.3) (2026-10-09)
+
+
+### Bug Fixes
+
+* **webui:** default to the longest coding transcript when none is canonical ([#1056](https://github.com/alliance-genome/agr_pavi/issues/1056)) ([b730d53](https://github.com/alliance-genome/agr_pavi/commit/b730d536b7e5c5aefcb836a273eb2870a864f007)), closes [#1007](https://github.com/alliance-genome/agr_pavi/issues/1007)
+
 ## [0.8.2](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.8.1...webui-v0.8.2) (2026-10-09)
 
 
