@@ -17,15 +17,17 @@ export interface ResolveRowsOptions {
     idResolver?: IdResolver;
 }
 
+// Discriminated outcome for a single row. The caller indexes `rows[i]`
+// to recover the original line number, so we don't thread it back.
 type RowOutcome =
-    | { kind: 'entry'; entry: ExampleGene; sourceLine: number; matchId: string }
+    | { kind: 'entry'; entry: ExampleGene; matchId: string }
     | { kind: 'skip'; skip: SkippedRow };
 
 async function resolveSingle(
     raw: RawRow,
     symbolResolver: SymbolResolver,
     idResolver: IdResolver
-): Promise<Omit<RowOutcome, 'sourceLine'> & { sourceLine?: number }> {
+): Promise<RowOutcome> {
     // Direct gene-id path: skip the symbol+species search entirely.
     if (raw.geneId) {
         let match: GeneMatch | undefined;
