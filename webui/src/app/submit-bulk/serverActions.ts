@@ -42,3 +42,38 @@ export async function resolveGeneBySymbolSpecies(
                 m.species.toLowerCase() === wantSpecies
         );
 }
+
+// Direct gene-id lookup. Returns undefined for 400 / 404 so a single bad id
+// becomes a "not found" skip, not a batch-killing throw.
+export async function resolveGeneById(geneId: string): Promise<GeneMatch | undefined> {
+    const id = geneId.trim();
+    if (!id) return undefined;
+    const url = `https://www.alliancegenome.org/api/gene/${encodeURIComponent(id)}`;
+    const response = await fetch(url, { headers: { accept: 'application/json' } });
+    if (response.status === 400 || response.status === 404) return undefined;
+    if (!response.ok) {
+        throw new Error(`Gene lookup failed with HTTP ${response.status}`);
+    }
+
+    // Alliance v9 wraps everything under { category, gene }; v8 returned flat.
+    const body = await response.json();
+    const g = body?.gene ?? body;
+    if (!g) return undefined;
+
+    const resolvedId =
+        (g.primaryExternalId as string | undefined) ??
+        (g.id as string | undefined) ??
+        id;
+    const symbol =
+        (g.geneSymbol?.displayText as string | undefined) ??
+        (g.geneSymbol?.formatText as string | undefined) ??
+        (g.symbol as string | undefined) ??
+        resolvedId;
+    const species =
+        (g.taxon?.species?.fullName as string | undefined) ??
+        (g.species?.fullName as string | undefined) ??
+        (typeof g.species === 'string' ? g.species : undefined) ??
+        'Unknown';
+
+    return { id: resolvedId, symbol, species };
+}
