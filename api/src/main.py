@@ -1371,8 +1371,23 @@ async def import_pipeline_job(
         seq_info_bytes=extracted["seq_info_bytes"],
     )
 
+    # The /pipeline-job/{uuid}/result/* endpoints read alignment-output.aln
+    # and aligned_seq_info.json as files on disk — the per-job DB is a
+    # secondary artifact, not the canonical source. Mirror the pipeline's
+    # layout so the imported job is viewable the same way a freshly-run
+    # one is.
+    job_results_dir = db_path.parent
+    alignment_file = job_results_dir / "alignment-output.aln"
+    seqinfo_file = job_results_dir / "aligned_seq_info.json"
+    alignment_file.write_bytes(extracted["alignment_bytes"])
+    if extracted["seq_info_bytes"]:
+        seqinfo_file.write_bytes(extracted["seq_info_bytes"])
+
     # Register in the jobs store so /jobs sees it and /pipeline-job/{uuid}
-    # polling returns COMPLETED immediately.
+    # polling returns COMPLETED immediately. stage must be a valid JobStage
+    # enum value (DONE), not COMPLETED — mixing the two blows up get_job's
+    # enum parse with a cryptic 500.
+    from job_service import JobStage
     local_store = job_service.local_store
     local_store.create_job(
         job_id=new_job_id,
@@ -1382,9 +1397,10 @@ async def import_pipeline_job(
     local_store.update_job(
         new_job_id,
         status=SFJobStatus.COMPLETED.value,
-        stage="COMPLETED",
+        stage=JobStage.DONE.value,
         completed_at=datetime.utcnow().isoformat() + "Z",
         sequences_processed=len(extracted["seq_regions"]),
+        result_path=str(alignment_file),
     )
 
     sequence_count = len(extracted["seq_regions"])
