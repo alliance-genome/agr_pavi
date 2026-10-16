@@ -2,7 +2,7 @@ import { buildTemplateCsv, TEMPLATE_FILENAME } from '../bulkTemplate';
 
 describe('bulkTemplate', () => {
     it('has the exact header row', () => {
-        expect(buildTemplateCsv().split(/\r?\n/)[0]).toBe('species,gene_symbol,transcript,variants');
+        expect(buildTemplateCsv().split(/\r?\n/)[0]).toBe('gene_id,species,gene_symbol,transcript,variants');
     });
 
     it('includes at least one example data row', () => {

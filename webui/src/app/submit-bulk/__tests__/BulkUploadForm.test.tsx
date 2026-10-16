@@ -27,20 +27,26 @@ jest.mock('@/app/submit/components/JobSubmitForm/JobSubmitForm', () => ({
 describe('BulkUploadForm', () => {
     beforeEach(() => formSpy.mockClear());
 
-    it('parses + resolves an uploaded file, then renders the form and the report', async () => {
+    it('parses + resolves an uploaded file, previews, then renders the form on Load', async () => {
         render(<BulkUploadForm agrjBrowseDataRelease="8.2.0" />);
 
         const file = new File(['species,gene_symbol\nHomo sapiens,TP53\n'], 'genes.csv', { type: 'text/plain' });
         const input = screen.getByLabelText(/gene list file/i);
         fireEvent.change(input, { target: { files: [file] } });
 
+        // After resolve, the preview table appears; the form does not render
+        // until the user clicks "Load N into form".
+        const loadBtn = await screen.findByRole('button', { name: /load 1 into form/i });
+        expect(screen.queryByTestId('job-submit-form')).toBeNull();
+        expect(screen.getByText(/skipped 1 row/i)).toBeInTheDocument();
+
+        fireEvent.click(loadBtn);
         await waitFor(() => expect(screen.getByTestId('job-submit-form')).toBeInTheDocument());
 
         const props = formSpy.mock.calls.at(-1)?.[0] as { initialGenes?: unknown };
         expect(props.initialGenes).toEqual([
             { geneId: 'HGNC:11998', geneName: 'TP53', species: 'Homo sapiens' },
         ]);
-        expect(screen.getByText(/skipped 1 row/i)).toBeInTheDocument();
     });
 
     it('shows a file-level error and no form when parsing fails', async () => {
