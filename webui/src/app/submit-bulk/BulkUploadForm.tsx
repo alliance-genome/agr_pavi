@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import { ExampleGene } from '@/app/submit/components/ExampleDataLoader/ExampleDataLoader';
 import { JobSubmitForm } from '@/app/submit/components/JobSubmitForm/JobSubmitForm';
@@ -10,6 +10,10 @@ import { BulkUploadReport } from './BulkUploadReport';
 import { BulkPreviewTable } from './BulkPreviewTable';
 import { buildTemplateCsv, TEMPLATE_FILENAME } from './bulkTemplate';
 import { SkippedRow } from './types';
+
+// sessionStorage key used by /submit-ortholog to hand off a resolved
+// selection to this page without going through the file upload step.
+const ORTHOLOG_HANDOFF_KEY = 'pavi_ortholog_handoff';
 
 export interface BulkUploadFormProps {
     readonly agrjBrowseDataRelease: string;
@@ -26,7 +30,28 @@ export function BulkUploadForm({ agrjBrowseDataRelease }: BulkUploadFormProps) {
     const [entries, setEntries] = useState<ExampleGene[]>([]);
     const [skipped, setSkipped] = useState<SkippedRow[]>([]);
     const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+    const [handoffBanner, setHandoffBanner] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Pick up an ortholog-page handoff on mount. We clear the key right
+    // away so a browser back/forward doesn't re-apply the same selection.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const raw = window.sessionStorage.getItem(ORTHOLOG_HANDOFF_KEY);
+        if (!raw) return;
+        window.sessionStorage.removeItem(ORTHOLOG_HANDOFF_KEY);
+        try {
+            const parsed = JSON.parse(raw) as ExampleGene[];
+            if (!Array.isArray(parsed) || parsed.length === 0) return;
+            setEntries(parsed);
+            setSkipped([]);
+            setFileName(null);
+            setStatus('preview');
+            setHandoffBanner(`Loaded ${parsed.length} gene${parsed.length === 1 ? '' : 's'} from the Ortholog Alignment page.`);
+        } catch (e) {
+            console.error('Failed to parse ortholog handoff payload:', e);
+        }
+    }, []);
 
     async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
@@ -85,6 +110,25 @@ export function BulkUploadForm({ agrjBrowseDataRelease }: BulkUploadFormProps) {
 
     return (
         <div>
+            {handoffBanner && (
+                <div
+                    role="status"
+                    style={{
+                        padding: '0.75rem 1rem',
+                        marginBottom: '1rem',
+                        borderRadius: 6,
+                        background: '#eff6ff',
+                        color: '#1e40af',
+                        border: '1px solid #bfdbfe',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                    }}
+                >
+                    <i className="pi pi-arrow-right" aria-hidden="true" />
+                    {handoffBanner}
+                </div>
+            )}
             <div className="agr-card" style={{ marginBottom: '1rem' }}>
                 <div className="agr-card-body">
                     <p style={{ marginTop: 0, marginBottom: '0.75rem', color: 'var(--agr-text-secondary)' }}>

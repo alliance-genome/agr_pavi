@@ -14,6 +14,8 @@ export interface OrthologResult {
     orthologs: OrthologInfo[];
 }
 
+export type OrthologStringency = 'stringent' | 'moderate' | 'all';
+
 // Alliance model organism taxon IDs for filtering
 const AGR_SPECIES_TAXONS = new Set([
     'NCBITaxon:9606',   // Homo sapiens
@@ -26,16 +28,23 @@ const AGR_SPECIES_TAXONS = new Set([
     'NCBITaxon:8364',   // Xenopus tropicalis
 ]);
 
-export async function fetchOrthologs(geneId: string): Promise<OrthologResult> {
+export async function fetchOrthologs(
+    geneId: string,
+    stringency: OrthologStringency = 'stringent',
+): Promise<OrthologResult> {
     const endpointUrl = `https://www.alliancegenome.org/api/gene/${geneId}/orthologs`;
-    const queryParams = new URLSearchParams({
-        'filter.stringency': 'stringent',
-    });
+    const queryParams = new URLSearchParams();
+    // 'all' = no filter parameter sent, so Alliance returns every mapping
+    // regardless of stringency. The two other values map 1:1 to the API's
+    // filter.stringency enum.
+    if (stringency !== 'all') {
+        queryParams.set('filter.stringency', stringency);
+    }
 
     const results = await fetchAllPages({
         url: endpointUrl,
         urlSearchParams: queryParams,
-        maxResults: 100,
+        maxResults: 200,
     });
 
     let sourceGene: OrthologInfo | null = null;
