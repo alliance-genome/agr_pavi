@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, FastAPI, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from io import StringIO, BytesIO
@@ -11,6 +11,7 @@ from typing import Any, Literal, Optional
 import json
 import re
 import subprocess
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid1, UUID
 
@@ -1216,6 +1217,191 @@ async def batch_export_pipeline_jobs(body: BatchExportRequest) -> StreamingRespo
         _iter(),
         media_type="application/zip",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+class ImportResponse(BaseModel):
+    job_id: str
+    source_format: Literal["db", "json"]
+    source_job_id: Optional[str] = None
+    sequence_count: int
+    variant_count: int
+
+
+MAX_IMPORT_SIZE = 100 * 1024 * 1024  # 100 MB
+
+
+def _looks_like_sqlite(blob: bytes) -> bool:
+    """SQLite databases always start with the magic string 'SQLite format 3\\x00'."""
+    return blob.startswith(b"SQLite format 3\x00")
+
+
+def _extract_from_sqlite(blob: bytes) -> dict[str, Any]:
+    """Open an uploaded .db blob (via a temp file) and extract the pieces we need."""
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
+        tmp.write(blob)
+        tmp_path = Path(tmp.name)
+    try:
+        metadata = job_db.read_metadata(tmp_path)
+        seq_regions = job_db.read_input_seq_regions(tmp_path) or []
+        results = job_db.read_results(tmp_path)
+        return {
+            "source_job_id": metadata.get("job_id"),
+            "seq_regions": seq_regions,
+            "alignment_bytes": results.get("alignment", b""),
+            "seq_info_bytes": results.get("seq_info", b""),
+        }
+    finally:
+        try:
+            tmp_path.unlink()
+        except OSError:
+            pass
+
+
+def _extract_from_json(blob: bytes) -> dict[str, Any]:
+    """Parse an uploaded export_bundle_json() payload."""
+    try:
+        bundle = json.loads(blob.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON bundle: {e}") from e
+    if not isinstance(bundle, dict):
+        raise HTTPException(status_code=400, detail="JSON bundle must be an object.")
+
+    seq_info = bundle.get("seq_info")
+    seq_info_bytes = (
+        json.dumps(seq_info).encode("utf-8") if seq_info is not None else b""
+    )
+    alignment = bundle.get("alignment", "")
+    if not isinstance(alignment, str):
+        raise HTTPException(status_code=400, detail="`alignment` must be a string.")
+    seq_regions = bundle.get("input_seq_regions", []) or []
+    if not isinstance(seq_regions, list):
+        raise HTTPException(status_code=400, detail="`input_seq_regions` must be a list.")
+    return {
+        "source_job_id": bundle.get("job_id"),
+        "seq_regions": seq_regions,
+        "alignment_bytes": alignment.encode("utf-8"),
+        "seq_info_bytes": seq_info_bytes,
+    }
+
+
+def _count_variants(seq_info_bytes: bytes) -> int:
+    try:
+        obj = json.loads(seq_info_bytes.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return 0
+    total = 0
+    if isinstance(obj, dict):
+        for info in obj.values():
+            if isinstance(info, dict):
+                total += len(info.get("embedded_variants", []) or [])
+    return total
+
+
+@router.post(
+    "/pipeline-job/import",
+    response_model=ImportResponse,
+    responses={
+        400: {"model": HTTP_exception_response},
+        413: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def import_pipeline_job(
+    file: UploadFile = File(..., description="Previously-exported .db or .json bundle"),
+) -> ImportResponse:
+    """
+    Re-import a job from a .db or JSON bundle produced by the export endpoint.
+
+    A new job_id is minted so the imported record never collides with an
+    existing one. The uploaded alignment and seq-info are written as a
+    completed job that /result?uuid=... can render immediately.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Job import is currently only available in local pipeline mode.",
+        )
+
+    blob = await file.read()
+    if not blob:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(blob) > MAX_IMPORT_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Uploaded file exceeds {MAX_IMPORT_SIZE // (1024 * 1024)} MB limit.",
+        )
+
+    # Detect format by magic bytes first; fall back to filename hint.
+    source_format: Literal["db", "json"]
+    if _looks_like_sqlite(blob):
+        source_format = "db"
+        extracted = _extract_from_sqlite(blob)
+    elif blob.lstrip().startswith(b"{"):
+        source_format = "json"
+        extracted = _extract_from_json(blob)
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Unrecognised file; expected a PAVI .db or JSON bundle.",
+        )
+
+    if not extracted["alignment_bytes"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file is missing the alignment payload.",
+        )
+
+    # Mint a fresh UUID so the imported job doesn't collide with the
+    # original. Record the source UUID in the per-job DB metadata so the
+    # provenance survives the round trip.
+    new_uuid = uuid1()
+    new_job_id = str(new_uuid)
+
+    job_service = get_job_service()
+    results_root = Path(job_service.local_results_path)
+    db_path = job_db.db_path_for_job(results_root, new_job_id)
+
+    job_db.write_finished_job(
+        db_path=db_path,
+        job_id=new_job_id,
+        seq_regions=extracted["seq_regions"],
+        alignment_bytes=extracted["alignment_bytes"],
+        seq_info_bytes=extracted["seq_info_bytes"],
+    )
+
+    # Register in the jobs store so /jobs sees it and /pipeline-job/{uuid}
+    # polling returns COMPLETED immediately.
+    local_store = job_service.local_store
+    local_store.create_job(
+        job_id=new_job_id,
+        input_data=extracted["seq_regions"],
+        input_count=len(extracted["seq_regions"]),
+    )
+    local_store.update_job(
+        new_job_id,
+        status=SFJobStatus.COMPLETED.value,
+        stage="COMPLETED",
+        completed_at=datetime.utcnow().isoformat() + "Z",
+        sequences_processed=len(extracted["seq_regions"]),
+    )
+
+    sequence_count = len(extracted["seq_regions"])
+    variant_count = _count_variants(extracted["seq_info_bytes"])
+
+    logger.info(
+        f"Imported {source_format} job as {new_job_id} "
+        f"(source={extracted.get('source_job_id')}, "
+        f"{sequence_count} regions, {variant_count} variants)"
+    )
+
+    return ImportResponse(
+        job_id=new_job_id,
+        source_format=source_format,
+        source_job_id=extracted.get("source_job_id"),
+        sequence_count=sequence_count,
+        variant_count=variant_count,
     )
 
 
