@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DataTable, DataTableSelectionMultipleChangeEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -8,8 +8,10 @@ import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
+import { Menu } from 'primereact/menu';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { JobHistoryEntry, JobStatus } from '../../../../hooks/useJobHistory';
+import { withBasePath } from '@/utils/basePath';
 import styles from './JobTable.module.css';
 
 interface JobTableProps {
@@ -28,6 +30,48 @@ export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoa
     const [selectedJobs, setSelectedJobs] = useState<JobHistoryEntry[]>([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState<JobStatus | 'all'>('all');
+    const batchExportMenuRef = useRef<Menu>(null);
+
+    // Only completed jobs can be exported; skip pending/running/failed silently.
+    const batchExport = async (format: string) => {
+        const uuids = selectedJobs.filter(j => j.status === 'completed').map(j => j.uuid);
+        if (uuids.length === 0) return;
+        try {
+            const res = await fetch(withBasePath('/api/pipeline-job/batch-export'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uuids, format }),
+            });
+            if (!res.ok) throw new Error(`Batch export failed: ${res.status}`);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pavi-batch-${uuids.length}jobs-${format}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Batch export error:', err);
+        }
+    };
+
+    const batchExportMenuItems = [
+        { label: 'HTML reports', icon: 'pi pi-file-pdf', command: () => batchExport('html') },
+        { label: 'JSON bundles', icon: 'pi pi-file', command: () => batchExport('json') },
+        { label: 'Aligned FASTA', icon: 'pi pi-align-left', command: () => batchExport('fasta') },
+        { label: 'Variants (CSV)', icon: 'pi pi-table', command: () => batchExport('csv') },
+        { separator: true },
+        { label: 'Clustal (.aln)', icon: 'pi pi-file', command: () => batchExport('clustal') },
+        { label: 'PHYLIP (.phy)', icon: 'pi pi-file', command: () => batchExport('phylip') },
+        { label: 'Stockholm (.sto)', icon: 'pi pi-file', command: () => batchExport('stockholm') },
+        { label: 'NEXUS (.nex)', icon: 'pi pi-file', command: () => batchExport('nexus') },
+        { separator: true },
+        { label: 'SQLite (.db)', icon: 'pi pi-database', command: () => batchExport('db') },
+    ];
+
+    const completedSelectedCount = selectedJobs.filter(j => j.status === 'completed').length;
 
     const statusOptions = [
         { label: 'All Statuses', value: 'all' },
@@ -224,6 +268,19 @@ export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoa
                 />
             </div>
             <div className={styles.headerRight}>
+                {completedSelectedCount > 0 && (
+                    <>
+                        <Menu model={batchExportMenuItems} popup ref={batchExportMenuRef} id="batch-export-menu" />
+                        <Button
+                            label={`Export ${completedSelectedCount}`}
+                            icon="pi pi-download"
+                            className="p-button-sm p-button-outlined"
+                            aria-haspopup
+                            aria-controls="batch-export-menu"
+                            onClick={(e) => batchExportMenuRef.current?.toggle(e)}
+                        />
+                    </>
+                )}
                 {selectedJobs.length > 0 && (
                     <Button
                         label={`Delete ${selectedJobs.length} Selected`}

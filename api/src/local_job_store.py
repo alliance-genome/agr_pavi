@@ -89,8 +89,97 @@ class LocalJobStore:
         """
         )
 
+        # Share tokens: a short URL-safe token that grants read-only access
+        # to a specific job's results without needing the UUID. The job UUID
+        # is kept out of the public URL to avoid letting someone sweep /jobs.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS share_tokens (
+                token       TEXT PRIMARY KEY,
+                job_id      TEXT NOT NULL,
+                created_at  TEXT NOT NULL,
+                expires_at  TEXT,
+                revoked_at  TEXT,
+                last_used   TEXT,
+                use_count   INTEGER DEFAULT 0,
+                FOREIGN KEY (job_id) REFERENCES jobs(job_id)
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_share_tokens_job_id ON share_tokens(job_id)"
+        )
+
         conn.commit()
         log.info(f"Initialized local job store at {self.db_path}")
+
+    # ------------------------------------------------------------------
+    # Share-token methods
+    # ------------------------------------------------------------------
+
+    def create_share_token(
+        self, token: str, job_id: str, expires_at: Optional[str] = None
+    ) -> dict[str, Any]:
+        """Store a new share token for a job."""
+        conn = self._get_connection()
+        conn.execute(
+            "INSERT INTO share_tokens (token, job_id, created_at, expires_at) "
+            "VALUES (?, ?, ?, ?)",
+            (token, job_id, datetime.utcnow().isoformat(), expires_at),
+        )
+        conn.commit()
+        return {"token": token, "job_id": job_id, "expires_at": expires_at}
+
+    def resolve_share_token(self, token: str) -> Optional[dict[str, Any]]:
+        """
+        Resolve a share token to its job_id. Returns None if the token is
+        unknown, revoked, or expired. Also bumps last_used / use_count.
+        """
+        conn = self._get_connection()
+        row = conn.execute(
+            "SELECT token, job_id, created_at, expires_at, revoked_at "
+            "FROM share_tokens WHERE token = ?",
+            (token,),
+        ).fetchone()
+        if row is None:
+            return None
+        if row["revoked_at"] is not None:
+            return None
+        if row["expires_at"]:
+            try:
+                if datetime.fromisoformat(row["expires_at"]) < datetime.utcnow():
+                    return None
+            except ValueError:
+                pass
+        conn.execute(
+            "UPDATE share_tokens SET last_used = ?, use_count = use_count + 1 "
+            "WHERE token = ?",
+            (datetime.utcnow().isoformat(), token),
+        )
+        conn.commit()
+        return dict(row)
+
+    def list_share_tokens(self, job_id: str) -> list[dict[str, Any]]:
+        """Return all share tokens issued for a job (including revoked)."""
+        conn = self._get_connection()
+        rows = conn.execute(
+            "SELECT token, job_id, created_at, expires_at, revoked_at, "
+            "last_used, use_count FROM share_tokens WHERE job_id = ? "
+            "ORDER BY created_at DESC",
+            (job_id,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def revoke_share_token(self, token: str) -> bool:
+        """Revoke a share token. Returns True if a row was updated."""
+        conn = self._get_connection()
+        cur = conn.execute(
+            "UPDATE share_tokens SET revoked_at = ? "
+            "WHERE token = ? AND revoked_at IS NULL",
+            (datetime.utcnow().isoformat(), token),
+        )
+        conn.commit()
+        return cur.rowcount > 0
 
     def create_job(
         self, job_id: str, input_data: list[dict[str, Any]], input_count: int = 0

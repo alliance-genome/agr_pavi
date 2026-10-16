@@ -1028,7 +1028,7 @@ async def get_pipeline_job_seq_info_result(uuid: UUID) -> StreamingResponse:
 )
 async def get_pipeline_job_export(
     uuid: UUID,
-    fmt: Literal["db", "json", "fasta", "csv"] = Query("db", alias="format"),
+    fmt: Literal["db", "json", "fasta", "csv", "clustal", "phylip", "stockholm", "nexus", "html"] = Query("db", alias="format"),
 ) -> Response:
     """
     Download a finished job in one of several formats.
@@ -1038,6 +1038,11 @@ async def get_pipeline_job_export(
     - ``json``: the same contents as a single self-contained JSON bundle.
     - ``fasta``: the aligned protein sequences (with gaps).
     - ``csv``: a flat table of the embedded variants across all sequences.
+    - ``clustal``: the Clustal Omega alignment output verbatim.
+    - ``phylip``: relaxed PHYLIP (RAxML / IQ-TREE / PhyML).
+    - ``stockholm``: Pfam / HMMER format.
+    - ``nexus``: NEXUS for PAUP* / MrBayes / FigTree.
+    - ``html``: self-contained HTML report (prints to PDF via the browser).
 
     Currently produced only by the local pipeline mode. Step Functions
     mode does not yet emit a per-job DB.
@@ -1077,6 +1082,21 @@ async def get_pipeline_job_export(
     elif fmt == "fasta":
         body = job_db.export_fasta(db_path)
         media_type, extension = "text/x-fasta", "fasta"
+    elif fmt == "clustal":
+        body = job_db.export_clustal(db_path)
+        media_type, extension = "text/plain", "aln"
+    elif fmt == "phylip":
+        body = job_db.export_phylip(db_path)
+        media_type, extension = "text/plain", "phy"
+    elif fmt == "stockholm":
+        body = job_db.export_stockholm(db_path)
+        media_type, extension = "text/plain", "sto"
+    elif fmt == "nexus":
+        body = job_db.export_nexus(db_path)
+        media_type, extension = "text/plain", "nex"
+    elif fmt == "html":
+        body = job_db.export_report_html(db_path)
+        media_type, extension = "text/html", "html"
     else:  # csv
         body = job_db.export_variants_csv(db_path)
         media_type, extension = "text/csv", "csv"
@@ -1088,6 +1108,263 @@ async def get_pipeline_job_export(
             "Content-Disposition": f'attachment; filename="{base_name}.{extension}"'
         },
     )
+
+
+class BatchExportRequest(BaseModel):
+    uuids: list[UUID]
+    format: Literal["db", "json", "fasta", "csv", "clustal", "phylip", "stockholm", "nexus", "html"] = "db"
+
+
+_BATCH_EXTENSIONS: dict[str, str] = {
+    "db": "db",
+    "json": "json",
+    "fasta": "fasta",
+    "csv": "csv",
+    "clustal": "aln",
+    "phylip": "phy",
+    "stockholm": "sto",
+    "nexus": "nex",
+    "html": "html",
+}
+
+
+@router.post(
+    "/pipeline-job/batch-export",
+    responses={
+        400: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def batch_export_pipeline_jobs(body: BatchExportRequest) -> StreamingResponse:
+    """
+    Download multiple finished jobs as a single zip archive.
+
+    Each job becomes ``pavi-job-<uuid>.<ext>`` inside the zip. Jobs whose
+    DB cannot be found are skipped and recorded in ``_missing.txt`` inside
+    the archive — a partial download beats failing the whole batch.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Batch export is currently only available in local pipeline mode.",
+        )
+    if not body.uuids:
+        raise HTTPException(status_code=400, detail="No job UUIDs provided.")
+
+    import io as _io
+    import zipfile
+
+    job_service = get_job_service()
+    results_root = Path(job_service.local_results_path)
+    fmt = body.format
+    ext = _BATCH_EXTENSIONS[fmt]
+
+    def _render(db_path: Path) -> bytes | None:
+        if fmt == "db":
+            return db_path.read_bytes()
+        if fmt == "json":
+            return job_db.export_bundle_json(db_path).encode("utf-8")
+        if fmt == "fasta":
+            return job_db.export_fasta(db_path).encode("utf-8")
+        if fmt == "csv":
+            return job_db.export_variants_csv(db_path).encode("utf-8")
+        if fmt == "clustal":
+            return job_db.export_clustal(db_path).encode("utf-8")
+        if fmt == "phylip":
+            return job_db.export_phylip(db_path).encode("utf-8")
+        if fmt == "stockholm":
+            return job_db.export_stockholm(db_path).encode("utf-8")
+        if fmt == "nexus":
+            return job_db.export_nexus(db_path).encode("utf-8")
+        if fmt == "html":
+            return job_db.export_report_html(db_path).encode("utf-8")
+        return None
+
+    buf = _io.BytesIO()
+    missing: list[str] = []
+    with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for uuid in body.uuids:
+            db_path = job_db.db_path_for_job(results_root, str(uuid))
+            if not db_path.exists():
+                missing.append(str(uuid))
+                continue
+            try:
+                data = _render(db_path)
+            except Exception as e:  # per-job failure shouldn't kill the batch
+                logger.warning(f"Batch export failed for job {uuid} ({fmt}): {e}")
+                missing.append(f"{uuid} ({e.__class__.__name__})")
+                continue
+            if data is None:
+                continue
+            zf.writestr(f"pavi-job-{uuid}.{ext}", data)
+        if missing:
+            zf.writestr(
+                "_missing.txt",
+                "The following job UUIDs were skipped (DB not found or render failed):\n"
+                + "\n".join(missing)
+                + "\n",
+            )
+
+    buf.seek(0)
+    stamp = str(body.uuids[0])[:8] if len(body.uuids) == 1 else f"{len(body.uuids)}jobs"
+    filename = f"pavi-batch-{stamp}-{fmt}.zip"
+
+    def _iter() -> Any:
+        yield from buf
+
+    return StreamingResponse(
+        _iter(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+class CreateShareTokenRequest(BaseModel):
+    ttl_hours: Optional[int] = None  # None = no expiration
+
+
+class ShareTokenResponse(BaseModel):
+    token: str
+    job_id: str
+    created_at: Optional[str] = None
+    expires_at: Optional[str] = None
+    revoked_at: Optional[str] = None
+    use_count: Optional[int] = None
+
+
+def _generate_share_token() -> str:
+    """URL-safe token with ~160 bits of entropy."""
+    import secrets
+    return secrets.token_urlsafe(24)
+
+
+@router.post(
+    "/pipeline-job/{uuid}/share",
+    response_model=ShareTokenResponse,
+    responses={
+        404: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def create_share_token(uuid: UUID, body: CreateShareTokenRequest) -> ShareTokenResponse:
+    """
+    Issue a share token for a completed job. The token grants anonymous
+    read-only access to the job's results and exports via /shared/{token}.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Share tokens are currently only available in local pipeline mode.",
+        )
+    job_service = get_job_service()
+    # Verify the job exists before issuing a token.
+    if job_service.get_job(str(uuid)) is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+
+    expires_at: Optional[str] = None
+    if body.ttl_hours is not None and body.ttl_hours > 0:
+        from datetime import datetime, timedelta
+        expires_at = (datetime.utcnow() + timedelta(hours=body.ttl_hours)).isoformat()
+
+    token = _generate_share_token()
+    row = job_service.local_store.create_share_token(token, str(uuid), expires_at)
+    return ShareTokenResponse(
+        token=row["token"],
+        job_id=row["job_id"],
+        expires_at=row["expires_at"],
+    )
+
+
+@router.get(
+    "/pipeline-job/{uuid}/share",
+    response_model=list[ShareTokenResponse],
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def list_share_tokens(uuid: UUID) -> list[ShareTokenResponse]:
+    """List all share tokens issued for a job (active + revoked)."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Share tokens are currently only available in local pipeline mode.",
+        )
+    job_service = get_job_service()
+    rows = job_service.local_store.list_share_tokens(str(uuid))
+    return [ShareTokenResponse(**r) for r in rows]
+
+
+@router.delete(
+    "/pipeline-job/share/{token}",
+    responses={
+        404: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def revoke_share_token(token: str) -> dict[str, bool]:
+    """Revoke a share token so it can no longer be used."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Share tokens are currently only available in local pipeline mode.",
+        )
+    job_service = get_job_service()
+    ok = job_service.local_store.revoke_share_token(token)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Share token not found or already revoked.")
+    return {"revoked": True}
+
+
+def _resolve_share_or_404(token: str) -> str:
+    """Look up a share token and return the job_id, or raise 404/501."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Share tokens are currently only available in local pipeline mode.",
+        )
+    job_service = get_job_service()
+    row = job_service.local_store.resolve_share_token(token)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Share token invalid, revoked, or expired.")
+    return str(row["job_id"])
+
+
+@router.get(
+    "/shared/{token}",
+    responses={404: {"model": HTTP_exception_response}},
+)
+async def get_shared_job(token: str) -> dict[str, Any]:
+    """
+    Public (unauthenticated) read of a shared job: returns the minimal
+    metadata plus a direct link to the shared result endpoints.
+    """
+    job_id = _resolve_share_or_404(token)
+    job_service = get_job_service()
+    info = job_service.get_job(job_id)
+    if info is None:
+        raise HTTPException(status_code=404, detail="Underlying job no longer exists.")
+    return {
+        "token": token,
+        "job_id": job_id,
+        "status": info.status.value.lower(),
+        "stage": info.stage.value if info.stage else None,
+        "completed_at": getattr(info, "completed_at", None),
+    }
+
+
+@router.get(
+    "/shared/{token}/export",
+    responses={
+        404: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def get_shared_job_export(
+    token: str,
+    fmt: Literal["db", "json", "fasta", "csv", "clustal", "phylip", "stockholm", "nexus", "html"] = Query("db", alias="format"),
+) -> Response:
+    """Download the shared job in the requested format. Mirrors /pipeline-job/{uuid}/export."""
+    job_id = _resolve_share_or_404(token)
+    # Reuse the main export implementation by delegating via UUID conversion.
+    return await get_pipeline_job_export(UUID(job_id), fmt=fmt)
 
 
 @router.get(
