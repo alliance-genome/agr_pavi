@@ -266,6 +266,251 @@ def export_fasta(db_path: Path, wrap: int = 60) -> str:
     return "\n".join(lines) + ("\n" if lines else "")
 
 
+def export_clustal(db_path: Path) -> str:
+    """Return the aligned sequences in CLUSTAL format.
+
+    The alignment stored in the DB is already produced by Clustal Omega, so
+    we return it verbatim. Kept as its own export for symmetry with the
+    other sequence formats.
+    """
+    alignment, _ = _decoded_results(db_path)
+    return alignment
+
+
+def export_phylip(db_path: Path, relaxed: bool = True) -> str:
+    """Export the alignment in PHYLIP format.
+
+    Strict PHYLIP truncates names to 10 characters, which collides for the
+    typical PAVI naming scheme. Relaxed PHYLIP (the default) keeps full
+    names separated by whitespace and is accepted by most modern
+    phylogenetics tools (RAxML, IQ-TREE, PhyML).
+    """
+    seqs = _parse_clustal(_decoded_results(db_path)[0])
+    if not seqs:
+        return "0 0\n"
+    ntax = len(seqs)
+    nchar = max(len(s) for _, s in seqs)
+    lines = [f" {ntax} {nchar}"]
+    for name, seq in seqs:
+        label = name if relaxed else (name[:10].ljust(10))
+        sep = "  " if relaxed else ""
+        lines.append(f"{label}{sep}{seq}")
+    return "\n".join(lines) + "\n"
+
+
+def export_stockholm(db_path: Path) -> str:
+    """Export the alignment in Stockholm format (Pfam/HMMER)."""
+    seqs = _parse_clustal(_decoded_results(db_path)[0])
+    lines = ["# STOCKHOLM 1.0"]
+    if seqs:
+        name_width = max(len(n) for n, _ in seqs)
+        for name, seq in seqs:
+            lines.append(f"{name.ljust(name_width)}  {seq}")
+    lines.append("//")
+    return "\n".join(lines) + "\n"
+
+
+_CLUSTAL_COLORS = {
+    "A": "#80a0f0", "I": "#80a0f0", "L": "#80a0f0", "M": "#80a0f0",
+    "F": "#80a0f0", "W": "#80a0f0", "V": "#80a0f0",
+    "K": "#f01505", "R": "#f01505",
+    "D": "#c048c0", "E": "#c048c0",
+    "N": "#15c015", "Q": "#15c015", "S": "#15c015", "T": "#15c015",
+    "C": "#f08080",
+    "G": "#f09048",
+    "P": "#c0c000",
+    "H": "#15a4a4", "Y": "#15a4a4",
+}
+
+
+def _html_escape(s: str) -> str:
+    return (
+        s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
+
+def export_report_html(db_path: Path) -> str:
+    """Self-contained HTML report for a finished job.
+
+    One file: header with metadata, Clustal-colored alignment grid, variant
+    table, and the input seq-regions in a <details>. No external CSS, JS,
+    or fonts — openable offline. Also prints nicely to PDF via a browser.
+    """
+    alignment, seq_info_obj = _decoded_results(db_path)
+    metadata = read_metadata(db_path)
+    seqs = _parse_clustal(alignment)
+    job_id = metadata.get("job_id", "")
+    completed = metadata.get("completed_at", "")
+
+    # Compact variant list across sequences
+    variants: list[dict[str, Any]] = []
+    if isinstance(seq_info_obj, dict):
+        for seq_name, info in seq_info_obj.items():
+            if not isinstance(info, dict):
+                continue
+            species = info.get("species", "")
+            for v in info.get("embedded_variants", []) or []:
+                if not isinstance(v, dict):
+                    continue
+                variants.append({
+                    "sequence": seq_name,
+                    "species": species,
+                    "variant_id": v.get("variant_id", ""),
+                    "position": v.get("alignment_start_pos", ""),
+                    "type": v.get("seq_substitution_type", ""),
+                    "ref": v.get("genomic_ref_seq", ""),
+                    "alt": v.get("genomic_alt_seq", ""),
+                    "hgvs_protein": v.get("hgvs_protein", ""),
+                    "impact": v.get("impact", ""),
+                })
+
+    # Build colored alignment grid: one row per sequence, 60 cols per chunk.
+    chunk = 60
+    seq_len = max((len(s) for _, s in seqs), default=0)
+    name_width = max((len(n) for n, _ in seqs), default=10)
+
+    aln_blocks: list[str] = []
+    for start in range(0, seq_len, chunk):
+        end = min(start + chunk, seq_len)
+        aln_blocks.append(f'<div class="pos">{start + 1} &rarr; {end}</div>')
+        aln_blocks.append('<pre class="aln">')
+        for name, seq in seqs:
+            cells = []
+            for ch in seq[start:end]:
+                color = _CLUSTAL_COLORS.get(ch.upper(), "")
+                if color and ch != "-":
+                    cells.append(f'<span style="background:{color}">{_html_escape(ch)}</span>')
+                else:
+                    cells.append(_html_escape(ch))
+            aln_blocks.append(f'<span class="n">{_html_escape(name).ljust(name_width)}</span>  {"".join(cells)}')
+        aln_blocks.append('</pre>')
+    aln_html = "\n".join(aln_blocks)
+
+    # Variant table
+    if variants:
+        rows = []
+        for v in variants:
+            rows.append(
+                "<tr>"
+                f"<td>{_html_escape(str(v['sequence']))}</td>"
+                f"<td>{_html_escape(str(v['species']))}</td>"
+                f"<td>{_html_escape(str(v['variant_id']))}</td>"
+                f"<td>{_html_escape(str(v['position']))}</td>"
+                f"<td>{_html_escape(str(v['type']))}</td>"
+                f"<td>{_html_escape(str(v['ref']))}&rarr;{_html_escape(str(v['alt']))}</td>"
+                f"<td>{_html_escape(str(v['hgvs_protein']))}</td>"
+                f'<td class="imp-{_html_escape(str(v["impact"]).lower())}">{_html_escape(str(v["impact"]))}</td>'
+                "</tr>"
+            )
+        variant_table = (
+            '<table><thead><tr>'
+            '<th>Sequence</th><th>Species</th><th>Variant ID</th>'
+            '<th>Pos (aln)</th><th>Type</th><th>Ref&rarr;Alt</th>'
+            '<th>HGVS protein</th><th>Impact</th>'
+            '</tr></thead><tbody>'
+            + "".join(rows)
+            + '</tbody></table>'
+        )
+    else:
+        variant_table = '<p class="empty">No variants embedded.</p>'
+
+    # Input seq-regions, truncated preview for pretty printing
+    seq_regions = read_input_seq_regions(db_path) or []
+    regions_json = json.dumps(seq_regions, indent=2) if seq_regions else "(none)"
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PAVI job {_html_escape(job_id)}</title>
+<style>
+  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         margin: 2rem auto; max-width: 1200px; padding: 0 1rem; color: #222; }}
+  h1 {{ margin: 0 0 .25rem; font-size: 1.5rem; }}
+  h2 {{ margin: 2rem 0 .75rem; font-size: 1.15rem; border-bottom: 2px solid #e5e7eb; padding-bottom: .25rem; }}
+  .meta {{ color: #666; font-size: .9rem; margin-bottom: 1.5rem; }}
+  .meta code {{ background: #f3f4f6; padding: 2px 6px; border-radius: 3px; }}
+  .count {{ display: inline-block; background: #2563eb; color: white; padding: 2px 10px;
+           border-radius: 999px; font-size: .8rem; margin-left: .5rem; }}
+  .pos {{ font-size: .75rem; color: #888; margin-top: .75rem; }}
+  pre.aln {{ font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+            font-size: 13px; line-height: 1.3; margin: .25rem 0 .5rem;
+            background: #fafbfc; border: 1px solid #e5e7eb; border-radius: 4px;
+            padding: .5rem; overflow-x: auto; }}
+  pre.aln .n {{ color: #2563eb; font-weight: 600; }}
+  table {{ width: 100%; border-collapse: collapse; margin: .5rem 0 1rem; font-size: .85rem; }}
+  th, td {{ padding: 6px 10px; text-align: left; border-bottom: 1px solid #e5e7eb; }}
+  th {{ background: #f9fafb; font-weight: 600; }}
+  .imp-high {{ color: #dc2626; font-weight: 600; }}
+  .imp-moderate {{ color: #d97706; font-weight: 600; }}
+  .imp-low {{ color: #16a34a; }}
+  .imp-modifier {{ color: #6b7280; }}
+  details {{ margin: 1rem 0; }}
+  details pre {{ background: #f9fafb; padding: .75rem; border-radius: 4px; font-size: .75rem;
+                 max-height: 400px; overflow: auto; }}
+  .empty {{ color: #888; font-style: italic; }}
+  @media print {{
+    body {{ margin: 0; max-width: none; }}
+    pre.aln {{ overflow: visible; }}
+  }}
+</style>
+</head>
+<body>
+<h1>PAVI alignment report</h1>
+<div class="meta">
+  Job <code>{_html_escape(job_id)}</code>
+  &middot; Completed {_html_escape(completed)}
+  &middot; {len(seqs)} sequence{"s" if len(seqs) != 1 else ""}
+  &middot; {seq_len} aligned positions
+</div>
+
+<h2>Alignment<span class="count">Clustal Omega</span></h2>
+{aln_html}
+
+<h2>Embedded variants<span class="count">{len(variants)}</span></h2>
+{variant_table}
+
+<h2>Input sequence regions</h2>
+<details><summary>Show input payload ({len(seq_regions)} region{"s" if len(seq_regions) != 1 else ""})</summary>
+<pre>{_html_escape(regions_json)}</pre>
+</details>
+
+<p class="meta" style="margin-top:2rem;">
+  Generated by PAVI &middot; <a href="https://pavi.alliancegenome.org">pavi.alliancegenome.org</a>
+</p>
+</body>
+</html>
+"""
+
+
+def export_nexus(db_path: Path) -> str:
+    """Export the alignment in NEXUS format (PAUP*, MrBayes, FigTree)."""
+    seqs = _parse_clustal(_decoded_results(db_path)[0])
+    ntax = len(seqs)
+    nchar = max((len(s) for _, s in seqs), default=0)
+    # NEXUS forbids whitespace and some punctuation in taxon names; use '_'.
+    def _safe(name: str) -> str:
+        return re.sub(r"[\s;,:()\[\]'\"]+", "_", name)
+
+    lines = [
+        "#NEXUS",
+        "",
+        "BEGIN DATA;",
+        f"    DIMENSIONS NTAX={ntax} NCHAR={nchar};",
+        '    FORMAT DATATYPE=PROTEIN MISSING=? GAP=-;',
+        "    MATRIX",
+    ]
+    if seqs:
+        name_width = max(len(_safe(n)) for n, _ in seqs)
+        for name, seq in seqs:
+            lines.append(f"        {_safe(name).ljust(name_width)}  {seq}")
+    lines.extend(["    ;", "END;", ""])
+    return "\n".join(lines) + "\n"
+
+
 _VARIANT_CSV_COLUMNS = [
     "sequence",
     "species",

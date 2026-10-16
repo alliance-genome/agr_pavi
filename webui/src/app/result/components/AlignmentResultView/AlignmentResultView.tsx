@@ -57,9 +57,22 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         window.location.href = withBasePath(`/api/pipeline-job/${props.uuidStr}/export?format=${format}`)
     }, [props.uuidStr])
     const downloadMenuItems = [
+        { label: 'HTML report', icon: 'pi pi-file-pdf', command: () => downloadExport('html') },
+        { separator: true },
         { label: 'JSON bundle', icon: 'pi pi-file', command: () => downloadExport('json') },
         { label: 'Aligned FASTA', icon: 'pi pi-align-left', command: () => downloadExport('fasta') },
         { label: 'Variants (CSV)', icon: 'pi pi-table', command: () => downloadExport('csv') },
+        { separator: true },
+        {
+            label: 'Phylogenetics formats',
+            icon: 'pi pi-sitemap',
+            items: [
+                { label: 'Clustal (.aln)', icon: 'pi pi-file', command: () => downloadExport('clustal') },
+                { label: 'PHYLIP relaxed (.phy)', icon: 'pi pi-file', command: () => downloadExport('phylip') },
+                { label: 'Stockholm (.sto)', icon: 'pi pi-file', command: () => downloadExport('stockholm') },
+                { label: 'NEXUS (.nex)', icon: 'pi pi-file', command: () => downloadExport('nexus') },
+            ],
+        },
         { separator: true },
         { label: 'SQLite (.db)', icon: 'pi pi-database', command: () => downloadExport('db') },
     ]
@@ -156,12 +169,28 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         URL.revokeObjectURL(url)
     }
 
-    const handleShare = () => {
-        const url = `${window.location.origin}/result?uuid=${props.uuidStr}`
-        navigator.clipboard.writeText(url).then(() => {
-            // Could add a toast notification here
-            console.log('Result URL copied to clipboard')
-        })
+    const handleShare = async () => {
+        // Create a shareable token-based URL that doesn't expose the job UUID.
+        // Falls back to the direct /result?uuid link if token creation fails
+        // (e.g. the API is in Step Functions mode, which doesn't support tokens yet).
+        const directUrl = `${window.location.origin}/result?uuid=${props.uuidStr}`
+        try {
+            const res = await fetch(withBasePath(`/api/pipeline-job/${props.uuidStr}/share`), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            })
+            if (!res.ok) throw new Error(`share create failed: ${res.status}`)
+            const data = await res.json() as { token: string }
+            const shareUrl = `${window.location.origin}/shared/${data.token}`
+            await navigator.clipboard.writeText(shareUrl)
+            console.log('Shareable link copied:', shareUrl)
+            alert('Shareable link copied to clipboard.\n\nAnyone with this link can view the results without needing the job UUID.')
+        } catch (e) {
+            console.warn('Share token creation failed, falling back to direct URL:', e)
+            await navigator.clipboard.writeText(directUrl)
+            alert('Direct result URL copied to clipboard (token share unavailable).')
+        }
     }
 
     const job = getJob(props.uuidStr)
