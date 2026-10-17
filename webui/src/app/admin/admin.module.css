@@ -60,7 +60,22 @@
     gap: 1rem;
 }
 
-.passwordInput {
+/*
+ * PrimeReact Password renders as:
+ *   <div class="passwordInput p-password p-component p-input-wrapper">
+ *     <div class="p-password-wrapper">
+ *       <input class="p-password-input p-inputtext" />
+ *       ...
+ *     </div>
+ *   </div>
+ * .p-password defaults to inline-flex and .p-password-wrapper to its
+ * content width, so width:100% on just .passwordInput isn't enough —
+ * the inner wrapper also has to stretch, otherwise the input ends up
+ * narrower than the sibling Login button.
+ */
+.passwordInput,
+.passwordInput :global(.p-password-wrapper) {
+    display: flex;
     width: 100%;
 }
 
