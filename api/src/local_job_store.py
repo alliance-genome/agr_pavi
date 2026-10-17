@@ -110,8 +110,63 @@ class LocalJobStore:
             "CREATE INDEX IF NOT EXISTS idx_share_tokens_job_id ON share_tokens(job_id)"
         )
 
+        # Access log: one row per API request, written by the HTTP
+        # middleware. `path_template` is the UUID-normalised route
+        # ("/api/pipeline-job/{uuid}/export") so Top-N aggregates don't
+        # fragment per job; `job_uuid` and `export_format` are extracted
+        # when present so the stats endpoint can group without re-parsing
+        # path strings every query.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS access_log (
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                ts             TEXT NOT NULL,
+                method         TEXT NOT NULL,
+                path           TEXT NOT NULL,
+                path_template  TEXT NOT NULL,
+                status         INTEGER NOT NULL,
+                duration_ms    REAL,
+                job_uuid       TEXT,
+                export_format  TEXT
+            )
+            """
+        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_access_log_ts ON access_log(ts)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_access_log_job_uuid ON access_log(job_uuid)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_access_log_path_template ON access_log(path_template)")
+
         conn.commit()
         log.info(f"Initialized local job store at {self.db_path}")
+
+    # ------------------------------------------------------------------
+    # Access-log methods
+    # ------------------------------------------------------------------
+
+    def log_access(
+        self,
+        ts: str,
+        method: str,
+        path: str,
+        path_template: str,
+        status: int,
+        duration_ms: float,
+        job_uuid: Optional[str] = None,
+        export_format: Optional[str] = None,
+    ) -> None:
+        """Append one row to the access log. Must be cheap: called on
+        every request. Errors are logged and swallowed — losing a telemetry
+        row must never surface as a 500 to the user."""
+        try:
+            conn = self._get_connection()
+            conn.execute(
+                "INSERT INTO access_log "
+                "(ts, method, path, path_template, status, duration_ms, job_uuid, export_format) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (ts, method, path, path_template, status, duration_ms, job_uuid, export_format),
+            )
+            conn.commit()
+        except Exception as e:  # intentionally broad: never crash the hot path
+            log.warning(f"Failed to persist access log row: {e}")
 
     # ------------------------------------------------------------------
     # Share-token methods

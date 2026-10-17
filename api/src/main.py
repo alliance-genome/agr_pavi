@@ -253,6 +253,66 @@ app = FastAPI(docs_url=None)
 router = APIRouter(prefix="/api")
 
 
+_UUID_RE = re.compile(
+    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+    re.IGNORECASE,
+)
+
+
+def _normalise_path_for_stats(path: str) -> tuple[str, Optional[str]]:
+    """
+    Return (path_template, first_uuid_or_None).
+
+    Collapses UUIDs in the path to the literal ``{uuid}`` so top-N
+    aggregates don't fragment per job. The first UUID is also returned
+    separately so popular-jobs stats can group without re-parsing.
+    """
+    found = _UUID_RE.search(path)
+    template = _UUID_RE.sub("{uuid}", path)
+    return template, (found.group(0).lower() if found else None)
+
+
+@app.middleware("http")
+async def log_requests(request: Any, call_next: Any) -> Any:
+    """
+    Log every HTTP request to stdout and persist to the access_log table
+    for the /admin/usage dashboard. Persistence errors are swallowed so a
+    broken telemetry write never surfaces as a 500 to the user.
+    """
+    import time
+    start = time.time()
+    response = await call_next(request)
+    duration_ms = (time.time() - start) * 1000
+    client = f"{request.client.host}:{request.client.port}" if request.client else "-"
+    query = f"?{request.url.query}" if request.url.query else ""
+    logger.info(
+        f'{client} - "{request.method} {request.url.path}{query}" '
+        f'{response.status_code} ({duration_ms:.0f}ms)'
+    )
+
+    # Only persist /api/* requests — static assets, health checks and
+    # docs would drown the signal.
+    path = request.url.path
+    if USE_LOCAL_PIPELINE and path.startswith("/api/"):
+        template, job_uuid = _normalise_path_for_stats(path)
+        export_format = request.query_params.get("format") if "/export" in path else None
+        try:
+            get_job_service().local_store.log_access(
+                ts=datetime.utcnow().isoformat() + "Z",
+                method=request.method,
+                path=path,
+                path_template=template,
+                status=response.status_code,
+                duration_ms=duration_ms,
+                job_uuid=job_uuid,
+                export_format=export_format,
+            )
+        except Exception as e:
+            logger.warning(f"Access log persistence failed: {e}")
+
+    return response
+
+
 @app.get("/docs", include_in_schema=False)
 def swagger_ui() -> HTMLResponse:
     """Swagger UI that loads the spec by a relative URL.
@@ -1567,6 +1627,149 @@ async def get_shared_job_export(
     job_id = _resolve_share_or_404(token)
     # Reuse the main export implementation by delegating via UUID conversion.
     return await get_pipeline_job_export(UUID(job_id), fmt=fmt)
+
+
+# ----------------------------------------------------------------------
+# Usage stats — operator view
+# ----------------------------------------------------------------------
+
+class StatsTotals(BaseModel):
+    today: int
+    week: int
+    all_time: int
+
+
+class StatsRequestsPerDay(BaseModel):
+    date: str  # YYYY-MM-DD
+    count: int
+
+
+class StatsEndpoint(BaseModel):
+    path_template: str
+    count: int
+
+
+class StatsPopularJob(BaseModel):
+    job_uuid: str
+    count: int
+
+
+class StatsExportFormat(BaseModel):
+    export_format: str
+    count: int
+
+
+class StatsResponse(BaseModel):
+    window_days: int
+    totals: StatsTotals
+    requests_per_day: list[StatsRequestsPerDay]
+    top_endpoints: list[StatsEndpoint]
+    popular_jobs: list[StatsPopularJob]
+    export_formats: list[StatsExportFormat]
+
+
+@router.get(
+    "/stats",
+    response_model=StatsResponse,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def get_usage_stats(
+    days: int = Query(30, ge=1, le=365, description="Lookback window for per-day volume"),
+    top_n: int = Query(10, ge=1, le=100, description="Top-N cap for endpoint and job rankings"),
+) -> StatsResponse:
+    """
+    Aggregate request stats for the /admin/usage page.
+
+    - ``totals``: raw counts for today, last 7 days, and all time.
+    - ``requests_per_day``: last N days (default 30), zero-filled.
+    - ``top_endpoints``: top-N normalised path templates by count.
+    - ``popular_jobs``: top-N job UUIDs by access count.
+    - ``export_formats``: breakdown of /export calls by format.
+
+    All numbers come from the ``access_log`` table in jobs.db, written
+    by the HTTP middleware on every /api/* request.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Usage stats are currently only available in local pipeline mode.",
+        )
+
+    import sqlite3
+    from datetime import date, timedelta
+
+    store = get_job_service().local_store
+    conn: sqlite3.Connection = store._get_connection()  # noqa: SLF001 — intra-module access
+
+    today = date.today()
+    week_cutoff = (today - timedelta(days=7)).isoformat()
+    today_prefix = today.isoformat()
+
+    totals = StatsTotals(
+        today=conn.execute(
+            "SELECT COUNT(*) FROM access_log WHERE ts >= ?",
+            (today_prefix,),
+        ).fetchone()[0],
+        week=conn.execute(
+            "SELECT COUNT(*) FROM access_log WHERE ts >= ?",
+            (week_cutoff,),
+        ).fetchone()[0],
+        all_time=conn.execute("SELECT COUNT(*) FROM access_log").fetchone()[0],
+    )
+
+    # Per-day volume, zero-filled over the full window so the chart has
+    # a point for days with no traffic (otherwise an idle weekend looks
+    # like a gap).
+    cutoff = (today - timedelta(days=days - 1)).isoformat()
+    raw = {
+        row[0]: row[1]
+        for row in conn.execute(
+            "SELECT substr(ts, 1, 10) AS day, COUNT(*) FROM access_log "
+            "WHERE ts >= ? GROUP BY day",
+            (cutoff,),
+        ).fetchall()
+    }
+    requests_per_day = []
+    for i in range(days):
+        d = (today - timedelta(days=days - 1 - i)).isoformat()
+        requests_per_day.append(StatsRequestsPerDay(date=d, count=raw.get(d, 0)))
+
+    top_endpoints = [
+        StatsEndpoint(path_template=r[0], count=r[1])
+        for r in conn.execute(
+            "SELECT path_template, COUNT(*) AS c FROM access_log "
+            "GROUP BY path_template ORDER BY c DESC LIMIT ?",
+            (top_n,),
+        ).fetchall()
+    ]
+
+    popular_jobs = [
+        StatsPopularJob(job_uuid=r[0], count=r[1])
+        for r in conn.execute(
+            "SELECT job_uuid, COUNT(*) AS c FROM access_log "
+            "WHERE job_uuid IS NOT NULL "
+            "GROUP BY job_uuid ORDER BY c DESC LIMIT ?",
+            (top_n,),
+        ).fetchall()
+    ]
+
+    export_formats = [
+        StatsExportFormat(export_format=r[0], count=r[1])
+        for r in conn.execute(
+            "SELECT export_format, COUNT(*) AS c FROM access_log "
+            "WHERE export_format IS NOT NULL "
+            "GROUP BY export_format ORDER BY c DESC"
+        ).fetchall()
+    ]
+
+    return StatsResponse(
+        window_days=days,
+        totals=totals,
+        requests_per_day=requests_per_day,
+        top_endpoints=top_endpoints,
+        popular_jobs=popular_jobs,
+        export_formats=export_formats,
+    )
 
 
 @router.get(
