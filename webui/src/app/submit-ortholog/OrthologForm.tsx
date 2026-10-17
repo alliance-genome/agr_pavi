@@ -473,7 +473,17 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                         {sourceGene && (
                             <div className={styles.orthologItem} onClick={() => setIncludeSource(!includeSource)}
                                  style={{ borderBottom: '2px solid var(--agr-gray-200)', background: 'var(--agr-gray-50)' }}>
-                                <Checkbox checked={includeSource} onChange={() => setIncludeSource(!includeSource)} />
+                                {/*
+                                  * The row <div> has onClick to toggle, and the Checkbox fires
+                                  * onChange on click too. Letting the click bubble makes the row
+                                  * toggle twice (checkbox + row), netting zero change — the user
+                                  * sees nothing happen when clicking the checkbox itself. Stop
+                                  * propagation so only the Checkbox's own onChange runs when the
+                                  * checkbox is the click target.
+                                  */}
+                                <span onClick={(e) => e.stopPropagation()}>
+                                    <Checkbox checked={includeSource} onChange={() => setIncludeSource(!includeSource)} />
+                                </span>
                                 <span className={styles.orthologSymbol}>{sourceGene.symbol}</span>
                                 <span className={styles.orthologSpecies}>{sourceGene.species}</span>
                                 <span className={styles.orthologId}>{sourceGene.geneId}</span>
@@ -554,7 +564,11 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                             ) : (
                                 visibleOrthologs.map(o => (
                                     <div key={o.geneId} className={styles.orthologItem} onClick={() => toggleOrtholog(o.geneId)}>
-                                        <Checkbox checked={o.selected} onChange={() => toggleOrtholog(o.geneId)} />
+                                        {/* See source-row note above: stop propagation so the
+                                            row-level onClick doesn't double-fire with Checkbox. */}
+                                        <span onClick={(e) => e.stopPropagation()}>
+                                            <Checkbox checked={o.selected} onChange={() => toggleOrtholog(o.geneId)} />
+                                        </span>
                                         <span className={styles.orthologSymbol}>{o.symbol}</span>
                                         <span className={styles.orthologSpecies}>{o.species}</span>
                                         <span className={styles.orthologId}>{o.geneId}</span>
