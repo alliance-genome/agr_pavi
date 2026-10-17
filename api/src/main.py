@@ -681,116 +681,134 @@ async def deployment_status() -> dict[str, Any]:  # noqa: C901
 
     components["batch"] = batch_status
 
-    # DynamoDB Status
-    dynamo_status: dict[str, Any] = {
-        "name": "DynamoDB Jobs Table",
-        "status": "unknown",
-        "details": {},
-    }
-
-    try:
-        dynamodb = boto3.client("dynamodb")
-        response = dynamodb.describe_table(TableName=_config.pipeline.jobs_table_name)
-        table = response.get("Table", {})
-        dynamo_status["status"] = (
-            "healthy" if table.get("TableStatus") == "ACTIVE" else "unhealthy"
-        )
-        dynamo_status["details"] = {
-            "table_name": _config.pipeline.jobs_table_name,
-            "status": table.get("TableStatus", "Unknown"),
-            "item_count": table.get("ItemCount", 0),
+    # DynamoDB / S3 are only used in Step-Functions / Nextflow modes.
+    # In local-pipeline mode on an EC2 dev box those resources neither
+    # exist nor are needed — the admin dashboard was lighting up red
+    # "NOT FOUND" for both, which looked like a broken deployment when
+    # it was just the wrong backend being probed. Match how
+    # step_functions / batch already short-circuit above.
+    if USE_LOCAL_PIPELINE:
+        components["dynamodb"] = {
+            "name": "DynamoDB Jobs Table",
+            "status": "disabled",
+            "details": {"message": "Not used in local-pipeline mode (jobs live in SQLite)"},
         }
-    except NoCredentialsError:
-        dynamo_status["status"] = "unavailable"
-        dynamo_status["details"]["error"] = "AWS credentials not configured"
-    except ClientError as e:
-        if "ResourceNotFoundException" in str(e):
-            dynamo_status["status"] = "not_found"
-            dynamo_status["details"]["error"] = (
-                f"Table {_config.pipeline.jobs_table_name} not found"
-            )
-        else:
-            dynamo_status["status"] = "error"
-            dynamo_status["details"]["error"] = str(e)
-    except Exception as e:
-        dynamo_status["status"] = "error"
-        dynamo_status["details"]["error"] = str(e)
-
-    components["dynamodb"] = dynamo_status
-
-    # S3 Results Bucket Status
-    s3_results_status: dict[str, Any] = {
-        "name": "S3 Results Bucket",
-        "status": "unknown",
-        "details": {},
-    }
-
-    # Initialize S3 client once for both bucket checks
-    s3 = boto3.client("s3")
-
-    try:
-        s3.head_bucket(Bucket=_config.pipeline.results_bucket)
-        s3_results_status["status"] = "healthy"
-        s3_results_status["details"] = {
-            "bucket_name": _config.pipeline.results_bucket,
+        components["s3_results"] = {
+            "name": "S3 Results Bucket",
+            "status": "disabled",
+            "details": {"message": "Not used in local-pipeline mode (results on local disk)"},
         }
-    except NoCredentialsError:
-        s3_results_status["status"] = "unavailable"
-        s3_results_status["details"]["error"] = "AWS credentials not configured"
-    except ClientError as e:
-        error_code = e.response.get("Error", {}).get("Code", "")
-        if error_code == "404":
-            s3_results_status["status"] = "not_found"
-            s3_results_status["details"]["error"] = (
-                f"Bucket {_config.pipeline.results_bucket} not found"
-            )
-        elif error_code == "403":
-            s3_results_status["status"] = "no_access"
-            s3_results_status["details"]["error"] = "Access denied to bucket"
-        else:
-            s3_results_status["status"] = "error"
-            s3_results_status["details"]["error"] = str(e)
-    except Exception as e:
-        s3_results_status["status"] = "error"
-        s3_results_status["details"]["error"] = str(e)
-
-    components["s3_results"] = s3_results_status
-
-    # S3 Work Bucket Status (if different from results)
-    if _config.pipeline.work_bucket != _config.pipeline.results_bucket:
-        s3_work_status: dict[str, Any] = {
-            "name": "S3 Work Bucket",
+    else:
+        # DynamoDB Status
+        dynamo_status: dict[str, Any] = {
+            "name": "DynamoDB Jobs Table",
             "status": "unknown",
             "details": {},
         }
 
         try:
-            s3.head_bucket(Bucket=_config.pipeline.work_bucket)
-            s3_work_status["status"] = "healthy"
-            s3_work_status["details"] = {
-                "bucket_name": _config.pipeline.work_bucket,
+            dynamodb = boto3.client("dynamodb")
+            response = dynamodb.describe_table(TableName=_config.pipeline.jobs_table_name)
+            table = response.get("Table", {})
+            dynamo_status["status"] = (
+                "healthy" if table.get("TableStatus") == "ACTIVE" else "unhealthy"
+            )
+            dynamo_status["details"] = {
+                "table_name": _config.pipeline.jobs_table_name,
+                "status": table.get("TableStatus", "Unknown"),
+                "item_count": table.get("ItemCount", 0),
             }
         except NoCredentialsError:
-            s3_work_status["status"] = "unavailable"
-            s3_work_status["details"]["error"] = "AWS credentials not configured"
+            dynamo_status["status"] = "unavailable"
+            dynamo_status["details"]["error"] = "AWS credentials not configured"
+        except ClientError as e:
+            if "ResourceNotFoundException" in str(e):
+                dynamo_status["status"] = "not_found"
+                dynamo_status["details"]["error"] = (
+                    f"Table {_config.pipeline.jobs_table_name} not found"
+                )
+            else:
+                dynamo_status["status"] = "error"
+                dynamo_status["details"]["error"] = str(e)
+        except Exception as e:
+            dynamo_status["status"] = "error"
+            dynamo_status["details"]["error"] = str(e)
+
+        components["dynamodb"] = dynamo_status
+
+        # S3 Results Bucket Status
+        s3_results_status: dict[str, Any] = {
+            "name": "S3 Results Bucket",
+            "status": "unknown",
+            "details": {},
+        }
+
+        # Initialize S3 client once for both bucket checks
+        s3 = boto3.client("s3")
+
+        try:
+            s3.head_bucket(Bucket=_config.pipeline.results_bucket)
+            s3_results_status["status"] = "healthy"
+            s3_results_status["details"] = {
+                "bucket_name": _config.pipeline.results_bucket,
+            }
+        except NoCredentialsError:
+            s3_results_status["status"] = "unavailable"
+            s3_results_status["details"]["error"] = "AWS credentials not configured"
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "")
             if error_code == "404":
-                s3_work_status["status"] = "not_found"
-                s3_work_status["details"]["error"] = (
-                    f"Bucket {_config.pipeline.work_bucket} not found"
+                s3_results_status["status"] = "not_found"
+                s3_results_status["details"]["error"] = (
+                    f"Bucket {_config.pipeline.results_bucket} not found"
                 )
             elif error_code == "403":
-                s3_work_status["status"] = "no_access"
-                s3_work_status["details"]["error"] = "Access denied to bucket"
+                s3_results_status["status"] = "no_access"
+                s3_results_status["details"]["error"] = "Access denied to bucket"
             else:
+                s3_results_status["status"] = "error"
+                s3_results_status["details"]["error"] = str(e)
+        except Exception as e:
+            s3_results_status["status"] = "error"
+            s3_results_status["details"]["error"] = str(e)
+
+        components["s3_results"] = s3_results_status
+
+        # S3 Work Bucket Status (if different from results)
+        if _config.pipeline.work_bucket != _config.pipeline.results_bucket:
+            s3_work_status: dict[str, Any] = {
+                "name": "S3 Work Bucket",
+                "status": "unknown",
+                "details": {},
+            }
+
+            try:
+                s3.head_bucket(Bucket=_config.pipeline.work_bucket)
+                s3_work_status["status"] = "healthy"
+                s3_work_status["details"] = {
+                    "bucket_name": _config.pipeline.work_bucket,
+                }
+            except NoCredentialsError:
+                s3_work_status["status"] = "unavailable"
+                s3_work_status["details"]["error"] = "AWS credentials not configured"
+            except ClientError as e:
+                error_code = e.response.get("Error", {}).get("Code", "")
+                if error_code == "404":
+                    s3_work_status["status"] = "not_found"
+                    s3_work_status["details"]["error"] = (
+                        f"Bucket {_config.pipeline.work_bucket} not found"
+                    )
+                elif error_code == "403":
+                    s3_work_status["status"] = "no_access"
+                    s3_work_status["details"]["error"] = "Access denied to bucket"
+                else:
+                    s3_work_status["status"] = "error"
+                    s3_work_status["details"]["error"] = str(e)
+            except Exception as e:
                 s3_work_status["status"] = "error"
                 s3_work_status["details"]["error"] = str(e)
-        except Exception as e:
-            s3_work_status["status"] = "error"
-            s3_work_status["details"]["error"] = str(e)
 
-        components["s3_work"] = s3_work_status
+            components["s3_work"] = s3_work_status
 
     # Calculate overall status
     statuses = [c.get("status") for c in components.values()]
