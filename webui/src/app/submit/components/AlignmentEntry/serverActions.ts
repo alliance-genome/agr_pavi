@@ -2,6 +2,7 @@
 
 import { GeneInfo, AlleleInfo, GeneSuggestion, VariantConsequence, VariantInfo } from "./types";
 import { fetchUntilDistinct } from "@/app/helper_fns";
+import { fetchAllianceJson, memoize } from "@/utils/allianceCache";
 
 // Alliance API symbol/displayName fields may carry HTML markup (e.g. <sup>
 // for superscript allele suffixes); strip it for plain-text display.
@@ -62,43 +63,17 @@ export async function fetchGeneInfo (geneId: string): Promise<GeneInfo|undefined
 
     console.log(`New gene info request received.`)
 
-    const jobResponse = fetch(`https://www.alliancegenome.org/api/gene/${geneId}`, {
-        method: 'GET',
-        headers: {
-            'accept': 'application/json'
-        }
-    })
-    .then((response: Response) => {
-        if ( 500 <= response.status && response.status <= 599 ){
-            // No point in attempting to process the body, as no body is expected.
-            throw new Error('Server error received.', {cause: 'server error'})
-        }
-
-        return Promise.all([Promise.resolve(response), response.json()]);
-    })
-    .then(([response, body]) => {
-        if (response.ok) {
-            console.log(`Gene info for gene ${geneId} received successfully.`)
-            return adaptGeneResponse(body);
-        } else {
-            const errMsg = 'Failure response received from gene API.'
-            console.error(errMsg)
-            if( 400 <= response.status && response.status <= 499 ){
-                throw new Error(errMsg, {cause: 'user error'})
-            }
-            else{
-                console.log('Non user-error response received:', response)
-                throw new Error(errMsg, {cause: 'unkown'})
-            }
-
-        }
-    })
-    .catch((e: Error) => {
+    const url = `https://www.alliancegenome.org/api/gene/${encodeURIComponent(geneId)}`
+    try {
+        const body = await fetchAllianceJson<any>(url, 'gene')
+        console.log(`Gene info for gene ${geneId} received successfully.`)
+        return adaptGeneResponse(body)
+    } catch (e) {
+        // 4xx/5xx come back as thrown errors with .status; treat all failures
+        // as "no gene info" and let the caller display the missing-gene UI.
         console.error('Error caught while requesting gene info:', e)
-        return undefined;
-    });
-
-    return jobResponse
+        return undefined
+    }
 }
 
 export async function fetchGeneSuggestionsAutocomplete (query: string): Promise<GeneSuggestion[]> {
@@ -110,45 +85,18 @@ export async function fetchGeneSuggestionsAutocomplete (query: string): Promise<
     //   - /api/search?category=gene&... also returns total=0.
     //   - The working endpoint is /api/search with category=gene_search_result.
     //   - Result records dropped primaryKey/name_key in favor of curie/nameKey.
-    const endpointUrl = `https://www.alliancegenome.org/api/search`
-    const jobResponse = fetch(`${endpointUrl}?category=gene_search_result&q=${encodeURIComponent(query)}&limit=20`, {
-        method: 'GET',
-        headers: {
-            'accept': 'application/json'
-        }
-    })
-    .then((response: Response) => {
-        if ( 500 <= response.status && response.status <= 599 ){
-            // No point in attempting to process the body, as no body is expected.
-            throw new Error('Server error received.', {cause: 'server error'})
-        }
-
-        return Promise.all([Promise.resolve(response), response.json()]);
-    })
-    .then(([response, body]) => {
-        if (response.ok) {
-            const results = (body?.['results'] ?? []) as unknown[]
-            console.log(`Gene suggestions for query '${query}' received: ${results.length} hits`)
-            return results as Array<Record<string, unknown>>;
-        } else {
-            const errMsg = 'Failure response received from gene autocomplete API.'
-            console.error(errMsg)
-            if( 400 <= response.status && response.status <= 499 ){
-                throw new Error(errMsg, {cause: 'user error'})
-            }
-            else{
-                console.log('Non user-error response received:', response)
-                throw new Error(errMsg, {cause: 'unkown'})
-            }
-
-        }
-    })
-    .catch((e: Error) => {
+    const url = `https://www.alliancegenome.org/api/search?category=gene_search_result&q=${encodeURIComponent(query)}&limit=20`
+    let body: any
+    try {
+        body = await fetchAllianceJson<any>(url, 'search')
+    } catch (e) {
         console.error('Error caught while requesting gene autocomplete:', e)
-        throw e;
-    });
+        throw e
+    }
+    const results = (body?.['results'] ?? []) as Array<Record<string, unknown>>
+    console.log(`Gene suggestions for query '${query}' received: ${results.length} hits`)
 
-    const suggestions: GeneSuggestion[] = (await jobResponse)
+    return results
         .map((row): GeneSuggestion | undefined => {
             const id = (row['curie'] ?? row['id'] ?? row['primaryKey']) as string | undefined
             const displayName = (row['nameKey'] ?? row['name_key'] ?? row['name'] ?? row['symbol']) as string | undefined
@@ -156,11 +104,9 @@ export async function fetchGeneSuggestionsAutocomplete (query: string): Promise<
             return { id, displayName }
         })
         .filter((s): s is GeneSuggestion => s !== undefined)
-
-    return suggestions
 }
 
-export async function fetchAlleles (geneId: string, requiredAlleleIds: string[] = []): Promise<AlleleInfo[]> {
+async function _fetchAllelesUncached (geneId: string, requiredAlleleIds: string[] = []): Promise<AlleleInfo[]> {
     console.log(`Fetching alleles for gene: ${geneId}`)
     if (requiredAlleleIds.length > 0) {
         console.log(`  requiring ${requiredAlleleIds.length} allele(s) regardless of distinct cap: ${requiredAlleleIds.join(', ')}`)
@@ -369,6 +315,21 @@ export async function fetchAlleles (geneId: string, requiredAlleleIds: string[] 
         console.error(`Error fetching alleles for gene ${geneId}:`, error)
         return [];
     }
+}
+
+// Public, cached entry point. Memoized by (geneId, sorted requiredAlleleIds)
+// so the heavy paginated allele-variant-detail scan runs once per unique
+// request within the TTL window. Example-load fan-out and tab-switches on
+// /submit now reuse the first fetch instead of re-paginating hundreds of
+// rows per gene.
+const _fetchAllelesCached = memoize(
+    _fetchAllelesUncached,
+    (geneId, requiredAlleleIds) => `${geneId}|${(requiredAlleleIds ?? []).slice().sort().join(',')}`,
+    'alleles',
+)
+
+export async function fetchAlleles(geneId: string, requiredAlleleIds: string[] = []): Promise<AlleleInfo[]> {
+    return _fetchAllelesCached(geneId, requiredAlleleIds)
 }
 
 // Parse a predictedVariantConsequences[] entry from the /api/variant shape

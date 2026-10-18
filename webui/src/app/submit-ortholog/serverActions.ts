@@ -1,6 +1,7 @@
 'use server';
 
 import { fetchAllPages } from "@/app/helper_fns";
+import { memoize } from "@/utils/allianceCache";
 
 export interface OrthologInfo {
     geneId: string;
@@ -28,7 +29,7 @@ const AGR_SPECIES_TAXONS = new Set([
     'NCBITaxon:8364',   // Xenopus tropicalis
 ]);
 
-export async function fetchOrthologs(
+async function _fetchOrthologsUncached(
     geneId: string,
     stringency: OrthologStringency = 'stringent',
 ): Promise<OrthologResult> {
@@ -93,4 +94,21 @@ export async function fetchOrthologs(
         sourceGene: sourceGene || { geneId, symbol: geneId, species: '', taxonId: '' },
         orthologs,
     };
+}
+
+// Cached public entry point. Memoized by (geneId, stringency) so changing
+// the stringency selector refetches but repeat clicks don't. TTL is 1h
+// (same as other gene data) — Alliance's orthology dump moves at a
+// release cadence, not minute-by-minute.
+const _fetchOrthologsCached = memoize(
+    _fetchOrthologsUncached,
+    (geneId, stringency) => `${geneId}|${stringency ?? 'stringent'}`,
+    'orthologs',
+)
+
+export async function fetchOrthologs(
+    geneId: string,
+    stringency: OrthologStringency = 'stringent',
+): Promise<OrthologResult> {
+    return _fetchOrthologsCached(geneId, stringency)
 }

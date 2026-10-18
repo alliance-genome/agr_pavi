@@ -1,5 +1,7 @@
 'use server';
 
+import { fetchAllianceJson } from '@/utils/allianceCache';
+
 export interface GeneMatch {
     id: string;
     symbol: string;
@@ -10,6 +12,11 @@ export interface GeneMatch {
 // API (same endpoint the /submit gene autocomplete uses). Returns every
 // result whose symbol and species match the request case-insensitively —
 // the caller decides what to do with 0, 1, or many.
+//
+// Hot path: fan-out from bulk upload calls this once per CSV row. The
+// shared cache coalesces concurrent identical lookups and remembers
+// results for 5 minutes, which collapses a 100-row re-upload or a
+// resolve-retry of the same list to near-zero upstream load.
 export async function resolveGeneBySymbolSpecies(
     symbol: string,
     species: string
@@ -17,11 +24,12 @@ export async function resolveGeneBySymbolSpecies(
     const url = `https://www.alliancegenome.org/api/search?category=gene_search_result&q=${encodeURIComponent(
         symbol
     )}&species=${encodeURIComponent(species)}&limit=20`;
-    const response = await fetch(url, { headers: { accept: 'application/json' } });
-    if (!response.ok) {
-        throw new Error(`Gene search failed with HTTP ${response.status}`);
+    let body: any;
+    try {
+        body = await fetchAllianceJson<any>(url, 'search');
+    } catch (e) {
+        throw new Error(`Gene search failed: ${(e as Error).message}`);
     }
-    const body = await response.json();
     const results = (body?.['results'] ?? []) as Array<Record<string, unknown>>;
 
     const wantSymbol = symbol.trim().toLowerCase();
@@ -49,14 +57,16 @@ export async function resolveGeneById(geneId: string): Promise<GeneMatch | undef
     const id = geneId.trim();
     if (!id) return undefined;
     const url = `https://www.alliancegenome.org/api/gene/${encodeURIComponent(id)}`;
-    const response = await fetch(url, { headers: { accept: 'application/json' } });
-    if (response.status === 400 || response.status === 404) return undefined;
-    if (!response.ok) {
-        throw new Error(`Gene lookup failed with HTTP ${response.status}`);
+    let body: any;
+    try {
+        body = await fetchAllianceJson<any>(url, 'gene');
+    } catch (e) {
+        const status = (e as { status?: number }).status;
+        if (status === 400 || status === 404) return undefined;
+        throw new Error(`Gene lookup failed: ${(e as Error).message}`);
     }
 
     // Alliance v9 wraps everything under { category, gene }; v8 returned flat.
-    const body = await response.json();
     const g = body?.gene ?? body;
     if (!g) return undefined;
 
