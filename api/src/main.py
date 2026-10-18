@@ -1677,6 +1677,20 @@ class StatsExportFormat(BaseModel):
     count: int
 
 
+class StatsLatency(BaseModel):
+    """Percentile latency numbers, in milliseconds."""
+    count: int
+    p50: float
+    p95: float
+    p99: float
+    max: float
+
+
+class StatsEndpointLatency(BaseModel):
+    path_template: str
+    latency: StatsLatency
+
+
 class StatsResponse(BaseModel):
     window_days: int
     totals: StatsTotals
@@ -1684,6 +1698,8 @@ class StatsResponse(BaseModel):
     top_endpoints: list[StatsEndpoint]
     popular_jobs: list[StatsPopularJob]
     export_formats: list[StatsExportFormat]
+    overall_latency: StatsLatency
+    slow_endpoints: list[StatsEndpointLatency]
 
 
 @router.get(
@@ -1780,6 +1796,56 @@ async def get_usage_stats(
         ).fetchall()
     ]
 
+    # Latency percentiles. Sort in Python once per route — the access
+    # log is small enough (one row per request on a dev box) that
+    # pulling the full duration vector and computing locally is
+    # cheaper and simpler than SQLite percentile-approximation SQL.
+    def _percentiles(values: list[float]) -> StatsLatency:
+        if not values:
+            return StatsLatency(count=0, p50=0.0, p95=0.0, p99=0.0, max=0.0)
+        vs = sorted(values)
+        n = len(vs)
+
+        def _pick(p: float) -> float:
+            # Nearest-rank method. Fine for sub-ms accuracy at these volumes.
+            idx = max(0, min(n - 1, int(round(p * (n - 1)))))
+            return vs[idx]
+        return StatsLatency(
+            count=n,
+            p50=_pick(0.50),
+            p95=_pick(0.95),
+            p99=_pick(0.99),
+            max=vs[-1],
+        )
+
+    all_durations = [
+        r[0] for r in conn.execute(
+            "SELECT duration_ms FROM access_log WHERE duration_ms IS NOT NULL"
+        ).fetchall()
+    ]
+    overall_latency = _percentiles(all_durations)
+
+    # Per-endpoint latency, ranked by p95 descending so slow endpoints
+    # bubble to the top. Only include endpoints with >= 5 samples so a
+    # single-digit sample doesn't dominate (p99 of 1 sample = that
+    # sample, which is noise).
+    per_endpoint: dict[str, list[float]] = {}
+    for template, duration in conn.execute(
+        "SELECT path_template, duration_ms FROM access_log "
+        "WHERE duration_ms IS NOT NULL"
+    ).fetchall():
+        per_endpoint.setdefault(template, []).append(duration)
+    slow_endpoints_raw = [
+        (template, _percentiles(durations))
+        for template, durations in per_endpoint.items()
+        if len(durations) >= 5
+    ]
+    slow_endpoints_raw.sort(key=lambda x: x[1].p95, reverse=True)
+    slow_endpoints = [
+        StatsEndpointLatency(path_template=t, latency=lat)
+        for t, lat in slow_endpoints_raw[:top_n]
+    ]
+
     return StatsResponse(
         window_days=days,
         totals=totals,
@@ -1787,6 +1853,178 @@ async def get_usage_stats(
         top_endpoints=top_endpoints,
         popular_jobs=popular_jobs,
         export_formats=export_formats,
+        overall_latency=overall_latency,
+        slow_endpoints=slow_endpoints,
+    )
+
+
+# ----------------------------------------------------------------------
+# Disk-usage audit — operator view
+# ----------------------------------------------------------------------
+
+class DiskUsageJob(BaseModel):
+    job_uuid: str
+    bytes: int
+    modified_at: str
+    known: bool  # True if also in jobs.db
+
+
+class DiskUsageResponse(BaseModel):
+    results_path: str
+    total_bytes: int
+    job_count: int
+    orphan_count: int
+    jobs: list[DiskUsageJob]
+
+
+@router.get(
+    "/stats/disk",
+    response_model=DiskUsageResponse,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def get_disk_usage() -> DiskUsageResponse:
+    """
+    Walk the local-pipeline results tree and report per-job disk use.
+
+    Also marks jobs as `known=False` when the on-disk directory has no
+    row in jobs.db — those are orphans from manual deletes or interrupted
+    runs that the Usage Stats UI lets the operator clean up.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Disk-usage audit is currently only available in local pipeline mode.",
+        )
+
+    job_service = get_job_service()
+    results_root = Path(job_service.local_results_path)
+    local_store = job_service.local_store
+
+    # Known jobs from jobs.db, by UUID. Lets us flag orphan directories
+    # without a round trip per directory.
+    known_uuids: set[str] = set()
+    try:
+        for row in local_store._get_connection().execute("SELECT job_id FROM jobs"):  # noqa: SLF001
+            known_uuids.add(str(row[0]))
+    except Exception as e:
+        logger.warning(f"Disk audit: failed to list jobs.db rows: {e}")
+
+    def _dir_size(path: Path) -> int:
+        total = 0
+        for p in path.rglob("*"):
+            if p.is_file():
+                try:
+                    total += p.stat().st_size
+                except OSError:
+                    pass
+        return total
+
+    jobs: list[DiskUsageJob] = []
+    if results_root.exists():
+        for entry in results_root.iterdir():
+            if not entry.is_dir():
+                continue
+            try:
+                size = _dir_size(entry)
+                mtime = datetime.fromtimestamp(entry.stat().st_mtime).isoformat() + "Z"
+            except OSError:
+                continue
+            jobs.append(DiskUsageJob(
+                job_uuid=entry.name,
+                bytes=size,
+                modified_at=mtime,
+                known=entry.name in known_uuids,
+            ))
+
+    jobs.sort(key=lambda j: j.bytes, reverse=True)
+    total_bytes = sum(j.bytes for j in jobs)
+    orphan_count = sum(1 for j in jobs if not j.known)
+
+    return DiskUsageResponse(
+        results_path=str(results_root),
+        total_bytes=total_bytes,
+        job_count=len(jobs),
+        orphan_count=orphan_count,
+        jobs=jobs,
+    )
+
+
+class DeleteJobsRequest(BaseModel):
+    job_uuids: list[str]
+
+
+class DeleteJobsResponse(BaseModel):
+    deleted: int
+    bytes_freed: int
+    skipped: list[str]  # UUIDs that couldn't be deleted
+
+
+@router.post(
+    "/stats/disk/delete",
+    response_model=DeleteJobsResponse,
+    responses={
+        400: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def delete_jobs_from_disk(body: DeleteJobsRequest) -> DeleteJobsResponse:
+    """
+    Remove per-job directories under results_path *and* their jobs.db
+    rows. Safe to call for either known jobs or orphan directories.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Disk cleanup is currently only available in local pipeline mode.",
+        )
+    if not body.job_uuids:
+        raise HTTPException(status_code=400, detail="No job UUIDs provided.")
+
+    import shutil
+
+    job_service = get_job_service()
+    results_root = Path(job_service.local_results_path)
+    local_store = job_service.local_store
+
+    deleted = 0
+    bytes_freed = 0
+    skipped: list[str] = []
+
+    for uuid_str in body.job_uuids:
+        # Guard against path traversal — only accept bare UUID-shaped
+        # names so a bogus value like "../etc" can't escape results_root.
+        if not _UUID_RE.fullmatch(uuid_str):
+            skipped.append(uuid_str)
+            continue
+
+        target = results_root / uuid_str
+        if target.exists():
+            try:
+                size_before = sum(
+                    p.stat().st_size for p in target.rglob("*") if p.is_file()
+                )
+                shutil.rmtree(target)
+                bytes_freed += size_before
+                deleted += 1
+            except Exception as e:
+                logger.warning(f"Failed to delete {target}: {e}")
+                skipped.append(uuid_str)
+                continue
+
+        # Remove the jobs.db row if present (orphans may not have one).
+        try:
+            local_store._get_connection().execute(  # noqa: SLF001
+                "DELETE FROM jobs WHERE job_id = ?",
+                (uuid_str,),
+            )
+            local_store._get_connection().commit()  # noqa: SLF001
+        except Exception as e:
+            logger.warning(f"Failed to delete jobs.db row for {uuid_str}: {e}")
+
+    return DeleteJobsResponse(
+        deleted=deleted,
+        bytes_freed=bytes_freed,
+        skipped=skipped,
     )
 
 

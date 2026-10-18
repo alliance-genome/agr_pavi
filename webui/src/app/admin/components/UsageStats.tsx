@@ -8,6 +8,14 @@ import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
 import { withBasePath } from '@/utils/basePath';
 
+interface StatsLatency {
+    count: number;
+    p50: number;
+    p95: number;
+    p99: number;
+    max: number;
+}
+
 interface StatsResponse {
     window_days: number;
     totals: { today: number; week: number; all_time: number };
@@ -15,6 +23,69 @@ interface StatsResponse {
     top_endpoints: Array<{ path_template: string; count: number }>;
     popular_jobs: Array<{ job_uuid: string; count: number }>;
     export_formats: Array<{ export_format: string; count: number }>;
+    overall_latency: StatsLatency;
+    slow_endpoints: Array<{ path_template: string; latency: StatsLatency }>;
+}
+
+interface DiskUsageJob {
+    job_uuid: string;
+    bytes: number;
+    modified_at: string;
+    known: boolean;
+}
+
+interface DiskUsageResponse {
+    results_path: string;
+    total_bytes: number;
+    job_count: number;
+    orphan_count: number;
+    jobs: DiskUsageJob[];
+}
+
+function fmtBytes(b: number): string {
+    if (b < 1024) return `${b} B`;
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+    if (b < 1024 * 1024 * 1024) return `${(b / 1024 / 1024).toFixed(1)} MB`;
+    return `${(b / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+function fmtMs(ms: number): string {
+    if (ms < 1) return `${ms.toFixed(2)}ms`;
+    if (ms < 10) return `${ms.toFixed(1)}ms`;
+    if (ms < 1000) return `${Math.round(ms)}ms`;
+    return `${(ms / 1000).toFixed(1)}s`;
+}
+
+// Compact latency readout: label + value, colored by severity so a 2s
+// p99 catches the eye without the viewer having to parse the number.
+function LatencyPill({ label, value }: { readonly label: string; readonly value: number }) {
+    const color =
+        value < 50 ? '#166534' :     // green: fast
+        value < 500 ? '#92400e' :     // amber: ok
+        '#991b1b';                    // red: slow
+    const bg =
+        value < 50 ? '#f0fdf4' :
+        value < 500 ? '#fef3c7' :
+        '#fef2f2';
+    return (
+        <div style={{
+            padding: '0.4rem 0.7rem',
+            borderRadius: 6,
+            background: bg,
+            border: `1px solid ${color}22`,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            minWidth: 70,
+        }}>
+            <span style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {label}
+            </span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>
+                {fmtMs(value)}
+            </span>
+        </div>
+    );
 }
 
 const WINDOW_OPTIONS = [
@@ -124,27 +195,72 @@ function BarList({ items, label }: { readonly items: Array<{ key: string; count:
 
 export function UsageStats() {
     const [stats, setStats] = useState<StatsResponse | null>(null);
+    const [disk, setDisk] = useState<DiskUsageResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [windowDays, setWindowDays] = useState<number>(30);
+    const [selectedForDelete, setSelectedForDelete] = useState<DiskUsageJob[]>([]);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(withBasePath(`/api/stats?days=${windowDays}`));
-            if (!res.ok) {
-                const detail = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));
-                throw new Error(detail.detail || `HTTP ${res.status}`);
+            // Parallel both fetches — the disk endpoint walks the FS and
+            // isn't instant on heavy result trees, but it doesn't block
+            // the main stats from rendering.
+            const [statsRes, diskRes] = await Promise.all([
+                fetch(withBasePath(`/api/stats?days=${windowDays}`)),
+                fetch(withBasePath(`/api/stats/disk`)),
+            ]);
+            if (!statsRes.ok) {
+                const detail = await statsRes.json().catch(() => ({ detail: `HTTP ${statsRes.status}` }));
+                throw new Error(detail.detail || `HTTP ${statsRes.status}`);
             }
-            const data = await res.json() as StatsResponse;
-            setStats(data);
+            setStats(await statsRes.json() as StatsResponse);
+            if (diskRes.ok) {
+                setDisk(await diskRes.json() as DiskUsageResponse);
+            } else {
+                setDisk(null);
+            }
         } catch (e) {
             setError((e as Error).message);
         } finally {
             setLoading(false);
         }
     }, [windowDays]);
+
+    const deleteSelected = useCallback(async () => {
+        if (selectedForDelete.length === 0) return;
+        if (!confirm(`Delete ${selectedForDelete.length} job directory/directories and their jobs.db rows? This cannot be undone.`)) {
+            return;
+        }
+        setDeleting(true);
+        setDeleteMessage(null);
+        try {
+            const res = await fetch(withBasePath(`/api/stats/disk/delete`), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job_uuids: selectedForDelete.map(j => j.job_uuid) }),
+            });
+            if (!res.ok) {
+                const detail = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));
+                throw new Error(detail.detail || `HTTP ${res.status}`);
+            }
+            const data = await res.json() as { deleted: number; bytes_freed: number; skipped: string[] };
+            setDeleteMessage(
+                `Deleted ${data.deleted} job${data.deleted === 1 ? '' : 's'}, freed ${fmtBytes(data.bytes_freed)}` +
+                (data.skipped.length > 0 ? ` (${data.skipped.length} skipped)` : '.')
+            );
+            setSelectedForDelete([]);
+            await load();
+        } catch (e) {
+            setDeleteMessage(`Delete failed: ${(e as Error).message}`);
+        } finally {
+            setDeleting(false);
+        }
+    }, [selectedForDelete, load]);
 
     useEffect(() => {
         load();
@@ -206,6 +322,63 @@ export function UsageStats() {
                         <Sparkline data={stats.requests_per_day} />
                     </Card>
 
+                    <Card title="Latency">
+                        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                            <LatencyPill label="p50" value={stats.overall_latency.p50} />
+                            <LatencyPill label="p95" value={stats.overall_latency.p95} />
+                            <LatencyPill label="p99" value={stats.overall_latency.p99} />
+                            <LatencyPill label="max" value={stats.overall_latency.max} />
+                            <span style={{ alignSelf: 'center', color: '#6b7280', fontSize: '0.8rem' }}>
+                                across {stats.overall_latency.count.toLocaleString()} requests
+                            </span>
+                        </div>
+
+                        {stats.slow_endpoints.length === 0 ? (
+                            <div style={{ color: '#9ca3af' }}>Need at least 5 samples per endpoint to rank.</div>
+                        ) : (
+                            <DataTable
+                                value={stats.slow_endpoints}
+                                size="small"
+                                emptyMessage="No endpoint data yet."
+                            >
+                                <Column
+                                    field="path_template"
+                                    header="Endpoint (slowest p95 first)"
+                                    body={(row: { path_template: string }) => (
+                                        <code style={{ fontSize: '0.75rem' }}>{row.path_template}</code>
+                                    )}
+                                />
+                                <Column
+                                    header="n"
+                                    body={(row: { latency: StatsLatency }) => row.latency.count}
+                                    style={{ width: '4rem', textAlign: 'right' }}
+                                />
+                                <Column
+                                    header="p50"
+                                    body={(row: { latency: StatsLatency }) => fmtMs(row.latency.p50)}
+                                    style={{ width: '5rem', textAlign: 'right' }}
+                                />
+                                <Column
+                                    header="p95"
+                                    body={(row: { latency: StatsLatency }) => (
+                                        <strong>{fmtMs(row.latency.p95)}</strong>
+                                    )}
+                                    style={{ width: '5rem', textAlign: 'right' }}
+                                />
+                                <Column
+                                    header="p99"
+                                    body={(row: { latency: StatsLatency }) => fmtMs(row.latency.p99)}
+                                    style={{ width: '5rem', textAlign: 'right' }}
+                                />
+                                <Column
+                                    header="max"
+                                    body={(row: { latency: StatsLatency }) => fmtMs(row.latency.max)}
+                                    style={{ width: '5rem', textAlign: 'right' }}
+                                />
+                            </DataTable>
+                        )}
+                    </Card>
+
                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                         <div style={{ flex: '1 1 320px', minWidth: 0 }}>
                             <Card title="Top endpoints">
@@ -224,6 +397,101 @@ export function UsageStats() {
                             </Card>
                         </div>
                     </div>
+
+                    {disk && (
+                        <Card
+                            title={
+                                `Disk usage — ${fmtBytes(disk.total_bytes)} across ${disk.job_count} job${disk.job_count === 1 ? '' : 's'}` +
+                                (disk.orphan_count > 0 ? ` (${disk.orphan_count} orphan${disk.orphan_count === 1 ? '' : 's'})` : '')
+                            }
+                        >
+                            <div style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                                <code>{disk.results_path}</code>
+                            </div>
+                            {deleteMessage && (
+                                <div
+                                    role="status"
+                                    style={{
+                                        padding: '0.5rem 0.75rem',
+                                        marginBottom: '0.75rem',
+                                        borderRadius: 6,
+                                        background: deleteMessage.startsWith('Delete failed') ? '#fef2f2' : '#f0fdf4',
+                                        color: deleteMessage.startsWith('Delete failed') ? '#991b1b' : '#166534',
+                                        border: `1px solid ${deleteMessage.startsWith('Delete failed') ? '#fecaca' : '#bbf7d0'}`,
+                                    }}
+                                >
+                                    {deleteMessage}
+                                </div>
+                            )}
+                            {selectedForDelete.length > 0 && (
+                                <Button
+                                    label={`Delete ${selectedForDelete.length} selected`}
+                                    icon="pi pi-trash"
+                                    size="small"
+                                    severity="danger"
+                                    loading={deleting}
+                                    onClick={deleteSelected}
+                                    style={{ marginBottom: '0.5rem' }}
+                                />
+                            )}
+                            <DataTable
+                                value={disk.jobs}
+                                size="small"
+                                dataKey="job_uuid"
+                                selectionMode="multiple"
+                                selection={selectedForDelete}
+                                onSelectionChange={(e) => setSelectedForDelete(e.value as DiskUsageJob[])}
+                                emptyMessage="No per-job directories on disk."
+                                paginator={disk.jobs.length > 20}
+                                rows={20}
+                                sortField="bytes"
+                                sortOrder={-1}
+                            >
+                                <Column selectionMode="multiple" headerStyle={{ width: '2.5rem' }} />
+                                <Column
+                                    field="job_uuid"
+                                    header="Job UUID"
+                                    body={(row: DiskUsageJob) => (
+                                        <>
+                                            <a
+                                                href={withBasePath(`/result?uuid=${row.job_uuid}`)}
+                                                style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.75rem' }}
+                                            >
+                                                {row.job_uuid}
+                                            </a>
+                                            {!row.known && (
+                                                <span style={{
+                                                    marginLeft: '0.5rem',
+                                                    fontSize: '0.65rem',
+                                                    padding: '0.1rem 0.4rem',
+                                                    borderRadius: 10,
+                                                    background: '#fef3c7',
+                                                    color: '#92400e',
+                                                    fontWeight: 600,
+                                                }}>
+                                                    ORPHAN
+                                                </span>
+                                            )}
+                                        </>
+                                    )}
+                                />
+                                <Column
+                                    field="bytes"
+                                    header="Size"
+                                    body={(row: DiskUsageJob) => fmtBytes(row.bytes)}
+                                    style={{ width: '7rem', textAlign: 'right' }}
+                                    sortable
+                                />
+                                <Column
+                                    field="modified_at"
+                                    header="Modified"
+                                    body={(row: DiskUsageJob) => row.modified_at.slice(0, 10)}
+                                    style={{ width: '8rem' }}
+                                    sortable
+                                />
+                            </DataTable>
+                        </Card>
+                    )}
 
                     <Card title="Most-accessed jobs">
                         <DataTable
