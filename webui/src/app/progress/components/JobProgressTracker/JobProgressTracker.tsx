@@ -7,11 +7,12 @@ import { Button } from 'primereact/button';
 import { useRouter } from 'next/navigation'
 
 import { fetchJobStatusFull } from './serverActions';
-import { ProgressStep } from './types';
+import { JobStatusResponse, ProgressStep } from './types';
 import styles from './JobProgressTracker.module.css';
 import { dataCache, CACHE_CONFIGS } from '@/utils/dataCache';
 import { useJobHistory } from '@/hooks/useJobHistory';
 import { fetchAlignmentResults, fetchAlignmentSeqInfo } from '@/app/result/components/AlignmentResultView/serverActions';
+import { withBasePath } from '@/utils/basePath';
 
 interface LogEntry {
     timestamp: Date;
@@ -114,17 +115,11 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         setIsPolling(false)
     }, [])
 
-    const pollJobStatus = useCallback(async () => {
-        const response = await fetchJobStatusFull(props.uuidStr)
+    // Shared handler for a job-status response — called from both polling
+    // and SSE paths. All the logging / step / history / redirect side
+    // effects live here so the two transports stay interchangeable.
+    const handleStatusResponse = useCallback((response: JobStatusResponse) => {
         setLastChecked(new Date())
-
-        if (!response) {
-            setErrorMessage(`Failed to fetch job status. Please check the job UUID.`)
-            setLogs(prev => [...prev, { timestamp: new Date(), level: 'error', message: 'Failed to fetch job status from server' }])
-            stopPolling()
-            updateStepsForStatus('failed', undefined, 'Could not connect to server')
-            return
-        }
 
         // Track status and stage changes for logging
         const stageKey = `${response.status}_${response.stage || 'none'}`
@@ -241,6 +236,21 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         }
     }, [props.uuidStr, router, updateStepsForStatus, stopPolling, updateJob])
 
+    // Thin polling wrapper — kept for the EventSource-unavailable
+    // fallback path. Fetches the current status and hands it to the
+    // shared handler. On fetch failure, surfaces the error and stops.
+    const pollJobStatus = useCallback(async () => {
+        const response = await fetchJobStatusFull(props.uuidStr)
+        if (!response) {
+            setErrorMessage(`Failed to fetch job status. Please check the job UUID.`)
+            setLogs(prev => [...prev, { timestamp: new Date(), level: 'error', message: 'Failed to fetch job status from server' }])
+            stopPolling()
+            updateStepsForStatus('failed', undefined, 'Could not connect to server')
+            return
+        }
+        handleStatusResponse(response)
+    }, [props.uuidStr, handleStatusResponse, stopPolling, updateStepsForStatus])
+
     // Auto-scroll logs to bottom when new entries are added
     useEffect(() => {
         if (logContainerRef.current) {
@@ -266,28 +276,29 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         }
     }, [props.uuidStr])
 
-    // Single consolidated polling effect
+    // Prefer SSE over polling. The server pushes `job-status` on each
+    // change; we only fall back to 5s polling if EventSource isn't
+    // available or the stream errors out before `done`. The two paths
+    // call the same handleStatusResponse so the state machinery below
+    // doesn't care which transport fed it.
     useEffect(() => {
-        // Clear any existing interval from previous mount (handles client-side navigation)
         if (intervalIdRef.current) {
             clearInterval(intervalIdRef.current)
             intervalIdRef.current = null
         }
-
-        // Reset polling state for fresh start
         isPollingRef.current = true
         setIsPolling(true)
 
         let mounted = true
+        let eventSource: EventSource | null = null
+        let gotFirstEvent = false
 
-        const startPolling = async () => {
-            // Initial poll
-            await pollJobStatus()
-
-            // Only set up interval if still mounted and should be polling
+        const startPolling = () => {
+            // Initial sync fetch so the UI has something to render while
+            // the first interval tick waits 5s.
+            pollJobStatus()
             if (mounted && isPollingRef.current) {
                 intervalIdRef.current = setInterval(() => {
-                    // Check ref before each poll to ensure we should still be polling
                     if (isPollingRef.current) {
                         pollJobStatus()
                     } else if (intervalIdRef.current) {
@@ -298,7 +309,53 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             }
         }
 
-        startPolling()
+        const tryEventSource = (): boolean => {
+            if (typeof EventSource === 'undefined') return false
+            try {
+                const url = withBasePath(`/api/pipeline-job/${props.uuidStr}/events`)
+                eventSource = new EventSource(url)
+
+                eventSource.addEventListener('job-status', (ev) => {
+                    gotFirstEvent = true
+                    try {
+                        const data = JSON.parse((ev as MessageEvent).data) as JobStatusResponse
+                        handleStatusResponse(data)
+                    } catch (e) {
+                        console.error('Bad job-status payload:', e)
+                    }
+                })
+
+                eventSource.addEventListener('done', () => {
+                    // Server told us it's done streaming (terminal state or
+                    // timeout). handleStatusResponse already triggered any
+                    // redirect/history update; we just close.
+                    eventSource?.close()
+                    eventSource = null
+                })
+
+                eventSource.onerror = () => {
+                    // If we never received even one event, the stream
+                    // likely never worked (middlebox, CORS, etc.) — fall
+                    // back to polling. If we DID get events, errors here
+                    // are usually just the normal close after `done`, so
+                    // we don't need to do anything.
+                    if (!gotFirstEvent && mounted) {
+                        eventSource?.close()
+                        eventSource = null
+                        console.warn('EventSource failed before first event; falling back to polling')
+                        startPolling()
+                    }
+                }
+                return true
+            } catch (e) {
+                console.warn('EventSource threw synchronously; falling back to polling:', e)
+                return false
+            }
+        }
+
+        if (!tryEventSource()) {
+            startPolling()
+        }
 
         return () => {
             mounted = false
@@ -306,6 +363,10 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             if (intervalIdRef.current) {
                 clearInterval(intervalIdRef.current)
                 intervalIdRef.current = null
+            }
+            if (eventSource) {
+                eventSource.close()
+                eventSource = null
             }
         }
     }, [props.uuidStr]) // eslint-disable-line react-hooks/exhaustive-deps

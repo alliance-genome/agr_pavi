@@ -414,9 +414,15 @@ async def rate_limit(request: Any, call_next: Any) -> Any:
     Reject /api/* requests that exceed per-IP token buckets. Returns
     429 with a Retry-After header. Non-/api paths (static assets,
     docs) are not rate-limited.
+
+    SSE event streams are exempt: they're one request that stays open
+    for the lifetime of a job, and counting them against the bucket
+    would quickly 429 a user who opens multiple progress pages.
     """
     path = request.url.path
     if not path.startswith("/api/"):
+        return await call_next(request)
+    if path.endswith("/events"):
         return await call_next(request)
 
     ip = request.client.host if request.client else "unknown"
@@ -1093,6 +1099,127 @@ async def get_pipeline_job_handler(uuid: UUID) -> Pipeline_job:
             raise HTTPException(status_code=404, detail="Job not found.")
         else:
             return job
+
+
+@router.get(
+    "/pipeline-job/{uuid}/events",
+    responses={404: {"model": HTTP_exception_response}},
+)
+async def stream_pipeline_job_events(uuid: UUID) -> StreamingResponse:
+    """
+    Server-Sent Events stream of job status.
+
+    Replaces 5-second polling on the /progress page: the server pushes
+    a `job-status` event whenever the status/stage/task_events change,
+    and a `heartbeat` ping every 30s to keep middleboxes from closing
+    the connection. The stream closes once the job hits COMPLETED or
+    FAILED (one final `job-status` + a `done` event).
+
+    The client should fall back to polling on error — EventSource may
+    not be available behind every proxy / middlebox.
+    """
+    import asyncio
+    import json as _json
+
+    # Verify the job exists up-front so clients get a clean 404 instead
+    # of an open-and-immediately-closed stream.
+    uuid_str = str(uuid)
+    if USE_STEP_FUNCTIONS or USE_LOCAL_PIPELINE:
+        job_service = get_job_service()
+        if job_service.get_job(uuid_str) is None:
+            raise HTTPException(status_code=404, detail="Job not found.")
+    elif get_pipeline_job(uuid) is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+
+    POLL_INTERVAL_SECONDS = 1.0
+    HEARTBEAT_EVERY_SECONDS = 30.0
+    # Hard ceiling so a stuck job doesn't hold an open connection forever.
+    MAX_STREAM_SECONDS = 60 * 60
+
+    def _snapshot() -> Optional[dict[str, Any]]:
+        """Return the same shape the GET /pipeline-job/{uuid} endpoint sends."""
+        try:
+            if USE_STEP_FUNCTIONS or USE_LOCAL_PIPELINE:
+                info = get_job_service().get_job(uuid_str)
+                if info is None:
+                    return None
+                job = Pipeline_job.from_job_info(info)
+            else:
+                job = get_pipeline_job(uuid)
+                if job is None:
+                    return None
+            return job.model_dump(mode="json", exclude_none=True)
+        except Exception as e:
+            logger.warning(f"SSE snapshot failed for {uuid_str}: {e}")
+            return None
+
+    def _event(name: str, payload: Any) -> bytes:
+        """Format one SSE message. Each field terminates with \\n, the record with \\n\\n."""
+        return f"event: {name}\ndata: {_json.dumps(payload)}\n\n".encode("utf-8")
+
+    async def _gen() -> Any:
+        last_sent: Optional[str] = None
+        last_heartbeat = 0.0
+        import time
+        started = time.monotonic()
+
+        # Send one initial snapshot immediately so the client renders
+        # without waiting the first POLL_INTERVAL.
+        snap = _snapshot()
+        if snap is not None:
+            yield _event("job-status", snap)
+            last_sent = _json.dumps(snap, sort_keys=True)
+            last_heartbeat = time.monotonic()
+        else:
+            # Shouldn't happen (we checked up-front) but belt-and-braces.
+            yield _event("done", {"reason": "not_found"})
+            return
+
+        while True:
+            if time.monotonic() - started > MAX_STREAM_SECONDS:
+                yield _event("done", {"reason": "max_stream_duration"})
+                return
+
+            await asyncio.sleep(POLL_INTERVAL_SECONDS)
+            snap = _snapshot()
+            if snap is None:
+                yield _event("done", {"reason": "not_found"})
+                return
+
+            # Only emit when something changed — keeps the per-stream
+            # byte count down even for long-running jobs.
+            serialised = _json.dumps(snap, sort_keys=True)
+            if serialised != last_sent:
+                yield _event("job-status", snap)
+                last_sent = serialised
+                last_heartbeat = time.monotonic()
+
+            # Terminal states close the stream after emitting one more
+            # snapshot (already done above if it was the state transition).
+            status = str(snap.get("status", "")).lower()
+            if status in ("completed", "failed"):
+                yield _event("done", {"reason": status})
+                return
+
+            # Keep-alive. A comment (`: keepalive`) is enough per SSE spec,
+            # but a named event lets a client's onmessage handler stay
+            # focused on `job-status` without ad-hoc filtering.
+            if time.monotonic() - last_heartbeat >= HEARTBEAT_EVERY_SECONDS:
+                yield _event("heartbeat", {"ts": datetime.utcnow().isoformat() + "Z"})
+                last_heartbeat = time.monotonic()
+
+    return StreamingResponse(
+        _gen(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            # Caddy/nginx will buffer SSE responses by default; this
+            # disables that for Caddy's own reverse_proxy as well as
+            # anything downstream that honours the header.
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @router.get(
