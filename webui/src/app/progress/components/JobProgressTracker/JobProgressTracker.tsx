@@ -41,6 +41,12 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     const [lastStatus, setLastStatus] = useState<string>('')
     const [errorMessage, setErrorMessage] = useState<string>('')
     const [lastChecked, setLastChecked] = useState<Date | null>(null)
+    // Per-sequence/per-stage events the backend streamed via SSE
+    // (or returned on each poll). Shown as a running timeline so the
+    // user sees progress at entry granularity, not just stage boundaries.
+    const [taskEvents, setTaskEvents] = useState<string[]>([])
+    const [inputCount, setInputCount] = useState<number>(0)
+    const [sequencesProcessed, setSequencesProcessed] = useState<number>(0)
     const isPollingRef = useRef<boolean>(true)
     const [logs, setLogs] = useState<LogEntry[]>([])
     const logContainerRef = useRef<HTMLDivElement>(null)
@@ -174,7 +180,17 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             if (newEvents.length > 0) {
                 setLogs(prev => [...prev, ...newEvents])
             }
+            // Mirror the task_events into a dedicated state slot so the
+            // per-sequence timeline below the step list has access to
+            // the full ordered list (not just newly-added ones).
+            setTaskEvents(response.task_events)
         }
+
+        // Mirror sequence counts for the per-entry progress bar. Both
+        // SSE and polling push the same shape, so this stays in sync
+        // regardless of transport.
+        if (typeof response.input_count === 'number') setInputCount(response.input_count)
+        if (typeof response.sequences_processed === 'number') setSequencesProcessed(response.sequences_processed)
 
         setLastStatus(response.status)
         updateStepsForStatus(response.status, response.stage, response.error_message)
@@ -526,6 +542,69 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                                 <p style={{ margin: '0.5rem 0 0 0', color: 'var(--agr-success-dark, #166534)' }}>
                                     Redirecting to results page...
                                 </p>
+                            </div>
+                        )}
+
+                        {/* Per-sequence timeline (local-pipeline mode).
+                            Falls back to invisibility if no task_events have
+                            been published yet or if we're running under a
+                            backend that doesn't emit them. */}
+                        {inputCount > 0 && (
+                            <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--agr-gray-200, #e5e7eb)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
+                                    <strong style={{ fontSize: '0.9rem' }}>Sequences</strong>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--agr-gray-600)' }}>
+                                        {sequencesProcessed} / {inputCount} retrieved
+                                    </span>
+                                </div>
+                                <div
+                                    role="progressbar"
+                                    aria-valuenow={sequencesProcessed}
+                                    aria-valuemin={0}
+                                    aria-valuemax={inputCount}
+                                    style={{
+                                        height: 8,
+                                        borderRadius: 4,
+                                        background: 'var(--agr-gray-200, #e5e7eb)',
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            width: `${Math.round((sequencesProcessed / inputCount) * 100)}%`,
+                                            height: '100%',
+                                            background: 'var(--agr-primary, #2563eb)',
+                                            transition: 'width 200ms ease',
+                                        }}
+                                    />
+                                </div>
+
+                                {taskEvents.length > 0 && (
+                                    <ol style={{
+                                        margin: '0.75rem 0 0',
+                                        paddingLeft: '1.25rem',
+                                        maxHeight: 220,
+                                        overflowY: 'auto',
+                                        fontSize: '0.8rem',
+                                        color: 'var(--agr-gray-700, #374151)',
+                                    }}>
+                                        {taskEvents.map((ev, i) => {
+                                            const failed = ev.startsWith('FAILED:')
+                                            return (
+                                                <li
+                                                    key={`${i}-${ev}`}
+                                                    style={{
+                                                        padding: '0.125rem 0',
+                                                        color: failed ? 'var(--agr-error, #ef4444)' : 'inherit',
+                                                        fontWeight: failed ? 600 : 400,
+                                                    }}
+                                                >
+                                                    {ev}
+                                                </li>
+                                            )
+                                        })}
+                                    </ol>
+                                )}
                             </div>
                         )}
                     </Card>

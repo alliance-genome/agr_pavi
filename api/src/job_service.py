@@ -88,6 +88,7 @@ class JobInfo:
         result_s3_uri: Optional[str] = None,
         error_message: Optional[str] = None,
         execution_arn: Optional[str] = None,
+        task_events: Optional[list[dict[str, Any]]] = None,
     ):
         self.job_id = job_id
         self.status = status
@@ -99,6 +100,10 @@ class JobInfo:
         self.result_s3_uri = result_s3_uri
         self.error_message = error_message
         self.execution_arn = execution_arn
+        # Per-sequence / per-stage progress timeline for /progress UI.
+        # Only populated in local-pipeline mode; Step Functions mode
+        # leaves it as None and the UI falls back to the step list.
+        self.task_events = task_events or []
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API response."""
@@ -113,6 +118,7 @@ class JobInfo:
             "sequences_processed": self.sequences_processed,
             "result_s3_uri": self.result_s3_uri,
             "error_message": self.error_message,
+            "task_events": self.task_events,
         }
 
 
@@ -283,6 +289,7 @@ class JobService:
         if not job_dict:
             return None
 
+        task_events = self.local_store.get_task_events(job_id)
         return JobInfo(
             job_id=job_dict["job_id"],
             status=JobStatus(job_dict["status"]),
@@ -292,6 +299,7 @@ class JobService:
             input_count=int(job_dict.get("input_count", 0)),
             sequences_processed=int(job_dict.get("sequences_processed", 0)),
             error_message=job_dict.get("error_message"),
+            task_events=task_events,
         )
 
     def get_job_result_alignment(self, job_id: str) -> Optional[bytes]:
@@ -550,8 +558,13 @@ class JobService:
             except Exception as e:
                 log.warning(f"Failed to update progress for job {jid}: {e}")
 
+        def task_event_callback(jid: str, message: str, entry_id: Optional[str]) -> None:
+            """Record a per-entry timeline event via local_store."""
+            self.local_store.append_task_event(jid, message, entry_id)
+
         runner = get_local_pipeline_runner()
         runner.progress_callback = progress_callback
+        runner.task_event_callback = task_event_callback
 
         try:
             result = runner.run_pipeline(job_id, seq_regions)
