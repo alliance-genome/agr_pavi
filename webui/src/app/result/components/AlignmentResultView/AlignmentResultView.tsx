@@ -56,8 +56,41 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const downloadExport = useCallback((format: string) => {
         window.location.href = withBasePath(`/api/pipeline-job/${props.uuidStr}/export?format=${format}`)
     }, [props.uuidStr])
+
+    // Client-side SVG render of the full alignment. We own the data, so
+    // we don't need to screenshot the Nightingale viewer (which is canvas
+    // and awkward to export at arbitrary scale). The whole alignment goes
+    // in; for very wide alignments the file gets big but still opens in
+    // any browser and is trivially convertible to PNG.
+    const downloadAlignmentSvg = useCallback(async () => {
+        if (!alignmentResult) return
+        const [{ parse }, { renderAlignmentSvg }] = await Promise.all([
+            import('clustal-js'),
+            import('@/utils/alignmentSvg'),
+        ])
+        const parsed = parse(alignmentResult)
+        const sequences = (parsed['alns'] as Array<{ id: string; seq: string }>).map(a => ({
+            name: a.id,
+            sequence: a.seq,
+        }))
+        const svg = renderAlignmentSvg({
+            sequences,
+            title: `PAVI alignment ${props.uuidStr}`,
+        })
+        const blob = new Blob([svg], { type: 'image/svg+xml' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `pavi-alignment-${props.uuidStr.slice(0, 8)}.svg`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(url)
+    }, [alignmentResult, props.uuidStr])
+
     const downloadMenuItems = [
         { label: 'HTML report', icon: 'pi pi-file-pdf', command: () => downloadExport('html') },
+        { label: 'Alignment image (SVG)', icon: 'pi pi-image', command: () => downloadAlignmentSvg() },
         { separator: true },
         { label: 'JSON bundle', icon: 'pi pi-file', command: () => downloadExport('json') },
         { label: 'Aligned FASTA', icon: 'pi pi-align-left', command: () => downloadExport('fasta') },
