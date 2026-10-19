@@ -75,6 +75,14 @@ class LocalJobStore:
             )
         """
         )
+        # task_events is append-only JSON of per-stage/per-sequence
+        # progress events for the /progress UI timeline. Added via
+        # ALTER so existing jobs.db files keep working (SQLite ignores
+        # the duplicate add on re-init via try/except).
+        try:
+            cursor.execute("ALTER TABLE jobs ADD COLUMN task_events TEXT")
+        except sqlite3.OperationalError:
+            pass  # Column already exists — fresh schemas get it from CREATE too in future
 
         # Create index for faster status queries
         cursor.execute(
@@ -188,6 +196,65 @@ class LocalJobStore:
                 self.trim_access_log()
             except Exception as e:
                 log.warning(f"Access log trim failed: {e}")
+
+    # ------------------------------------------------------------------
+    # Task events (per-sequence progress timeline)
+    # ------------------------------------------------------------------
+
+    def append_task_event(self, job_id: str, message: str, entry_id: Optional[str] = None) -> None:
+        """
+        Append a task event to a job's running timeline. Each event is
+        {ts, message, entry_id?}. Stored as the full JSON list so a
+        single UPDATE replaces the whole value — tiny lists (one per
+        sequence), so cost is negligible vs. a separate events table.
+        """
+        try:
+            conn = self._get_connection()
+            row = conn.execute(
+                "SELECT task_events FROM jobs WHERE job_id = ?",
+                (job_id,),
+            ).fetchone()
+            if row is None:
+                return
+            existing: list[dict[str, Any]] = []
+            raw = row[0]
+            if raw:
+                try:
+                    existing = json.loads(raw)
+                    if not isinstance(existing, list):
+                        existing = []
+                except (ValueError, TypeError):
+                    existing = []
+            event: dict[str, Any] = {
+                "ts": datetime.utcnow().isoformat() + "Z",
+                "message": message,
+            }
+            if entry_id is not None:
+                event["entry_id"] = entry_id
+            existing.append(event)
+            conn.execute(
+                "UPDATE jobs SET task_events = ? WHERE job_id = ?",
+                (json.dumps(existing), job_id),
+            )
+            conn.commit()
+        except Exception as e:
+            # Telemetry failure must never crash the pipeline.
+            log.warning(f"Failed to append task event for {job_id}: {e}")
+
+    def get_task_events(self, job_id: str) -> list[dict[str, Any]]:
+        """Return the task-event list for a job, or [] if none."""
+        try:
+            conn = self._get_connection()
+            row = conn.execute(
+                "SELECT task_events FROM jobs WHERE job_id = ?",
+                (job_id,),
+            ).fetchone()
+            if row is None or not row[0]:
+                return []
+            parsed = json.loads(row[0])
+            return parsed if isinstance(parsed, list) else []
+        except Exception:
+            return []
 
     # ------------------------------------------------------------------
     # Backup

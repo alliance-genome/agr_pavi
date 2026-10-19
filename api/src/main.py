@@ -78,6 +78,20 @@ class Pipeline_job(BaseModel):
     @classmethod
     def from_job_info(cls, job_info: JobInfo) -> "Pipeline_job":
         """Create Pipeline_job from JobInfo object."""
+        # Pipeline_job.task_events is already defined as list[str] | None
+        # (set by Nextflow mode), so flatten dict events to their message
+        # text for backwards compatibility while retaining per-sequence
+        # context in the message itself.
+        task_event_strs: Optional[list[str]] = None
+        raw_events = getattr(job_info, "task_events", None) or []
+        if raw_events:
+            task_event_strs = []
+            for e in raw_events:
+                if isinstance(e, dict):
+                    msg = e.get("message", "")
+                    task_event_strs.append(str(msg))
+                else:
+                    task_event_strs.append(str(e))
         return cls(
             uuid=UUID(job_info.job_id),
             status=job_info.status.value.lower(),
@@ -85,6 +99,7 @@ class Pipeline_job(BaseModel):
             input_count=job_info.input_count,
             sequences_processed=job_info.sequences_processed,
             error_message=job_info.error_message,
+            task_events=task_event_strs,
         )
 
 
