@@ -135,3 +135,39 @@
         gap: var(--agr-spacing-md);
     }
 }
+
+/* Theme toggle button in header. Visually matches the nav links so it
+   doesn't scream for attention, but reads as a control via its icon. */
+.themeToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--agr-radius-md);
+    color: var(--agr-header-text);
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    margin-left: 0.25rem;
+}
+
+.themeToggle:hover,
+.themeToggle:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.themeToggleLabel {
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .themeToggle {
+        margin: 0.5rem 0 0;
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

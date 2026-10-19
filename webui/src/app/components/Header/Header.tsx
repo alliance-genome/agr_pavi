@@ -4,13 +4,21 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import styles from './Header.module.css';
 import { showExperimental } from '../../../utils/featureFlags';
+import { useTheme } from '@/hooks/useTheme';
 
 export const Header: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const { mode, cycle } = useTheme();
 
     const toggleMobileMenu = () => {
         setMobileMenuOpen(!mobileMenuOpen);
     };
+
+    // Cycle label + icon for the theme button. Three states: auto (follow
+    // OS), light (forced), dark (forced). Icon changes so the user has a
+    // read on current mode without needing to open a menu.
+    const themeIcon = mode === 'dark' ? 'pi pi-moon' : mode === 'light' ? 'pi pi-sun' : 'pi pi-desktop';
+    const themeLabel = mode === 'dark' ? 'Dark' : mode === 'light' ? 'Light' : 'Auto';
 
     return (
         <header className="agr-header" role="banner">
@@ -92,6 +100,16 @@ export const Header: React.FC = () => {
                     <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
                         Help
                     </Link>
+                    <button
+                        type="button"
+                        onClick={cycle}
+                        aria-label={`Theme: ${themeLabel}. Click to change.`}
+                        title={`Theme: ${themeLabel} (click to cycle Auto / Light / Dark)`}
+                        className={styles.themeToggle}
+                    >
+                        <i className={themeIcon} aria-hidden="true" />
+                        <span className={styles.themeToggleLabel}>{themeLabel}</span>
+                    </button>
                 </nav>
             </div>
         </header>

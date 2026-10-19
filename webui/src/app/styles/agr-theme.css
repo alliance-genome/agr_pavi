@@ -133,6 +133,112 @@
 
   /* Container */
   --agr-container-max-width: 1600px;
+
+  /* Default color-scheme hint for form controls / scrollbars. Overridden
+     in the dark block so native widgets follow the theme too. */
+  color-scheme: light;
+}
+
+/* ----------------------------------------------------------------------
+ * Dark theme — opt-in via data-theme="dark" on <html>, set by useTheme.
+ *
+ * Only the SEMANTIC tokens flip (background, text, borders, greyscale).
+ * The brand palette (primary blues, accent oranges) stays saturated so
+ * logos and status pills look identical in both modes — tweaking those
+ * would require re-approving the design system.
+ *
+ * Grey ramp is reversed: `gray-100` is still "subtle surface vs
+ * background", but on dark that means a slightly lighter near-black
+ * rather than a near-white. Rules that already read `var(--agr-gray-N)`
+ * stay semantically correct.
+ * ------------------------------------------------------------------- */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Grey ramp inverted. Keeps the 9-step contrast relationship so
+     anywhere that paired `--agr-gray-100` with `--agr-gray-800` for
+     subtle-bg + strong-text still reads correctly. */
+  --agr-gray-100: #1f2328;
+  --agr-gray-200: #262c33;
+  --agr-gray-300: #343a44;
+  --agr-gray-400: #4b525b;
+  --agr-gray-500: #8893a0;   /* readable mid-tone on either side */
+  --agr-gray-600: #a9b2bc;
+  --agr-gray-700: #c6ccd4;
+  --agr-gray-800: #e2e5ea;
+  --agr-gray-900: #f1f3f5;
+
+  /* Semantic surfaces */
+  --agr-background: #0f1419;
+  --agr-background-alt: #171c22;
+  --agr-border-color: #2a313a;
+  --agr-text-primary: #e8eaed;
+  --agr-text-secondary: #a9b2bc;
+  --agr-text-muted: #8893a0;
+
+  /* Primary tint for highlighted surfaces — brighten against dark */
+  --agr-primary-light: #15314a;
+  --agr-link-color: #64acd1;
+  --agr-link-hover: #8fc0dc;
+
+  /* Status "-light" surfaces: swap pastel washes for low-saturation
+     dark tints so e.g. a success toast reads calmly on dark. The
+     paired "-dark" text tokens still have enough contrast. */
+  --agr-success-light: #0f3022;
+  --agr-success-dark: #86efac;
+  --agr-warning-light: #3a2d08;
+  --agr-warning-dark: #fde68a;
+  --agr-danger-light: #3a1118;
+  --agr-danger-dark: #fda4af;
+  --agr-info-light: #0e3238;
+  --agr-info-dark: #67e8f9;
+  --agr-error-light: #3a1118;
+  --agr-error-dark: #fda4af;
+
+  --agr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --agr-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+  --agr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+}
+
+/* System-preference auto-dark: only activates when the user hasn't
+   explicitly chosen a theme (useTheme sets `data-theme` to force one).
+   Mirrors the dark overrides above so the rules stay in sync at the
+   cost of a copy-paste. */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) {
+    color-scheme: dark;
+    --agr-gray-100: #1f2328;
+    --agr-gray-200: #262c33;
+    --agr-gray-300: #343a44;
+    --agr-gray-400: #4b525b;
+    --agr-gray-500: #8893a0;
+    --agr-gray-600: #a9b2bc;
+    --agr-gray-700: #c6ccd4;
+    --agr-gray-800: #e2e5ea;
+    --agr-gray-900: #f1f3f5;
+    --agr-background: #0f1419;
+    --agr-background-alt: #171c22;
+    --agr-border-color: #2a313a;
+    --agr-text-primary: #e8eaed;
+    --agr-text-secondary: #a9b2bc;
+    --agr-text-muted: #8893a0;
+    --agr-primary-light: #15314a;
+    --agr-link-color: #64acd1;
+    --agr-link-hover: #8fc0dc;
+    --agr-success-light: #0f3022;
+    --agr-success-dark: #86efac;
+    --agr-warning-light: #3a2d08;
+    --agr-warning-dark: #fde68a;
+    --agr-danger-light: #3a1118;
+    --agr-danger-dark: #fda4af;
+    --agr-info-light: #0e3238;
+    --agr-info-dark: #67e8f9;
+    --agr-error-light: #3a1118;
+    --agr-error-dark: #fda4af;
+    --agr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --agr-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+    --agr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+  }
 }
 
 /* Base Styles */
