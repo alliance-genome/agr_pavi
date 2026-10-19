@@ -17,6 +17,10 @@ export interface JobHistoryEntry {
     duration?: number; // in seconds
     error?: string;
     starred?: boolean;
+    /** User-assigned tags for ad-hoc grouping ('urgent', 'paper-1', etc.). */
+    tags?: string[];
+    /** Free-text note; shown in the row-expander on /jobs. */
+    notes?: string;
     /** Form selections (gene/transcripts/alleles per entry) captured at
      * submit time, used to pre-fill the Submit form for "Edit these
      * sequences". Absent for jobs imported via "Add by UUID". */
@@ -109,6 +113,43 @@ export function useJobHistory() {
         }));
     }, []);
 
+    // Tag CRUD. Tags are deduped case-insensitively but stored verbatim so
+    // display preserves the user's casing. An empty-string tag is a no-op.
+    const addTag = useCallback((uuid: string, tag: string) => {
+        const clean = tag.trim();
+        if (!clean) return;
+        setJobs(prev => prev.map(job => {
+            if (job.uuid !== uuid) return job;
+            const existing = job.tags ?? [];
+            if (existing.some(t => t.toLowerCase() === clean.toLowerCase())) return job;
+            return { ...job, tags: [...existing, clean] };
+        }));
+    }, []);
+
+    const removeTag = useCallback((uuid: string, tag: string) => {
+        setJobs(prev => prev.map(job => {
+            if (job.uuid !== uuid) return job;
+            return { ...job, tags: (job.tags ?? []).filter(t => t !== tag) };
+        }));
+    }, []);
+
+    const setNotes = useCallback((uuid: string, notes: string) => {
+        setJobs(prev => prev.map(job => {
+            if (job.uuid !== uuid) return job;
+            // Normalise empty-string back to undefined so the field drops off
+            // the stored record instead of writing an empty value forever.
+            return { ...job, notes: notes.trim() ? notes : undefined };
+        }));
+    }, []);
+
+    // Set of unique tags across the whole history, sorted. Used by the
+    // /jobs page tag-filter dropdown.
+    const getAllTags = useCallback((): string[] => {
+        const set = new Set<string>();
+        for (const j of jobs) for (const t of j.tags ?? []) set.add(t);
+        return Array.from(set).sort((a, b) => a.localeCompare(b));
+    }, [jobs]);
+
     const getJob = useCallback((uuid: string): JobHistoryEntry | undefined => {
         return jobs.find(job => job.uuid === uuid);
     }, [jobs]);
@@ -121,6 +162,7 @@ export function useJobHistory() {
         status?: JobStatus | JobStatus[];
         search?: string;
         starred?: boolean;
+        tag?: string;
     } = {}): JobHistoryEntry[] => {
         let filtered = [...jobs];
 
@@ -134,12 +176,19 @@ export function useJobHistory() {
             filtered = filtered.filter(job =>
                 job.uuid.toLowerCase().includes(searchLower) ||
                 job.genes.some(g => g.toLowerCase().includes(searchLower)) ||
-                (job.title && job.title.toLowerCase().includes(searchLower))
+                (job.title && job.title.toLowerCase().includes(searchLower)) ||
+                (job.notes && job.notes.toLowerCase().includes(searchLower)) ||
+                (job.tags ?? []).some(t => t.toLowerCase().includes(searchLower))
             );
         }
 
         if (options.starred !== undefined) {
             filtered = filtered.filter(job => job.starred === options.starred);
+        }
+
+        if (options.tag) {
+            const want = options.tag.toLowerCase();
+            filtered = filtered.filter(job => (job.tags ?? []).some(t => t.toLowerCase() === want));
         }
 
         return filtered;
@@ -163,6 +212,10 @@ export function useJobHistory() {
         removeJob,
         removeMultiple,
         toggleStar,
+        addTag,
+        removeTag,
+        setNotes,
+        getAllTags,
         getJob,
         clearHistory,
         getFilteredJobs,
