@@ -9,7 +9,7 @@ import json
 import os
 import sqlite3
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -142,6 +142,17 @@ class LocalJobStore:
     # Access-log methods
     # ------------------------------------------------------------------
 
+    # Access-log retention: rows older than this get swept on write.
+    # ~90 days is enough history for weekly review while bounding the
+    # table at roughly `requests_per_day * 90` — on the dev box with
+    # a few hundred req/day that's at most tens of thousands of rows.
+    ACCESS_LOG_RETENTION_DAYS = 90
+    # Probability of running the sweep on any given write. Keeps the
+    # amortised cost of logging near-zero (one DELETE per ~100 writes
+    # instead of one per write) while still trimming regularly on a
+    # live system.
+    ACCESS_LOG_SWEEP_PROBABILITY = 0.01
+
     def log_access(
         self,
         ts: str,
@@ -167,6 +178,80 @@ class LocalJobStore:
             conn.commit()
         except Exception as e:  # intentionally broad: never crash the hot path
             log.warning(f"Failed to persist access log row: {e}")
+            return
+
+        # Opportunistic retention sweep: cheap on average, keeps the table
+        # bounded without needing a separate scheduler process.
+        import random
+        if random.random() < self.ACCESS_LOG_SWEEP_PROBABILITY:
+            try:
+                self.trim_access_log()
+            except Exception as e:
+                log.warning(f"Access log trim failed: {e}")
+
+    # ------------------------------------------------------------------
+    # Backup
+    # ------------------------------------------------------------------
+
+    def snapshot(self, out_path: Path) -> int:
+        """
+        Online SQLite backup to `out_path`. Safe to call while the DB
+        is live — SQLite's backup API locks pages one at a time instead
+        of taking the whole DB. Returns the on-disk size of the snapshot.
+        """
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        src = self._get_connection()
+        with sqlite3.connect(str(out_path)) as dst:
+            src.backup(dst)
+        return out_path.stat().st_size
+
+    def list_snapshots(self, snapshot_dir: Path) -> list[dict[str, Any]]:
+        """Return metadata for every *.sqlite file in `snapshot_dir`."""
+        if not snapshot_dir.exists():
+            return []
+        rows = []
+        for p in sorted(snapshot_dir.glob("jobs-*.sqlite")):
+            try:
+                st = p.stat()
+            except OSError:
+                continue
+            rows.append({
+                "name": p.name,
+                "bytes": st.st_size,
+                "created_at": datetime.fromtimestamp(st.st_mtime).isoformat() + "Z",
+            })
+        return rows
+
+    def prune_snapshots(self, snapshot_dir: Path, keep: int) -> int:
+        """Delete all but the `keep` most recent snapshots. Returns the
+        number removed. Keeps the newest files by mtime, which matches
+        the backup script's intent (latest history takes precedence)."""
+        if not snapshot_dir.exists() or keep < 0:
+            return 0
+        snaps = sorted(
+            snapshot_dir.glob("jobs-*.sqlite"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        removed = 0
+        for p in snaps[keep:]:
+            try:
+                p.unlink()
+                removed += 1
+            except OSError as e:
+                log.warning(f"Failed to prune snapshot {p}: {e}")
+        return removed
+
+    def trim_access_log(self, retention_days: Optional[int] = None) -> int:
+        """Delete access_log rows older than `retention_days`. Returns
+        the number of rows removed. Safe to call manually from an admin
+        endpoint for a forced sweep."""
+        days = retention_days if retention_days is not None else self.ACCESS_LOG_RETENTION_DAYS
+        cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat() + "Z"
+        conn = self._get_connection()
+        cur = conn.execute("DELETE FROM access_log WHERE ts < ?", (cutoff,))
+        conn.commit()
+        return cur.rowcount
 
     # ------------------------------------------------------------------
     # Share-token methods

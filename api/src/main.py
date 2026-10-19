@@ -11,6 +11,7 @@ from typing import Any, Literal, Optional
 import json
 import re
 import subprocess
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 from uuid import uuid1, UUID
@@ -249,7 +250,77 @@ def run_pipeline_local(
             logger.error(f"Failed to update job status after error: {update_err}")
 
 
-app = FastAPI(docs_url=None)
+# ----------------------------------------------------------------------
+# jobs.db snapshot scheduler
+# ----------------------------------------------------------------------
+# Daily background task that writes an online SQLite backup of jobs.db
+# alongside the DB file. Keeps a rolling window of the last N snapshots
+# so a corrupt jobs.db has a recent fallback. In-process asyncio timer:
+# good enough for a single-node EC2 box; a horizontally-scaled deployment
+# would want a dedicated cron.
+
+_BACKUP_INTERVAL_SECONDS = int(getenv("PAVI_BACKUP_INTERVAL_SECONDS", str(24 * 60 * 60)))
+_BACKUP_KEEP = int(getenv("PAVI_BACKUP_KEEP", "7"))
+
+
+def _backup_dir() -> Path:
+    """Snapshots live next to jobs.db under a `backups/` sibling dir."""
+    return Path(_config.pipeline.local_jobs_path) / "backups"
+
+
+def _run_single_backup() -> dict[str, Any]:
+    """Take one snapshot and prune. Returns metadata for the fresh file."""
+    from datetime import datetime as _dt
+    store = get_job_service().local_store
+    backup_dir = _backup_dir()
+    stamp = _dt.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    out_path = backup_dir / f"jobs-{stamp}.sqlite"
+    size = store.snapshot(out_path)
+    pruned = store.prune_snapshots(backup_dir, keep=_BACKUP_KEEP)
+    return {
+        "name": out_path.name,
+        "bytes": size,
+        "pruned": pruned,
+        "created_at": _dt.utcnow().isoformat() + "Z",
+    }
+
+
+async def _backup_loop() -> None:
+    """Daily snapshot loop. Logs and continues on any single-run failure
+    so a transient disk hiccup doesn't kill the scheduler for the rest
+    of the process lifetime."""
+    import asyncio
+    while True:
+        try:
+            if USE_LOCAL_PIPELINE:
+                meta = _run_single_backup()
+                logger.info(f"jobs.db snapshot taken: {meta['name']} ({meta['bytes']} bytes, pruned {meta['pruned']})")
+        except Exception as e:
+            logger.warning(f"jobs.db snapshot failed: {e}")
+        await asyncio.sleep(_BACKUP_INTERVAL_SECONDS)
+
+
+@asynccontextmanager
+async def _lifespan(_app: Any) -> Any:
+    """Start the background snapshot loop at process startup. The task is
+    long-lived and gets cancelled on shutdown — any in-flight backup will
+    be interrupted but the next startup will catch up."""
+    import asyncio
+    task: Any = None
+    if USE_LOCAL_PIPELINE:
+        task = asyncio.create_task(_backup_loop())
+    try:
+        yield
+    finally:
+        if task is not None:
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):
+                pass
+
+
+app = FastAPI(docs_url=None, lifespan=_lifespan)
 router = APIRouter(prefix="/api")
 
 
@@ -270,6 +341,94 @@ def _normalise_path_for_stats(path: str) -> tuple[str, Optional[str]]:
     found = _UUID_RE.search(path)
     template = _UUID_RE.sub("{uuid}", path)
     return template, (found.group(0).lower() if found else None)
+
+
+# ----------------------------------------------------------------------
+# Rate limiting — per-IP token bucket
+# ----------------------------------------------------------------------
+#
+# Two separate buckets per client IP:
+#   - Reads: 120 requests / minute (GET, HEAD, OPTIONS)
+#   - Writes: 20 requests / minute (POST, PUT, PATCH, DELETE)
+#
+# Token bucket is in-process memory: survives for the process lifetime,
+# resets on restart. On a single-node EC2 dev box that's fine; if we
+# ever scale horizontally each node will rate-limit independently.
+#
+# Config via env so an operator can bump the ceilings without a rebuild.
+# The limits apply only to /api/* paths — static chunks and the admin
+# UI itself must stay snappy.
+
+_RATE_LIMIT_READ_PER_MIN = int(getenv("PAVI_RATE_LIMIT_READ_PER_MIN", "120"))
+_RATE_LIMIT_WRITE_PER_MIN = int(getenv("PAVI_RATE_LIMIT_WRITE_PER_MIN", "20"))
+
+_WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+
+
+class _TokenBucket:
+    """Dead-simple token bucket. Capacity = refill_per_min; refills
+    continuously at refill_per_min / 60 tokens per second."""
+    __slots__ = ("capacity", "refill_per_sec", "tokens", "updated")
+
+    def __init__(self, refill_per_min: int) -> None:
+        self.capacity = float(refill_per_min)
+        self.refill_per_sec = refill_per_min / 60.0
+        self.tokens = float(refill_per_min)
+        self.updated = 0.0
+
+    def take(self, now: float) -> tuple[bool, float]:
+        """Try to consume one token; returns (allowed, retry_after_seconds)."""
+        self.tokens = min(self.capacity, self.tokens + (now - self.updated) * self.refill_per_sec)
+        self.updated = now
+        if self.tokens >= 1.0:
+            self.tokens -= 1.0
+            return True, 0.0
+        # How long until one token is available?
+        return False, max(0.0, (1.0 - self.tokens) / self.refill_per_sec)
+
+
+# {ip: (read_bucket, write_bucket)}. Entries live for the process
+# lifetime; a trivial periodic purge isn't worth the complexity on a
+# dev box with a handful of client IPs.
+_rate_buckets: dict[str, tuple[_TokenBucket, _TokenBucket]] = {}
+
+
+def _rate_limit_check(ip: str, method: str) -> tuple[bool, float]:
+    import time
+    now = time.monotonic()
+    buckets = _rate_buckets.get(ip)
+    if buckets is None:
+        buckets = (
+            _TokenBucket(_RATE_LIMIT_READ_PER_MIN),
+            _TokenBucket(_RATE_LIMIT_WRITE_PER_MIN),
+        )
+        _rate_buckets[ip] = buckets
+    read_bucket, write_bucket = buckets
+    bucket = write_bucket if method in _WRITE_METHODS else read_bucket
+    return bucket.take(now)
+
+
+@app.middleware("http")
+async def rate_limit(request: Any, call_next: Any) -> Any:
+    """
+    Reject /api/* requests that exceed per-IP token buckets. Returns
+    429 with a Retry-After header. Non-/api paths (static assets,
+    docs) are not rate-limited.
+    """
+    path = request.url.path
+    if not path.startswith("/api/"):
+        return await call_next(request)
+
+    ip = request.client.host if request.client else "unknown"
+    allowed, retry_after = _rate_limit_check(ip, request.method)
+    if not allowed:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=429,
+            content={"detail": f"Rate limit exceeded; retry in {retry_after:.1f}s"},
+            headers={"Retry-After": f"{int(retry_after) + 1}"},
+        )
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -1957,6 +2116,91 @@ class DeleteJobsResponse(BaseModel):
     deleted: int
     bytes_freed: int
     skipped: list[str]  # UUIDs that couldn't be deleted
+
+
+class SnapshotMeta(BaseModel):
+    name: str
+    bytes: int
+    created_at: str
+
+
+class SnapshotListResponse(BaseModel):
+    backup_dir: str
+    keep: int
+    interval_seconds: int
+    snapshots: list[SnapshotMeta]
+
+
+@router.get(
+    "/stats/snapshots",
+    response_model=SnapshotListResponse,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def list_snapshots() -> SnapshotListResponse:
+    """List jobs.db snapshots the backup loop has produced."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Snapshot listing is currently only available in local pipeline mode.",
+        )
+    store = get_job_service().local_store
+    backup_dir = _backup_dir()
+    snaps = [SnapshotMeta(**s) for s in store.list_snapshots(backup_dir)]
+    return SnapshotListResponse(
+        backup_dir=str(backup_dir),
+        keep=_BACKUP_KEEP,
+        interval_seconds=_BACKUP_INTERVAL_SECONDS,
+        snapshots=snaps,
+    )
+
+
+@router.post(
+    "/stats/snapshots/now",
+    response_model=SnapshotMeta,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def take_snapshot_now() -> SnapshotMeta:
+    """Force an immediate jobs.db snapshot. Useful before a risky operation."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Snapshot is currently only available in local pipeline mode.",
+        )
+    meta = _run_single_backup()
+    # _run_single_backup returns an extra `pruned` key we don't surface here.
+    return SnapshotMeta(name=meta["name"], bytes=meta["bytes"], created_at=meta["created_at"])
+
+
+class TrimAccessLogRequest(BaseModel):
+    retention_days: Optional[int] = None
+
+
+class TrimAccessLogResponse(BaseModel):
+    deleted: int
+    retention_days: int
+
+
+@router.post(
+    "/stats/trim-access-log",
+    response_model=TrimAccessLogResponse,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def trim_access_log(body: TrimAccessLogRequest) -> TrimAccessLogResponse:
+    """
+    Manual sweep of access_log rows older than `retention_days`
+    (default 90). The regular opportunistic trim runs on ~1% of
+    writes; this endpoint forces one for an operator who just wants
+    the table pruned now.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Access log trim is currently only available in local pipeline mode.",
+        )
+    store = get_job_service().local_store
+    days = body.retention_days if body.retention_days is not None else store.ACCESS_LOG_RETENTION_DAYS
+    deleted = store.trim_access_log(retention_days=days)
+    return TrimAccessLogResponse(deleted=deleted, retention_days=days)
 
 
 @router.post(
