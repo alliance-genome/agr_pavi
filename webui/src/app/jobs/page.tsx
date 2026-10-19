@@ -22,6 +22,10 @@ export default function JobsPage() {
         removeJob,
         removeMultiple,
         toggleStar,
+        addTag,
+        removeTag,
+        setNotes,
+        getAllTags,
         getStats,
         clearHistory,
     } = useJobHistory();
@@ -236,6 +240,10 @@ export default function JobsPage() {
                     onRemove={removeJob}
                     onRemoveMultiple={removeMultiple}
                     onToggleStar={toggleStar}
+                    onAddTag={addTag}
+                    onRemoveTag={removeTag}
+                    onSetNotes={setNotes}
+                    allTags={getAllTags()}
                     isLoading={isLoading}
                 />
             </Card>
