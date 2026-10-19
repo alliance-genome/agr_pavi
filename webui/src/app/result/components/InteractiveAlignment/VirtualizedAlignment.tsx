@@ -76,6 +76,11 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
     const [alignmentColorScheme, setAlignmentColorScheme] = useState<string>('clustal2');
     // Overlay toggles (Tier 1: SAB mockup "Show:" panel)
     const [showConservation, setShowConservation] = useState<boolean>(false);
+    // Which conservation metric to plot. "identity" is the share of the
+    // most-common residue (0..100%). "entropy" is Shannon H (0..log2(20),
+    // ~4.32 bits for proteins), inverted so taller = more conserved so
+    // the two plots read the same way visually.
+    const [conservationMetric, setConservationMetric] = useState<'identity' | 'entropy'>('identity');
     const [showVariantLocations, setShowVariantLocations] = useState<boolean>(true);
     const [showProteinDomains, setShowProteinDomains] = useState<boolean>(false);
     const [showExonBoundaries, setShowExonBoundaries] = useState<boolean>(false);
@@ -438,14 +443,29 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
         return alleles;
     }, [props.seqInfoDict, variantTypeFilter, consequenceFilter, filterByDisease, filterByPhenotype, variantAnnotations, hiddenVariantSeqs]);
 
-    // Calculate conservation scores for each position
+    // Calculate conservation scores for each position.
+    //
+    // Two metrics:
+    //  - 'identity': % of sequences carrying the most-common residue
+    //    (0..100). Simple and intuitive — a column that's TP in every
+    //    row scores 100, a column with a 50/50 split scores 50.
+    //  - 'entropy': information content, derived from Shannon entropy
+    //    H(col) = -Σ p_i log2(p_i). Normalised to 0..100 (100 = fully
+    //    conserved, 0 = maximally diverse) by inverting (max_H - H)
+    //    and rescaling. Max_H is log2(min(20, n_seqs)) because we're
+    //    counting amino acids; fewer sequences cap the possible H.
+    //
+    // The two share the output range (0..100) so the Nightingale axis
+    // doesn't need to be reconfigured when the user swaps metric.
     const conservationData = useMemo<LineData[]>(() => {
         if (fullAlignmentData.length < 2 || seqLength === 0) return [];
+
+        const nSeqs = fullAlignmentData.length;
+        const maxEntropy = Math.log2(Math.min(20, nSeqs));
 
         const values: Array<{ position: number; value: number }> = [];
 
         for (let pos = 0; pos < seqLength; pos++) {
-            // Count residues at this position
             const residueCounts: Map<string, number> = new Map();
             let totalNonGap = 0;
 
@@ -457,30 +477,57 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                 }
             }
 
-            // Calculate conservation as percentage of most common residue
-            let maxCount = 0;
-            residueCounts.forEach(count => {
-                if (count > maxCount) maxCount = count;
-            });
+            let score = 0;
+            if (totalNonGap > 0) {
+                if (conservationMetric === 'identity') {
+                    let maxCount = 0;
+                    residueCounts.forEach((c) => { if (c > maxCount) maxCount = c; });
+                    score = (maxCount / nSeqs) * 100;
+                } else {
+                    // Shannon entropy over the non-gap distribution.
+                    let h = 0;
+                    residueCounts.forEach((c) => {
+                        const p = c / totalNonGap;
+                        h -= p * Math.log2(p);
+                    });
+                    // Invert + rescale so a conserved column scores high.
+                    // (maxEntropy may be 0 when nSeqs=1 — guard divides.)
+                    score = maxEntropy > 0 ? ((maxEntropy - h) / maxEntropy) * 100 : 100;
+                    // Penalise columns that are mostly gaps so they don't
+                    // appear "conserved" just because few residues survived.
+                    score *= totalNonGap / nSeqs;
+                }
+            }
 
-            // Conservation score: percentage of sequences with the most common residue
-            const score = totalNonGap > 0 ? (maxCount / fullAlignmentData.length) * 100 : 0;
-
-            values.push({
-                position: pos + 1, // 1-based position
-                value: score
-            });
+            values.push({ position: pos + 1, value: score });
         }
 
         return [{
-            name: 'Conservation',
+            name: conservationMetric === 'identity' ? 'Identity (%)' : 'Entropy (inv)',
             range: [0, 100],
             color: '#2563eb',
             fill: 'rgba(37, 99, 235, 0.15)',
             lineCurve: 'curveMonotoneX',
-            values
+            values,
         }];
-    }, [fullAlignmentData, seqLength]);
+    }, [fullAlignmentData, seqLength, conservationMetric]);
+
+    // Position-level conservation summary — mean / fraction of highly
+    // conserved columns in the current display window. Shown next to the
+    // metric dropdown so the user has a numeric anchor for what they're
+    // looking at.
+    const conservationSummary = useMemo(() => {
+        const vs = conservationData[0]?.values ?? [];
+        if (vs.length === 0) return null;
+        const mean = vs.reduce((a, b) => a + b.value, 0) / vs.length;
+        const high = vs.filter(v => v.value >= 90).length;
+        const low = vs.filter(v => v.value < 50).length;
+        return {
+            mean,
+            highPct: (high / vs.length) * 100,
+            lowPct: (low / vs.length) * 100,
+        };
+    }, [conservationData]);
 
     // Display range state
     const [displayStart, setDisplayStart] = useState<number>(1);
@@ -966,6 +1013,39 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                             onChange={(e) => setShowConservation(e.target.checked)}
                         />
                         <span>Conservation</span>
+                        {showConservation && (
+                            <>
+                                <select
+                                    value={conservationMetric}
+                                    onChange={(e) => setConservationMetric(e.target.value as 'identity' | 'entropy')}
+                                    style={{
+                                        marginLeft: '0.5rem',
+                                        padding: '0.1rem 0.4rem',
+                                        fontSize: '0.75rem',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: 4,
+                                        background: 'white',
+                                    }}
+                                    aria-label="Conservation metric"
+                                    title="Metric used for the conservation track"
+                                >
+                                    <option value="identity">% identity</option>
+                                    <option value="entropy">Shannon entropy (inv)</option>
+                                </select>
+                                {conservationSummary && (
+                                    <span style={{
+                                        marginLeft: '0.5rem',
+                                        fontSize: '0.7rem',
+                                        color: '#6b7280',
+                                        fontVariantNumeric: 'tabular-nums',
+                                    }}>
+                                        mean&nbsp;<strong>{conservationSummary.mean.toFixed(0)}</strong>
+                                        &nbsp;·&nbsp;high&nbsp;<strong style={{ color: '#16a34a' }}>{conservationSummary.highPct.toFixed(0)}%</strong>
+                                        &nbsp;·&nbsp;low&nbsp;<strong style={{ color: '#dc2626' }}>{conservationSummary.lowPct.toFixed(0)}%</strong>
+                                    </span>
+                                )}
+                            </>
+                        )}
                     </label>
                     <label className={`${styles.overlayToggle} ${styles.overlayDisabled}`}>
                         <input
