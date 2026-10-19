@@ -93,8 +93,10 @@ test.describe('/jobs management', () => {
         await expect(page.getByText('22222222...')).toBeVisible();
         await expect(page.getByText('33333333...')).toBeVisible();
 
-        // Open the "Filter by tag" dropdown (PrimeReact Dropdown).
-        await page.getByText('All Tags').click();
+        // Open the "Filter by tag" dropdown (PrimeReact Dropdown). The
+        // visible label is a <span>, not the hidden <option>; narrow the
+        // locator so it doesn't match both.
+        await page.locator('span.p-dropdown-label').filter({ hasText: 'All Tags' }).click();
         await page.getByRole('option', { name: 'urgent' }).click();
 
         await expect(page.getByText('11111111...')).toBeVisible();
