@@ -12,6 +12,7 @@ import { Ribbon } from './components/Ribbon/Ribbon';
 import { SkipLinks, LiveRegionProvider, KeyboardShortcuts } from './components/Accessibility';
 import { LayoutWrapper } from './components/LayoutWrapper';
 import { withBasePath } from '@/utils/basePath';
+import { NO_FLASH_SCRIPT } from '@/hooks/useTheme';
 
 const lato = Lato({
     subsets: ["latin"],
@@ -31,7 +32,19 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
+        <head>
+            {/* No-flash dark mode: runs synchronously before the body
+                paints so a reload while in dark mode doesn't flash white.
+                Must mirror useTheme's applyTheme logic.
+
+                dangerouslySetInnerHTML is safe here: NO_FLASH_SCRIPT is a
+                hard-coded string constant from our own module, never user
+                input. React forces this attribute for inline <script>
+                because that's the only way the bootstrap script runs
+                before React hydrates. */}
+            <script dangerouslySetInnerHTML={{ __html: NO_FLASH_SCRIPT }} />
+        </head>
         <body className={lato.className}>
             <Ribbon />
             <PrimeReactProvider>
