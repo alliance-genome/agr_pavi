@@ -310,6 +310,20 @@ export function JobTable({
                 />
             </div>
             <div className={styles.headerRight}>
+                {completedSelectedCount === 2 && (
+                    <Button
+                        label="Compare these two"
+                        icon="pi pi-arrow-right-arrow-left"
+                        className="p-button-sm p-button-outlined"
+                        severity="info"
+                        onClick={() => {
+                            // Pass the two completed job UUIDs; order of selection
+                            // determines which side (A vs B) they're shown on.
+                            const completed = selectedJobs.filter(j => j.status === 'completed');
+                            router.push(`/compare?a=${completed[0].uuid}&b=${completed[1].uuid}`);
+                        }}
+                    />
+                )}
                 {completedSelectedCount > 0 && (
                     <>
                         <Menu model={batchExportMenuItems} popup ref={batchExportMenuRef} id="batch-export-menu" />
