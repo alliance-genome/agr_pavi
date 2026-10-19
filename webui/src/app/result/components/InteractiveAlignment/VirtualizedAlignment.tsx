@@ -28,6 +28,7 @@ import { SeqInfoDict, VariantAnnotationMap } from './types';
 import styles from './VirtualizedAlignment.module.css';
 import { PositionInfoPanel } from '../PositionInfoPanel/PositionInfoPanel';
 import type { PositionData } from '../PositionInfoPanel/PositionInfoPanel';
+import { ProteinDomainsPanel } from './ProteinDomainsPanel';
 
 // Constants for virtualization and display
 const SEQUENCE_HEIGHT = 40; // Height per sequence in pixels (larger for readability)
@@ -1047,12 +1048,11 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                             </>
                         )}
                     </label>
-                    <label className={`${styles.overlayToggle} ${styles.overlayDisabled}`}>
+                    <label className={styles.overlayToggle}>
                         <input
                             type="checkbox"
                             checked={showProteinDomains}
                             onChange={(e) => setShowProteinDomains(e.target.checked)}
-                            disabled
                         />
                         <span>Protein Domains</span>
                     </label>
@@ -1172,6 +1172,18 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                                 />
                             </div>
                         </div>
+                    )}
+
+                    {/* Protein-domain panel. Full-width per-sequence
+                        bars rather than a Nightingale track because
+                        each sequence maps to its own UniProt accession
+                        and InterPro coord space, which the single-
+                        length Nightingale track can't represent. */}
+                    {showProteinDomains && fullAlignmentData.length > 0 && (
+                        <ProteinDomainsPanel
+                            seqInfoDict={props.seqInfoDict}
+                            alignmentData={fullAlignmentData}
+                        />
                     )}
 
                     {/* Variant track — numbered circles using Nightingale's positioning formula */}
