@@ -208,6 +208,190 @@ html[data-theme="dark"] {
    in both too. The user's intent (Auto vs explicit) is preserved on
    data-theme-mode. */
 
+/* ----------------------------------------------------------------------
+ * PrimeReact dark overrides
+ *
+ * PrimeReact's lara-light-indigo theme bakes `background:#fff` into the
+ * datatable rows, paginator, inputs, dropdowns, panels, dialogs, menus,
+ * etc. The token refactor above doesn't reach those rules because the
+ * stylesheet is imported with hard-coded hex, not CSS variables. Rather
+ * than ship a second PrimeReact theme we flip the surfaces that matter
+ * when data-theme="dark".
+ *
+ * Rules use !important to beat PrimeReact's own `!important` chain in
+ * the lara theme (we're already overriding other prime bits with it
+ * further up in this file, so this stays consistent).
+ * ------------------------------------------------------------------- */
+html[data-theme="dark"] .p-component,
+html[data-theme="dark"] .p-datatable,
+html[data-theme="dark"] .p-datatable-wrapper,
+html[data-theme="dark"] .p-datatable-tbody,
+html[data-theme="dark"] .p-datatable-tbody > tr,
+html[data-theme="dark"] .p-datatable-tbody > tr > td,
+html[data-theme="dark"] .p-paginator,
+html[data-theme="dark"] .p-paginator-page,
+html[data-theme="dark"] .p-dropdown,
+html[data-theme="dark"] .p-dropdown-panel,
+html[data-theme="dark"] .p-dropdown-items-wrapper,
+html[data-theme="dark"] .p-dropdown-item,
+html[data-theme="dark"] .p-dropdown-filter,
+html[data-theme="dark"] .p-inputtext,
+html[data-theme="dark"] .p-inputtextarea,
+html[data-theme="dark"] .p-multiselect,
+html[data-theme="dark"] .p-multiselect-panel,
+html[data-theme="dark"] .p-multiselect-items-wrapper,
+html[data-theme="dark"] .p-multiselect-item,
+html[data-theme="dark"] .p-multiselect-header,
+html[data-theme="dark"] .p-autocomplete-panel,
+html[data-theme="dark"] .p-autocomplete-items,
+html[data-theme="dark"] .p-autocomplete-item,
+html[data-theme="dark"] .p-menu,
+html[data-theme="dark"] .p-menuitem,
+html[data-theme="dark"] .p-menuitem-link,
+html[data-theme="dark"] .p-tieredmenu,
+html[data-theme="dark"] .p-contextmenu,
+html[data-theme="dark"] .p-overlaypanel,
+html[data-theme="dark"] .p-overlaypanel-content,
+html[data-theme="dark"] .p-dialog,
+html[data-theme="dark"] .p-dialog-header,
+html[data-theme="dark"] .p-dialog-content,
+html[data-theme="dark"] .p-dialog-footer,
+html[data-theme="dark"] .p-sidebar,
+html[data-theme="dark"] .p-sidebar-content,
+html[data-theme="dark"] .p-card,
+html[data-theme="dark"] .p-card-body,
+html[data-theme="dark"] .p-tabview-nav,
+html[data-theme="dark"] .p-tabview-panel,
+html[data-theme="dark"] .p-tabview-nav-link,
+html[data-theme="dark"] .p-tooltip-text,
+html[data-theme="dark"] .p-tooltip .p-tooltip-text,
+html[data-theme="dark"] .p-accordion .p-accordion-content,
+html[data-theme="dark"] .p-accordion .p-accordion-header .p-accordion-header-link {
+  background: var(--agr-background-alt) !important;
+  color: var(--agr-text-primary) !important;
+}
+
+html[data-theme="dark"] .p-datatable .p-datatable-thead > tr > th {
+  background: var(--agr-background) !important;
+  color: var(--agr-text-primary) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-datatable .p-datatable-tbody > tr {
+  background: var(--agr-background-alt) !important;
+  color: var(--agr-text-primary) !important;
+}
+
+/* Even/odd stripes — one slightly lighter than the surface alt */
+html[data-theme="dark"] .p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) {
+  background: var(--agr-gray-200) !important;
+}
+
+html[data-theme="dark"] .p-datatable .p-datatable-tbody > tr > td {
+  background: transparent !important;
+  color: var(--agr-text-primary) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-datatable .p-datatable-tbody > tr:hover {
+  background: var(--agr-gray-300) !important;
+}
+
+/* Row expander + selection checkboxes stay visible on dark rows */
+html[data-theme="dark"] .p-row-toggler {
+  color: var(--agr-text-primary) !important;
+}
+
+html[data-theme="dark"] .p-checkbox .p-checkbox-box {
+  background: var(--agr-background) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-checkbox .p-checkbox-box.p-highlight {
+  background: var(--agr-primary-500) !important;
+  border-color: var(--agr-primary-500) !important;
+}
+
+/* Dropdown panel items + hover */
+html[data-theme="dark"] .p-dropdown-item,
+html[data-theme="dark"] .p-multiselect-item,
+html[data-theme="dark"] .p-autocomplete-item {
+  color: var(--agr-text-primary) !important;
+}
+
+html[data-theme="dark"] .p-dropdown-item:hover,
+html[data-theme="dark"] .p-dropdown-item.p-highlight,
+html[data-theme="dark"] .p-multiselect-item:hover,
+html[data-theme="dark"] .p-multiselect-item.p-highlight,
+html[data-theme="dark"] .p-autocomplete-item:hover {
+  background: var(--agr-primary-light) !important;
+  color: var(--agr-link-color) !important;
+}
+
+/* Dropdown trigger label */
+html[data-theme="dark"] .p-dropdown .p-dropdown-label,
+html[data-theme="dark"] .p-multiselect .p-multiselect-label {
+  color: var(--agr-text-primary) !important;
+  background: transparent !important;
+}
+
+html[data-theme="dark"] .p-dropdown .p-dropdown-trigger,
+html[data-theme="dark"] .p-multiselect .p-multiselect-trigger {
+  color: var(--agr-text-secondary) !important;
+  background: transparent !important;
+}
+
+/* Inputs & borders */
+html[data-theme="dark"] .p-inputtext,
+html[data-theme="dark"] .p-inputtextarea {
+  background: var(--agr-background) !important;
+  color: var(--agr-text-primary) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-inputtext::placeholder,
+html[data-theme="dark"] .p-inputtextarea::placeholder {
+  color: var(--agr-text-muted) !important;
+}
+
+/* Paginator */
+html[data-theme="dark"] .p-paginator {
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-paginator .p-paginator-page,
+html[data-theme="dark"] .p-paginator .p-paginator-first,
+html[data-theme="dark"] .p-paginator .p-paginator-prev,
+html[data-theme="dark"] .p-paginator .p-paginator-next,
+html[data-theme="dark"] .p-paginator .p-paginator-last {
+  background: transparent !important;
+  color: var(--agr-text-primary) !important;
+  border-color: transparent !important;
+}
+
+html[data-theme="dark"] .p-paginator .p-paginator-page.p-highlight {
+  background: var(--agr-primary-500) !important;
+  color: white !important;
+}
+
+/* Progressbar track reads lighter on dark surfaces */
+html[data-theme="dark"] .p-progressbar {
+  background-color: var(--agr-gray-300) !important;
+}
+
+/* Tooltip text block */
+html[data-theme="dark"] .p-tooltip .p-tooltip-text {
+  background: var(--agr-gray-200) !important;
+  color: var(--agr-text-primary) !important;
+}
+
+/* AGR card surfaces use --agr-background which already flips, but the
+   header still reads --agr-gray-100 (now a dark surface) — make sure
+   nested text stays legible. */
+html[data-theme="dark"] .agr-card-header {
+  color: var(--agr-text-primary);
+}
+
 /* Base Styles */
 html {
   font-size: 16px;
