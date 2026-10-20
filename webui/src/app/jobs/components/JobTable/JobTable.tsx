@@ -510,7 +510,7 @@ function JobDetailsPanel({ job, allTags, onAddTag, onRemoveTag, onSetNotes }: Jo
     };
 
     return (
-        <div style={{ padding: '0.75rem 1rem', background: '#f9fafb' }}>
+        <div style={{ padding: '0.75rem 1rem', background: 'var(--agr-background-alt)' }}>
             <div style={{ marginBottom: '0.75rem' }}>
                 <strong style={{ fontSize: '0.8rem' }}>UUID:</strong>{' '}
                 <code style={{ fontSize: '0.75rem' }}>{job.uuid}</code>

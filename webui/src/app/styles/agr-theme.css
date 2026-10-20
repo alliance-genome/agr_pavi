@@ -226,6 +226,8 @@ html[data-theme="dark"] {
    (too broad, hits buttons/badges/tags with their own baked color)
    and avoid .p-button* (handled by brand rules earlier in this file). */
 html[data-theme="dark"] .p-datatable,
+html[data-theme="dark"] .p-datatable-header,
+html[data-theme="dark"] .p-datatable-footer,
 html[data-theme="dark"] .p-datatable-wrapper,
 html[data-theme="dark"] .p-datatable-tbody,
 html[data-theme="dark"] .p-paginator,

@@ -184,9 +184,9 @@ export default function JobsPage() {
                         padding: '0.75rem 1rem',
                         marginBottom: '1rem',
                         borderRadius: 6,
-                        background: importMessage.startsWith('Import failed') ? '#fef2f2' : '#f0fdf4',
-                        color: importMessage.startsWith('Import failed') ? '#991b1b' : '#166534',
-                        border: `1px solid ${importMessage.startsWith('Import failed') ? '#fecaca' : '#bbf7d0'}`,
+                        background: importMessage.startsWith('Import failed') ? 'var(--agr-danger-light)' : 'var(--agr-success-light)',
+                        color: importMessage.startsWith('Import failed') ? 'var(--agr-danger-dark)' : 'var(--agr-success-dark)',
+                        border: `1px solid ${importMessage.startsWith('Import failed') ? 'var(--agr-danger)' : 'var(--agr-success)'}`,
                     }}
                 >
                     {importMessage}
