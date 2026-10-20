@@ -180,8 +180,8 @@ function SideCard({
                 fontSize: '0.7rem',
                 padding: '0.1rem 0.5rem',
                 borderRadius: 4,
-                background: side === 'A' ? '#dbeafe' : '#fef3c7',
-                color: side === 'A' ? '#1e40af' : '#92400e',
+                background: side === 'A' ? 'var(--agr-primary-light)' : 'var(--agr-warning-light)',
+                color: side === 'A' ? 'var(--agr-link-color)' : 'var(--agr-warning-dark)',
                 fontWeight: 700,
             }}>
                 SIDE {side}
@@ -201,7 +201,7 @@ function SideCard({
     if (loading) {
         return (
             <Card header={header}>
-                <div style={{ color: '#6b7280' }}>
+                <div style={{ color: 'var(--agr-text-muted)' }}>
                     <i className="pi pi-spin pi-spinner" style={{ marginRight: '0.5rem' }} />
                     Loading…
                 </div>
@@ -212,7 +212,7 @@ function SideCard({
     if (!job || job.error) {
         return (
             <Card header={header}>
-                <div style={{ color: '#dc2626' }}>
+                <div style={{ color: 'var(--agr-danger)' }}>
                     <i className="pi pi-exclamation-triangle" style={{ marginRight: '0.5rem' }} />
                     {job?.error ?? 'Job not found.'}
                 </div>
@@ -223,7 +223,7 @@ function SideCard({
     if (!summary) {
         return (
             <Card header={header}>
-                <div style={{ color: '#6b7280' }}>No seq-info data available for this job.</div>
+                <div style={{ color: 'var(--agr-text-muted)' }}>No seq-info data available for this job.</div>
             </Card>
         );
     }
@@ -238,13 +238,13 @@ function SideCard({
                 margin: 0,
                 fontSize: '0.85rem',
             }}>
-                <dt style={{ color: '#6b7280' }}>Stage:</dt>
+                <dt style={{ color: 'var(--agr-text-muted)' }}>Stage:</dt>
                 <dd style={{ margin: 0 }}>{job.stage ?? '—'}</dd>
-                <dt style={{ color: '#6b7280' }}>Sequences:</dt>
+                <dt style={{ color: 'var(--agr-text-muted)' }}>Sequences:</dt>
                 <dd style={{ margin: 0, fontWeight: 600 }}>{summary.seqNames.length}</dd>
-                <dt style={{ color: '#6b7280' }}>Species:</dt>
+                <dt style={{ color: 'var(--agr-text-muted)' }}>Species:</dt>
                 <dd style={{ margin: 0 }}>{summary.species.length} ({summary.species.join(', ')})</dd>
-                <dt style={{ color: '#6b7280' }}>Variants:</dt>
+                <dt style={{ color: 'var(--agr-text-muted)' }}>Variants:</dt>
                 <dd style={{ margin: 0 }}>{summary.variants}</dd>
             </dl>
         </Card>
@@ -295,14 +295,14 @@ function OverlapGrid({
                     field="onlyA"
                     header="Only in A"
                     body={(row: { onlyA: string }) => (
-                        <code style={{ fontSize: '0.75rem', color: '#1e40af' }}>{row.onlyA}</code>
+                        <code style={{ fontSize: '0.75rem', color: 'var(--agr-link-color)' }}>{row.onlyA}</code>
                     )}
                 />
                 <Column
                     field="onlyB"
                     header="Only in B"
                     body={(row: { onlyB: string }) => (
-                        <code style={{ fontSize: '0.75rem', color: '#92400e' }}>{row.onlyB}</code>
+                        <code style={{ fontSize: '0.75rem', color: 'var(--agr-warning-dark)' }}>{row.onlyB}</code>
                     )}
                 />
             </DataTable>
@@ -311,8 +311,8 @@ function OverlapGrid({
 }
 
 function Badge({ label, count, tone }: { readonly label: string; readonly count: number; readonly tone: 'success' | 'info' | 'warning' }) {
-    const bg = tone === 'success' ? '#dcfce7' : tone === 'info' ? '#dbeafe' : '#fef3c7';
-    const fg = tone === 'success' ? '#166534' : tone === 'info' ? '#1e40af' : '#92400e';
+    const bg = tone === 'success' ? 'var(--agr-success-light)' : tone === 'info' ? 'var(--agr-primary-light)' : 'var(--agr-warning-light)';
+    const fg = tone === 'success' ? 'var(--agr-success-dark)' : tone === 'info' ? 'var(--agr-link-color)' : 'var(--agr-warning-dark)';
     return (
         <div style={{
             padding: '0.3rem 0.6rem',
@@ -332,14 +332,15 @@ function Badge({ label, count, tone }: { readonly label: string; readonly count:
 function AlignmentBlock({ label, text }: { readonly label: string; readonly text: string }) {
     return (
         <div>
-            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.3rem' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--agr-text-muted)', marginBottom: '0.3rem' }}>
                 {label}
             </div>
             <pre style={{
                 margin: 0,
                 padding: '0.5rem',
-                background: '#f9fafb',
-                border: '1px solid #e5e7eb',
+                background: 'var(--agr-background-alt)',
+                color: 'var(--agr-text-primary)',
+                border: '1px solid var(--agr-border-color)',
                 borderRadius: 4,
                 fontSize: '0.7rem',
                 lineHeight: 1.3,

@@ -320,6 +320,21 @@
     color: var(--agr-accent-800);
 }
 
+/* The accent palette intentionally stays saturated in dark mode (it's a
+   brand ramp, not a semantic token), so the pastel bg stays bright on
+   dark unless overridden. Tint it dark here. */
+:global([data-theme="dark"]) .calloutKey {
+    background-color: rgba(217, 95, 2, 0.12);
+}
+
+:global([data-theme="dark"]) .calloutKey .calloutLabel {
+    color: var(--agr-accent-400);
+}
+
+:global([data-theme="dark"]) .calloutKey p {
+    color: var(--agr-text-primary);
+}
+
 .calloutTip {
     border-left-color: var(--agr-success);
     background-color: var(--agr-success-light);

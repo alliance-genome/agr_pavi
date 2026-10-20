@@ -298,14 +298,15 @@ export default function BenchmarkPage() {
         style={{
           marginBottom: '20px',
           padding: '15px',
-          backgroundColor: '#f5f5f5',
+          backgroundColor: 'var(--agr-background-alt)',
+          color: 'var(--agr-text-primary)',
           borderRadius: '6px',
           fontFamily: 'monospace',
         }}
       >
         <strong>Live FPS: {fps}</strong>
         {currentTest && (
-          <span style={{ marginLeft: '20px', color: '#0066cc' }}>
+          <span style={{ marginLeft: '20px', color: 'var(--agr-link-color)' }}>
             🔄 Testing {currentTest} sequences... ({fpsReadingsRef.current.length} samples)
           </span>
         )}
