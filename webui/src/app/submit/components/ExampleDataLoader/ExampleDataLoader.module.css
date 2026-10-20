@@ -80,7 +80,7 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 1rem;
-    background: var(--agr-gray-50);
+    background: var(--agr-gray-100);
     border: 1px solid var(--agr-gray-200);
     border-radius: var(--agr-border-radius-md);
     text-align: left;
@@ -89,7 +89,7 @@
 }
 
 .exampleCard:hover {
-    background: white;
+    background: var(--agr-background);
     border-color: var(--agr-primary);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -127,8 +127,8 @@
 }
 
 .categoryBadge.cross-species {
-    background: #dbeafe;
-    color: #1e40af;
+    background: var(--agr-primary-light);
+    color: var(--agr-link-color);
 }
 
 .categoryBadge.advanced {
@@ -155,12 +155,12 @@
     align-items: center;
     gap: 0.25rem;
     padding: 0.25rem 0.5rem;
-    background: white;
-    border: 1px solid var(--agr-gray-200);
+    background: var(--agr-background);
+    border: 1px solid var(--agr-border-color);
     border-radius: var(--agr-border-radius-sm);
     font-size: 0.75rem;
     font-weight: 500;
-    color: var(--agr-gray-800);
+    color: var(--agr-text-primary);
 }
 
 .species {
