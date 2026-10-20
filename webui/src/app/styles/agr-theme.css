@@ -329,6 +329,21 @@ html[data-theme="dark"] .p-tag.p-tag-info {
   color: var(--agr-info-dark) !important;
 }
 
+/* FloatLabel: when the input is focused/filled, the label floats above
+   the input border and gets background-color:#fff from the lara theme
+   so it "cuts through" the border visibly. In dark mode that leaves a
+   bright white rectangle floating over the dark input. Match the input
+   surface so the cut-through still works. */
+html[data-theme="dark"] .p-float-label > label {
+  background-color: var(--agr-background) !important;
+  color: var(--agr-text-secondary) !important;
+}
+
+html[data-theme="dark"] .p-float-label > .p-inputwrapper-focus ~ label,
+html[data-theme="dark"] .p-float-label > .p-inputwrapper-filled ~ label {
+  color: var(--agr-link-color) !important;
+}
+
 /* Secondary button: light gray CTA in day mode becomes a bright gray
    slab on a dark page because the grey ramp inverts. Pick a dark
    surface color on dark theme. */
