@@ -45,17 +45,22 @@ export function useTheme(): {
     const [mode, setModeState] = useState<ThemeMode>('auto');
     const [effective, setEffective] = useState<'light' | 'dark'>('light');
 
-    // Load persisted choice on mount, after hydration (so SSR output and
-    // client state match on first render). The pre-hydration inline script
-    // has already applied the right data-theme by this point.
+    // Load persisted choice on mount AND re-apply the theme attribute.
+    // Normally the pre-hydration NO_FLASH_SCRIPT has already set data-theme,
+    // but Next.js error-fallback paths (route-level notFound() renders) emit
+    // a bare <html id="__next_error__"> shell with an empty <head>, so the
+    // inline script never runs. Calling applyTheme here means those pages
+    // still get the right data-theme once React takes over.
     useEffect(() => {
         try {
             const stored = window.localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-            if (stored === 'light' || stored === 'dark' || stored === 'auto') {
-                setModeState(stored);
-            }
+            const loaded = (stored === 'light' || stored === 'dark' || stored === 'auto') ? stored : 'auto';
+            setModeState(loaded);
+            // Idempotent re-apply: if NO_FLASH_SCRIPT already ran it's a no-op.
+            applyTheme(loaded);
         } catch {
-            // localStorage disabled; stay on 'auto'.
+            // localStorage disabled; apply default anyway so data-theme exists.
+            applyTheme('auto');
         }
     }, []);
 

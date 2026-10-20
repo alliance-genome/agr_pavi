@@ -41,9 +41,12 @@
 .logContainer {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     font-size: 0.8125rem;
-    background: var(--agr-gray-900, #111827);
-    color: var(--agr-gray-100, #f3f4f6);
-    border: 1px solid var(--agr-gray-700, #374151);
+    /* Terminal-style log — always dark bg + light fg, regardless of theme.
+       Previously used var(--agr-gray-900) which flips to light in dark
+       mode (ramp inversion), turning the log viewer into light-on-light. */
+    background: #111827;
+    color: #f3f4f6;
+    border: 1px solid #374151;
     border-radius: 6px;
     flex: 1;
     overflow-y: auto;
@@ -55,8 +58,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1rem;
-    background: var(--agr-gray-800, #1f2937);
-    border-bottom: 1px solid var(--agr-gray-700, #374151);
+    background: #1f2937;
+    border-bottom: 1px solid #374151;
     position: sticky;
     top: 0;
     z-index: 1;
@@ -74,10 +77,13 @@
     color: var(--agr-success, #22c55e);
 }
 
+/* Fixed terminal palette: this badge sits inside .logHeader which is
+   always dark. The gray-400 / gray-700 refs flipped light in dark mode
+   due to ramp inversion, so lock to literal shades. */
 .logCount {
     font-size: 0.75rem;
-    color: var(--agr-gray-400, #9ca3af);
-    background: var(--agr-gray-700, #374151);
+    color: #9ca3af;
+    background: #374151;
     padding: 0.125rem 0.5rem;
     border-radius: 9999px;
 }
@@ -91,7 +97,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 1rem;
-    border-bottom: 1px solid var(--agr-gray-800, #1f2937);
+    border-bottom: 1px solid #1f2937;
     font-size: 0.8125rem;
     line-height: 1.5;
 }

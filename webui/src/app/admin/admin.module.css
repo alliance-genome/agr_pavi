@@ -6,8 +6,11 @@
     right: 0;
     bottom: 0;
     z-index: 9999;
-    background: #f8f9fa; /* Solid fallback */
-    background: var(--agr-gray-50, #f8f9fa);
+    /* Semantic background follows the theme — --agr-gray-50 was never
+       defined in the ramp so the fallback #f8f9fa was always used, which
+       stayed light in dark mode. */
+    background: var(--agr-background-alt);
+    color: var(--agr-text-primary);
     overflow: auto;
     isolation: isolate; /* Create new stacking context */
 }
@@ -94,7 +97,7 @@
 .adminContainer {
     display: flex;
     flex-direction: column;
-    background: var(--agr-gray-50);
+    background: var(--agr-background-alt);
 }
 
 .header {
@@ -102,15 +105,15 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.5rem 2rem;
-    background: white;
-    border-bottom: 1px solid var(--agr-gray-200);
+    background: var(--agr-background);
+    border-bottom: 1px solid var(--agr-border-color);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .headerContent h1 {
     margin: 0;
     font-size: 1.5rem;
-    color: var(--agr-gray-900);
+    color: var(--agr-text-primary);
 }
 
 .headerContent p {

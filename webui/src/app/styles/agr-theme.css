@@ -225,6 +225,7 @@ html[data-theme="dark"] {
 /* Container surfaces — flip background and text. Avoid .p-component
    (too broad, hits buttons/badges/tags with their own baked color)
    and avoid .p-button* (handled by brand rules earlier in this file). */
+html[data-theme="dark"] .p-tabview-panels,
 html[data-theme="dark"] .p-datatable,
 html[data-theme="dark"] .p-datatable-header,
 html[data-theme="dark"] .p-datatable-footer,
@@ -304,6 +305,42 @@ html[data-theme="dark"] .p-checkbox .p-checkbox-box {
 html[data-theme="dark"] .p-checkbox .p-checkbox-box.p-highlight {
   background: var(--agr-primary-500) !important;
   border-color: var(--agr-primary-500) !important;
+}
+
+/* Status tags (p-tag-*): PrimeReact bakes saturated colors into these,
+   which read as neon on a dark surface. Keep the hue but drop luminance. */
+html[data-theme="dark"] .p-tag.p-tag-warning {
+  background: var(--agr-warning-light) !important;
+  color: var(--agr-warning-dark) !important;
+}
+
+html[data-theme="dark"] .p-tag.p-tag-success {
+  background: var(--agr-success-light) !important;
+  color: var(--agr-success-dark) !important;
+}
+
+html[data-theme="dark"] .p-tag.p-tag-danger {
+  background: var(--agr-danger-light) !important;
+  color: var(--agr-danger-dark) !important;
+}
+
+html[data-theme="dark"] .p-tag.p-tag-info {
+  background: var(--agr-info-light) !important;
+  color: var(--agr-info-dark) !important;
+}
+
+/* Secondary button: light gray CTA in day mode becomes a bright gray
+   slab on a dark page because the grey ramp inverts. Pick a dark
+   surface color on dark theme. */
+html[data-theme="dark"] .p-button.p-button-secondary {
+  background-color: var(--agr-gray-300) !important;
+  border-color: var(--agr-gray-300) !important;
+  color: var(--agr-text-primary) !important;
+}
+
+html[data-theme="dark"] .p-button.p-button-secondary:hover {
+  background-color: var(--agr-gray-400) !important;
+  border-color: var(--agr-gray-400) !important;
 }
 
 /* Prime's checkmark icon inherits color — force it white on the
