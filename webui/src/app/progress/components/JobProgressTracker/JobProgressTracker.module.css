@@ -152,16 +152,20 @@
     word-break: break-word;
 }
 
+/* Log viewer bg is locked dark (terminal palette), so use fixed bright
+   semantic text colors. --agr-{error,warning,success}-light are
+   SURFACE tokens that flip dark in dark mode — binding to them here
+   left error/warning/success log text unreadable on the dark bg. */
 .logMessage.error {
-    color: var(--agr-error-light, #fca5a5);
+    color: #fca5a5;
 }
 
 .logMessage.warning {
-    color: var(--agr-warning-light, #fcd34d);
+    color: #fcd34d;
 }
 
 .logMessage.success {
-    color: var(--agr-success-light, #86efac);
+    color: #86efac;
 }
 
 .emptyLog {
