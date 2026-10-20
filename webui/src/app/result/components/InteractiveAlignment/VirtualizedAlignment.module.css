@@ -1175,15 +1175,42 @@
   background: var(--agr-primary-light);
 }
 
-/* Yellow variantIcon circle (lightning bolt) reads neon on dark;
-   drop luminance but keep the warning hue. */
+/* Yellow variantIcon circle (lightning bolt) reads neon on dark; drop
+   luminance but keep the warning hue. --agr-warning-dark flips to a
+   BRIGHT yellow in dark mode, so use a literal muted mustard here. */
 :global([data-theme="dark"]) .variantIcon {
-  background: var(--agr-warning-dark);
-  color: var(--agr-warning-light);
+  background: rgba(251, 191, 36, 0.25);
+  color: #fcd34d;
 }
 
 :global([data-theme="dark"]) .filterPosInput:focus {
   border-color: var(--agr-primary-400);
+}
+
+/* Variant type badges (substitution/insertion/deletion) use literal
+   pastel + saturated-text pairs that stay bright on dark. Flip each
+   to a muted dark tint of the same hue so they still read as
+   categorical but harmonize with the panel. */
+:global([data-theme="dark"]) .variantTypeBadge.substitution {
+  background: rgba(99, 102, 241, 0.18);
+  color: #c7d2fe;
+}
+
+:global([data-theme="dark"]) .variantTypeBadge.insertion {
+  background: rgba(22, 163, 74, 0.18);
+  color: #86efac;
+}
+
+:global([data-theme="dark"]) .variantTypeBadge.deletion {
+  background: rgba(220, 38, 38, 0.18);
+  color: #fca5a5;
+}
+
+/* Variant count pill (next to "Variant Information" title) uses 15%
+   yellow which reads as a bright dot on dark; soften to muted tint. */
+:global([data-theme="dark"]) .variantCount {
+  background: rgba(251, 191, 36, 0.08);
+  color: var(--agr-warning-dark);
 }
 
 :global([data-theme="dark"]) .consequenceBadge {
