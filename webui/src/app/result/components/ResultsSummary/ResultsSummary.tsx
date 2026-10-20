@@ -542,12 +542,21 @@ export function ResultsSummary({
                     for (const p of stats.pairwiseIdentities) {
                         identityByPair.set(key(p.seq1, p.seq2), p.identity)
                     }
-                    // Continuous green-to-red gradient on identity. Cell text
-                    // stays readable across the range with a single contrast
-                    // breakpoint at 50%.
+                    // Continuous green-to-red gradient on identity. In dark
+                    // mode drop lightness so cells read as dark tints and
+                    // light text stays readable; the 50% contrast break
+                    // flips to a bright color variant.
+                    const isDark = typeof document !== 'undefined'
+                        && document.documentElement.getAttribute('data-theme') === 'dark'
                     const cellStyle = (v: number): React.CSSProperties => {
                         // hue 0 (red) -> 120 (green) by identity 0..100
                         const hue = Math.round((v / 100) * 120)
+                        if (isDark) {
+                            return {
+                                background: `hsl(${hue}, 55%, 18%)`,
+                                color: v >= 50 ? '#86efac' : '#fca5a5',
+                            }
+                        }
                         return {
                             background: `hsl(${hue}, 72%, 88%)`,
                             color: v >= 50 ? '#14532d' : '#7f1d1d',

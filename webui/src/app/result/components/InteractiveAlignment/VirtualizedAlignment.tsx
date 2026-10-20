@@ -1029,9 +1029,10 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                                         marginLeft: '0.5rem',
                                         padding: '0.1rem 0.4rem',
                                         fontSize: '0.75rem',
-                                        border: '1px solid #d1d5db',
+                                        border: '1px solid var(--agr-border-color)',
                                         borderRadius: 4,
-                                        background: 'white',
+                                        background: 'var(--agr-background)',
+                                        color: 'var(--agr-text-primary)',
                                     }}
                                     aria-label="Conservation metric"
                                     title="Metric used for the conservation track"
@@ -1043,7 +1044,7 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                                     <span style={{
                                         marginLeft: '0.5rem',
                                         fontSize: '0.7rem',
-                                        color: '#6b7280',
+                                        color: 'var(--agr-text-muted)',
                                         fontVariantNumeric: 'tabular-nums',
                                     }}>
                                         mean&nbsp;<strong>{conservationSummary.mean.toFixed(0)}</strong>
