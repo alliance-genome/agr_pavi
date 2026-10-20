@@ -296,31 +296,31 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                             padding: '0.75rem 1rem',
                             fontSize: '0.875rem',
                             fontWeight: 600,
-                            color: 'var(--agr-gray-800)',
+                            color: 'var(--agr-text-primary)',
                             userSelect: 'none',
                             listStyle: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.75rem',
-                            background: 'linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%)',
-                            border: '1px solid var(--agr-gray-200)',
+                            background: 'var(--agr-success-light)',
+                            border: '1px solid var(--agr-border-color)',
                             borderRadius: '8px',
                             WebkitAppearance: 'none',
                         }}>
                             <i className="pi pi-check-circle" style={{ color: 'var(--agr-success)', fontSize: '1.1rem' }} />
                             <span>Alignment Results</span>
                             {seqCount > 0 && (
-                                <span style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--agr-gray-600)' }}>
+                                <span style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--agr-text-secondary)' }}>
                                     <span>{seqCount} sequences</span>
-                                    <span style={{ color: 'var(--agr-gray-300)' }}>|</span>
+                                    <span style={{ color: 'var(--agr-border-color)' }}>|</span>
                                     <span>{alnLength} aa</span>
                                     {variantCount > 0 && (<>
-                                        <span style={{ color: 'var(--agr-gray-300)' }}>|</span>
+                                        <span style={{ color: 'var(--agr-border-color)' }}>|</span>
                                         <span>{variantCount} variants</span>
                                     </>)}
                                 </span>
                             )}
-                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--agr-gray-400)' }}>
+                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--agr-text-muted)' }}>
                                 Click to expand
                             </span>
                         </summary>

@@ -367,7 +367,8 @@ function FullscreenAlignmentContent() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '100vh',
-                backgroundColor: '#f8f9fa'
+                backgroundColor: 'var(--agr-background-alt)',
+                color: 'var(--agr-text-primary)',
             }}>
                 <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem', marginRight: '1rem' }} />
                 Loading alignment...
@@ -383,11 +384,11 @@ function FullscreenAlignmentContent() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '100vh',
-                backgroundColor: '#f8f9fa',
+                backgroundColor: 'var(--agr-background-alt)',
                 gap: '1rem'
             }}>
-                <i className="pi pi-exclamation-triangle" style={{ fontSize: '3rem', color: '#dc3545' }} />
-                <div style={{ color: '#dc3545', fontSize: '1.2rem' }}>{error}</div>
+                <i className="pi pi-exclamation-triangle" style={{ fontSize: '3rem', color: 'var(--agr-danger)' }} />
+                <div style={{ color: 'var(--agr-danger)', fontSize: '1.2rem' }}>{error}</div>
                 <Button label="Close" icon="pi pi-times" onClick={() => window.close()} />
             </div>
         );
@@ -405,7 +406,8 @@ function FullscreenAlignmentContent() {
                 display: 'flex',
                 flexDirection: 'column',
                 outline: 'none',
-                backgroundColor: '#fff',
+                backgroundColor: 'var(--agr-background)',
+                color: 'var(--agr-text-primary)',
                 overflow: 'hidden'
             }}
         >
@@ -415,17 +417,17 @@ function FullscreenAlignmentContent() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '0.5rem 1rem',
-                backgroundColor: '#f8f9fa',
-                borderBottom: '1px solid #dee2e6',
+                backgroundColor: 'var(--agr-background-alt)',
+                borderBottom: '1px solid var(--agr-border-color)',
                 flexShrink: 0
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <span style={{ fontWeight: 600, color: '#333' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--agr-text-primary)' }}>
                         {fullAlignmentData.length} sequences &middot; {seqLength} positions
                     </span>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <label htmlFor="colorscheme" style={{ fontSize: '0.9rem', color: '#666' }}>Color:</label>
+                        <label htmlFor="colorscheme" style={{ fontSize: '0.9rem', color: 'var(--agr-text-secondary)' }}>Color:</label>
                         <Dropdown
                             id="colorscheme"
                             value={alignmentColorScheme}
@@ -438,8 +440,8 @@ function FullscreenAlignmentContent() {
                         />
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ccc', marginRight: '0.25rem' }}>Show:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', background: 'var(--agr-background)', borderRadius: '6px', border: '1px solid var(--agr-border-color)' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--agr-text-secondary)', marginRight: '0.25rem' }}>Show:</span>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.8rem', padding: '0.2rem 0.4rem', borderRadius: '4px' }}>
                             <input type="checkbox" checked={showVariantLocations} onChange={(e) => setShowVariantLocations(e.target.checked)} />
                             Variants
@@ -460,7 +462,7 @@ function FullscreenAlignmentContent() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <span style={{ color: '#888', fontSize: '0.8rem' }}>
+                    <span style={{ color: 'var(--agr-text-muted)', fontSize: '0.8rem' }}>
                         ←→ pan &middot; +/- zoom &middot; Home/End &middot; Esc close
                     </span>
                     <Button
@@ -612,7 +614,7 @@ function FullscreenAlignmentContent() {
                         justifyContent: 'center',
                         alignItems: 'center',
                         height: '200px',
-                        color: '#666'
+                        color: 'var(--agr-text-secondary)'
                     }}>
                         <i className="pi pi-spin pi-spinner" style={{ marginRight: '0.5rem' }} />
                         Loading alignment data...
@@ -631,7 +633,8 @@ export default function FullscreenAlignmentPage() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '100vh',
-                backgroundColor: '#f8f9fa'
+                backgroundColor: 'var(--agr-background-alt)',
+                color: 'var(--agr-text-primary)',
             }}>
                 Loading...
             </div>

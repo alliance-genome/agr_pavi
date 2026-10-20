@@ -200,46 +200,13 @@ html[data-theme="dark"] {
   --agr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
 }
 
-/* System-preference auto-dark: only activates when the user hasn't
-   explicitly chosen a theme (useTheme sets `data-theme` to force one).
-   Mirrors the dark overrides above so the rules stay in sync at the
-   cost of a copy-paste. */
-@media (prefers-color-scheme: dark) {
-  html:not([data-theme]) {
-    color-scheme: dark;
-    --agr-gray-100: #1f2328;
-    --agr-gray-200: #262c33;
-    --agr-gray-300: #343a44;
-    --agr-gray-400: #4b525b;
-    --agr-gray-500: #8893a0;
-    --agr-gray-600: #a9b2bc;
-    --agr-gray-700: #c6ccd4;
-    --agr-gray-800: #e2e5ea;
-    --agr-gray-900: #f1f3f5;
-    --agr-background: #0f1419;
-    --agr-background-alt: #171c22;
-    --agr-border-color: #2a313a;
-    --agr-text-primary: #e8eaed;
-    --agr-text-secondary: #a9b2bc;
-    --agr-text-muted: #8893a0;
-    --agr-primary-light: #15314a;
-    --agr-link-color: #64acd1;
-    --agr-link-hover: #8fc0dc;
-    --agr-success-light: #0f3022;
-    --agr-success-dark: #86efac;
-    --agr-warning-light: #3a2d08;
-    --agr-warning-dark: #fde68a;
-    --agr-danger-light: #3a1118;
-    --agr-danger-dark: #fda4af;
-    --agr-info-light: #0e3238;
-    --agr-info-dark: #67e8f9;
-    --agr-error-light: #3a1118;
-    --agr-error-dark: #fda4af;
-    --agr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --agr-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
-    --agr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
-  }
-}
+/* The @media (prefers-color-scheme: dark) block used to live here as a
+   fallback for Auto mode. It's gone because useTheme now always resolves
+   Auto to light/dark and sets data-theme explicitly — so the html[data-
+   theme="dark"] block above covers both Auto-on-dark-OS and explicit
+   Dark, and all CSS-module overrides keyed off [data-theme="dark"] fire
+   in both too. The user's intent (Auto vs explicit) is preserved on
+   data-theme-mode. */
 
 /* Base Styles */
 html {
