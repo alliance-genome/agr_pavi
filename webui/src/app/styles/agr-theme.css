@@ -222,32 +222,26 @@ html[data-theme="dark"] {
  * the lara theme (we're already overriding other prime bits with it
  * further up in this file, so this stays consistent).
  * ------------------------------------------------------------------- */
-html[data-theme="dark"] .p-component,
+/* Container surfaces — flip background and text. Avoid .p-component
+   (too broad, hits buttons/badges/tags with their own baked color)
+   and avoid .p-button* (handled by brand rules earlier in this file). */
 html[data-theme="dark"] .p-datatable,
 html[data-theme="dark"] .p-datatable-wrapper,
 html[data-theme="dark"] .p-datatable-tbody,
-html[data-theme="dark"] .p-datatable-tbody > tr,
-html[data-theme="dark"] .p-datatable-tbody > tr > td,
 html[data-theme="dark"] .p-paginator,
-html[data-theme="dark"] .p-paginator-page,
 html[data-theme="dark"] .p-dropdown,
 html[data-theme="dark"] .p-dropdown-panel,
 html[data-theme="dark"] .p-dropdown-items-wrapper,
-html[data-theme="dark"] .p-dropdown-item,
 html[data-theme="dark"] .p-dropdown-filter,
 html[data-theme="dark"] .p-inputtext,
 html[data-theme="dark"] .p-inputtextarea,
 html[data-theme="dark"] .p-multiselect,
 html[data-theme="dark"] .p-multiselect-panel,
 html[data-theme="dark"] .p-multiselect-items-wrapper,
-html[data-theme="dark"] .p-multiselect-item,
 html[data-theme="dark"] .p-multiselect-header,
 html[data-theme="dark"] .p-autocomplete-panel,
 html[data-theme="dark"] .p-autocomplete-items,
-html[data-theme="dark"] .p-autocomplete-item,
 html[data-theme="dark"] .p-menu,
-html[data-theme="dark"] .p-menuitem,
-html[data-theme="dark"] .p-menuitem-link,
 html[data-theme="dark"] .p-tieredmenu,
 html[data-theme="dark"] .p-contextmenu,
 html[data-theme="dark"] .p-overlaypanel,
@@ -263,8 +257,6 @@ html[data-theme="dark"] .p-card-body,
 html[data-theme="dark"] .p-tabview-nav,
 html[data-theme="dark"] .p-tabview-panel,
 html[data-theme="dark"] .p-tabview-nav-link,
-html[data-theme="dark"] .p-tooltip-text,
-html[data-theme="dark"] .p-tooltip .p-tooltip-text,
 html[data-theme="dark"] .p-accordion .p-accordion-content,
 html[data-theme="dark"] .p-accordion .p-accordion-header .p-accordion-header-link {
   background: var(--agr-background-alt) !important;
@@ -310,6 +302,13 @@ html[data-theme="dark"] .p-checkbox .p-checkbox-box {
 html[data-theme="dark"] .p-checkbox .p-checkbox-box.p-highlight {
   background: var(--agr-primary-500) !important;
   border-color: var(--agr-primary-500) !important;
+}
+
+/* Prime's checkmark icon inherits color — force it white on the
+   primary-blue checked box so it's visible in dark mode. */
+html[data-theme="dark"] .p-checkbox .p-checkbox-box .p-checkbox-icon,
+html[data-theme="dark"] .p-checkbox .p-checkbox-box.p-highlight .p-checkbox-icon {
+  color: #ffffff !important;
 }
 
 /* Dropdown panel items + hover */
