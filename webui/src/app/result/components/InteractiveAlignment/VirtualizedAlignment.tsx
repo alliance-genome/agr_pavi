@@ -25,6 +25,7 @@ import { Button } from 'primereact/button';
 
 import { fetchVariantAnnotations } from './serverActions';
 import { SeqInfoDict, VariantAnnotationMap } from './types';
+import { withBasePath } from '@/utils/basePath';
 import styles from './VirtualizedAlignment.module.css';
 import { PositionInfoPanel } from '../PositionInfoPanel/PositionInfoPanel';
 import type { PositionData } from '../PositionInfoPanel/PositionInfoPanel';
@@ -789,18 +790,23 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
         return () => window.removeEventListener('resize', updateHeight);
     }, []);
 
-    // Update zoom to show readable sequence at centre of alignment
+    // Autozoom to show a readable window at the centre of the alignment,
+    // ONCE per mount. The guard matters because this effect fires after
+    // the first paint — without it, the alignment visibly jumps from the
+    // default 1..50 window to the recentered window ("alignment changes
+    // display mid-way"). The ref also prevents re-centering when the user
+    // has already scrolled/panned away.
     useEffect(() => {
-        if (seqLength === 0) return;
+        if (seqLength === 0 || hasAutoZoomed.current) return;
 
         const initDisplayCenter = Math.round(seqLength / 2);
-        // Show fewer positions initially for better readability (50 instead of 150)
         const halfWindow = 25;
         const newDisplayStart = seqLength <= halfWindow * 2 ? 1 : initDisplayCenter - halfWindow;
         const newDisplayEnd = seqLength <= halfWindow * 2 ? seqLength : initDisplayCenter + halfWindow;
 
         setDisplayStart(newDisplayStart);
         setDisplayEnd(newDisplayEnd);
+        hasAutoZoomed.current = true;
     }, [seqLength]);
 
     // Total height for scroll container
@@ -1086,7 +1092,11 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                         onClick={() => {
                             const params = new URLSearchParams();
                             params.set('uuid', props.jobUuid!);
-                            window.open(`/alignment?${params.toString()}`, '_blank');
+                            // Must go through withBasePath — window.open() is one
+                            // of the paths Next.js does NOT auto-prefix (unlike
+                            // <Link>/router.push). Without this, the new tab 404s
+                            // when PAVI is served under /pavi in production.
+                            window.open(withBasePath(`/alignment?${params.toString()}`), '_blank');
                         }}
                     />
                 )}

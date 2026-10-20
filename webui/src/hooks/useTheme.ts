@@ -14,20 +14,26 @@ function systemPrefersDark(): boolean {
 }
 
 /**
- * Apply the chosen theme by setting `data-theme` on <html>. 'auto'
- * clears the attribute so the @media (prefers-color-scheme: dark)
- * block in agr-theme.css takes over.
+ * Apply the chosen theme by setting `data-theme` on <html> to the
+ * RESOLVED value (always 'light' or 'dark', never missing).
+ *
+ * We used to leave the attribute off for 'auto' and let a
+ * @media (prefers-color-scheme: dark) block in agr-theme.css handle
+ * it — but that only flipped the semantic tokens. CSS-module overrides
+ * written as `[data-theme="dark"] .foo { … }` didn't fire in Auto
+ * mode, so Auto and explicit Dark diverged visibly. Resolving here
+ * means every rule keyed off `[data-theme="dark"]` applies in both.
  *
  * Kept out of the hook body so the inline no-flash script in
  * layout.tsx can call the same logic before React hydrates.
  */
 function applyTheme(mode: ThemeMode): void {
     if (typeof document === 'undefined') return;
-    if (mode === 'auto') {
-        document.documentElement.removeAttribute('data-theme');
-    } else {
-        document.documentElement.setAttribute('data-theme', mode);
-    }
+    const resolved = mode === 'auto' ? (systemPrefersDark() ? 'dark' : 'light') : mode;
+    document.documentElement.setAttribute('data-theme', resolved);
+    // Record the USER's choice separately so cycle() and the no-flash
+    // script can distinguish Auto-resolved-dark from explicit-dark.
+    document.documentElement.setAttribute('data-theme-mode', mode);
 }
 
 export function useTheme(): {
@@ -53,16 +59,21 @@ export function useTheme(): {
         }
     }, []);
 
-    // Keep `effective` in sync with mode + OS preference. Only triggers
-    // re-render when the resolved value changes; useful for consumers
-    // that pick colors by theme (e.g. alignment viewer).
+    // Keep `effective` in sync with mode + OS preference, AND keep the
+    // DOM data-theme attribute in sync when Auto's underlying OS pref
+    // flips. Without re-applying on media-query change, Auto mode would
+    // get stuck on whatever the OS preference was at load time.
     useEffect(() => {
-        const resolve = () => (mode === 'auto' ? (systemPrefersDark() ? 'dark' : 'light') : mode);
+        const resolve = (): 'light' | 'dark' =>
+            mode === 'auto' ? (systemPrefersDark() ? 'dark' : 'light') : mode;
         setEffective(resolve());
         if (mode !== 'auto') return;
         const mql = window.matchMedia?.('(prefers-color-scheme: dark)');
         if (!mql) return;
-        const onChange = () => setEffective(resolve());
+        const onChange = () => {
+            setEffective(resolve());
+            applyTheme('auto');  // Re-resolve + re-apply the attribute.
+        };
         mql.addEventListener?.('change', onChange);
         return () => mql.removeEventListener?.('change', onChange);
     }, [mode]);
@@ -88,13 +99,20 @@ export function useTheme(): {
 
 // Script string injected into <head> by layout.tsx. Runs BEFORE React
 // hydrates so there's no flash-of-wrong-theme on reload. Must stay
-// in sync with useTheme's `applyTheme` logic.
+// in sync with useTheme's `applyTheme` logic — always resolve Auto
+// to light/dark here so CSS-module `[data-theme="dark"]` rules apply
+// in both Auto and explicit Dark.
 export const NO_FLASH_SCRIPT = `(function(){
   try {
-    var s = localStorage.getItem('${STORAGE_KEY}');
-    if (s === 'light' || s === 'dark') {
-      document.documentElement.setAttribute('data-theme', s);
+    var mode = localStorage.getItem('${STORAGE_KEY}') || 'auto';
+    var resolved = mode;
+    if (mode === 'auto') {
+      resolved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } else if (mode !== 'light' && mode !== 'dark') {
+      resolved = 'light';
+      mode = 'auto';
     }
-    /* 'auto' or missing: leave attribute off so @media rules apply. */
+    document.documentElement.setAttribute('data-theme', resolved);
+    document.documentElement.setAttribute('data-theme-mode', mode);
   } catch (e) {}
 })();`;

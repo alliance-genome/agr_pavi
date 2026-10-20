@@ -1018,6 +1018,173 @@
 }
 
 /* ============================================
+   Dark Mode Overrides
+   ------------------------------------------------
+   The light palette above is baked in; rather than
+   token-ify every surface we flip the key ones
+   when [data-theme="dark"] is set on <html>. Covers
+   the surfaces users see first (panel backgrounds,
+   text on blue tints, badges), not every pixel.
+   ============================================ */
+:global([data-theme="dark"]) .alignmentContainer {
+  background: var(--agr-background-alt);
+  border-color: var(--agr-border-color);
+}
+
+:global([data-theme="dark"]) .toolbar {
+  background: var(--agr-background);
+  border-bottom-color: var(--agr-border-color);
+}
+
+:global([data-theme="dark"]) .overlayPanel {
+  background: var(--agr-background-alt);
+  border-color: var(--agr-border-color);
+}
+
+:global([data-theme="dark"]) .keyHint kbd {
+  color: var(--agr-text-secondary);
+  background: var(--agr-background);
+  border-color: var(--agr-border-color);
+  box-shadow: 0 1px 0 var(--agr-gray-200);
+}
+
+:global([data-theme="dark"]) .sequenceCount {
+  background: var(--agr-background);
+  color: var(--agr-text-secondary);
+  border-color: var(--agr-border-color);
+}
+
+:global([data-theme="dark"]) .speciesLegend {
+  background: var(--agr-background);
+  border-bottom-color: var(--agr-border-color);
+}
+
+/* Species badges — the light pastel bgs stay but the TEXT needs to
+   stay readable on them. The pastels are light enough that the
+   original dark text contrasts fine, so leave as-is. */
+
+:global([data-theme="dark"]) .variantPanel {
+  background: #2a2516;
+  border-color: #574a1a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme="dark"]) .variantTitle {
+  color: #fde68a;
+}
+
+:global([data-theme="dark"]) .variantCount {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fcd34d;
+}
+
+:global([data-theme="dark"]) .variantCard {
+  background: var(--agr-background-alt);
+  border-color: #574a1a;
+  color: var(--agr-text-primary);
+}
+
+:global([data-theme="dark"]) .variantChange {
+  background: var(--agr-background);
+  color: var(--agr-text-primary);
+}
+
+:global([data-theme="dark"]) .variantCard:hover {
+  border-color: #fbbf24;
+}
+
+:global([data-theme="dark"]) .sequenceSelector {
+  background: var(--agr-background);
+  border-color: var(--agr-border-color);
+}
+
+:global([data-theme="dark"]) .sequenceChip {
+  background: var(--agr-background-alt);
+  border-color: var(--agr-border-color);
+  color: var(--agr-text-primary);
+}
+
+:global([data-theme="dark"]) .msaContainer {
+  background: var(--agr-background-alt);
+  border-color: var(--agr-border-color);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme="dark"]) .msaScrollContainer {
+  background: linear-gradient(
+    90deg,
+    var(--agr-background) 0,
+    var(--agr-background) var(--label-width, 120px),
+    var(--agr-background-alt) var(--label-width, 120px)
+  );
+}
+
+:global([data-theme="dark"]) .navigationTrack {
+  background: var(--agr-background);
+  border-color: var(--agr-border-color);
+}
+
+:global([data-theme="dark"]) .conservationTrack {
+  background: var(--agr-background);
+  border-color: var(--agr-border-color);
+}
+
+:global([data-theme="dark"]) .variantPositionBar {
+  background: #2a2516;
+  border-color: #574a1a;
+}
+
+:global([data-theme="dark"]) .variantPositionLabel {
+  color: #fde68a;
+}
+
+:global([data-theme="dark"]) .variantZoomBar {
+  background: #2a2516;
+  border-color: #574a1a;
+}
+
+:global([data-theme="dark"]) .variantTrack {
+  background: var(--agr-background);
+  border-bottom-color: var(--agr-border-color);
+}
+
+:global([data-theme="dark"]) .variantIndicatorRow {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+:global([data-theme="dark"]) .variantIndicatorLabel {
+  background: var(--agr-background);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+:global([data-theme="dark"]) .variantHgvs {
+  color: var(--agr-text-secondary);
+}
+
+:global([data-theme="dark"]) .consequenceBadge {
+  background: var(--agr-primary-light);
+  color: var(--agr-link-color);
+}
+
+:global([data-theme="dark"]) .diseaseBadge {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+}
+
+:global([data-theme="dark"]) .phenotypeBadge {
+  background: rgba(34, 197, 94, 0.12);
+  color: #86efac;
+}
+
+:global([data-theme="dark"]) .filterPosInput {
+  background: var(--agr-background);
+  color: var(--agr-text-primary);
+  border-color: var(--agr-border-color);
+}
+
+/* ============================================
    Print Styles
    ============================================ */
 @media print {
