@@ -1163,6 +1163,29 @@
   color: var(--agr-text-secondary);
 }
 
+/* Overlay toggle hover (checkbox labels like "Conservation",
+   "Protein Domains") uses --agr-primary-100 which is a saturated
+   brand pastel that stays light in dark mode. Swap to a semantic
+   dark tint for hover feedback. */
+:global([data-theme="dark"]) .overlayToggle:hover {
+  background: var(--agr-primary-light);
+}
+
+:global([data-theme="dark"]) .filterChip:hover {
+  background: var(--agr-primary-light);
+}
+
+/* Yellow variantIcon circle (lightning bolt) reads neon on dark;
+   drop luminance but keep the warning hue. */
+:global([data-theme="dark"]) .variantIcon {
+  background: var(--agr-warning-dark);
+  color: var(--agr-warning-light);
+}
+
+:global([data-theme="dark"]) .filterPosInput:focus {
+  border-color: var(--agr-primary-400);
+}
+
 :global([data-theme="dark"]) .consequenceBadge {
   background: var(--agr-primary-light);
   color: var(--agr-link-color);
