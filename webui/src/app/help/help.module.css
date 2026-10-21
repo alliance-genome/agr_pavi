@@ -355,9 +355,14 @@
 }
 
 .glossaryLetter.disabled {
-    color: var(--agr-gray-400);
+    /* --agr-gray-400 and --agr-gray-100 both flip to dark surface tones
+       in dark mode, which left the disabled letter button dark text on
+       dark bg (invisible). --agr-text-muted is tuned per-theme to stay
+       legible against the surrounding --agr-background-alt. */
+    color: var(--agr-text-muted);
     cursor: not-allowed;
-    background: var(--agr-gray-100);
+    background: var(--agr-background);
+    opacity: 0.55;
 }
 
 .glossaryTerms {
