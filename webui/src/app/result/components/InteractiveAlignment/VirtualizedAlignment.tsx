@@ -23,13 +23,14 @@ import NightingaleLinegraphTrack, { LineData } from './nightingale/LinegraphTrac
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 
-import { fetchVariantAnnotations } from './serverActions';
+import { fetchVariantAnnotations, fetchVariantPrediction, type VariantFunctionalPrediction } from './serverActions';
 import { SeqInfoDict, VariantAnnotationMap } from './types';
 import { withBasePath } from '@/utils/basePath';
 import styles from './VirtualizedAlignment.module.css';
 import { PositionInfoPanel } from '../PositionInfoPanel/PositionInfoPanel';
 import type { PositionData } from '../PositionInfoPanel/PositionInfoPanel';
 import { ProteinDomainsPanel } from './ProteinDomainsPanel';
+import { impactColor, impactWeight, impactLabel } from './variantImpact';
 
 // Constants for virtualization and display
 const SEQUENCE_HEIGHT = 40; // Height per sequence in pixels (larger for readability)
@@ -86,6 +87,7 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
     const [showVariantLocations, setShowVariantLocations] = useState<boolean>(true);
     const [showProteinDomains, setShowProteinDomains] = useState<boolean>(false);
     const [showExonBoundaries, setShowExonBoundaries] = useState<boolean>(false);
+    const [showHotspots, setShowHotspots] = useState<boolean>(false);
     const [variantPanelOpen, setVariantPanelOpen] = useState<boolean>(false);
     // Per-sequence variant visibility — tracks which sequence IDs to HIDE
     const [hiddenVariantSeqs, setHiddenVariantSeqs] = useState<Set<string>>(new Set());
@@ -99,6 +101,7 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
     const [containerHeight, setContainerHeight] = useState(600);
     const [referenceIndex, setReferenceIndex] = useState<number>(0); // Index of sequence to show at top
     const [variantAnnotations, setVariantAnnotations] = useState<VariantAnnotationMap>({});
+    const [variantPredictions, setVariantPredictions] = useState<Record<string, VariantFunctionalPrediction>>({});
     const [positionPanelData, setPositionPanelData] = useState<PositionData | null>(null);
     const [showPositionPanel, setShowPositionPanel] = useState(false);
 
@@ -200,7 +203,11 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
 
     // Get ALL variants for the overview bar (not just visible sequences)
     const allVariantsTrackData = useMemo(() => {
-        const trackData: TrackDataProp = [];
+        // Track features carry an `impact` alongside the usual Nightingale
+        // fields so the variant pins and hotspot bar below can colour-code
+        // without re-walking seqInfoDict.
+        type ImpactTrackFeature = TrackDataProp[number] & { impact?: string | null };
+        const trackData: ImpactTrackFeature[] = [];
 
         for (const [_seqId, seqInfo] of Object.entries(props.seqInfoDict)) {
             if (hiddenVariantSeqs.has(_seqId)) continue;
@@ -214,14 +221,40 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                         accession: variant.variant_id,
                         start: variant.alignment_start_pos,
                         end: variant.alignment_end_pos,
-                        color: '#3b82f6',
-                        shape: 'circle' as const
+                        color: impactColor(variant.impact),
+                        shape: 'circle' as const,
+                        impact: variant.impact ?? null,
                     });
                 }
             }
         }
         return trackData;
     }, [props.seqInfoDict, variantTypeFilter, consequenceFilter, filterByDisease, filterByPhenotype, variantAnnotations, hiddenVariantSeqs]);
+
+    // Hotspot density per alignment column: sum of impact-weighted
+    // contributions from every variant within a ±2-column window. Produces
+    // a smoothed signal so a single HIGH-impact variant lights up a short
+    // peak and clusters of MODERATE/LOW variants build broader peaks.
+    const hotspotPeaks = useMemo(() => {
+        if (seqLength === 0 || allVariantsTrackData.length === 0) return { bins: new Float32Array(0), max: 0 };
+        const bins = new Float32Array(seqLength + 1);  // 1-indexed
+        const WINDOW = 2;  // ±2 residues
+        for (const v of allVariantsTrackData) {
+            const pos = v.start ?? 0;
+            if (pos < 1 || pos > seqLength) continue;
+            const w = impactWeight((v as { impact?: string | null }).impact);
+            for (let d = -WINDOW; d <= WINDOW; d++) {
+                const col = pos + d;
+                if (col < 1 || col > seqLength) continue;
+                // Linear falloff: full weight at pos, 20% at ±WINDOW.
+                const fall = 1 - 0.8 * (Math.abs(d) / WINDOW);
+                bins[col] += w * fall;
+            }
+        }
+        let max = 0;
+        for (let i = 0; i < bins.length; i++) if (bins[i] > max) max = bins[i];
+        return { bins, max };
+    }, [allVariantsTrackData, seqLength]);
 
     // Extract unique variant types for filter UI
     const uniqueVariantTypes = useMemo(() => {
@@ -292,6 +325,36 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
 
         return () => { cancelled = true; };
     }, [geneIds]);
+
+    // Per-variant SIFT / PolyPhen / VEP impact from Alliance. Fired once
+    // the full list of variant IDs is known, independent of the gene-level
+    // annotation flow above. fetchAllianceJson coalesces concurrent
+    // requests for the same ID so N embedded variants = N upstream calls.
+    const uniqueVariantIds = useMemo(() => {
+        const ids = new Set<string>();
+        for (const info of Object.values(props.seqInfoDict)) {
+            for (const v of info.embedded_variants ?? []) {
+                if (v.variant_id) ids.add(v.variant_id);
+            }
+        }
+        return Array.from(ids);
+    }, [props.seqInfoDict]);
+
+    useEffect(() => {
+        if (uniqueVariantIds.length === 0) return;
+        let cancelled = false;
+        (async () => {
+            const results: Record<string, VariantFunctionalPrediction> = {};
+            await Promise.all(uniqueVariantIds.map(async (id) => {
+                try {
+                    const pred = await fetchVariantPrediction(id);
+                    if (pred) results[id] = pred;
+                } catch { /* leave missing, UI falls through to seq-info impact */ }
+            }));
+            if (!cancelled) setVariantPredictions(prev => ({ ...prev, ...results }));
+        })();
+        return () => { cancelled = true; };
+    }, [uniqueVariantIds]);
 
     // Update alignment features for visible sequences only
     const alignmentFeatures = useMemo(() => {
@@ -911,6 +974,60 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                                         ))}
                                     </div>
                                 )}
+                                {/* SIFT / PolyPhen functional predictions from Alliance.
+                                    SIFT: <0.05 = deleterious. PolyPhen: >0.908 = probably_damaging,
+                                    0.446-0.908 = possibly_damaging. We colour by score so a user
+                                    can read severity at a glance without parsing the number. */}
+                                {(() => {
+                                    const pred = variantPredictions[allele.variantId];
+                                    if (!pred) return null;
+                                    const siftBg = pred.siftScore == null ? '#64748b22'
+                                        : pred.siftScore < 0.05 ? '#dc262633'
+                                        : '#16a34a33';
+                                    const siftFg = pred.siftScore == null ? '#94a3b8'
+                                        : pred.siftScore < 0.05 ? '#fca5a5'
+                                        : '#86efac';
+                                    const ppBg = pred.polyphenScore == null ? '#64748b22'
+                                        : pred.polyphenScore > 0.908 ? '#dc262633'
+                                        : pred.polyphenScore > 0.446 ? '#ea580c33'
+                                        : '#16a34a33';
+                                    const ppFg = pred.polyphenScore == null ? '#94a3b8'
+                                        : pred.polyphenScore > 0.908 ? '#fca5a5'
+                                        : pred.polyphenScore > 0.446 ? '#fdba74'
+                                        : '#86efac';
+                                    return (
+                                        <div className={styles.variantPredictions}>
+                                            {pred.siftPrediction && (
+                                                <span
+                                                    className={styles.predictionBadge}
+                                                    style={{ background: siftBg, color: siftFg }}
+                                                    title={pred.siftScore != null ? `SIFT score ${pred.siftScore.toFixed(2)} (0 = deleterious, 1 = tolerated)` : 'SIFT prediction'}
+                                                >
+                                                    SIFT&nbsp;{pred.siftPrediction.replace(/_/g, ' ')}
+                                                    {pred.siftScore != null && (
+                                                        <strong style={{ marginLeft: '0.25rem', fontVariantNumeric: 'tabular-nums' }}>
+                                                            {pred.siftScore.toFixed(2)}
+                                                        </strong>
+                                                    )}
+                                                </span>
+                                            )}
+                                            {pred.polyphenPrediction && (
+                                                <span
+                                                    className={styles.predictionBadge}
+                                                    style={{ background: ppBg, color: ppFg }}
+                                                    title={pred.polyphenScore != null ? `PolyPhen score ${pred.polyphenScore.toFixed(2)} (0 = benign, 1 = probably damaging)` : 'PolyPhen prediction'}
+                                                >
+                                                    PolyPhen&nbsp;{pred.polyphenPrediction.replace(/_/g, ' ')}
+                                                    {pred.polyphenScore != null && (
+                                                        <strong style={{ marginLeft: '0.25rem', fontVariantNumeric: 'tabular-nums' }}>
+                                                            {pred.polyphenScore.toFixed(2)}
+                                                        </strong>
+                                                    )}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
                                 {(allele.hasDisease || allele.hasPhenotype) && (
                                     <div className={styles.variantAnnotationBadges}>
                                         {allele.hasDisease && (
@@ -1063,6 +1180,14 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                         />
                         <span>Protein Domains</span>
                     </label>
+                    <label className={styles.overlayToggle} title="Per-residue cumulative impact of nearby variants (±2 residues, weighted by VEP impact)">
+                        <input
+                            type="checkbox"
+                            checked={showHotspots}
+                            onChange={(e) => setShowHotspots(e.target.checked)}
+                        />
+                        <span>Hotspots</span>
+                    </label>
                     <label className={`${styles.overlayToggle} ${styles.overlayDisabled}`}>
                         <input
                             type="checkbox"
@@ -1197,6 +1322,51 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                         />
                     )}
 
+                    {/* Variant impact hotspot — per-residue cumulative
+                        impact-weighted density across all variants.
+                        Rendered as a horizontal gradient bar so clustered
+                        damaging variants light up a visible peak. */}
+                    {showHotspots && hotspotPeaks.max > 0 && (
+                        <div className={styles.trackContainer}>
+                            <div className={styles.trackLabel}>
+                                Impact Hotspots <span className={styles.trackHint}>— cumulative impact weight / residue (±2 window)</span>
+                            </div>
+                            <div
+                                className={styles.hotspotTrack}
+                                style={{ marginLeft: labelWidth + 'px', marginRight: '5px' }}
+                                role="img"
+                                aria-label="Variant impact hotspot track"
+                            >
+                                {(() => {
+                                    const span = displayEnd - displayStart + 1;
+                                    const stops: string[] = [];
+                                    for (let i = 0; i < span; i++) {
+                                        const col = displayStart + i;
+                                        const score = hotspotPeaks.bins[col] ?? 0;
+                                        const intensity = score / hotspotPeaks.max;
+                                        // Transparent → amber → red proportional to intensity.
+                                        const alpha = Math.max(0, Math.min(1, intensity));
+                                        const r = Math.round(234 + (220 - 234) * alpha);  // ea→dc
+                                        const g = Math.round(88 + (38 - 88) * alpha);
+                                        const b = Math.round(12 + (38 - 12) * alpha);
+                                        const pctL = (i / span) * 100;
+                                        const pctR = ((i + 1) / span) * 100;
+                                        stops.push(`rgba(${r},${g},${b},${alpha.toFixed(3)}) ${pctL}% ${pctR}%`);
+                                    }
+                                    return (
+                                        <div
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                background: `linear-gradient(to right, ${stops.join(', ')})`,
+                                            }}
+                                        />
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Variant track — numbered circles using Nightingale's positioning formula */}
                     {showVariantLocations && allVariantsTrackData.length > 0 && (
                         <div className={styles.trackContainer}>
@@ -1212,11 +1382,13 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                                     // Nightingale formula: X = W * (P - DS + 0.5) / (DE - DS + 1)
                                     const viewSpan = displayEnd - displayStart + 1;
                                     const pixelX = variantTrackWidth * (pos - displayStart + 0.5) / viewSpan;
+                                    const color = impactColor((variant as { impact?: string | null }).impact);
                                     return (
                                         <div
                                             key={idx}
                                             className={styles.variantCircle}
-                                            style={{ left: pixelX + 'px' }}
+                                            style={{ left: pixelX + 'px', background: color }}
+                                            title={`${variant.accession} — ${impactLabel((variant as { impact?: string | null }).impact)}`}
                                         >
                                             {idx + 1}
                                         </div>
