@@ -83,7 +83,10 @@
 
 .orthologId {
   font-size: 0.75rem;
-  color: var(--agr-gray-400);
+  /* gray-400 flips to a dark mid-tone in dark mode (ramp inversion),
+     unreadable on the dark row bg. --agr-text-muted is tuned per
+     theme to stay legible on both. */
+  color: var(--agr-text-muted);
   font-family: monospace;
 }
 
