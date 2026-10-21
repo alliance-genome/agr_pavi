@@ -26,6 +26,13 @@
     margin-top: 0;
 }
 
+/* --agr-primary-700 is a dark navy that reads as near-invisible on the
+   dark footer bg (both are ~dark). Swap to the brighter link-color
+   token which is already tuned for dark surfaces. */
+:global([data-theme="dark"]) .sectionTitle {
+    color: var(--agr-link-color);
+}
+
 .sectionText {
     font-size: var(--agr-font-size-sm);
     color: var(--agr-text-secondary);

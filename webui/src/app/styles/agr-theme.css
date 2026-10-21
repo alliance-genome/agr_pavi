@@ -358,6 +358,17 @@ html[data-theme="dark"] .p-button.p-button-secondary:hover {
   border-color: var(--agr-gray-400) !important;
 }
 
+/* Disabled button labels: PrimeReact's p-disabled rule sets
+   color: rgba(0, 0, 0, 0.38) on the label, which reads as nearly
+   invisible on a dark page. Give disabled labels a muted light tone
+   so they're visibly "disabled" without disappearing. */
+html[data-theme="dark"] .p-button.p-disabled,
+html[data-theme="dark"] .p-button.p-disabled .p-button-label,
+html[data-theme="dark"] .p-button.p-disabled .p-button-icon {
+  color: var(--agr-text-muted) !important;
+  opacity: 0.7;
+}
+
 /* Prime's checkmark icon inherits color — force it white on the
    primary-blue checked box so it's visible in dark mode. */
 html[data-theme="dark"] .p-checkbox .p-checkbox-box .p-checkbox-icon,
