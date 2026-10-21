@@ -312,10 +312,10 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                             {seqCount > 0 && (
                                 <span style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--agr-text-secondary)' }}>
                                     <span>{seqCount} sequences</span>
-                                    <span style={{ color: 'var(--agr-border-color)' }}>|</span>
+                                    <span style={{ color: 'var(--agr-text-muted)' }} aria-hidden="true">|</span>
                                     <span>{alnLength} aa</span>
                                     {variantCount > 0 && (<>
-                                        <span style={{ color: 'var(--agr-border-color)' }}>|</span>
+                                        <span style={{ color: 'var(--agr-text-muted)' }} aria-hidden="true">|</span>
                                         <span>{variantCount} variants</span>
                                     </>)}
                                 </span>

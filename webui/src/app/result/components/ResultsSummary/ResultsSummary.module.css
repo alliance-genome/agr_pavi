@@ -456,14 +456,18 @@
 }
 
 .matrixDiag {
+    /* --agr-gray-{100,50,400} all collapse into near-identical dark tones
+       in dark mode (ramp inversion + gray-50 undefined). Semantic
+       background-alt + a theme-tuned muted colour keep the "—" dashes
+       readable without stealing attention from the real identity cells. */
     background: repeating-linear-gradient(
         45deg,
-        var(--agr-gray-100),
-        var(--agr-gray-100) 4px,
-        var(--agr-gray-50) 4px,
-        var(--agr-gray-50) 8px
+        var(--agr-background-alt),
+        var(--agr-background-alt) 4px,
+        var(--agr-background) 4px,
+        var(--agr-background) 8px
     );
-    color: var(--agr-gray-400);
+    color: var(--agr-text-secondary);
     font-weight: 400;
     cursor: default;
 }

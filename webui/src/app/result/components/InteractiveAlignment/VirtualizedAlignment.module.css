@@ -109,7 +109,9 @@
 }
 
 .overlayDisabled span {
-  color: var(--agr-gray-400);
+  /* Theme-tuned muted colour so the disabled toggle label stays visibly
+     greyed-out on dark bg (gray-400 flips to a dark surface tone). */
+  color: var(--agr-text-muted);
 }
 
 /* Variant filters (SAB mockup slide 13) */
@@ -611,7 +613,10 @@
   font-weight: 400;
   text-transform: none;
   letter-spacing: normal;
-  color: var(--agr-gray-400);
+  /* --agr-gray-400 ramp-inverts to a dark mid-gray in dark mode and
+     disappears against the track-label background. --agr-text-muted
+     is tuned per-theme to stay legible. */
+  color: var(--agr-text-muted);
   font-style: italic;
 }
 
