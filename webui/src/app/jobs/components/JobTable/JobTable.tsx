@@ -581,10 +581,12 @@ function JobDetailsPanel({ job, allTags, onAddTag, onRemoveTag, onSetNotes }: Jo
                     style={{
                         width: '100%',
                         padding: '0.5rem',
-                        border: '1px solid #d1d5db',
+                        border: '1px solid var(--agr-border-color)',
                         borderRadius: 4,
                         fontSize: '0.85rem',
                         fontFamily: 'inherit',
+                        background: 'var(--agr-background)',
+                        color: 'var(--agr-text-primary)',
                     }}
                 />
                 <div style={{ marginTop: '0.4rem', display: 'flex', gap: '0.4rem' }}>
