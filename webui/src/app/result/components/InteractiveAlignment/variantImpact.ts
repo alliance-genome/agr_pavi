@@ -57,3 +57,55 @@ export function impactLabel(impact?: string | null): string {
     if (u === 'MODIFIER') return 'modifier';
     return impact.toLowerCase();
 }
+
+export interface HotspotVariant {
+    /** 1-based alignment position (ignored when null / <1). */
+    position: number | null | undefined;
+    /** VEP impact bucket; drives per-variant weight via impactWeight(). */
+    impact?: string | null;
+}
+
+export interface HotspotPeaks {
+    /** 1-indexed Float32Array: `bins[c]` = cumulative impact-weight at column c. */
+    bins: Float32Array;
+    /** The maximum value in bins; use to normalise rendering intensity. */
+    max: number;
+}
+
+/**
+ * Impact-weighted density per alignment column with a linear falloff
+ * over a ±W half-window.
+ *
+ * Centred weight at each variant's column = `impactWeight(impact)`.
+ * At offset `|d|` from the centre, the contribution is scaled by
+ * `1 − 0.8·(|d|/W)` (full at d=0, 20% at d=±W, zero outside).
+ *
+ * See docs/variant-impact-methodology.md §5 for parameter justification.
+ *
+ * Pure function so the behaviour can be unit-tested against known
+ * hotspot positions (e.g. TP53 R175H / R248Q / R273H).
+ */
+export function computeHotspotPeaks(
+    variants: HotspotVariant[],
+    seqLength: number,
+    halfWindow: number = 2,
+): HotspotPeaks {
+    const bins = new Float32Array(seqLength + 1);  // 1-indexed
+    if (seqLength === 0 || variants.length === 0) {
+        return { bins, max: 0 };
+    }
+    for (const v of variants) {
+        const pos = v.position ?? 0;
+        if (pos < 1 || pos > seqLength) continue;
+        const w = impactWeight(v.impact);
+        for (let d = -halfWindow; d <= halfWindow; d++) {
+            const col = pos + d;
+            if (col < 1 || col > seqLength) continue;
+            const fall = halfWindow === 0 ? 1 : 1 - 0.8 * (Math.abs(d) / halfWindow);
+            bins[col] += w * fall;
+        }
+    }
+    let max = 0;
+    for (let i = 0; i < bins.length; i++) if (bins[i] > max) max = bins[i];
+    return { bins, max };
+}

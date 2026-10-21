@@ -30,7 +30,7 @@ import styles from './VirtualizedAlignment.module.css';
 import { PositionInfoPanel } from '../PositionInfoPanel/PositionInfoPanel';
 import type { PositionData } from '../PositionInfoPanel/PositionInfoPanel';
 import { ProteinDomainsPanel } from './ProteinDomainsPanel';
-import { impactColor, impactWeight, impactLabel } from './variantImpact';
+import { impactColor, impactLabel, computeHotspotPeaks } from './variantImpact';
 
 // Constants for virtualization and display
 const SEQUENCE_HEIGHT = 40; // Height per sequence in pixels (larger for readability)
@@ -231,30 +231,16 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
         return trackData;
     }, [props.seqInfoDict, variantTypeFilter, consequenceFilter, filterByDisease, filterByPhenotype, variantAnnotations, hiddenVariantSeqs]);
 
-    // Hotspot density per alignment column: sum of impact-weighted
-    // contributions from every variant within a ±2-column window. Produces
-    // a smoothed signal so a single HIGH-impact variant lights up a short
-    // peak and clusters of MODERATE/LOW variants build broader peaks.
-    const hotspotPeaks = useMemo(() => {
-        if (seqLength === 0 || allVariantsTrackData.length === 0) return { bins: new Float32Array(0), max: 0 };
-        const bins = new Float32Array(seqLength + 1);  // 1-indexed
-        const WINDOW = 2;  // ±2 residues
-        for (const v of allVariantsTrackData) {
-            const pos = v.start ?? 0;
-            if (pos < 1 || pos > seqLength) continue;
-            const w = impactWeight((v as { impact?: string | null }).impact);
-            for (let d = -WINDOW; d <= WINDOW; d++) {
-                const col = pos + d;
-                if (col < 1 || col > seqLength) continue;
-                // Linear falloff: full weight at pos, 20% at ±WINDOW.
-                const fall = 1 - 0.8 * (Math.abs(d) / WINDOW);
-                bins[col] += w * fall;
-            }
-        }
-        let max = 0;
-        for (let i = 0; i < bins.length; i++) if (bins[i] > max) max = bins[i];
-        return { bins, max };
-    }, [allVariantsTrackData, seqLength]);
+    // Hotspot density per alignment column: delegated to computeHotspotPeaks
+    // in variantImpact.ts so the behaviour can be unit-tested against known
+    // hotspot positions (see __tests__/variantImpact.test.ts).
+    const hotspotPeaks = useMemo(
+        () => computeHotspotPeaks(
+            allVariantsTrackData.map(v => ({ position: v.start, impact: (v as { impact?: string | null }).impact })),
+            seqLength,
+        ),
+        [allVariantsTrackData, seqLength],
+    );
 
     // Extract unique variant types for filter UI
     const uniqueVariantTypes = useMemo(() => {
