@@ -546,6 +546,27 @@
   margin-top: 0.25rem;
 }
 
+/* SIFT / PolyPhen chips on variant cards. Each one is tinted inline
+   by score (see the handler in VirtualizedAlignment.tsx); the shared
+   layout lives here. */
+.variantPredictions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+}
+
+.predictionBadge {
+  font-size: 0.625rem;
+  padding: 0.125rem 0.4rem;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
 .diseaseBadge {
   font-size: 0.5625rem;
   padding: 0.0625rem 0.375rem;
@@ -690,6 +711,17 @@
 }
 
 /* (legacy .variantTrack styling removed — replaced by pixel-positioned variant track below) */
+
+/* Impact-weighted hotspot bar. Height matches other track rows so the
+   peaks line up visually with variant pins / conservation. */
+.hotspotTrack {
+  position: relative;
+  overflow: hidden;
+  height: 14px;
+  background: var(--agr-background-alt);
+  border: 1px solid var(--agr-border-color);
+  border-radius: 3px;
+}
 
 /* Variant position bar - clickable variant buttons */
 .variantPositionBar {
