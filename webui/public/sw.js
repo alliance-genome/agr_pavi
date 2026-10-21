@@ -3,7 +3,7 @@
  * Provides offline support and caching for the PAVI web application
  */
 
-const CACHE_NAME = 'pavi-cache-v2';
+const CACHE_NAME = 'pavi-cache-v3';
 const OFFLINE_URL = '/offline';
 
 // Static assets to cache immediately
