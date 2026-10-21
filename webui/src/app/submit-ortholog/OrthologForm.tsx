@@ -15,6 +15,7 @@ import { submitNewPipelineJob } from '@/app/submit/components/JobSubmitForm/serv
 import { JobSumbissionPayloadRecord } from '@/app/submit/components/JobSubmitForm/types';
 
 import { fetchOrthologs, OrthologInfo, OrthologStringency } from './serverActions';
+import { OrthologAllelesPanel } from './OrthologAllelesPanel';
 
 import { getSpecies, getSingleGenomeLocation, gffFileUrl } from '@/utils/agrSpeciesConfig';
 import { fetchTranscriptsGff, pickDefaultTranscript } from '@/utils/tabixTranscripts';
@@ -114,6 +115,48 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
     const [phase, setPhase] = useState<SubmitPhase>('idle');
     const [statusMessage, setStatusMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
+
+    // Per-gene variant selection: keyed by Alliance gene curie, value is a
+    // flat list of underlying variant IDs to embed in that gene's sequence
+    // during alignment. Fed into buildPayloadForGene via `variant_ids`.
+    const [variantIdsByGene, setVariantIdsByGene] = useState<Record<string, string[]>>({});
+    const [expandedGenes, setExpandedGenes] = useState<Set<string>>(new Set());
+
+    const toggleGeneExpanded = useCallback((geneId: string) => {
+        setExpandedGenes((prev) => {
+            const next = new Set(prev);
+            if (next.has(geneId)) next.delete(geneId);
+            else next.add(geneId);
+            return next;
+        });
+    }, []);
+
+    // Stable per-gene selection setter. Memoised so OrthologAllelesPanel's
+    // useEffect dependency on onSelectionChange doesn't retrigger on every
+    // parent render.
+    const setGeneVariantIds = useCallback((geneId: string, variantIds: string[]) => {
+        setVariantIdsByGene((prev) => {
+            // Drop the key entirely when selection is empty — keeps the
+            // payload clean (no `variant_ids: []` noise).
+            if (variantIds.length === 0) {
+                if (!(geneId in prev)) return prev;
+                const next = { ...prev };
+                delete next[geneId];
+                return next;
+            }
+            // Shallow-equal check to avoid an identical-content re-set.
+            const existing = prev[geneId];
+            if (existing && existing.length === variantIds.length && existing.every((v, i) => v === variantIds[i])) {
+                return prev;
+            }
+            return { ...prev, [geneId]: variantIds };
+        });
+    }, []);
+
+    const totalVariantsSelected = useMemo(
+        () => Object.values(variantIdsByGene).reduce((n, ids) => n + ids.length, 0),
+        [variantIdsByGene],
+    );
 
     // Extract a readable message from a thrown value (Error or otherwise).
     const errMsg = (e: unknown): string =>
@@ -251,6 +294,13 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
             // no relative→reference / revlist transform (see tabixTranscripts.ts).
             const transcriptName = transcript.name ?? gene.symbol;
 
+            // Per-gene variant selection comes from the expandable allele
+            // panels: variantIdsByGene[gene.id] is a flat list of variant
+            // IDs selected via OrthologAllelesPanel. Empty / missing →
+            // alignment runs with the reference sequence only, same as
+            // before this feature.
+            const variantIds = variantIdsByGene[gene.id] ?? [];
+
             return {
                 record: {
                     unique_entry_id: `${index}_${gene.symbol}_${transcriptName}`,
@@ -260,7 +310,7 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                     exon_seq_regions: transcript.exons.map((e) => ({ start: e.start, end: e.end })),
                     cds_seq_regions: transcript.cds_regions.map((c) => ({ start: c.start, end: c.end, frame: c.phase })),
                     fasta_file_url: speciesConfig.jBrowsefastaurl,
-                    variant_ids: [],
+                    variant_ids: variantIds,
                     alt_seq_name_suffix: '_alt',
                     species: gene.species.name,
                 },
@@ -392,7 +442,7 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
             setPhase('error');
         }
         // buildPayloadForGene + errMsg are defined inline; deps list matches the values actually closed over.
-    }, [orthologs, includeSource, sourceGene, router, agrjBrowseDataRelease]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [orthologs, includeSource, sourceGene, router, agrjBrowseDataRelease, variantIdsByGene]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="agr-page-section">
@@ -471,24 +521,67 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                     <div className="agr-card-body" style={{ padding: 0 }}>
                         {/* Source gene */}
                         {sourceGene && (
-                            <div className={styles.orthologItem} onClick={() => setIncludeSource(!includeSource)}
-                                 style={{ borderBottom: '2px solid var(--agr-border-color)', background: 'var(--agr-background-alt)' }}>
-                                {/*
-                                  * The row <div> has onClick to toggle, and the Checkbox fires
-                                  * onChange on click too. Letting the click bubble makes the row
-                                  * toggle twice (checkbox + row), netting zero change — the user
-                                  * sees nothing happen when clicking the checkbox itself. Stop
-                                  * propagation so only the Checkbox's own onChange runs when the
-                                  * checkbox is the click target.
-                                  */}
-                                <span onClick={(e) => e.stopPropagation()}>
-                                    <Checkbox checked={includeSource} onChange={() => setIncludeSource(!includeSource)} />
-                                </span>
-                                <span className={styles.orthologSymbol}>{sourceGene.symbol}</span>
-                                <span className={styles.orthologSpecies}>{sourceGene.species}</span>
-                                <span className={styles.orthologId}>{sourceGene.geneId}</span>
-                                <span style={{ fontSize: '0.6875rem', background: 'var(--agr-primary-light)', color: 'var(--agr-link-color)', padding: '0.125rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>SOURCE</span>
-                            </div>
+                            <>
+                                <div className={styles.orthologItem} onClick={() => setIncludeSource(!includeSource)}
+                                     style={{ borderBottom: expandedGenes.has(sourceGene.geneId) ? 'none' : '2px solid var(--agr-border-color)', background: 'var(--agr-background-alt)' }}>
+                                    {/*
+                                      * The row <div> has onClick to toggle, and the Checkbox fires
+                                      * onChange on click too. Letting the click bubble makes the row
+                                      * toggle twice (checkbox + row), netting zero change — the user
+                                      * sees nothing happen when clicking the checkbox itself. Stop
+                                      * propagation so only the Checkbox's own onChange runs when the
+                                      * checkbox is the click target.
+                                      */}
+                                    <span onClick={(e) => e.stopPropagation()}>
+                                        <Checkbox checked={includeSource} onChange={() => setIncludeSource(!includeSource)} />
+                                    </span>
+                                    <span className={styles.orthologSymbol}>{sourceGene.symbol}</span>
+                                    <span className={styles.orthologSpecies}>{sourceGene.species}</span>
+                                    <span className={styles.orthologId}>{sourceGene.geneId}</span>
+                                    <span style={{ fontSize: '0.6875rem', background: 'var(--agr-primary-light)', color: 'var(--agr-link-color)', padding: '0.125rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>SOURCE</span>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); toggleGeneExpanded(sourceGene.geneId); }}
+                                        style={{
+                                            marginLeft: 'auto',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.3rem',
+                                            background: 'transparent',
+                                            border: '1px solid var(--agr-border-color)',
+                                            color: 'var(--agr-text-secondary)',
+                                            padding: '0.2rem 0.5rem',
+                                            borderRadius: 4,
+                                            fontSize: '0.75rem',
+                                            cursor: 'pointer',
+                                        }}
+                                        aria-expanded={expandedGenes.has(sourceGene.geneId)}
+                                        title="Add specific variants to this gene's sequence"
+                                    >
+                                        <i className={`pi ${expandedGenes.has(sourceGene.geneId) ? 'pi-chevron-down' : 'pi-chevron-right'}`} />
+                                        Variants
+                                        {variantIdsByGene[sourceGene.geneId]?.length > 0 && (
+                                            <span style={{
+                                                background: 'var(--agr-primary-500)',
+                                                color: 'white',
+                                                borderRadius: 10,
+                                                padding: '0 0.4rem',
+                                                fontSize: '0.65rem',
+                                                fontWeight: 700,
+                                            }}>
+                                                {variantIdsByGene[sourceGene.geneId].length}
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+                                {expandedGenes.has(sourceGene.geneId) && (
+                                    <OrthologAllelesPanel
+                                        geneId={sourceGene.geneId}
+                                        geneSymbol={sourceGene.symbol}
+                                        onSelectionChange={(ids) => setGeneVariantIds(sourceGene.geneId, ids)}
+                                    />
+                                )}
+                            </>
                         )}
 
                         {/* Species-group filter chips. Hidden groups don't */}
@@ -563,16 +656,59 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                                 </div>
                             ) : (
                                 visibleOrthologs.map(o => (
-                                    <div key={o.geneId} className={styles.orthologItem} onClick={() => toggleOrtholog(o.geneId)}>
-                                        {/* See source-row note above: stop propagation so the
-                                            row-level onClick doesn't double-fire with Checkbox. */}
-                                        <span onClick={(e) => e.stopPropagation()}>
-                                            <Checkbox checked={o.selected} onChange={() => toggleOrtholog(o.geneId)} />
-                                        </span>
-                                        <span className={styles.orthologSymbol}>{o.symbol}</span>
-                                        <span className={styles.orthologSpecies}>{o.species}</span>
-                                        <span className={styles.orthologId}>{o.geneId}</span>
-                                    </div>
+                                    <React.Fragment key={o.geneId}>
+                                        <div className={styles.orthologItem} onClick={() => toggleOrtholog(o.geneId)}>
+                                            {/* See source-row note above: stop propagation so the
+                                                row-level onClick doesn't double-fire with Checkbox. */}
+                                            <span onClick={(e) => e.stopPropagation()}>
+                                                <Checkbox checked={o.selected} onChange={() => toggleOrtholog(o.geneId)} />
+                                            </span>
+                                            <span className={styles.orthologSymbol}>{o.symbol}</span>
+                                            <span className={styles.orthologSpecies}>{o.species}</span>
+                                            <span className={styles.orthologId}>{o.geneId}</span>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); toggleGeneExpanded(o.geneId); }}
+                                                style={{
+                                                    marginLeft: 'auto',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.3rem',
+                                                    background: 'transparent',
+                                                    border: '1px solid var(--agr-border-color)',
+                                                    color: 'var(--agr-text-secondary)',
+                                                    padding: '0.2rem 0.5rem',
+                                                    borderRadius: 4,
+                                                    fontSize: '0.75rem',
+                                                    cursor: 'pointer',
+                                                }}
+                                                aria-expanded={expandedGenes.has(o.geneId)}
+                                                title="Add specific variants to this gene's sequence"
+                                            >
+                                                <i className={`pi ${expandedGenes.has(o.geneId) ? 'pi-chevron-down' : 'pi-chevron-right'}`} />
+                                                Variants
+                                                {variantIdsByGene[o.geneId]?.length > 0 && (
+                                                    <span style={{
+                                                        background: 'var(--agr-primary-500)',
+                                                        color: 'white',
+                                                        borderRadius: 10,
+                                                        padding: '0 0.4rem',
+                                                        fontSize: '0.65rem',
+                                                        fontWeight: 700,
+                                                    }}>
+                                                        {variantIdsByGene[o.geneId].length}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        </div>
+                                        {expandedGenes.has(o.geneId) && (
+                                            <OrthologAllelesPanel
+                                                geneId={o.geneId}
+                                                geneSymbol={o.symbol}
+                                                onSelectionChange={(ids) => setGeneVariantIds(o.geneId, ids)}
+                                            />
+                                        )}
+                                    </React.Fragment>
                                 ))
                             )}
                         </div>
@@ -608,6 +744,15 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                         />
                         <span style={{ fontSize: '0.8125rem', color: 'var(--agr-gray-500)', marginLeft: '0.75rem' }}>
                             {selectedCount} sequence{selectedCount !== 1 ? 's' : ''} selected
+                            {totalVariantsSelected > 0 && (
+                                <>
+                                    {' · '}
+                                    <strong style={{ color: 'var(--agr-primary-500)' }}>
+                                        {totalVariantsSelected} variant{totalVariantsSelected !== 1 ? 's' : ''}
+                                    </strong>
+                                    {' embedded'}
+                                </>
+                            )}
                         </span>
                         {statusMessage && phase !== 'idle' && phase !== 'error' && (
                             <span className={styles.statusMessage}>
