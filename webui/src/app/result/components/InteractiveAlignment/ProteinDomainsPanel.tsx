@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { SeqInfoDict } from './types';
-import { fetchProteinDomains, resolveUniProtForGene, ProteinDomain } from './domains';
+import { fetchProteinDomains, resolveUniProtForGene, resolveGeneBySymbol, ProteinDomain } from './domains';
 
 export interface ProteinDomainsPanelProps {
     readonly seqInfoDict: SeqInfoDict;
@@ -58,38 +58,77 @@ function domainColor(type: string): string {
 export function ProteinDomainsPanel({ seqInfoDict, alignmentData }: ProteinDomainsPanelProps) {
     const [perSeq, setPerSeq] = useState<SeqDomains[]>([]);
 
-    // One gene_id per aligned sequence (first embedded_variant gives us
-    // the Alliance gene). Alignments without any variants fall back to
-    // 'no-gene-id'. Memoised so changing seqInfoDict ref (e.g. a tab
-    // switch) doesn't refire the whole fetch.
+    // Resolve a gene_id per aligned sequence. The pipeline only writes
+    // `gene_id` into seq-info for sequences with variants, so most rows in
+    // a comparative alignment come back missing it. Two frontend fallbacks:
+    //
+    //   1. Within-alignment propagation: group sequences by the first
+    //      underscore-separated token of the name (the gene symbol in the
+    //      PAVI naming convention) and share any gene_id found in the
+    //      group. Covers "ref + alt alleles of the same gene".
+    //
+    //   2. Symbol search (deferred to the useEffect below): for sequences
+    //      still lacking a gene_id, parse the symbol from the name and
+    //      search Alliance. Done async so it doesn't block the panel.
     const seqsToLoad = useMemo(() => {
-        return alignmentData.map(({ name, sequence }) => {
+        const extractSymbol = (name: string): string => (name.split('_')[0] || name).trim();
+
+        // First pass: collect any gene_id explicitly in seq-info.
+        const explicit = alignmentData.map(({ name, sequence }) => {
             const info = seqInfoDict[name];
             const variants = info?.embedded_variants ?? [];
             const geneId = variants.find(v => v.gene_id)?.gene_id;
             const ungappedLength = sequence.replace(/[-.]/g, '').length;
-            return { name, geneId, ungappedLength };
+            return { name, symbol: extractSymbol(name), geneId: geneId as string | undefined, ungappedLength };
         });
+
+        // Second pass: propagate gene_id across siblings with the same
+        // leading symbol. If any alt-allele row resolved, the ref sibling
+        // picks up the same gene_id for free.
+        const bySymbol = new Map<string, string>();
+        for (const s of explicit) if (s.geneId && s.symbol) bySymbol.set(s.symbol, s.geneId);
+
+        return explicit.map(s => ({
+            ...s,
+            geneId: s.geneId ?? bySymbol.get(s.symbol),
+        }));
     }, [alignmentData, seqInfoDict]);
 
     useEffect(() => {
         let cancelled = false;
-        // Prime all slots as loading so the UI shows the full list up-front.
+        // Prime all slots as loading. Even sequences without an explicit
+        // gene_id get the loading state because we'll try the symbol-based
+        // fallback — only promote to 'no-gene-id' once that falls through.
         setPerSeq(seqsToLoad.map(s => ({
             seqName: s.name,
             ungappedLength: s.ungappedLength,
             uniprot: null,
             domains: [],
-            status: s.geneId ? 'loading' : 'no-gene-id',
+            status: 'loading',
         })));
 
         // Fire resolver + fetch per sequence in parallel. The cache in
         // allianceCache coalesces duplicate gene lookups across sequences.
+        //
+        // Fallback path: if we don't have a gene_id at all, try Alliance's
+        // search endpoint using the symbol parsed from the sequence name.
+        // Resolving-by-symbol is lossy (same symbol can map to different
+        // species' orthologs) but is almost always better than showing
+        // nothing — ortholog domain layouts are usually similar enough
+        // to be informative for comparative alignments.
         void (async () => {
             await Promise.all(seqsToLoad.map(async (s) => {
-                if (!s.geneId) return;
                 try {
-                    const uniprot = await resolveUniProtForGene(s.geneId);
+                    let geneId = s.geneId;
+                    if (!geneId) {
+                        geneId = await resolveGeneBySymbol(s.symbol);
+                        if (!geneId) {
+                            if (cancelled) return;
+                            setPerSeq(prev => prev.map(r => r.seqName === s.name ? { ...r, status: 'no-gene-id' } : r));
+                            return;
+                        }
+                    }
+                    const uniprot = await resolveUniProtForGene(geneId);
                     if (!uniprot) {
                         if (cancelled) return;
                         setPerSeq(prev => prev.map(r => r.seqName === s.name ? { ...r, status: 'no-uniprot' } : r));

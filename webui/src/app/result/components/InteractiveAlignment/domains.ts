@@ -3,6 +3,45 @@
 import { fetchAllianceJson } from '@/utils/allianceCache';
 
 /**
+ * Fallback resolver: find an Alliance gene by its SYMBOL alone.
+ *
+ * The pipeline only writes `gene_id` into seq-info for sequences that
+ * carry an embedded variant — reference-allele sequences, and
+ * every sequence in an ortholog-only alignment, come back with gene_id
+ * missing. Without a gene_id we can't look up UniProt and the Protein
+ * Domains panel shows "no gene id in seq-info" for most rows.
+ *
+ * The PAVI pipeline names each alignment sequence `{symbol}_{...}` so
+ * parsing the first underscore token gives us a usable symbol. Alliance's
+ * search endpoint accepts a free-text symbol query and returns matching
+ * genes across all species. We take the first exact-symbol match
+ * regardless of species — ambiguous symbols (e.g. "Appl" in Drosophila
+ * vs. "APPL" in rodents) can resolve to the wrong gene, but even a wrong
+ * ortholog's UniProt domain layout is close enough to be informative and
+ * MUCH better than the empty panel.
+ *
+ * Returns undefined if no match. Cached via the Alliance cache plumbing.
+ */
+export async function resolveGeneBySymbol(symbol: string): Promise<string | undefined> {
+    const q = symbol.trim();
+    if (!q) return undefined;
+    const url = `https://www.alliancegenome.org/api/search?category=gene_search_result&q=${encodeURIComponent(q)}&limit=20`;
+    let body: any;
+    try {
+        body = await fetchAllianceJson<any>(url, 'search');
+    } catch {
+        return undefined;
+    }
+    const results = Array.isArray(body?.results) ? body.results : [];
+    const want = q.toLowerCase();
+    // Prefer exact-symbol match, fall back to the first result.
+    const exact = results.find((r: any) => (r?.symbol as string | undefined)?.toLowerCase() === want);
+    const pick = exact ?? results[0];
+    const id = (pick?.curie ?? pick?.id) as string | undefined;
+    return typeof id === 'string' && id.length > 0 ? id : undefined;
+}
+
+/**
  * Look up the canonical UniProt accession for an Alliance gene ID.
  *
  * Preference order (first match wins):
