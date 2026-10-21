@@ -59,26 +59,27 @@ function fmtMs(ms: number): string {
 // Compact latency readout: label + value, colored by severity so a 2s
 // p99 catches the eye without the viewer having to parse the number.
 function LatencyPill({ label, value }: { readonly label: string; readonly value: number }) {
+    // Semantic status tokens pick dark-mode-friendly variants per theme.
     const color =
-        value < 50 ? '#166534' :     // green: fast
-        value < 500 ? '#92400e' :     // amber: ok
-        '#991b1b';                    // red: slow
+        value < 50 ? 'var(--agr-success-dark)' :
+        value < 500 ? 'var(--agr-warning-dark)' :
+        'var(--agr-danger-dark)';
     const bg =
-        value < 50 ? '#f0fdf4' :
-        value < 500 ? '#fef3c7' :
-        '#fef2f2';
+        value < 50 ? 'var(--agr-success-light)' :
+        value < 500 ? 'var(--agr-warning-light)' :
+        'var(--agr-danger-light)';
     return (
         <div style={{
             padding: '0.4rem 0.7rem',
             borderRadius: 6,
             background: bg,
-            border: `1px solid ${color}22`,
+            border: '1px solid var(--agr-border-color)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             minWidth: 70,
         }}>
-            <span style={{ fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--agr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {label}
             </span>
             <span style={{ fontSize: '1.1rem', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>
@@ -116,7 +117,7 @@ function Sparkline({ data }: { readonly data: Array<{ date: string; count: numbe
         return { path: pathD, maxY: maxYv, minDate: data[0].date, maxDate: data[data.length - 1].date };
     }, [data]);
 
-    if (data.length === 0) return <div style={{ color: '#9ca3af' }}>No data.</div>;
+    if (data.length === 0) return <div style={{ color: 'var(--agr-text-muted)' }}>No data.</div>;
 
     return (
         <div>
@@ -126,8 +127,8 @@ function Sparkline({ data }: { readonly data: Array<{ date: string; count: numbe
                     const y = 168 - 12 - frac * (160 - 24);
                     return (
                         <g key={frac}>
-                            <line x1={24} x2={576} y1={y} y2={y} stroke="#e5e7eb" strokeDasharray="2 2" />
-                            <text x={2} y={y + 4} fontSize={10} fill="#9ca3af">
+                            <line x1={24} x2={576} y1={y} y2={y} stroke="var(--agr-border-color)" strokeDasharray="2 2" />
+                            <text x={2} y={y + 4} fontSize={10} fill="var(--agr-text-muted)">
                                 {Math.round(maxY * frac)}
                             </text>
                         </g>
@@ -145,7 +146,7 @@ function Sparkline({ data }: { readonly data: Array<{ date: string; count: numbe
                     </circle>;
                 })}
             </svg>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#6b7280', marginTop: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--agr-text-muted)', marginTop: 4 }}>
                 <span>{minDate}</span>
                 <span>{maxDate}</span>
             </div>
@@ -157,7 +158,7 @@ function Sparkline({ data }: { readonly data: Array<{ date: string; count: numbe
 // row's count out of the max count in the list. Cheaper than a real
 // chart library when every list is at most top_n items.
 function BarList({ items, label }: { readonly items: Array<{ key: string; count: number }>; readonly label: string }) {
-    if (items.length === 0) return <div style={{ color: '#9ca3af' }}>No {label.toLowerCase()} yet.</div>;
+    if (items.length === 0) return <div style={{ color: 'var(--agr-text-muted)' }}>No {label.toLowerCase()} yet.</div>;
     const max = Math.max(...items.map((i) => i.count));
     return (
         <div>
@@ -175,7 +176,7 @@ function BarList({ items, label }: { readonly items: Array<{ key: string; count:
                         }} title={it.key}>
                             {it.key}
                         </span>
-                        <div style={{ flex: 1, background: '#f3f4f6', borderRadius: 3, height: 14, position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ flex: 1, background: 'var(--agr-background-alt)', borderRadius: 3, height: 14, position: 'relative', overflow: 'hidden' }}>
                             <div style={{
                                 width: `${pct}%`,
                                 height: '100%',
@@ -270,14 +271,14 @@ export function UsageStats() {
         <div style={{
             flex: '1 1 180px',
             padding: '0.9rem 1rem',
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--agr-background-alt)',
+            border: '1px solid var(--agr-border-color)',
             borderRadius: 8,
         }}>
-            <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--agr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {label}
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#111827', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--agr-text-primary)', fontVariantNumeric: 'tabular-nums' }}>
                 {value.toLocaleString()}
             </div>
         </div>
@@ -303,7 +304,7 @@ export function UsageStats() {
                     onClick={load}
                 />
                 {error && (
-                    <span style={{ color: '#dc2626', marginLeft: '0.5rem' }}>
+                    <span style={{ color: 'var(--agr-danger)', marginLeft: '0.5rem' }}>
                         <i className="pi pi-exclamation-triangle" style={{ marginRight: '0.25rem' }} />
                         {error}
                     </span>
@@ -328,13 +329,13 @@ export function UsageStats() {
                             <LatencyPill label="p95" value={stats.overall_latency.p95} />
                             <LatencyPill label="p99" value={stats.overall_latency.p99} />
                             <LatencyPill label="max" value={stats.overall_latency.max} />
-                            <span style={{ alignSelf: 'center', color: '#6b7280', fontSize: '0.8rem' }}>
+                            <span style={{ alignSelf: 'center', color: 'var(--agr-text-muted)', fontSize: '0.8rem' }}>
                                 across {stats.overall_latency.count.toLocaleString()} requests
                             </span>
                         </div>
 
                         {stats.slow_endpoints.length === 0 ? (
-                            <div style={{ color: '#9ca3af' }}>Need at least 5 samples per endpoint to rank.</div>
+                            <div style={{ color: 'var(--agr-text-muted)' }}>Need at least 5 samples per endpoint to rank.</div>
                         ) : (
                             <DataTable
                                 value={stats.slow_endpoints}
@@ -405,7 +406,7 @@ export function UsageStats() {
                                 (disk.orphan_count > 0 ? ` (${disk.orphan_count} orphan${disk.orphan_count === 1 ? '' : 's'})` : '')
                             }
                         >
-                            <div style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--agr-text-muted)', marginBottom: '0.5rem' }}>
                                 <code>{disk.results_path}</code>
                             </div>
                             {deleteMessage && (
@@ -415,9 +416,9 @@ export function UsageStats() {
                                         padding: '0.5rem 0.75rem',
                                         marginBottom: '0.75rem',
                                         borderRadius: 6,
-                                        background: deleteMessage.startsWith('Delete failed') ? '#fef2f2' : '#f0fdf4',
-                                        color: deleteMessage.startsWith('Delete failed') ? '#991b1b' : '#166534',
-                                        border: `1px solid ${deleteMessage.startsWith('Delete failed') ? '#fecaca' : '#bbf7d0'}`,
+                                        background: deleteMessage.startsWith('Delete failed') ? 'var(--agr-danger-light)' : 'var(--agr-success-light)',
+                                        color: deleteMessage.startsWith('Delete failed') ? 'var(--agr-danger-dark)' : 'var(--agr-success-dark)',
+                                        border: `1px solid ${deleteMessage.startsWith('Delete failed') ? 'var(--agr-danger)' : 'var(--agr-success)'}`,
                                     }}
                                 >
                                     {deleteMessage}
@@ -465,8 +466,8 @@ export function UsageStats() {
                                                     fontSize: '0.65rem',
                                                     padding: '0.1rem 0.4rem',
                                                     borderRadius: 10,
-                                                    background: '#fef3c7',
-                                                    color: '#92400e',
+                                                    background: 'var(--agr-warning-light)',
+                                                    color: 'var(--agr-warning-dark)',
                                                     fontWeight: 600,
                                                 }}>
                                                     ORPHAN
