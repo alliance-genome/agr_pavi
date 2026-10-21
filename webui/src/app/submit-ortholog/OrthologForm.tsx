@@ -472,7 +472,7 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                         {/* Source gene */}
                         {sourceGene && (
                             <div className={styles.orthologItem} onClick={() => setIncludeSource(!includeSource)}
-                                 style={{ borderBottom: '2px solid var(--agr-gray-200)', background: 'var(--agr-gray-50)' }}>
+                                 style={{ borderBottom: '2px solid var(--agr-border-color)', background: 'var(--agr-background-alt)' }}>
                                 {/*
                                   * The row <div> has onClick to toggle, and the Checkbox fires
                                   * onChange on click too. Letting the click bubble makes the row
@@ -487,7 +487,7 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                                 <span className={styles.orthologSymbol}>{sourceGene.symbol}</span>
                                 <span className={styles.orthologSpecies}>{sourceGene.species}</span>
                                 <span className={styles.orthologId}>{sourceGene.geneId}</span>
-                                <span style={{ fontSize: '0.6875rem', background: 'var(--agr-primary-100)', color: 'var(--agr-primary-700)', padding: '0.125rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>SOURCE</span>
+                                <span style={{ fontSize: '0.6875rem', background: 'var(--agr-primary-light)', color: 'var(--agr-link-color)', padding: '0.125rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>SOURCE</span>
                             </div>
                         )}
 
@@ -501,8 +501,8 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                                 gap: '0.375rem',
                                 flexWrap: 'wrap',
                                 padding: '0.5rem 0.75rem',
-                                borderBottom: '1px solid var(--agr-gray-200)',
-                                background: 'var(--agr-gray-50)',
+                                borderBottom: '1px solid var(--agr-border-color)',
+                                background: 'var(--agr-background-alt)',
                             }}
                         >
                             {SPECIES_GROUP_ORDER.filter((g) => groupCounts[g] > 0).map((g) => {
@@ -517,9 +517,9 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                                             padding: '0.25rem 0.625rem',
                                             borderRadius: 999,
                                             border: '1px solid',
-                                            borderColor: active ? 'var(--agr-primary-500, #2563eb)' : 'var(--agr-gray-300, #d1d5db)',
-                                            background: active ? 'var(--agr-primary-500, #2563eb)' : 'white',
-                                            color: active ? 'white' : 'var(--agr-gray-700, #374151)',
+                                            borderColor: active ? 'var(--agr-primary-500)' : 'var(--agr-border-color)',
+                                            background: active ? 'var(--agr-primary-500)' : 'var(--agr-background)',
+                                            color: active ? 'white' : 'var(--agr-text-primary)',
                                             fontSize: '0.75rem',
                                             fontWeight: 500,
                                             cursor: 'pointer',
@@ -547,7 +547,7 @@ export function OrthologForm({ agrjBrowseDataRelease }: OrthologFormProps) {
                                         fontSize: '0.75rem',
                                         background: 'transparent',
                                         border: 'none',
-                                        color: 'var(--agr-primary-600, #1d4ed8)',
+                                        color: 'var(--agr-link-color)',
                                         cursor: 'pointer',
                                     }}
                                 >
