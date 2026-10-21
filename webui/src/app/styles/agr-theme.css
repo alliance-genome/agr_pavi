@@ -414,8 +414,15 @@ html[data-theme="dark"] .p-inputtextarea {
 }
 
 html[data-theme="dark"] .p-inputtext::placeholder,
-html[data-theme="dark"] .p-inputtextarea::placeholder {
+html[data-theme="dark"] .p-inputtextarea::placeholder,
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  /* Also targets plain <input>/<textarea> elements that aren't styled
+     via PrimeReact classes (e.g. the inline-styled Notes textarea on
+     /jobs row expander). Default placeholder color varies by browser
+     and often lands as dark-gray — invisible on our dark bg. */
   color: var(--agr-text-muted) !important;
+  opacity: 1;  /* Firefox defaults placeholder opacity below 1; force full */
 }
 
 /* InputGroup addon (e.g. method prefix "GET" on URL fields) */
