@@ -418,6 +418,13 @@ html[data-theme="dark"] .p-inputtextarea::placeholder {
   color: var(--agr-text-muted) !important;
 }
 
+/* InputGroup addon (e.g. method prefix "GET" on URL fields) */
+html[data-theme="dark"] .p-inputgroup-addon {
+  background: var(--agr-background-alt) !important;
+  color: var(--agr-text-primary) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
 /* Paginator */
 html[data-theme="dark"] .p-paginator {
   border-color: var(--agr-border-color) !important;
