@@ -25,6 +25,9 @@ import { PublicationFigureDialog } from '../PublicationFigure/PublicationFigureD
 
 const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
 const VirtualizedAlignment = dynamic(() => import('../InteractiveAlignment/VirtualizedAlignment'), { ssr: false })
+// Prototype: swap-in of @nuin/msa-canvas via its React component + fromPavi
+// adapter. See InteractiveAlignment/CanvasAlignment.tsx for the bridge.
+const CanvasAlignment = dynamic(() => import('../InteractiveAlignment/CanvasAlignment'), { ssr: false })
 
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
@@ -41,6 +44,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const displayModeOptions: displayModeOptionsType[] = [
         {label: 'Interactive (Virtualized)', value: 'virtualized'},
         {label: 'Interactive (Legacy)', value: 'interactive'},
+        {label: 'Canvas (msa-canvas, preview)', value: 'canvas'},
         {label: 'Text', value: 'text'}
     ]
 
@@ -444,6 +448,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                             <>
                                 {displayMode === 'virtualized' && <VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />}
                                 {displayMode === 'interactive' && <InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} />}
+                                {displayMode === 'canvas' && <CanvasAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />}
                                 {displayMode === 'text' && <TextAlignment alignmentResult={alignmentResult} />}
                             </>
                         ) : (
