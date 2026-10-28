@@ -82,11 +82,66 @@ export function CanvasAlignment({ alignmentResult, seqInfoDict }: CanvasAlignmen
                 alignment={alignment}
                 options={{
                     theme,
-                    height: 600,
+                    // Larger surface — the previous 600 clipped to 8 rows
+                    // on a 17-sequence alignment. 820 shows ~13 at the
+                    // default row height while leaving the stats row + the
+                    // inspector panel readable.
+                    height: 820,
                     // Protein alignment → default to the kit's Clustal2
                     // palette so the visual read matches the existing
                     // Nightingale viewer when a user flips engines.
                     colorScheme: 'clustal2',
+                    // Wider label gutter so full species-tagged row names
+                    // (e.g. "APL1_WB:C42D8.8a.1_REF") don't ellipsise.
+                    labelWidth: 240,
+                    visibility: {
+                        // Turn on every feature the kit ships with that
+                        // our Nightingale wrapper doesn't currently
+                        // expose. Users can hide individual pieces from
+                        // the kit's own toolbar at runtime.
+                        overview: true,
+                        tracks: true,
+                        inspector: true,
+                        inspectorTabs: true,
+                        toolbar: true,
+                        search: true,
+                        goTo: true,
+                        motif: true,
+                        order: true,
+                        colorScheme: true,
+                        colorMode: true,
+                        zoom: true,
+                        fit: true,
+                        fullscreen: true,
+                        export: true,
+                        theme: true,
+                        logo: true,                 // sequence-logo overlay
+                        logoToggle: true,
+                        modalFrequency: true,       // per-column stat bars
+                        gapFraction: true,
+                        consensus: true,
+                        reference: true,            // highlight the pinned reference row
+                        pinReference: true,
+                        rowSelection: true,
+                        rowPinning: true,
+                        rowNames: true,
+                        rowSpecies: true,
+                        residueLetters: true,
+                        annotationMarks: true,
+                        selectionOverlay: true,
+                        positionTab: true,
+                        featuresTab: true,
+                        compareTab: true,
+                        colorsTab: true,
+                        statisticsScope: true,
+                        alphabet: true,
+                        ruler: true,
+                        labels: true,
+                        labelResize: true,
+                        status: true,
+                        statusSummary: true,
+                        statusDetails: true,
+                    },
                 }}
                 onViewportChange={handleViewportChange}
                 className="ak-viewer"
