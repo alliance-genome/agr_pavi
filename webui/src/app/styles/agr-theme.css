@@ -209,6 +209,25 @@ html[data-theme="dark"] {
    data-theme-mode. */
 
 /* ----------------------------------------------------------------------
+ * @nuin/msa-canvas theme bridge
+ *
+ * The kit reads its colours from --ak-* CSS custom properties on the
+ * .ak-viewer element (see its README). Aliasing them to our --agr-*
+ * tokens means the canvas flips between light and dark the moment
+ * useTheme toggles data-theme on <html>, without any JS prop update.
+ * ------------------------------------------------------------------- */
+.ak-viewer {
+  --ak-bg: var(--agr-background);
+  --ak-panel: var(--agr-background-alt);
+  --ak-ink: var(--agr-text-primary);
+  --ak-muted: var(--agr-text-muted);
+  --ak-line: var(--agr-border-color);
+  --ak-accent: var(--agr-primary-500);
+  --ak-hover: var(--agr-primary-light);
+  --ak-font: var(--agr-font-family);
+}
+
+/* ----------------------------------------------------------------------
  * PrimeReact dark overrides
  *
  * PrimeReact's lara-light-indigo theme bakes `background:#fff` into the
