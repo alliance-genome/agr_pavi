@@ -774,3 +774,120 @@ def test_translation_of_insertion_introducing_stop_codon(
     # Alt seq embedded variant should be positioned correctly
     assert alt_protein_seq_info.embedded_variants[0].seq_start_pos == 3
     assert alt_protein_seq_info.embedded_variants[0].seq_end_pos == 4
+
+
+def test_translation_of_true_frameshift_insertion(
+    wb_transcript_c42d8_8b_1_with_cds,
+) -> None:
+    """
+    Jennifer Smith's "easy" case: a single-nucleotide insertion whose net length
+    (len(alt) - len(ref) = +1) is not a multiple of 3, so it shifts the reading
+    frame of every downstream codon.
+
+    The pipeline relies on BioPython's ``Seq.translate(..., to_stop=True)`` reading
+    the length-shifted coding sequence as plain codon triplets from position 0 —
+    which naturally produces the shifted-frame protein and truncates at the first
+    stop codon that appears in the new frame. This test proves that end-to-end
+    at the pipeline level, not just at the BioPython level.
+
+    Fingerprint of a correctly handled frameshift:
+      * The N-terminus matches the reference up to (and including) the Met before
+        the insertion position — the frameshift only affects downstream codons.
+      * The sequence past that point is different (shifted-frame residues).
+      * The alt protein terminates — the C-terminus is not an arbitrary run-on of
+        the ref sequence, because BioPython stops at the first shifted-frame stop
+        codon. Length is finite and typically different from the reference.
+    """
+    translatedSeqRegion = wb_transcript_c42d8_8b_1_with_cds["translatedSeqRegion"]
+
+    # Insert a single nucleotide right after the start codon (the same genomic
+    # position used by the existing crossing-codons test, which also exercises
+    # a 1-nt insertion but asserts only "sequences differ"). A 1-nt insertion
+    # is the simplest, cleanest case of a true frameshift — ``net = +1``.
+    frameshift_insertion = Variant(
+        "test-true-frameshift-insertion",
+        "X",
+        5116859,
+        5116859,
+        genomic_ref_seq="C",
+        genomic_alt_seq="CA",
+    )
+
+    ref_protein = translatedSeqRegion.get_sequence(type="protein", unmasked=False)
+    alt_protein = translatedSeqRegion.get_alt_sequence(
+        type="protein", variants=[frameshift_insertion]
+    ).sequence
+
+    # 1. Protein must change — a frameshift can't leave the sequence identical.
+    assert alt_protein != ref_protein, "frameshift must alter the protein sequence"
+
+    # 2. N-terminus up to the frameshift position must be preserved. The
+    #    variant lands at protein position 2 (per the sibling crossing-codons
+    #    test), so residue 1 (Met) must still match.
+    assert alt_protein[:1] == ref_protein[:1], (
+        f"frameshift must preserve the Met start codon; "
+        f"ref starts with {ref_protein[:5]!r}, alt starts with {alt_protein[:5]!r}"
+    )
+
+    # 3. Downstream residues must diverge — the shifted frame reads different
+    #    codons than the reference. Compare the window right after the
+    #    preserved N-terminus; if the alt is at least that long, it should
+    #    differ there.
+    if len(alt_protein) >= 6:
+        assert alt_protein[1:6] != ref_protein[1:6], (
+            "frameshift must change downstream codons; "
+            f"ref[1:6]={ref_protein[1:6]!r} vs alt[1:6]={alt_protein[1:6]!r}"
+        )
+
+    # 4. Translation must actually terminate — no run-on past the end of the
+    #    coding sequence. BioPython's ``to_stop=True`` guarantees this, but
+    #    the pipeline wrapper must preserve it. A sanity bound: the alt
+    #    protein cannot be longer than the alt coding region allows.
+    alt_coding = translatedSeqRegion.get_alt_sequence(
+        type="coding", variants=[frameshift_insertion]
+    ).sequence
+    assert len(alt_protein) * 3 <= len(alt_coding), (
+        "alt protein length exceeds the available alt coding sequence — "
+        "translation did not terminate correctly"
+    )
+
+
+def test_translation_of_true_frameshift_deletion(
+    wb_transcript_c42d8_8b_1_with_cds,
+) -> None:
+    """
+    Companion to ``test_translation_of_true_frameshift_insertion`` for the
+    opposite direction: a single-nucleotide deletion (net length = -1). Same
+    biology — the reading frame shifts for every downstream codon — but exercises
+    the deletion branch in ``SeqRegion.get_alt_sequence`` rather than the
+    insertion branch, so a regression that only affects one of the two paths
+    is caught here.
+    """
+    translatedSeqRegion = wb_transcript_c42d8_8b_1_with_cds["translatedSeqRegion"]
+
+    # Single-nt deletion at the same codon-crossing position used by the
+    # insertion sibling test. ``ref="CC"`` + ``alt="C"`` deletes one base.
+    frameshift_deletion = Variant(
+        "test-true-frameshift-deletion",
+        "X",
+        5116858,
+        5116859,
+        genomic_ref_seq="CC",
+        genomic_alt_seq="C",
+    )
+
+    ref_protein = translatedSeqRegion.get_sequence(type="protein", unmasked=False)
+    alt_protein = translatedSeqRegion.get_alt_sequence(
+        type="protein", variants=[frameshift_deletion]
+    ).sequence
+
+    assert alt_protein != ref_protein, "frameshift deletion must alter the protein"
+    assert alt_protein[:1] == ref_protein[:1], (
+        "frameshift deletion must preserve the Met start codon"
+    )
+    if len(alt_protein) >= 6:
+        assert alt_protein[1:6] != ref_protein[1:6]
+    alt_coding = translatedSeqRegion.get_alt_sequence(
+        type="coding", variants=[frameshift_deletion]
+    ).sequence
+    assert len(alt_protein) * 3 <= len(alt_coding)
