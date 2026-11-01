@@ -36,7 +36,7 @@
         "@nightingale-elements/nightingale-manager": "^5.0.0",
         "@nightingale-elements/nightingale-msa": "^5.0.0",
         "@nightingale-elements/nightingale-navigation": "^5.0.0",
-        "@nightingale-elements/nightingale-track": "^5.0.0",
+        "@nightingale-elements/nightingale-track": "^5.11.1",
         "@tanstack/react-virtual": "^3.13.13",
         "chart.js": "^4.5.1",
         "clustal-js": "^2.0.6",
