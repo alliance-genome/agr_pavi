@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.8.3...webui-v0.9.0) (2026-11-04)
+
+
+### Features
+
+* **pipeline+webui:** gate unsupported variant classes with user-visible reason ([#1091](https://github.com/alliance-genome/agr_pavi/issues/1091)) ([daf9032](https://github.com/alliance-genome/agr_pavi/commit/daf9032b96116d968f77262135cad1fdb4f2bcf9))
+
 ## [0.8.3](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.8.2...webui-v0.8.3) (2026-10-09)
 
 
