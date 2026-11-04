@@ -17,9 +17,15 @@ export interface NonCodingVariant {
     gene_id?: string
 }
 
+export interface UnsupportedVariant {
+    variant_id: string,
+    reason: string
+}
+
 export interface SeqInfo {
     embedded_variants?: EmbeddedVariant[],
     non_coding_variants?: NonCodingVariant[],
+    unsupported_variants?: UnsupportedVariant[],
     requested_variant_ids?: string[],
     error?: string,
     species?: string

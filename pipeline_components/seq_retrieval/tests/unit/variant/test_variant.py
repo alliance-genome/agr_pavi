@@ -347,6 +347,105 @@ def test_affects_protein_sequence() -> None:
     assert variant_all_noncoding.affects_protein_sequence() is False
 
 
+def test_unsupported_reason() -> None:
+    """
+    Test Variant.unsupported_reason() method.
+    """
+    # Supported SNV (missense) -> None
+    variant_missense = Variant(
+        variant_id="supported_missense",
+        seq_id="X",
+        start=100,
+        end=100,
+        genomic_ref_seq="A",
+        genomic_alt_seq="T",
+        molecular_consequences=["missense_variant"],
+    )
+    assert variant_missense.unsupported_reason() is None
+
+    # Supported indel (frameshift + stop_gained is Jennifer's "easy" set)
+    variant_frameshift = Variant(
+        variant_id="supported_frameshift",
+        seq_id="X",
+        start=100,
+        end=100,
+        genomic_ref_seq="A",
+        genomic_alt_seq="AT",
+        molecular_consequences=["frameshift_variant", "stop_gained"],
+    )
+    assert variant_frameshift.unsupported_reason() is None
+
+    # No consequences recorded -> treated as supported (conservative, matches
+    # affects_protein_sequence's conservative default)
+    variant_unknown = Variant(
+        variant_id="unknown_consequence",
+        seq_id="X",
+        start=100,
+        end=100,
+        genomic_ref_seq="A",
+        genomic_alt_seq="T",
+    )
+    assert variant_unknown.unsupported_reason() is None
+
+    # stop_lost -> unsupported, with reason mentioning stop codon
+    variant_stop_lost = Variant(
+        variant_id="unsupported_stop_lost",
+        seq_id="X",
+        start=100,
+        end=100,
+        genomic_ref_seq="TAA",
+        genomic_alt_seq="CAA",
+        molecular_consequences=["stop_lost"],
+    )
+    reason = variant_stop_lost.unsupported_reason()
+    assert reason is not None
+    assert "stop codon" in reason
+
+    # Splice variants (acceptor / donor / region) -> unsupported
+    for term in ("splice_acceptor_variant", "splice_donor_variant", "splice_region_variant"):
+        variant_splice = Variant(
+            variant_id=f"unsupported_{term}",
+            seq_id="X",
+            start=100,
+            end=100,
+            genomic_ref_seq="A",
+            genomic_alt_seq="T",
+            molecular_consequences=[term],
+        )
+        reason = variant_splice.unsupported_reason()
+        assert reason is not None, f"{term} should be reported as unsupported"
+        assert "splice" in reason.lower()
+
+    # Mixed: frameshift + splice_acceptor -> unsupported for the splice reason;
+    # frameshift translation cannot save a variant whose transcript is unknown.
+    variant_mixed_unsupported = Variant(
+        variant_id="mixed_frameshift_splice",
+        seq_id="X",
+        start=100,
+        end=100,
+        genomic_ref_seq="AC",
+        genomic_alt_seq="A",
+        molecular_consequences=["frameshift_variant", "splice_acceptor_variant"],
+    )
+    reason = variant_mixed_unsupported.unsupported_reason()
+    assert reason is not None
+    assert "splice" in reason.lower()
+
+    # transcript_ablation -> unsupported
+    variant_ablation = Variant(
+        variant_id="unsupported_ablation",
+        seq_id="X",
+        start=100,
+        end=500,
+        genomic_ref_seq="A" * 400,
+        genomic_alt_seq="",
+        molecular_consequences=["transcript_ablation"],
+    )
+    reason = variant_ablation.unsupported_reason()
+    assert reason is not None
+    assert "transcript" in reason.lower()
+
+
 def test_variant_overlaps(
     wb_variant_yn32, wb_variant_yn30, wb_variant_yn10, wb_variant_e1178
 ) -> None:
