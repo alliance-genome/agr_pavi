@@ -72,6 +72,22 @@ class Variant:
         "NMD_transcript_variant",
     ])
 
+    # Consequence classes we explicitly refuse to translate. Each entry is a
+    # (consequence SO term -> human-readable reason) pair. The downstream
+    # pipeline splits these out of the regular variant list and surfaces the
+    # reason to the user instead of silently dropping or mis-translating.
+    #
+    # Scoped by stakeholder feedback (Jennifer Smith, 2026-10-29): translate
+    # frameshift + stop_gained; defer stop_lost and anything that disrupts
+    # splice sites until the retranscription path is in.
+    UNSUPPORTED_CONSEQUENCES = {
+        "stop_lost": "stop codon lost — translating past the reference stop requires re-predicting the resulting transcript",
+        "splice_acceptor_variant": "disrupts a splice acceptor site — resulting transcript cannot be predicted from the reference exon map",
+        "splice_donor_variant": "disrupts a splice donor site — resulting transcript cannot be predicted from the reference exon map",
+        "splice_region_variant": "falls inside a splice region — effect on resulting transcript is ambiguous without re-prediction",
+        "transcript_ablation": "deletes the entire transcript — no protein to align",
+    }
+
     def __init__(
         self,
         variant_id: str,
@@ -175,6 +191,26 @@ class Variant:
             f"Variant {self.variant_id} has only non-coding consequences: {self.molecular_consequences}"
         )
         return False
+
+    def unsupported_reason(self) -> Optional[str]:
+        """
+        Return a human-readable reason if this variant falls into an unsupported
+        consequence class, or None if it is safe to translate.
+
+        A variant is unsupported when any of its molecular_consequences appears
+        in UNSUPPORTED_CONSEQUENCES. The first matched term's reason is returned,
+        so a variant tagged with both frameshift_variant and splice_acceptor_variant
+        is reported as unsupported for the splice reason — the frameshift path
+        cannot save it.
+
+        Returns:
+            Human-readable reason, or None when every consequence is supported
+            (or when consequences are unknown).
+        """
+        for consequence in self.molecular_consequences:
+            if consequence in self.UNSUPPORTED_CONSEQUENCES:
+                return self.UNSUPPORTED_CONSEQUENCES[consequence]
+        return None
 
     @classmethod
     def from_dict(cls, variant_dict: dict[str, Any]) -> "Variant":
