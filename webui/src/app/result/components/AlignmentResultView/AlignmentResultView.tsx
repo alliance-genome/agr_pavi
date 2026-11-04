@@ -16,6 +16,7 @@ import { TextAlignment } from '../TextAlignment/TextAlignment';
 import { SeqInfoDict } from '../InteractiveAlignment/types';
 import { FailureDisplay } from '../FailureDisplay/FailureDisplay';
 import { ResultsSummary } from '../ResultsSummary';
+import UnsupportedVariants from '../UnsupportedVariants/UnsupportedVariants';
 import { AlignmentSkeleton } from '../AlignmentSkeleton';
 import { dataCache, CACHE_CONFIGS } from '@/utils/dataCache';
 import { withBasePath } from '@/utils/basePath';
@@ -281,6 +282,8 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                     <FailureDisplay failureList={seqFailures} />
                 </div>
             )}
+
+            <UnsupportedVariants seqInfoDict={alignmentSeqInfo} />
 
             <div className="agr-card">
                 <div className="agr-card-header">
