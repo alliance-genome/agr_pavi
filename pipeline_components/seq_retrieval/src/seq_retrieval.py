@@ -12,7 +12,7 @@ import jsonpickle  # type: ignore
 import logging
 import re
 import subprocess
-from typing import Any, get_args, List, TypedDict, Optional
+from typing import Any, get_args, Iterable, List, Tuple, TypedDict, Optional
 
 from data_mover import data_file_mover
 from seq_info import EnumValueHandler, SeqInfo
@@ -25,6 +25,43 @@ logger = get_logger(name=__name__)
 
 STRAND_POS_CHOICES = ["+", "+1", "pos"]
 STRAND_NEG_CHOICES = ["-", "-1", "neg"]
+
+
+def classify_variants_for_translation(
+    variants: Iterable[Variant],
+) -> Tuple[List[Variant], List[Variant], List[dict[str, str]]]:
+    """Three-way split of variants for the protein-output path.
+
+    Returns ``(coding, non_coding, unsupported)`` where:
+
+    * ``coding`` — translate normally.
+    * ``non_coding`` — filtered out because they don't touch the protein
+      (UTR, intron, intergenic, …). Already handled by
+      ``Variant.affects_protein_sequence``.
+    * ``unsupported`` — the pipeline refuses to translate (stop_lost,
+      splice sites, transcript_ablation). Each entry is
+      ``{"variant_id": ..., "reason": ...}`` so the UI can show the user
+      what was skipped and why, instead of silently dropping it or
+      returning a mis-translated protein.
+
+    Precedence: an unsupported consequence takes priority over the "coding"
+    classification, so a variant tagged with both ``frameshift_variant`` and
+    ``splice_acceptor_variant`` lands in ``unsupported`` — a frameshift path
+    cannot save a variant whose transcript boundaries have moved.
+    """
+    coding: List[Variant] = []
+    non_coding: List[Variant] = []
+    unsupported: List[dict[str, str]] = []
+    for v in variants:
+        if not v.affects_protein_sequence():
+            non_coding.append(v)
+            continue
+        reason = v.unsupported_reason()
+        if reason is not None:
+            unsupported.append({"variant_id": v.variant_id, "reason": reason})
+            continue
+        coding.append(v)
+    return coding, non_coding, unsupported
 
 
 class SeqRegionDict(TypedDict):
@@ -485,17 +522,18 @@ def main(  # noqa: C901
             ref_info = SeqInfo(error=error_msg, species=species)
 
         if variant_info:
-            # Filter out non-coding variants (UTR, intron, etc.) for protein output
-            coding_variants = [
-                v for v in variant_info.values() if v.affects_protein_sequence()
-            ]
-            non_coding_variants = [
-                v for v in variant_info.values() if not v.affects_protein_sequence()
-            ]
+            coding_variants, non_coding_variants, unsupported_variants = (
+                classify_variants_for_translation(variant_info.values())
+            )
             if non_coding_variants:
                 logger.info(
                     f"Filtered out {len(non_coding_variants)} non-coding variant(s) for protein output: "
                     f"{[v.variant_id for v in non_coding_variants]}"
+                )
+            if unsupported_variants:
+                logger.info(
+                    f"Flagged {len(unsupported_variants)} variant(s) as unsupported for protein output: "
+                    f"{[entry['variant_id'] for entry in unsupported_variants]}"
                 )
 
             # Generate additional sequence for full region with coding variants embedded
@@ -510,12 +548,14 @@ def main(  # noqa: C901
                 error_msg = exception_description(e)
                 alt_info = SeqInfo(error=error_msg, requested_variant_ids=list(variant_ids),
                                    non_coding_variants=non_coding_variants if non_coding_variants else None,
+                                   unsupported_variants=unsupported_variants if unsupported_variants else None,
                                    species=species)
             else:
                 alt_seq = seq_info.sequence
                 alt_info = SeqInfo(embedded_variants=seq_info.embedded_variants,
                                    requested_variant_ids=list(variant_ids),
                                    non_coding_variants=non_coding_variants if non_coding_variants else None,
+                                   unsupported_variants=unsupported_variants if unsupported_variants else None,
                                    species=species)
 
             if alt_seq == "":
