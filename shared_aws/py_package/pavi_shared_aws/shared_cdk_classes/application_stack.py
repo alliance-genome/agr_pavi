@@ -130,7 +130,7 @@ def defineEbEnvironmentCdkConstructs(
         eb.CfnEnvironment.OptionSettingProperty(
             namespace="aws:autoscaling:launchconfiguration",
             option_name="EC2KeyName",
-            value="AGR-ssl2",
+            value="AGR-ssl3",
         ),
         eb.CfnEnvironment.OptionSettingProperty(
             namespace="aws:autoscaling:launchconfiguration",
