@@ -30,6 +30,12 @@ class SeqInfo:
     """The species name for this sequence."""
     non_coding_variants: Optional[list[Variant]]
     """Variants that were requested but filtered out because they don't affect the protein sequence (e.g., UTR, intronic)."""
+    unsupported_variants: Optional[list[dict[str, str]]]
+    """Variants whose consequence class the pipeline refuses to translate (e.g., stop_lost, splice_acceptor_variant).
+
+    Each entry is `{"variant_id": ..., "reason": ...}` so the UI can display what was skipped and why without having
+    to carry the full Variant object through the pipeline output.
+    """
 
     def __init__(
         self,
@@ -41,6 +47,7 @@ class SeqInfo:
         error: Optional[str] = None,
         species: Optional[str] = None,
         non_coding_variants: Optional[list[Variant]] = None,
+        unsupported_variants: Optional[list[dict[str, str]]] = None,
     ):
         if sequence is not None:
             self.sequence = sequence
@@ -60,6 +67,9 @@ class SeqInfo:
         if non_coding_variants is not None:
             self.non_coding_variants = non_coding_variants
 
+        if unsupported_variants is not None:
+            self.unsupported_variants = unsupported_variants
+
     @classmethod
     def from_dict(cls, seq_info_dict: dict[str, Any]) -> "SeqInfo":
         """Loads a SeqInfo object from a dictionary."""
@@ -70,6 +80,7 @@ class SeqInfo:
         requested_variant_ids: Optional[list[str]] = None
         error: Optional[str] = None
         species: Optional[str] = None
+        unsupported_variants: Optional[list[dict[str, str]]] = None
 
         if "sequence" in seq_info_dict:
             if not isinstance(seq_info_dict["sequence"], str):
@@ -107,9 +118,33 @@ class SeqInfo:
             if not isinstance(seq_info_dict["species"], str):
                 raise TypeError("species must be a string")
             species = seq_info_dict["species"]
+        if "unsupported_variants" in seq_info_dict:
+            unsupported_variants = cls._parse_unsupported_variants(
+                seq_info_dict["unsupported_variants"]
+            )
 
         return cls(sequence=sequence, embedded_variants=embedded_variants,
-                   requested_variant_ids=requested_variant_ids, error=error, species=species)
+                   requested_variant_ids=requested_variant_ids, error=error, species=species,
+                   unsupported_variants=unsupported_variants)
+
+    @staticmethod
+    def _parse_unsupported_variants(raw: Any) -> list[dict[str, str]]:
+        """Validate + normalise the ``unsupported_variants`` list for ``from_dict``.
+
+        Extracted so ``from_dict`` stays under flake8's complexity threshold
+        (C901) while still giving a clear per-entry error message.
+        """
+        if not isinstance(raw, list):
+            raise TypeError("unsupported_variants must be a list")
+        entries: list[dict[str, str]] = []
+        for entry in raw:
+            if not isinstance(entry, dict):
+                raise TypeError("unsupported_variants must be a list of dicts")
+            if "variant_id" not in entry or "reason" not in entry:
+                raise TypeError("unsupported_variants entries require variant_id and reason")
+            entries.append({"variant_id": str(entry["variant_id"]),
+                            "reason": str(entry["reason"])})
+        return entries
 
     @override
     def __repr__(self) -> str:
