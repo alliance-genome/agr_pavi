@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.9.0...webui-v0.9.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **webui:** drop LOW-impact variants + raise allele fetch cap ([#1093](https://github.com/alliance-genome/agr_pavi/issues/1093)) ([ce17f20](https://github.com/alliance-genome/agr_pavi/commit/ce17f201ec92940bdf1c844026f8ad26f92f7958))
+* **webui:** slim per-variant consequence rows in allele serverAction ([#1095](https://github.com/alliance-genome/agr_pavi/issues/1095)) ([467eaef](https://github.com/alliance-genome/agr_pavi/commit/467eaef7db264955960149d8da954ca6f0ee63d4))
+
 ## [0.9.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.8.3...webui-v0.9.0) (2026-11-04)
 
 
