@@ -73,6 +73,73 @@ describe('fetchAlleles query construction', () => {
         }
     });
 
+    it('dedupes per-variant consequence rows and caps at the slim payload limit', async () => {
+        // ADCY3 regression lock (round 2): Alliance returns 1 row per
+        // (variant × transcript × consequence), so a single variant arrives with
+        // dozens of near-identical consequence rows. The slim pass must
+        // (a) collapse rows that would be indistinguishable in the filter UI,
+        // and (b) hard-cap the result so transcript-dense genes cannot blow out
+        // the Next RSC payload again.
+        const rowsForOneVariant: any[] = [];
+        // 100 rows for the SAME allele, same consequence+impact, but each on a
+        // DIFFERENT transcript. These are legitimately-distinct dedup keys, so
+        // the hard cap (20) must kick in to prevent the payload from growing.
+        for (let i = 0; i < 100; i++) {
+            rowsForOneVariant.push({
+                allele: { primaryExternalId: 'single_allele' },
+                variant: { curatedVariantGenomicLocations: [{ hgvs: 'NC_000002.12:g.1A>T' }] },
+                symbol: 'NC_000002.12:g.1A>T',
+                consequence: {
+                    variantTranscript: { curie: `tx_${i}`, name: `TX-${i}` },
+                    vepConsequences: [{ name: 'missense_variant' }],
+                    vepImpact: { name: 'MODERATE' },
+                },
+            });
+        }
+        // Plus 50 TRUE DUPLICATES — same transcript, consequence, impact,
+        // sift and polyphen — which must collapse to AT MOST ONE entry.
+        for (let i = 0; i < 50; i++) {
+            rowsForOneVariant.push({
+                allele: { primaryExternalId: 'single_allele' },
+                variant: { curatedVariantGenomicLocations: [{ hgvs: 'NC_000002.12:g.1A>T' }] },
+                symbol: 'NC_000002.12:g.1A>T',
+                consequence: {
+                    variantTranscript: { curie: 'tx_dup', name: 'TX-dup' },
+                    vepConsequences: [{ name: 'missense_variant' }],
+                    vepImpact: { name: 'MODERATE' },
+                    siftPrediction: { name: 'deleterious' },
+                    polyphenPrediction: { name: 'probably_damaging' },
+                },
+            });
+        }
+
+        global.fetch = jest.fn().mockImplementation(async (url: unknown) => {
+            const u = String(url);
+            if (u.includes('filter.alleleCategory=findCategories')) {
+                return { ok: true, status: 200, json: async () => CATEGORIES_RESP };
+            }
+            const pageMatch = u.match(/[?&]page=(\d+)/);
+            const page = pageMatch ? Number(pageMatch[1]) : 1;
+            if (page === 1) {
+                return { ok: true, status: 200, json: async () => ({
+                    results: rowsForOneVariant, total: rowsForOneVariant.length, returnedRecords: rowsForOneVariant.length,
+                }) };
+            }
+            return { ok: true, status: 200, json: async () => EMPTY_PAGE };
+        }) as unknown as typeof fetch;
+
+        const alleles = await fetchAlleles('HGNC:234');
+        expect(alleles.length).toBe(1);
+        const variants = Array.from(alleles[0].variants.values());
+        expect(variants.length).toBe(1);
+        const cons = variants[0].consequences;
+        // Hard cap: never more than 20 consequence rows per variant.
+        expect(cons.length).toBeLessThanOrEqual(20);
+        // The 50 true-duplicates collapse to at most one tx_dup entry.
+        const dupCount = cons.filter(c => c.transcriptId === 'tx_dup').length;
+        expect(dupCount).toBeLessThanOrEqual(1);
+    });
+
     it('raises the MAX_ROWS ceiling enough to reach deep variants (ADCY3 regression lock)', async () => {
         // Simulate Alliance returning a full page every time, so fetchUntilDistinct
         // keeps paging until the row cap hits. The fix bumps MAX_ROWS from 3000
