@@ -384,6 +384,45 @@ export async function fetchAlleles (geneId: string, requiredAlleleIds: string[] 
             }
         })
 
+        // Dedupe each variant's consequences. Alliance returns one row per
+        // (variant × transcript × consequence) triple, and for a gene like
+        // ADCY3 with ~36 transcripts a single missense_variant blows out into
+        // ~60 identical-but-for-transcript consequence objects per variant.
+        // That pushed the serverAction RSC payload past what the client could
+        // deserialize in reasonable time — ADCY3's "Loading alleles…" state
+        // would never clear. Collapsing duplicates by their observable fields
+        // preserves the filter UI's distinct-value sets while cutting the
+        // payload by roughly an order of magnitude on transcript-dense genes.
+        //
+        // Hard cap of CONSEQUENCES_PER_VARIANT_MAX acts as a safety belt:
+        // some genes have 100+ transcripts where even unique-combo rows are
+        // too many to carry in a dropdown payload. 20 is well above any
+        // filter dropdown the user would actually scan, and the data behind
+        // the dropdown (which transcripts a variant hits, which consequence
+        // terms it has) still comes through for the common cases.
+        const CONSEQUENCES_PER_VARIANT_MAX = 20
+        const dedupeKey = (c: VariantConsequence): string => [
+            c.transcriptId ?? '',
+            (c.molecularConsequences ?? []).slice().sort().join('|'),
+            c.impact ?? '',
+            c.sift ?? '',
+            c.polyphen ?? '',
+        ].join('\x1f')
+        for (const allele of allelesMap.values()) {
+            for (const variant of allele.variants.values()) {
+                const seen = new Set<string>()
+                const unique: VariantConsequence[] = []
+                for (const c of variant.consequences) {
+                    const k = dedupeKey(c)
+                    if (seen.has(k)) continue
+                    seen.add(k)
+                    unique.push(c)
+                    if (unique.length >= CONSEQUENCES_PER_VARIANT_MAX) break
+                }
+                variant.consequences = unique
+            }
+        }
+
         return Array.from(allelesMap.values());
     } catch (error) {
         console.error(`Error fetching alleles for gene ${geneId}:`, error)
