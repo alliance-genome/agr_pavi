@@ -204,12 +204,32 @@ export async function fetchAlleles (geneId: string, requiredAlleleIds: string[] 
         const queryParams = new URLSearchParams()
         queryParams.append('filter.alleleCategory', searchAlleleCategories.join('|'))
 
+        // Narrow to variants that actually affect protein sequence. Alliance
+        // tags each variant with one of {HIGH, MODERATE, LOW, unknown}; LOW
+        // is synonymous / near-synonymous and `unknown` is largely intergenic
+        // / regulatory. Neither is useful for protein-alignment viewing, and
+        // excluding them both cuts the row count roughly in half for large
+        // genes AND keeps the dropdown biologically meaningful. This also
+        // sidesteps the ADCY3 regression (see MAX_ROWS note below): Alliance
+        // returns 29k rows for ADCY3 at the baseline, 13k at HIGH|MODERATE.
+        queryParams.append('filter.variantImpact', 'HIGH|MODERATE')
+
         // Alliance returns 1 row per (allele, variant, consequence) triple.
         // Page until we hit MAX_DISTINCT_ALLELES distinct allele.id, with a
         // hard row ceiling to bound payload on extreme cases (e.g. TP53 with
         // 100k+ rows for thousands of distinct alleles).
+        //
+        // MAX_ROWS was bumped from 3000 to 15000 to unblock ADCY3-scale genes.
+        // At 62 avg rows per variant (transcript × consequence expansion),
+        // 3000 rows surfaced only ~55 distinct variants; Jennifer Smith's
+        // reported ADCY3 variant NC_000002.12:g.24918626A>T sits at row
+        // 27177 in the ungated response and was unreachable. With the
+        // HIGH|MODERATE filter (~13k rows for ADCY3) and the 15000 cap, every
+        // protein-affecting variant on the gene is now reachable through the
+        // dropdown. Small genes still short-circuit at MAX_DISTINCT_ALLELES
+        // and don't pay the extra fetch cost.
         const MAX_DISTINCT_ALLELES = 100;
-        const MAX_ROWS = 3000;
+        const MAX_ROWS = 15000;
         console.log(`Fetching allele info for gene ${geneId} (max ${MAX_DISTINCT_ALLELES} distinct alleles, ${MAX_ROWS} rows)`)
 
         // Adapter for the new Alliance allele-variant-detail response shape.
