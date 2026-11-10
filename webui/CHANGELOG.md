@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.9.1...webui-v0.9.2) (2026-11-10)
+
+
+### Bug Fixes
+
+* **webui:** disambiguate same-symbol orthologs in pairwise identity matrix ([#1096](https://github.com/alliance-genome/agr_pavi/issues/1096)) ([1530745](https://github.com/alliance-genome/agr_pavi/commit/153074537c827b6af62e84a617ff4dcf9a7ecc69))
+
 ## [0.9.1](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.9.0...webui-v0.9.1) (2026-11-06)
 
 
