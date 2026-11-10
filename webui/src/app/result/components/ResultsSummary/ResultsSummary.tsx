@@ -238,13 +238,22 @@ export function ResultsSummary({
                     }
                 }
                 const identity = compared > 0 ? (matches / compared) * 100 : 0;
-                // Get short names for display
+                // Short display label (gene symbol) plus a species-aware key.
+                // The old code stored only the first underscore-chunk as the
+                // key, which collapsed same-symbol orthologs (e.g. rat Adcy3
+                // and mouse Adcy3) into one row and silently dropped the second
+                // species from the matrix. Keep the gene symbol visible in the
+                // UI, but disambiguate the dedup key by species.
                 const fullName1 = sequences[i].name;
                 const fullName2 = sequences[j].name;
-                const name1 = fullName1.split('_')[0] || fullName1.slice(0, 10);
-                const name2 = fullName2.split('_')[0] || fullName2.slice(0, 10);
+                const label1 = fullName1.split('_')[0] || fullName1.slice(0, 10);
+                const label2 = fullName2.split('_')[0] || fullName2.slice(0, 10);
                 const species1 = seqInfoDict?.[fullName1]?.species ?? undefined;
                 const species2 = seqInfoDict?.[fullName2]?.species ?? undefined;
+                // Species-disambiguated key via a non-printable record
+                // separator (0x1f) so no gene symbol can collide with it.
+                const name1 = species1 ? `${label1}\x1f${species1}` : label1;
+                const name2 = species2 ? `${label2}\x1f${species2}` : label2;
                 pairwiseIdentities.push({
                     seq1: name1, seq2: name2, identity,
                     fullName1, fullName2, species1, species2,
@@ -520,12 +529,18 @@ export function ResultsSummary({
                     // remember the full transcript name + species per label.
                     const order: string[] = []
                     const seen = new Set<string>()
-                    const meta = new Map<string, { fullName?: string, species?: string }>()
+                    // `name` is a species-disambiguated key (gene symbol plus a
+                    // 0x1f separator plus the species, see where
+                    // pairwiseIdentities are pushed above). `label` is the
+                    // gene symbol alone — what we actually want on-screen.
+                    const meta = new Map<string, { label: string, fullName?: string, species?: string }>()
                     const remember = (name: string, fullName?: string, species?: string) => {
                         if (!seen.has(name)) { seen.add(name); order.push(name) }
+                        const label = name.split('\x1f')[0]
                         const existing = meta.get(name)
                         if (!existing || (!existing.species && species) || (!existing.fullName && fullName)) {
                             meta.set(name, {
+                                label,
                                 fullName: fullName ?? existing?.fullName,
                                 species: species ?? existing?.species,
                             })
@@ -596,7 +611,7 @@ export function ResultsSummary({
                                                 const m = meta.get(n)
                                                 return (
                                                     <th key={n} className={styles.matrixHeader} title={headerTitle(n)}>
-                                                        <div className={styles.headerLabel}>{n}</div>
+                                                        <div className={styles.headerLabel}>{m?.label ?? n}</div>
                                                         {m?.species && (
                                                             <div className={styles.headerSpecies}>
                                                                 {speciesAbbr(m.species)}
@@ -613,7 +628,7 @@ export function ResultsSummary({
                                             return (
                                                 <tr key={rowName}>
                                                     <th className={styles.matrixHeader} title={headerTitle(rowName)}>
-                                                        <div className={styles.headerLabel}>{rowName}</div>
+                                                        <div className={styles.headerLabel}>{m?.label ?? rowName}</div>
                                                         {m?.species && (
                                                             <div className={styles.headerSpecies}>
                                                                 {speciesAbbr(m.species)}
