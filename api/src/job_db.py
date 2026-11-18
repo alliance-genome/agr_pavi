@@ -492,6 +492,7 @@ def export_nexus(db_path: Path) -> str:
     ntax = len(seqs)
     nchar = max((len(s) for _, s in seqs), default=0)
     # NEXUS forbids whitespace and some punctuation in taxon names; use '_'.
+
     def _safe(name: str) -> str:
         return re.sub(r"[\s;,:()\[\]'\"]+", "_", name)
 
