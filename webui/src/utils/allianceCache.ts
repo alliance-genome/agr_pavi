@@ -140,12 +140,20 @@ export function clearAllianceCache(): void {
 // with the same key-space don't clobber each other. The returned
 // function coalesces concurrent calls for the same key onto one
 // shared promise. Thrown errors are not cached — the next call retries.
+export interface MemoizedFunction<Args extends unknown[], R> {
+    (..._args: Args): Promise<R>;
+    /** Drop every cached result. Escape hatch for tests and admin tooling. */
+    clear(): void;
+}
+
 export function memoize<Args extends unknown[], R>(
     fn: (..._args: Args) => Promise<R>,
     keyFn: (..._args: Args) => string,
     ttl: AllianceTTL,
-): (..._args: Args) => Promise<R> {
+): MemoizedFunction<Args, R> {
     const cache = new AsyncCache<R>();
-    return async (...args: Args): Promise<R> =>
-        cache.getOrFetch(keyFn(...args), TTL[ttl], () => fn(...args));
+    const memoized = ((...args: Args): Promise<R> =>
+        cache.getOrFetch(keyFn(...args), TTL[ttl], () => fn(...args))) as MemoizedFunction<Args, R>;
+    memoized.clear = () => cache.clear();
+    return memoized;
 }

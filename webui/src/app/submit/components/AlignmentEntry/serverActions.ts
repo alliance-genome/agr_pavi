@@ -391,6 +391,12 @@ export async function fetchAlleles(geneId: string, requiredAlleleIds: string[] =
     return _fetchAllelesCached(geneId, requiredAlleleIds)
 }
 
+/** Escape hatch for tests: drop the per-gene allele cache so the next
+ *  call re-hits fetch(). Not exported for app code. */
+export function __resetFetchAllelesCacheForTest(): void {
+    _fetchAllelesCached.clear()
+}
+
 // Parse a predictedVariantConsequences[] entry from the /api/variant shape
 // (differs from allele-variant-detail: no siftPrediction/polyphenPrediction here).
 function parsePredictedConsequence(raw: any): VariantConsequence {
