@@ -2,19 +2,29 @@ import * as XLSX from 'xlsx';
 import { RawRow } from './types';
 
 // Header aliases → canonical field. Matching is lowercase + trimmed.
-const HEADER_MAP: Record<string, 'species' | 'symbol' | 'transcript' | 'variants'> = {
+type CanonicalField = 'geneId' | 'species' | 'symbol' | 'transcript' | 'variants';
+
+const HEADER_MAP: Record<string, CanonicalField> = {
+    // Direct gene id (bypasses species+symbol search).
+    'gene_id': 'geneId',
+    'geneid': 'geneId',
+    'gene id': 'geneId',
+    'id': 'geneId',
+    'curie': 'geneId',
+    // Species + symbol (fallback).
     'species': 'species',
     'gene_symbol': 'symbol',
     'gene symbol': 'symbol',
     'symbol': 'symbol',
     'gene': 'symbol',
+    // Transcript + variants.
     'transcript': 'transcript',
     'variants': 'variants',
     'variant': 'variants',
     'alleles': 'variants',
 };
 
-function normalizeHeader(h: string): 'species' | 'symbol' | 'transcript' | 'variants' | undefined {
+function normalizeHeader(h: string): CanonicalField | undefined {
     return HEADER_MAP[h.trim().toLowerCase()];
 }
 
@@ -108,17 +118,21 @@ export async function parseGeneListFile(
     }
 
     const headerCells = grid[0].cells;
-    const colIndex: Partial<Record<'species' | 'symbol' | 'transcript' | 'variants', number>> = {};
+    const colIndex: Partial<Record<CanonicalField, number>> = {};
     headerCells.forEach((cell, i) => {
         const field = normalizeHeader(cell);
         if (field && colIndex[field] === undefined) colIndex[field] = i;
     });
 
-    if (colIndex.species === undefined || colIndex.symbol === undefined) {
+    // Either direct gene_id is enough on its own, or we fall back to the
+    // classic species + gene_symbol pair.
+    const hasGeneId = colIndex.geneId !== undefined;
+    const hasSymbolAndSpecies = colIndex.species !== undefined && colIndex.symbol !== undefined;
+    if (!hasGeneId && !hasSymbolAndSpecies) {
         return {
             rows: [],
             fileError:
-                'The file needs a header row with at least "species" and "gene_symbol" columns.',
+                'The file needs a header row with either "gene_id", or "species" + "gene_symbol".',
         };
     }
 
@@ -127,6 +141,7 @@ export async function parseGeneListFile(
         const { cells, lineNumber } = grid[i];
         const get = (idx?: number) => (idx === undefined ? '' : (cells[idx] ?? '').trim());
         rows.push({
+            geneId: get(colIndex.geneId) || undefined,
             species: get(colIndex.species),
             symbol: get(colIndex.symbol),
             transcript: get(colIndex.transcript) || undefined,

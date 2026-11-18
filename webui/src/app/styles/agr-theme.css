@@ -133,6 +133,360 @@
 
   /* Container */
   --agr-container-max-width: 1600px;
+
+  /* Default color-scheme hint for form controls / scrollbars. Overridden
+     in the dark block so native widgets follow the theme too. */
+  color-scheme: light;
+}
+
+/* ----------------------------------------------------------------------
+ * Dark theme — opt-in via data-theme="dark" on <html>, set by useTheme.
+ *
+ * Only the SEMANTIC tokens flip (background, text, borders, greyscale).
+ * The brand palette (primary blues, accent oranges) stays saturated so
+ * logos and status pills look identical in both modes — tweaking those
+ * would require re-approving the design system.
+ *
+ * Grey ramp is reversed: `gray-100` is still "subtle surface vs
+ * background", but on dark that means a slightly lighter near-black
+ * rather than a near-white. Rules that already read `var(--agr-gray-N)`
+ * stay semantically correct.
+ * ------------------------------------------------------------------- */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Grey ramp inverted. Keeps the 9-step contrast relationship so
+     anywhere that paired `--agr-gray-100` with `--agr-gray-800` for
+     subtle-bg + strong-text still reads correctly. */
+  --agr-gray-100: #1f2328;
+  --agr-gray-200: #262c33;
+  --agr-gray-300: #343a44;
+  --agr-gray-400: #4b525b;
+  --agr-gray-500: #8893a0;   /* readable mid-tone on either side */
+  --agr-gray-600: #a9b2bc;
+  --agr-gray-700: #c6ccd4;
+  --agr-gray-800: #e2e5ea;
+  --agr-gray-900: #f1f3f5;
+
+  /* Semantic surfaces */
+  --agr-background: #0f1419;
+  --agr-background-alt: #171c22;
+  --agr-border-color: #2a313a;
+  --agr-text-primary: #e8eaed;
+  --agr-text-secondary: #a9b2bc;
+  --agr-text-muted: #8893a0;
+
+  /* Primary tint for highlighted surfaces — brighten against dark */
+  --agr-primary-light: #15314a;
+  --agr-link-color: #64acd1;
+  --agr-link-hover: #8fc0dc;
+
+  /* Status "-light" surfaces: swap pastel washes for low-saturation
+     dark tints so e.g. a success toast reads calmly on dark. The
+     paired "-dark" text tokens still have enough contrast. */
+  --agr-success-light: #0f3022;
+  --agr-success-dark: #86efac;
+  --agr-warning-light: #3a2d08;
+  --agr-warning-dark: #fde68a;
+  --agr-danger-light: #3a1118;
+  --agr-danger-dark: #fda4af;
+  --agr-info-light: #0e3238;
+  --agr-info-dark: #67e8f9;
+  --agr-error-light: #3a1118;
+  --agr-error-dark: #fda4af;
+
+  --agr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --agr-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+  --agr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+}
+
+/* The @media (prefers-color-scheme: dark) block used to live here as a
+   fallback for Auto mode. It's gone because useTheme now always resolves
+   Auto to light/dark and sets data-theme explicitly — so the html[data-
+   theme="dark"] block above covers both Auto-on-dark-OS and explicit
+   Dark, and all CSS-module overrides keyed off [data-theme="dark"] fire
+   in both too. The user's intent (Auto vs explicit) is preserved on
+   data-theme-mode. */
+
+/* ----------------------------------------------------------------------
+ * @nuin/msa-canvas theme bridge
+ *
+ * The kit reads its colours from --ak-* CSS custom properties on the
+ * .ak-viewer element (see its README). Aliasing them to our --agr-*
+ * tokens means the canvas flips between light and dark the moment
+ * useTheme toggles data-theme on <html>, without any JS prop update.
+ * ------------------------------------------------------------------- */
+.ak-viewer {
+  --ak-bg: var(--agr-background);
+  --ak-panel: var(--agr-background-alt);
+  --ak-ink: var(--agr-text-primary);
+  --ak-muted: var(--agr-text-muted);
+  --ak-line: var(--agr-border-color);
+  --ak-accent: var(--agr-primary-500);
+  --ak-hover: var(--agr-primary-light);
+  --ak-font: var(--agr-font-family);
+}
+
+/* ----------------------------------------------------------------------
+ * PrimeReact dark overrides
+ *
+ * PrimeReact's lara-light-indigo theme bakes `background:#fff` into the
+ * datatable rows, paginator, inputs, dropdowns, panels, dialogs, menus,
+ * etc. The token refactor above doesn't reach those rules because the
+ * stylesheet is imported with hard-coded hex, not CSS variables. Rather
+ * than ship a second PrimeReact theme we flip the surfaces that matter
+ * when data-theme="dark".
+ *
+ * Rules use !important to beat PrimeReact's own `!important` chain in
+ * the lara theme (we're already overriding other prime bits with it
+ * further up in this file, so this stays consistent).
+ * ------------------------------------------------------------------- */
+/* Container surfaces — flip background and text. Avoid .p-component
+   (too broad, hits buttons/badges/tags with their own baked color)
+   and avoid .p-button* (handled by brand rules earlier in this file). */
+html[data-theme="dark"] .p-tabview-panels,
+html[data-theme="dark"] .p-datatable,
+html[data-theme="dark"] .p-datatable-header,
+html[data-theme="dark"] .p-datatable-footer,
+html[data-theme="dark"] .p-datatable-wrapper,
+html[data-theme="dark"] .p-datatable-tbody,
+html[data-theme="dark"] .p-paginator,
+html[data-theme="dark"] .p-dropdown,
+html[data-theme="dark"] .p-dropdown-panel,
+html[data-theme="dark"] .p-dropdown-items-wrapper,
+html[data-theme="dark"] .p-dropdown-filter,
+html[data-theme="dark"] .p-inputtext,
+html[data-theme="dark"] .p-inputtextarea,
+html[data-theme="dark"] .p-multiselect,
+html[data-theme="dark"] .p-multiselect-panel,
+html[data-theme="dark"] .p-multiselect-items-wrapper,
+html[data-theme="dark"] .p-multiselect-header,
+html[data-theme="dark"] .p-autocomplete-panel,
+html[data-theme="dark"] .p-autocomplete-items,
+html[data-theme="dark"] .p-menu,
+html[data-theme="dark"] .p-tieredmenu,
+html[data-theme="dark"] .p-contextmenu,
+html[data-theme="dark"] .p-overlaypanel,
+html[data-theme="dark"] .p-overlaypanel-content,
+html[data-theme="dark"] .p-dialog,
+html[data-theme="dark"] .p-dialog-header,
+html[data-theme="dark"] .p-dialog-content,
+html[data-theme="dark"] .p-dialog-footer,
+html[data-theme="dark"] .p-sidebar,
+html[data-theme="dark"] .p-sidebar-content,
+html[data-theme="dark"] .p-card,
+html[data-theme="dark"] .p-card-body,
+html[data-theme="dark"] .p-tabview-nav,
+html[data-theme="dark"] .p-tabview-panel,
+html[data-theme="dark"] .p-tabview-nav-link,
+html[data-theme="dark"] .p-accordion .p-accordion-content,
+html[data-theme="dark"] .p-accordion .p-accordion-header .p-accordion-header-link {
+  background: var(--agr-background-alt) !important;
+  color: var(--agr-text-primary) !important;
+}
+
+html[data-theme="dark"] .p-datatable .p-datatable-thead > tr > th {
+  background: var(--agr-background) !important;
+  color: var(--agr-text-primary) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-datatable .p-datatable-tbody > tr {
+  background: var(--agr-background-alt) !important;
+  color: var(--agr-text-primary) !important;
+}
+
+/* Even/odd stripes — one slightly lighter than the surface alt */
+html[data-theme="dark"] .p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) {
+  background: var(--agr-gray-200) !important;
+}
+
+html[data-theme="dark"] .p-datatable .p-datatable-tbody > tr > td {
+  background: transparent !important;
+  color: var(--agr-text-primary) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-datatable .p-datatable-tbody > tr:hover {
+  background: var(--agr-gray-300) !important;
+}
+
+/* Row expander + selection checkboxes stay visible on dark rows */
+html[data-theme="dark"] .p-row-toggler {
+  color: var(--agr-text-primary) !important;
+}
+
+html[data-theme="dark"] .p-checkbox .p-checkbox-box {
+  background: var(--agr-background) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-checkbox .p-checkbox-box.p-highlight {
+  background: var(--agr-primary-500) !important;
+  border-color: var(--agr-primary-500) !important;
+}
+
+/* Status tags (p-tag-*): PrimeReact bakes saturated colors into these,
+   which read as neon on a dark surface. Keep the hue but drop luminance. */
+html[data-theme="dark"] .p-tag.p-tag-warning {
+  background: var(--agr-warning-light) !important;
+  color: var(--agr-warning-dark) !important;
+}
+
+html[data-theme="dark"] .p-tag.p-tag-success {
+  background: var(--agr-success-light) !important;
+  color: var(--agr-success-dark) !important;
+}
+
+html[data-theme="dark"] .p-tag.p-tag-danger {
+  background: var(--agr-danger-light) !important;
+  color: var(--agr-danger-dark) !important;
+}
+
+html[data-theme="dark"] .p-tag.p-tag-info {
+  background: var(--agr-info-light) !important;
+  color: var(--agr-info-dark) !important;
+}
+
+/* FloatLabel: when the input is focused/filled, the label floats above
+   the input border and gets background-color:#fff from the lara theme
+   so it "cuts through" the border visibly. In dark mode that leaves a
+   bright white rectangle floating over the dark input. Match the input
+   surface so the cut-through still works. */
+html[data-theme="dark"] .p-float-label > label {
+  background-color: var(--agr-background) !important;
+  color: var(--agr-text-secondary) !important;
+}
+
+html[data-theme="dark"] .p-float-label > .p-inputwrapper-focus ~ label,
+html[data-theme="dark"] .p-float-label > .p-inputwrapper-filled ~ label {
+  color: var(--agr-link-color) !important;
+}
+
+/* Secondary button: light gray CTA in day mode becomes a bright gray
+   slab on a dark page because the grey ramp inverts. Pick a dark
+   surface color on dark theme. */
+html[data-theme="dark"] .p-button.p-button-secondary {
+  background-color: var(--agr-gray-300) !important;
+  border-color: var(--agr-gray-300) !important;
+  color: var(--agr-text-primary) !important;
+}
+
+html[data-theme="dark"] .p-button.p-button-secondary:hover {
+  background-color: var(--agr-gray-400) !important;
+  border-color: var(--agr-gray-400) !important;
+}
+
+/* Disabled button labels: PrimeReact's p-disabled rule sets
+   color: rgba(0, 0, 0, 0.38) on the label, which reads as nearly
+   invisible on a dark page. Give disabled labels a muted light tone
+   so they're visibly "disabled" without disappearing. */
+html[data-theme="dark"] .p-button.p-disabled,
+html[data-theme="dark"] .p-button.p-disabled .p-button-label,
+html[data-theme="dark"] .p-button.p-disabled .p-button-icon {
+  color: var(--agr-text-muted) !important;
+  opacity: 0.7;
+}
+
+/* Prime's checkmark icon inherits color — force it white on the
+   primary-blue checked box so it's visible in dark mode. */
+html[data-theme="dark"] .p-checkbox .p-checkbox-box .p-checkbox-icon,
+html[data-theme="dark"] .p-checkbox .p-checkbox-box.p-highlight .p-checkbox-icon {
+  color: #ffffff !important;
+}
+
+/* Dropdown panel items + hover */
+html[data-theme="dark"] .p-dropdown-item,
+html[data-theme="dark"] .p-multiselect-item,
+html[data-theme="dark"] .p-autocomplete-item {
+  color: var(--agr-text-primary) !important;
+}
+
+html[data-theme="dark"] .p-dropdown-item:hover,
+html[data-theme="dark"] .p-dropdown-item.p-highlight,
+html[data-theme="dark"] .p-multiselect-item:hover,
+html[data-theme="dark"] .p-multiselect-item.p-highlight,
+html[data-theme="dark"] .p-autocomplete-item:hover {
+  background: var(--agr-primary-light) !important;
+  color: var(--agr-link-color) !important;
+}
+
+/* Dropdown trigger label */
+html[data-theme="dark"] .p-dropdown .p-dropdown-label,
+html[data-theme="dark"] .p-multiselect .p-multiselect-label {
+  color: var(--agr-text-primary) !important;
+  background: transparent !important;
+}
+
+html[data-theme="dark"] .p-dropdown .p-dropdown-trigger,
+html[data-theme="dark"] .p-multiselect .p-multiselect-trigger {
+  color: var(--agr-text-secondary) !important;
+  background: transparent !important;
+}
+
+/* Inputs & borders */
+html[data-theme="dark"] .p-inputtext,
+html[data-theme="dark"] .p-inputtextarea {
+  background: var(--agr-background) !important;
+  color: var(--agr-text-primary) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-inputtext::placeholder,
+html[data-theme="dark"] .p-inputtextarea::placeholder,
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  /* Also targets plain <input>/<textarea> elements that aren't styled
+     via PrimeReact classes (e.g. the inline-styled Notes textarea on
+     /jobs row expander). Default placeholder color varies by browser
+     and often lands as dark-gray — invisible on our dark bg. */
+  color: var(--agr-text-muted) !important;
+  opacity: 1;  /* Firefox defaults placeholder opacity below 1; force full */
+}
+
+/* InputGroup addon (e.g. method prefix "GET" on URL fields) */
+html[data-theme="dark"] .p-inputgroup-addon {
+  background: var(--agr-background-alt) !important;
+  color: var(--agr-text-primary) !important;
+  border-color: var(--agr-border-color) !important;
+}
+
+/* Paginator */
+html[data-theme="dark"] .p-paginator {
+  border-color: var(--agr-border-color) !important;
+}
+
+html[data-theme="dark"] .p-paginator .p-paginator-page,
+html[data-theme="dark"] .p-paginator .p-paginator-first,
+html[data-theme="dark"] .p-paginator .p-paginator-prev,
+html[data-theme="dark"] .p-paginator .p-paginator-next,
+html[data-theme="dark"] .p-paginator .p-paginator-last {
+  background: transparent !important;
+  color: var(--agr-text-primary) !important;
+  border-color: transparent !important;
+}
+
+html[data-theme="dark"] .p-paginator .p-paginator-page.p-highlight {
+  background: var(--agr-primary-500) !important;
+  color: white !important;
+}
+
+/* Progressbar track reads lighter on dark surfaces */
+html[data-theme="dark"] .p-progressbar {
+  background-color: var(--agr-gray-300) !important;
+}
+
+/* Tooltip text block */
+html[data-theme="dark"] .p-tooltip .p-tooltip-text {
+  background: var(--agr-gray-200) !important;
+  color: var(--agr-text-primary) !important;
+}
+
+/* AGR card surfaces use --agr-background which already flips, but the
+   header still reads --agr-gray-100 (now a dark surface) — make sure
+   nested text stays legible. */
+html[data-theme="dark"] .agr-card-header {
+  color: var(--agr-text-primary);
 }
 
 /* Base Styles */

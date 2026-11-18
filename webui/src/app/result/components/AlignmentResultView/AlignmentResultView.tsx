@@ -1,6 +1,7 @@
 'use client';
 
-import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react';
+import React, { FunctionComponent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { parse as parseClustal } from 'clustal-js';
 
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -24,8 +25,16 @@ import { useJobHistory } from '@/hooks/useJobHistory';
 import { deduplicateSequences } from '../../utils/deduplicateSequences';
 import { PublicationFigureDialog } from '../PublicationFigure/PublicationFigureDialog';
 
-const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
-const VirtualizedAlignment = dynamic(() => import('../InteractiveAlignment/VirtualizedAlignment'), { ssr: false })
+// Canvas MSA viewer via @nuin/msa-canvas (fromPavi adapter inside).
+// Replaces the previous two Nightingale-based wrappers that lived in
+// this file (VirtualizedAlignment + InteractiveAlignment, both deleted
+// on the feat/msa-canvas-replace branch).
+const CanvasAlignment = dynamic(() => import('../InteractiveAlignment/CanvasAlignment'), { ssr: false })
+// Sibling panels under the canvas — PAVI-specific context the canvas kit
+// doesn't know about. Rendered only in 'canvas' display mode; hidden in
+// plain text mode because they only make sense against the visual grid.
+const HotspotPanel = dynamic(() => import('../InteractiveAlignment/HotspotPanel').then(m => m.HotspotPanel), { ssr: false })
+const ProteinDomainsPanel = dynamic(() => import('../InteractiveAlignment/ProteinDomainsPanel').then(m => m.ProteinDomainsPanel), { ssr: false })
 
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
@@ -34,14 +43,13 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const router = useRouter()
     const { getJob } = useJobHistory()
 
-    const [displayMode, setDisplayMode] = useState('virtualized' as displayModeType)
+    const [displayMode, setDisplayMode] = useState('canvas' as displayModeType)
     type displayModeOptionsType = {
         label: string,
         value: displayModeType
     }
     const displayModeOptions: displayModeOptionsType[] = [
-        {label: 'Interactive (Virtualized)', value: 'virtualized'},
-        {label: 'Interactive (Legacy)', value: 'interactive'},
+        {label: 'Interactive', value: 'canvas'},
         {label: 'Text', value: 'text'}
     ]
 
@@ -53,14 +61,66 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const [loadedAt, setLoadedAt] = useState<Date | undefined>(undefined)
     const [figureDialogVisible, setFigureDialogVisible] = useState<boolean>(false)
 
+    // Parse the Clustal alignment once per payload. The sibling panels under
+    // the canvas (HotspotPanel + ProteinDomainsPanel) both need {name,sequence}
+    // tuples to map alignment columns and (in the domains panel) to walk the
+    // gapped sequence for InterPro residue-to-column mapping.
+    const parsedAlignment = useMemo<Array<{ name: string; sequence: string }>>(() => {
+        if (!alignmentResult) return []
+        try {
+            const parsed = parseClustal(alignmentResult) as { alns: Array<{ id: string; seq: string }> }
+            return (parsed.alns ?? []).map(a => ({ name: a.id, sequence: a.seq }))
+        } catch {
+            return []
+        }
+    }, [alignmentResult])
+
     const downloadMenuRef = useRef<Menu>(null)
     const downloadExport = useCallback((format: string) => {
         window.location.href = withBasePath(`/api/pipeline-job/${props.uuidStr}/export?format=${format}`)
     }, [props.uuidStr])
+
+    // Client-side SVG render of the full alignment. We own the data, so
+    // we don't need to screenshot the Nightingale viewer (which is canvas
+    // and awkward to export at arbitrary scale). The whole alignment goes
+    // in; for very wide alignments the file gets big but still opens in
+    // any browser and is trivially convertible to PNG.
+    const downloadAlignmentSvg = useCallback(async () => {
+        if (!alignmentResult || parsedAlignment.length === 0) return
+        const { renderAlignmentSvg } = await import('@/utils/alignmentSvg')
+        const svg = renderAlignmentSvg({
+            sequences: parsedAlignment,
+            title: `PAVI alignment ${props.uuidStr}`,
+        })
+        const blob = new Blob([svg], { type: 'image/svg+xml' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `pavi-alignment-${props.uuidStr.slice(0, 8)}.svg`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(url)
+    }, [alignmentResult, parsedAlignment, props.uuidStr])
+
     const downloadMenuItems = [
+        { label: 'HTML report', icon: 'pi pi-file-pdf', command: () => downloadExport('html') },
+        { label: 'Alignment image (SVG)', icon: 'pi pi-image', command: () => downloadAlignmentSvg() },
+        { separator: true },
         { label: 'JSON bundle', icon: 'pi pi-file', command: () => downloadExport('json') },
         { label: 'Aligned FASTA', icon: 'pi pi-align-left', command: () => downloadExport('fasta') },
         { label: 'Variants (CSV)', icon: 'pi pi-table', command: () => downloadExport('csv') },
+        { separator: true },
+        {
+            label: 'Phylogenetics formats',
+            icon: 'pi pi-sitemap',
+            items: [
+                { label: 'Clustal (.aln)', icon: 'pi pi-file', command: () => downloadExport('clustal') },
+                { label: 'PHYLIP relaxed (.phy)', icon: 'pi pi-file', command: () => downloadExport('phylip') },
+                { label: 'Stockholm (.sto)', icon: 'pi pi-file', command: () => downloadExport('stockholm') },
+                { label: 'NEXUS (.nex)', icon: 'pi pi-file', command: () => downloadExport('nexus') },
+            ],
+        },
         { separator: true },
         { label: 'SQLite (.db)', icon: 'pi pi-database', command: () => downloadExport('db') },
     ]
@@ -157,12 +217,28 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         URL.revokeObjectURL(url)
     }
 
-    const handleShare = () => {
-        const url = `${window.location.origin}/result?uuid=${props.uuidStr}`
-        navigator.clipboard.writeText(url).then(() => {
-            // Could add a toast notification here
-            console.log('Result URL copied to clipboard')
-        })
+    const handleShare = async () => {
+        // Create a shareable token-based URL that doesn't expose the job UUID.
+        // Falls back to the direct /result?uuid link if token creation fails
+        // (e.g. the API is in Step Functions mode, which doesn't support tokens yet).
+        const directUrl = `${window.location.origin}/result?uuid=${props.uuidStr}`
+        try {
+            const res = await fetch(withBasePath(`/api/pipeline-job/${props.uuidStr}/share`), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            })
+            if (!res.ok) throw new Error(`share create failed: ${res.status}`)
+            const data = await res.json() as { token: string }
+            const shareUrl = `${window.location.origin}/shared/${data.token}`
+            await navigator.clipboard.writeText(shareUrl)
+            console.log('Shareable link copied:', shareUrl)
+            alert('Shareable link copied to clipboard.\n\nAnyone with this link can view the results without needing the job UUID.')
+        } catch (e) {
+            console.warn('Share token creation failed, falling back to direct URL:', e)
+            await navigator.clipboard.writeText(directUrl)
+            alert('Direct result URL copied to clipboard (token share unavailable).')
+        }
     }
 
     const job = getJob(props.uuidStr)
@@ -235,31 +311,31 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                             padding: '0.75rem 1rem',
                             fontSize: '0.875rem',
                             fontWeight: 600,
-                            color: 'var(--agr-gray-800)',
+                            color: 'var(--agr-text-primary)',
                             userSelect: 'none',
                             listStyle: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.75rem',
-                            background: 'linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%)',
-                            border: '1px solid var(--agr-gray-200)',
+                            background: 'var(--agr-success-light)',
+                            border: '1px solid var(--agr-border-color)',
                             borderRadius: '8px',
                             WebkitAppearance: 'none',
                         }}>
                             <i className="pi pi-check-circle" style={{ color: 'var(--agr-success)', fontSize: '1.1rem' }} />
                             <span>Alignment Results</span>
                             {seqCount > 0 && (
-                                <span style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--agr-gray-600)' }}>
+                                <span style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--agr-text-secondary)' }}>
                                     <span>{seqCount} sequences</span>
-                                    <span style={{ color: 'var(--agr-gray-300)' }}>|</span>
+                                    <span style={{ color: 'var(--agr-text-muted)' }} aria-hidden="true">|</span>
                                     <span>{alnLength} aa</span>
                                     {variantCount > 0 && (<>
-                                        <span style={{ color: 'var(--agr-gray-300)' }}>|</span>
+                                        <span style={{ color: 'var(--agr-text-muted)' }} aria-hidden="true">|</span>
                                         <span>{variantCount} variants</span>
                                     </>)}
                                 </span>
                             )}
-                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--agr-gray-400)' }}>
+                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--agr-text-muted)' }}>
                                 Click to expand
                             </span>
                         </summary>
@@ -383,8 +459,17 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                             </div>
                         ) : alignmentResult ? (
                             <>
-                                {displayMode === 'virtualized' && <VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />}
-                                {displayMode === 'interactive' && <InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} />}
+                                {displayMode === 'canvas' && (
+                                    <>
+                                        <CanvasAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />
+                                        {parsedAlignment.length > 0 && (
+                                            <>
+                                                <HotspotPanel alignmentData={parsedAlignment} seqInfoDict={alignmentSeqInfo} />
+                                                <ProteinDomainsPanel alignmentData={parsedAlignment} seqInfoDict={alignmentSeqInfo} />
+                                            </>
+                                        )}
+                                    </>
+                                )}
                                 {displayMode === 'text' && <TextAlignment alignmentResult={alignmentResult} />}
                             </>
                         ) : (

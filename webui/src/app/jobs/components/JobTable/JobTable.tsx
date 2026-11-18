@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DataTable, DataTableSelectionMultipleChangeEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -8,8 +8,10 @@ import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
+import { Menu } from 'primereact/menu';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { JobHistoryEntry, JobStatus } from '../../../../hooks/useJobHistory';
+import { withBasePath } from '@/utils/basePath';
 import styles from './JobTable.module.css';
 
 interface JobTableProps {
@@ -20,14 +22,76 @@ interface JobTableProps {
     onRemoveMultiple: (uuids: string[]) => void;
     // eslint-disable-next-line no-unused-vars
     onToggleStar: (uuid: string) => void;
+    // eslint-disable-next-line no-unused-vars
+    onAddTag?: (uuid: string, tag: string) => void;
+    // eslint-disable-next-line no-unused-vars
+    onRemoveTag?: (uuid: string, tag: string) => void;
+    // eslint-disable-next-line no-unused-vars
+    onSetNotes?: (uuid: string, notes: string) => void;
+    allTags?: string[];
     isLoading?: boolean;
 }
 
-export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoading }: JobTableProps) {
+export function JobTable({
+    jobs,
+    onRemove,
+    onRemoveMultiple,
+    onToggleStar,
+    onAddTag,
+    onRemoveTag,
+    onSetNotes,
+    allTags = [],
+    isLoading,
+}: JobTableProps) {
     const router = useRouter();
     const [selectedJobs, setSelectedJobs] = useState<JobHistoryEntry[]>([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState<JobStatus | 'all'>('all');
+    const [tagFilter, setTagFilter] = useState<string>('all');
+    const [starredOnly, setStarredOnly] = useState(false);
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+    const batchExportMenuRef = useRef<Menu>(null);
+
+    // Only completed jobs can be exported; skip pending/running/failed silently.
+    const batchExport = async (format: string) => {
+        const uuids = selectedJobs.filter(j => j.status === 'completed').map(j => j.uuid);
+        if (uuids.length === 0) return;
+        try {
+            const res = await fetch(withBasePath('/api/pipeline-job/batch-export'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uuids, format }),
+            });
+            if (!res.ok) throw new Error(`Batch export failed: ${res.status}`);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pavi-batch-${uuids.length}jobs-${format}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Batch export error:', err);
+        }
+    };
+
+    const batchExportMenuItems = [
+        { label: 'HTML reports', icon: 'pi pi-file-pdf', command: () => batchExport('html') },
+        { label: 'JSON bundles', icon: 'pi pi-file', command: () => batchExport('json') },
+        { label: 'Aligned FASTA', icon: 'pi pi-align-left', command: () => batchExport('fasta') },
+        { label: 'Variants (CSV)', icon: 'pi pi-table', command: () => batchExport('csv') },
+        { separator: true },
+        { label: 'Clustal (.aln)', icon: 'pi pi-file', command: () => batchExport('clustal') },
+        { label: 'PHYLIP (.phy)', icon: 'pi pi-file', command: () => batchExport('phylip') },
+        { label: 'Stockholm (.sto)', icon: 'pi pi-file', command: () => batchExport('stockholm') },
+        { label: 'NEXUS (.nex)', icon: 'pi pi-file', command: () => batchExport('nexus') },
+        { separator: true },
+        { label: 'SQLite (.db)', icon: 'pi pi-database', command: () => batchExport('db') },
+    ];
+
+    const completedSelectedCount = selectedJobs.filter(j => j.status === 'completed').length;
 
     const statusOptions = [
         { label: 'All Statuses', value: 'all' },
@@ -70,7 +134,9 @@ export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoa
     };
 
     const filteredJobs = jobs.filter(job => {
-        if (statusFilter !== 'all' && job.status !== statusFilter) {
+        if (statusFilter !== 'all' && job.status !== statusFilter) return false;
+        if (starredOnly && !job.starred) return false;
+        if (tagFilter !== 'all' && !(job.tags ?? []).some(t => t.toLowerCase() === tagFilter.toLowerCase())) {
             return false;
         }
         if (globalFilter) {
@@ -78,7 +144,9 @@ export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoa
             return (
                 job.uuid.toLowerCase().includes(searchLower) ||
                 job.genes.some(g => g.toLowerCase().includes(searchLower)) ||
-                (job.title && job.title.toLowerCase().includes(searchLower))
+                (job.title && job.title.toLowerCase().includes(searchLower)) ||
+                (job.notes && job.notes.toLowerCase().includes(searchLower)) ||
+                (job.tags ?? []).some(t => t.toLowerCase().includes(searchLower))
             );
         }
         return true;
@@ -222,8 +290,53 @@ export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoa
                     onChange={(e) => setStatusFilter(e.value)}
                     className={styles.statusDropdown}
                 />
+                {allTags.length > 0 && (
+                    <Dropdown
+                        value={tagFilter}
+                        options={[{ label: 'All Tags', value: 'all' }, ...allTags.map(t => ({ label: t, value: t }))]}
+                        onChange={(e) => setTagFilter(e.value)}
+                        className={styles.statusDropdown}
+                        placeholder="Filter by tag"
+                    />
+                )}
+                <Button
+                    icon={starredOnly ? 'pi pi-star-fill' : 'pi pi-star'}
+                    label="Starred only"
+                    size="small"
+                    outlined={!starredOnly}
+                    severity={starredOnly ? 'warning' : 'secondary'}
+                    onClick={() => setStarredOnly(v => !v)}
+                    aria-pressed={starredOnly}
+                />
             </div>
             <div className={styles.headerRight}>
+                {completedSelectedCount === 2 && (
+                    <Button
+                        label="Compare these two"
+                        icon="pi pi-arrow-right-arrow-left"
+                        className="p-button-sm p-button-outlined"
+                        severity="info"
+                        onClick={() => {
+                            // Pass the two completed job UUIDs; order of selection
+                            // determines which side (A vs B) they're shown on.
+                            const completed = selectedJobs.filter(j => j.status === 'completed');
+                            router.push(`/compare?a=${completed[0].uuid}&b=${completed[1].uuid}`);
+                        }}
+                    />
+                )}
+                {completedSelectedCount > 0 && (
+                    <>
+                        <Menu model={batchExportMenuItems} popup ref={batchExportMenuRef} id="batch-export-menu" />
+                        <Button
+                            label={`Export ${completedSelectedCount}`}
+                            icon="pi pi-download"
+                            className="p-button-sm p-button-outlined"
+                            aria-haspopup
+                            aria-controls="batch-export-menu"
+                            onClick={(e) => batchExportMenuRef.current?.toggle(e)}
+                        />
+                    </>
+                )}
                 {selectedJobs.length > 0 && (
                     <Button
                         label={`Delete ${selectedJobs.length} Selected`}
@@ -263,8 +376,8 @@ export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoa
                 onSelectionChange={(e: DataTableSelectionMultipleChangeEvent<JobHistoryEntry[]>) => setSelectedJobs(e.value)}
                 dataKey="uuid"
                 paginator
-                rows={10}
-                rowsPerPageOptions={[5, 10, 25, 50]}
+                rows={25}
+                rowsPerPageOptions={[10, 25, 50, 100, 200]}
                 header={header}
                 emptyMessage={emptyMessage}
                 loading={isLoading}
@@ -273,7 +386,28 @@ export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoa
                 sortOrder={-1}
                 stripedRows
                 removableSort
+                expandedRows={Object.fromEntries(
+                    filteredJobs.filter(j => expanded[j.uuid]).map(j => [j.uuid, true])
+                )}
+                onRowToggle={(e) => {
+                    // DataTable's onRowToggle gives us the full map of expanded
+                    // rows; mirror it into our boolean map so React state is
+                    // the source of truth and survives filter changes.
+                    const next: Record<string, boolean> = {};
+                    for (const key of Object.keys(e.data)) next[key] = true;
+                    setExpanded(next);
+                }}
+                rowExpansionTemplate={(job: JobHistoryEntry) => (
+                    <JobDetailsPanel
+                        job={job}
+                        allTags={allTags}
+                        onAddTag={onAddTag}
+                        onRemoveTag={onRemoveTag}
+                        onSetNotes={onSetNotes}
+                    />
+                )}
             >
+                <Column expander style={{ width: '2.5rem' }} />
                 <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
                 <Column
                     field="uuid"
@@ -295,6 +429,28 @@ export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoa
                     field="genes"
                     header="Genes"
                     body={genesBodyTemplate}
+                />
+                <Column
+                    header="Tags"
+                    body={(job: JobHistoryEntry) => {
+                        const ts = job.tags ?? [];
+                        if (ts.length === 0) return <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>—</span>;
+                        return (
+                            <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                {ts.slice(0, 3).map(t => (
+                                    <Tag
+                                        key={t}
+                                        value={t}
+                                        severity="info"
+                                        style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}
+                                    />
+                                ))}
+                                {ts.length > 3 && (
+                                    <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>+{ts.length - 3}</span>
+                                )}
+                            </div>
+                        );
+                    }}
                 />
                 <Column
                     field="transcriptCount"
@@ -320,5 +476,144 @@ export function JobTable({ jobs, onRemove, onRemoveMultiple, onToggleStar, isLoa
                 />
             </DataTable>
         </>
+    );
+}
+
+// Row-expansion detail: shows the full UUID and lets the user edit
+// tags + notes inline. Kept out of the main table-cell layout so the
+// row stays scannable; opening the expander surfaces the write path.
+interface JobDetailsPanelProps {
+    readonly job: JobHistoryEntry;
+    readonly allTags: string[];
+    // eslint-disable-next-line no-unused-vars
+    readonly onAddTag?: (uuid: string, tag: string) => void;
+    // eslint-disable-next-line no-unused-vars
+    readonly onRemoveTag?: (uuid: string, tag: string) => void;
+    // eslint-disable-next-line no-unused-vars
+    readonly onSetNotes?: (uuid: string, notes: string) => void;
+}
+
+function JobDetailsPanel({ job, allTags, onAddTag, onRemoveTag, onSetNotes }: JobDetailsPanelProps) {
+    const [newTag, setNewTag] = useState('');
+    const [draftNotes, setDraftNotes] = useState(job.notes ?? '');
+    const [notesDirty, setNotesDirty] = useState(false);
+
+    const suggestions = allTags.filter(
+        t => !(job.tags ?? []).some(existing => existing.toLowerCase() === t.toLowerCase())
+    );
+
+    const submitTag = () => {
+        const clean = newTag.trim();
+        if (!clean || !onAddTag) return;
+        onAddTag(job.uuid, clean);
+        setNewTag('');
+    };
+
+    return (
+        <div style={{ padding: '0.75rem 1rem', background: 'var(--agr-background-alt)' }}>
+            <div style={{ marginBottom: '0.75rem' }}>
+                <strong style={{ fontSize: '0.8rem' }}>UUID:</strong>{' '}
+                <code style={{ fontSize: '0.75rem' }}>{job.uuid}</code>
+            </div>
+            <div style={{ marginBottom: '0.75rem' }}>
+                <strong style={{ fontSize: '0.8rem', display: 'block', marginBottom: '0.3rem' }}>Tags</strong>
+                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {(job.tags ?? []).map(t => (
+                        <Tag
+                            key={t}
+                            value={
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                                    {t}
+                                    {onRemoveTag && (
+                                        <button
+                                            type="button"
+                                            onClick={() => onRemoveTag(job.uuid, t)}
+                                            aria-label={`Remove tag ${t}`}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: 'white',
+                                                cursor: 'pointer',
+                                                fontSize: '0.9rem',
+                                                lineHeight: 1,
+                                                padding: 0,
+                                            }}
+                                        >×</button>
+                                    )}
+                                </span>
+                            }
+                            severity="info"
+                        />
+                    ))}
+                    {onAddTag && (
+                        <>
+                            <InputText
+                                value={newTag}
+                                onChange={(e) => setNewTag(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitTag(); } }}
+                                placeholder="Add tag…"
+                                className="p-inputtext-sm"
+                                style={{ width: '10rem' }}
+                                list={`tag-suggestions-${job.uuid}`}
+                            />
+                            <datalist id={`tag-suggestions-${job.uuid}`}>
+                                {suggestions.map(s => <option key={s} value={s} />)}
+                            </datalist>
+                            <Button
+                                label="Add"
+                                icon="pi pi-plus"
+                                size="small"
+                                outlined
+                                onClick={submitTag}
+                                disabled={!newTag.trim()}
+                            />
+                        </>
+                    )}
+                </div>
+            </div>
+            <div>
+                <strong style={{ fontSize: '0.8rem', display: 'block', marginBottom: '0.3rem' }}>Notes</strong>
+                <textarea
+                    value={draftNotes}
+                    onChange={(e) => { setDraftNotes(e.target.value); setNotesDirty(true); }}
+                    placeholder="Free-text notes for your own reference…"
+                    rows={3}
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid var(--agr-border-color)',
+                        borderRadius: 4,
+                        fontSize: '0.85rem',
+                        fontFamily: 'inherit',
+                        background: 'var(--agr-background)',
+                        color: 'var(--agr-text-primary)',
+                    }}
+                />
+                <div style={{ marginTop: '0.4rem', display: 'flex', gap: '0.4rem' }}>
+                    <Button
+                        label="Save"
+                        icon="pi pi-check"
+                        size="small"
+                        disabled={!notesDirty || !onSetNotes}
+                        onClick={() => {
+                            if (onSetNotes) {
+                                onSetNotes(job.uuid, draftNotes);
+                                setNotesDirty(false);
+                            }
+                        }}
+                    />
+                    {notesDirty && (
+                        <Button
+                            label="Discard"
+                            icon="pi pi-times"
+                            size="small"
+                            outlined
+                            severity="secondary"
+                            onClick={() => { setDraftNotes(job.notes ?? ''); setNotesDirty(false); }}
+                        />
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }

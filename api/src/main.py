@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, FastAPI, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from io import StringIO, BytesIO
@@ -11,6 +11,8 @@ from typing import Any, Literal, Optional
 import json
 import re
 import subprocess
+from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid1, UUID
 
@@ -76,6 +78,20 @@ class Pipeline_job(BaseModel):
     @classmethod
     def from_job_info(cls, job_info: JobInfo) -> "Pipeline_job":
         """Create Pipeline_job from JobInfo object."""
+        # Pipeline_job.task_events is already defined as list[str] | None
+        # (set by Nextflow mode), so flatten dict events to their message
+        # text for backwards compatibility while retaining per-sequence
+        # context in the message itself.
+        task_event_strs: Optional[list[str]] = None
+        raw_events = getattr(job_info, "task_events", None) or []
+        if raw_events:
+            task_event_strs = []
+            for e in raw_events:
+                if isinstance(e, dict):
+                    msg = e.get("message", "")
+                    task_event_strs.append(str(msg))
+                else:
+                    task_event_strs.append(str(e))
         return cls(
             uuid=UUID(job_info.job_id),
             status=job_info.status.value.lower(),
@@ -83,6 +99,7 @@ class Pipeline_job(BaseModel):
             input_count=job_info.input_count,
             sequences_processed=job_info.sequences_processed,
             error_message=job_info.error_message,
+            task_events=task_event_strs,
         )
 
 
@@ -248,8 +265,232 @@ def run_pipeline_local(
             logger.error(f"Failed to update job status after error: {update_err}")
 
 
-app = FastAPI(docs_url=None)
+# ----------------------------------------------------------------------
+# jobs.db snapshot scheduler
+# ----------------------------------------------------------------------
+# Daily background task that writes an online SQLite backup of jobs.db
+# alongside the DB file. Keeps a rolling window of the last N snapshots
+# so a corrupt jobs.db has a recent fallback. In-process asyncio timer:
+# good enough for a single-node EC2 box; a horizontally-scaled deployment
+# would want a dedicated cron.
+
+_BACKUP_INTERVAL_SECONDS = int(getenv("PAVI_BACKUP_INTERVAL_SECONDS", str(24 * 60 * 60)))
+_BACKUP_KEEP = int(getenv("PAVI_BACKUP_KEEP", "7"))
+
+
+def _backup_dir() -> Path:
+    """Snapshots live next to jobs.db under a `backups/` sibling dir."""
+    return Path(_config.pipeline.local_jobs_path) / "backups"
+
+
+def _run_single_backup() -> dict[str, Any]:
+    """Take one snapshot and prune. Returns metadata for the fresh file."""
+    from datetime import datetime as _dt
+    store = get_job_service().local_store
+    backup_dir = _backup_dir()
+    stamp = _dt.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    out_path = backup_dir / f"jobs-{stamp}.sqlite"
+    size = store.snapshot(out_path)
+    pruned = store.prune_snapshots(backup_dir, keep=_BACKUP_KEEP)
+    return {
+        "name": out_path.name,
+        "bytes": size,
+        "pruned": pruned,
+        "created_at": _dt.utcnow().isoformat() + "Z",
+    }
+
+
+async def _backup_loop() -> None:
+    """Daily snapshot loop. Logs and continues on any single-run failure
+    so a transient disk hiccup doesn't kill the scheduler for the rest
+    of the process lifetime."""
+    import asyncio
+    while True:
+        try:
+            if USE_LOCAL_PIPELINE:
+                meta = _run_single_backup()
+                logger.info(f"jobs.db snapshot taken: {meta['name']} ({meta['bytes']} bytes, pruned {meta['pruned']})")
+        except Exception as e:
+            logger.warning(f"jobs.db snapshot failed: {e}")
+        await asyncio.sleep(_BACKUP_INTERVAL_SECONDS)
+
+
+@asynccontextmanager
+async def _lifespan(_app: Any) -> Any:  # noqa: U101 — FastAPI lifespan signature requires the app arg
+    """Start the background snapshot loop at process startup. The task is
+    long-lived and gets cancelled on shutdown — any in-flight backup will
+    be interrupted but the next startup will catch up."""
+    import asyncio
+    task: Any = None
+    if USE_LOCAL_PIPELINE:
+        task = asyncio.create_task(_backup_loop())
+    try:
+        yield
+    finally:
+        if task is not None:
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):
+                pass
+
+
+app = FastAPI(docs_url=None, lifespan=_lifespan)
 router = APIRouter(prefix="/api")
+
+
+_UUID_RE = re.compile(
+    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+    re.IGNORECASE,
+)
+
+
+def _normalise_path_for_stats(path: str) -> tuple[str, Optional[str]]:
+    """
+    Return (path_template, first_uuid_or_None).
+
+    Collapses UUIDs in the path to the literal ``{uuid}`` so top-N
+    aggregates don't fragment per job. The first UUID is also returned
+    separately so popular-jobs stats can group without re-parsing.
+    """
+    found = _UUID_RE.search(path)
+    template = _UUID_RE.sub("{uuid}", path)
+    return template, (found.group(0).lower() if found else None)
+
+
+# ----------------------------------------------------------------------
+# Rate limiting — per-IP token bucket
+# ----------------------------------------------------------------------
+#
+# Two separate buckets per client IP:
+#   - Reads: 120 requests / minute (GET, HEAD, OPTIONS)
+#   - Writes: 20 requests / minute (POST, PUT, PATCH, DELETE)
+#
+# Token bucket is in-process memory: survives for the process lifetime,
+# resets on restart. On a single-node EC2 dev box that's fine; if we
+# ever scale horizontally each node will rate-limit independently.
+#
+# Config via env so an operator can bump the ceilings without a rebuild.
+# The limits apply only to /api/* paths — static chunks and the admin
+# UI itself must stay snappy.
+
+_RATE_LIMIT_READ_PER_MIN = int(getenv("PAVI_RATE_LIMIT_READ_PER_MIN", "120"))
+_RATE_LIMIT_WRITE_PER_MIN = int(getenv("PAVI_RATE_LIMIT_WRITE_PER_MIN", "20"))
+
+_WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+
+
+class _TokenBucket:
+    """Dead-simple token bucket. Capacity = refill_per_min; refills
+    continuously at refill_per_min / 60 tokens per second."""
+    __slots__ = ("capacity", "refill_per_sec", "tokens", "updated")
+
+    def __init__(self, refill_per_min: int) -> None:
+        self.capacity = float(refill_per_min)
+        self.refill_per_sec = refill_per_min / 60.0
+        self.tokens = float(refill_per_min)
+        self.updated = 0.0
+
+    def take(self, now: float) -> tuple[bool, float]:
+        """Try to consume one token; returns (allowed, retry_after_seconds)."""
+        self.tokens = min(self.capacity, self.tokens + (now - self.updated) * self.refill_per_sec)
+        self.updated = now
+        if self.tokens >= 1.0:
+            self.tokens -= 1.0
+            return True, 0.0
+        # How long until one token is available?
+        return False, max(0.0, (1.0 - self.tokens) / self.refill_per_sec)
+
+
+# {ip: (read_bucket, write_bucket)}. Entries live for the process
+# lifetime; a trivial periodic purge isn't worth the complexity on a
+# dev box with a handful of client IPs.
+_rate_buckets: dict[str, tuple[_TokenBucket, _TokenBucket]] = {}
+
+
+def _rate_limit_check(ip: str, method: str) -> tuple[bool, float]:
+    import time
+    now = time.monotonic()
+    buckets = _rate_buckets.get(ip)
+    if buckets is None:
+        buckets = (
+            _TokenBucket(_RATE_LIMIT_READ_PER_MIN),
+            _TokenBucket(_RATE_LIMIT_WRITE_PER_MIN),
+        )
+        _rate_buckets[ip] = buckets
+    read_bucket, write_bucket = buckets
+    bucket = write_bucket if method in _WRITE_METHODS else read_bucket
+    return bucket.take(now)
+
+
+@app.middleware("http")
+async def rate_limit(request: Any, call_next: Any) -> Any:
+    """
+    Reject /api/* requests that exceed per-IP token buckets. Returns
+    429 with a Retry-After header. Non-/api paths (static assets,
+    docs) are not rate-limited.
+
+    SSE event streams are exempt: they're one request that stays open
+    for the lifetime of a job, and counting them against the bucket
+    would quickly 429 a user who opens multiple progress pages.
+    """
+    path = request.url.path
+    if not path.startswith("/api/"):
+        return await call_next(request)
+    if path.endswith("/events"):
+        return await call_next(request)
+
+    ip = request.client.host if request.client else "unknown"
+    allowed, retry_after = _rate_limit_check(ip, request.method)
+    if not allowed:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=429,
+            content={"detail": f"Rate limit exceeded; retry in {retry_after:.1f}s"},
+            headers={"Retry-After": f"{int(retry_after) + 1}"},
+        )
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def log_requests(request: Any, call_next: Any) -> Any:
+    """
+    Log every HTTP request to stdout and persist to the access_log table
+    for the /admin/usage dashboard. Persistence errors are swallowed so a
+    broken telemetry write never surfaces as a 500 to the user.
+    """
+    import time
+    start = time.time()
+    response = await call_next(request)
+    duration_ms = (time.time() - start) * 1000
+    client = f"{request.client.host}:{request.client.port}" if request.client else "-"
+    query = f"?{request.url.query}" if request.url.query else ""
+    logger.info(
+        f'{client} - "{request.method} {request.url.path}{query}" '
+        f'{response.status_code} ({duration_ms:.0f}ms)'
+    )
+
+    # Only persist /api/* requests — static assets, health checks and
+    # docs would drown the signal.
+    path = request.url.path
+    if USE_LOCAL_PIPELINE and path.startswith("/api/"):
+        template, job_uuid = _normalise_path_for_stats(path)
+        export_format = request.query_params.get("format") if "/export" in path else None
+        try:
+            get_job_service().local_store.log_access(
+                ts=datetime.utcnow().isoformat() + "Z",
+                method=request.method,
+                path=path,
+                path_template=template,
+                status=response.status_code,
+                duration_ms=duration_ms,
+                job_uuid=job_uuid,
+                export_format=export_format,
+            )
+        except Exception as e:
+            logger.warning(f"Access log persistence failed: {e}")
+
+    return response
 
 
 @app.get("/docs", include_in_schema=False)
@@ -620,116 +861,134 @@ async def deployment_status() -> dict[str, Any]:  # noqa: C901
 
     components["batch"] = batch_status
 
-    # DynamoDB Status
-    dynamo_status: dict[str, Any] = {
-        "name": "DynamoDB Jobs Table",
-        "status": "unknown",
-        "details": {},
-    }
-
-    try:
-        dynamodb = boto3.client("dynamodb")
-        response = dynamodb.describe_table(TableName=_config.pipeline.jobs_table_name)
-        table = response.get("Table", {})
-        dynamo_status["status"] = (
-            "healthy" if table.get("TableStatus") == "ACTIVE" else "unhealthy"
-        )
-        dynamo_status["details"] = {
-            "table_name": _config.pipeline.jobs_table_name,
-            "status": table.get("TableStatus", "Unknown"),
-            "item_count": table.get("ItemCount", 0),
+    # DynamoDB / S3 are only used in Step-Functions / Nextflow modes.
+    # In local-pipeline mode on an EC2 dev box those resources neither
+    # exist nor are needed — the admin dashboard was lighting up red
+    # "NOT FOUND" for both, which looked like a broken deployment when
+    # it was just the wrong backend being probed. Match how
+    # step_functions / batch already short-circuit above.
+    if USE_LOCAL_PIPELINE:
+        components["dynamodb"] = {
+            "name": "DynamoDB Jobs Table",
+            "status": "disabled",
+            "details": {"message": "Not used in local-pipeline mode (jobs live in SQLite)"},
         }
-    except NoCredentialsError:
-        dynamo_status["status"] = "unavailable"
-        dynamo_status["details"]["error"] = "AWS credentials not configured"
-    except ClientError as e:
-        if "ResourceNotFoundException" in str(e):
-            dynamo_status["status"] = "not_found"
-            dynamo_status["details"]["error"] = (
-                f"Table {_config.pipeline.jobs_table_name} not found"
-            )
-        else:
-            dynamo_status["status"] = "error"
-            dynamo_status["details"]["error"] = str(e)
-    except Exception as e:
-        dynamo_status["status"] = "error"
-        dynamo_status["details"]["error"] = str(e)
-
-    components["dynamodb"] = dynamo_status
-
-    # S3 Results Bucket Status
-    s3_results_status: dict[str, Any] = {
-        "name": "S3 Results Bucket",
-        "status": "unknown",
-        "details": {},
-    }
-
-    # Initialize S3 client once for both bucket checks
-    s3 = boto3.client("s3")
-
-    try:
-        s3.head_bucket(Bucket=_config.pipeline.results_bucket)
-        s3_results_status["status"] = "healthy"
-        s3_results_status["details"] = {
-            "bucket_name": _config.pipeline.results_bucket,
+        components["s3_results"] = {
+            "name": "S3 Results Bucket",
+            "status": "disabled",
+            "details": {"message": "Not used in local-pipeline mode (results on local disk)"},
         }
-    except NoCredentialsError:
-        s3_results_status["status"] = "unavailable"
-        s3_results_status["details"]["error"] = "AWS credentials not configured"
-    except ClientError as e:
-        error_code = e.response.get("Error", {}).get("Code", "")
-        if error_code == "404":
-            s3_results_status["status"] = "not_found"
-            s3_results_status["details"]["error"] = (
-                f"Bucket {_config.pipeline.results_bucket} not found"
-            )
-        elif error_code == "403":
-            s3_results_status["status"] = "no_access"
-            s3_results_status["details"]["error"] = "Access denied to bucket"
-        else:
-            s3_results_status["status"] = "error"
-            s3_results_status["details"]["error"] = str(e)
-    except Exception as e:
-        s3_results_status["status"] = "error"
-        s3_results_status["details"]["error"] = str(e)
-
-    components["s3_results"] = s3_results_status
-
-    # S3 Work Bucket Status (if different from results)
-    if _config.pipeline.work_bucket != _config.pipeline.results_bucket:
-        s3_work_status: dict[str, Any] = {
-            "name": "S3 Work Bucket",
+    else:
+        # DynamoDB Status
+        dynamo_status: dict[str, Any] = {
+            "name": "DynamoDB Jobs Table",
             "status": "unknown",
             "details": {},
         }
 
         try:
-            s3.head_bucket(Bucket=_config.pipeline.work_bucket)
-            s3_work_status["status"] = "healthy"
-            s3_work_status["details"] = {
-                "bucket_name": _config.pipeline.work_bucket,
+            dynamodb = boto3.client("dynamodb")
+            response = dynamodb.describe_table(TableName=_config.pipeline.jobs_table_name)
+            table = response.get("Table", {})
+            dynamo_status["status"] = (
+                "healthy" if table.get("TableStatus") == "ACTIVE" else "unhealthy"
+            )
+            dynamo_status["details"] = {
+                "table_name": _config.pipeline.jobs_table_name,
+                "status": table.get("TableStatus", "Unknown"),
+                "item_count": table.get("ItemCount", 0),
             }
         except NoCredentialsError:
-            s3_work_status["status"] = "unavailable"
-            s3_work_status["details"]["error"] = "AWS credentials not configured"
+            dynamo_status["status"] = "unavailable"
+            dynamo_status["details"]["error"] = "AWS credentials not configured"
+        except ClientError as e:
+            if "ResourceNotFoundException" in str(e):
+                dynamo_status["status"] = "not_found"
+                dynamo_status["details"]["error"] = (
+                    f"Table {_config.pipeline.jobs_table_name} not found"
+                )
+            else:
+                dynamo_status["status"] = "error"
+                dynamo_status["details"]["error"] = str(e)
+        except Exception as e:
+            dynamo_status["status"] = "error"
+            dynamo_status["details"]["error"] = str(e)
+
+        components["dynamodb"] = dynamo_status
+
+        # S3 Results Bucket Status
+        s3_results_status: dict[str, Any] = {
+            "name": "S3 Results Bucket",
+            "status": "unknown",
+            "details": {},
+        }
+
+        # Initialize S3 client once for both bucket checks
+        s3 = boto3.client("s3")
+
+        try:
+            s3.head_bucket(Bucket=_config.pipeline.results_bucket)
+            s3_results_status["status"] = "healthy"
+            s3_results_status["details"] = {
+                "bucket_name": _config.pipeline.results_bucket,
+            }
+        except NoCredentialsError:
+            s3_results_status["status"] = "unavailable"
+            s3_results_status["details"]["error"] = "AWS credentials not configured"
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "")
             if error_code == "404":
-                s3_work_status["status"] = "not_found"
-                s3_work_status["details"]["error"] = (
-                    f"Bucket {_config.pipeline.work_bucket} not found"
+                s3_results_status["status"] = "not_found"
+                s3_results_status["details"]["error"] = (
+                    f"Bucket {_config.pipeline.results_bucket} not found"
                 )
             elif error_code == "403":
-                s3_work_status["status"] = "no_access"
-                s3_work_status["details"]["error"] = "Access denied to bucket"
+                s3_results_status["status"] = "no_access"
+                s3_results_status["details"]["error"] = "Access denied to bucket"
             else:
+                s3_results_status["status"] = "error"
+                s3_results_status["details"]["error"] = str(e)
+        except Exception as e:
+            s3_results_status["status"] = "error"
+            s3_results_status["details"]["error"] = str(e)
+
+        components["s3_results"] = s3_results_status
+
+        # S3 Work Bucket Status (if different from results)
+        if _config.pipeline.work_bucket != _config.pipeline.results_bucket:
+            s3_work_status: dict[str, Any] = {
+                "name": "S3 Work Bucket",
+                "status": "unknown",
+                "details": {},
+            }
+
+            try:
+                s3.head_bucket(Bucket=_config.pipeline.work_bucket)
+                s3_work_status["status"] = "healthy"
+                s3_work_status["details"] = {
+                    "bucket_name": _config.pipeline.work_bucket,
+                }
+            except NoCredentialsError:
+                s3_work_status["status"] = "unavailable"
+                s3_work_status["details"]["error"] = "AWS credentials not configured"
+            except ClientError as e:
+                error_code = e.response.get("Error", {}).get("Code", "")
+                if error_code == "404":
+                    s3_work_status["status"] = "not_found"
+                    s3_work_status["details"]["error"] = (
+                        f"Bucket {_config.pipeline.work_bucket} not found"
+                    )
+                elif error_code == "403":
+                    s3_work_status["status"] = "no_access"
+                    s3_work_status["details"]["error"] = "Access denied to bucket"
+                else:
+                    s3_work_status["status"] = "error"
+                    s3_work_status["details"]["error"] = str(e)
+            except Exception as e:
                 s3_work_status["status"] = "error"
                 s3_work_status["details"]["error"] = str(e)
-        except Exception as e:
-            s3_work_status["status"] = "error"
-            s3_work_status["details"]["error"] = str(e)
 
-        components["s3_work"] = s3_work_status
+            components["s3_work"] = s3_work_status
 
     # Calculate overall status
     statuses = [c.get("status") for c in components.values()]
@@ -855,6 +1114,130 @@ async def get_pipeline_job_handler(uuid: UUID) -> Pipeline_job:
             raise HTTPException(status_code=404, detail="Job not found.")
         else:
             return job
+
+
+@router.get(
+    "/pipeline-job/{uuid}/events",
+    responses={404: {"model": HTTP_exception_response}},
+)
+async def stream_pipeline_job_events(uuid: UUID) -> StreamingResponse:  # noqa: C901 — SSE protocol state machine (snapshot/diff/heartbeat/timeout branches) is inherent to the handler shape
+    """
+    Server-Sent Events stream of job status.
+
+    Replaces 5-second polling on the /progress page: the server pushes
+    a `job-status` event whenever the status/stage/task_events change,
+    and a `heartbeat` ping every 30s to keep middleboxes from closing
+    the connection. The stream closes once the job hits COMPLETED or
+    FAILED (one final `job-status` + a `done` event).
+
+    The client should fall back to polling on error — EventSource may
+    not be available behind every proxy / middlebox.
+    """
+    import asyncio
+    import json as _json
+
+    # Verify the job exists up-front so clients get a clean 404 instead
+    # of an open-and-immediately-closed stream.
+    uuid_str = str(uuid)
+    if USE_STEP_FUNCTIONS or USE_LOCAL_PIPELINE:
+        job_service = get_job_service()
+        if job_service.get_job(uuid_str) is None:
+            raise HTTPException(status_code=404, detail="Job not found.")
+    elif get_pipeline_job(uuid) is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+
+    POLL_INTERVAL_SECONDS = 1.0
+    HEARTBEAT_EVERY_SECONDS = 30.0
+    # Hard ceiling so a stuck job doesn't hold an open connection forever.
+    MAX_STREAM_SECONDS = 60 * 60
+
+    def _snapshot() -> Optional[dict[str, Any]]:
+        """Return the same shape the GET /pipeline-job/{uuid} endpoint sends."""
+        try:
+            job: Pipeline_job
+            if USE_STEP_FUNCTIONS or USE_LOCAL_PIPELINE:
+                info = get_job_service().get_job(uuid_str)
+                if info is None:
+                    return None
+                job = Pipeline_job.from_job_info(info)
+            else:
+                maybe_job = get_pipeline_job(uuid)
+                if maybe_job is None:
+                    return None
+                job = maybe_job
+            dumped: dict[str, Any] = job.model_dump(mode="json", exclude_none=True)
+            return dumped
+        except Exception as e:
+            logger.warning(f"SSE snapshot failed for {uuid_str}: {e}")
+            return None
+
+    def _event(name: str, payload: Any) -> bytes:
+        """Format one SSE message. Each field terminates with \\n, the record with \\n\\n."""
+        return f"event: {name}\ndata: {_json.dumps(payload)}\n\n".encode("utf-8")
+
+    async def _gen() -> Any:
+        last_sent: Optional[str] = None
+        last_heartbeat = 0.0
+        import time
+        started = time.monotonic()
+
+        # Send one initial snapshot immediately so the client renders
+        # without waiting the first POLL_INTERVAL.
+        snap = _snapshot()
+        if snap is not None:
+            yield _event("job-status", snap)
+            last_sent = _json.dumps(snap, sort_keys=True)
+            last_heartbeat = time.monotonic()
+        else:
+            # Shouldn't happen (we checked up-front) but belt-and-braces.
+            yield _event("done", {"reason": "not_found"})
+            return
+
+        while True:
+            if time.monotonic() - started > MAX_STREAM_SECONDS:
+                yield _event("done", {"reason": "max_stream_duration"})
+                return
+
+            await asyncio.sleep(POLL_INTERVAL_SECONDS)
+            snap = _snapshot()
+            if snap is None:
+                yield _event("done", {"reason": "not_found"})
+                return
+
+            # Only emit when something changed — keeps the per-stream
+            # byte count down even for long-running jobs.
+            serialised = _json.dumps(snap, sort_keys=True)
+            if serialised != last_sent:
+                yield _event("job-status", snap)
+                last_sent = serialised
+                last_heartbeat = time.monotonic()
+
+            # Terminal states close the stream after emitting one more
+            # snapshot (already done above if it was the state transition).
+            status = str(snap.get("status", "")).lower()
+            if status in ("completed", "failed"):
+                yield _event("done", {"reason": status})
+                return
+
+            # Keep-alive. A comment (`: keepalive`) is enough per SSE spec,
+            # but a named event lets a client's onmessage handler stay
+            # focused on `job-status` without ad-hoc filtering.
+            if time.monotonic() - last_heartbeat >= HEARTBEAT_EVERY_SECONDS:
+                yield _event("heartbeat", {"ts": datetime.utcnow().isoformat() + "Z"})
+                last_heartbeat = time.monotonic()
+
+    return StreamingResponse(
+        _gen(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            # Caddy/nginx will buffer SSE responses by default; this
+            # disables that for Caddy's own reverse_proxy as well as
+            # anything downstream that honours the header.
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @router.get(
@@ -1028,7 +1411,7 @@ async def get_pipeline_job_seq_info_result(uuid: UUID) -> StreamingResponse:
 )
 async def get_pipeline_job_export(
     uuid: UUID,
-    fmt: Literal["db", "json", "fasta", "csv"] = Query("db", alias="format"),
+    fmt: Literal["db", "json", "fasta", "csv", "clustal", "phylip", "stockholm", "nexus", "html"] = Query("db", alias="format"),
 ) -> Response:
     """
     Download a finished job in one of several formats.
@@ -1038,6 +1421,11 @@ async def get_pipeline_job_export(
     - ``json``: the same contents as a single self-contained JSON bundle.
     - ``fasta``: the aligned protein sequences (with gaps).
     - ``csv``: a flat table of the embedded variants across all sequences.
+    - ``clustal``: the Clustal Omega alignment output verbatim.
+    - ``phylip``: relaxed PHYLIP (RAxML / IQ-TREE / PhyML).
+    - ``stockholm``: Pfam / HMMER format.
+    - ``nexus``: NEXUS for PAUP* / MrBayes / FigTree.
+    - ``html``: self-contained HTML report (prints to PDF via the browser).
 
     Currently produced only by the local pipeline mode. Step Functions
     mode does not yet emit a per-job DB.
@@ -1077,6 +1465,21 @@ async def get_pipeline_job_export(
     elif fmt == "fasta":
         body = job_db.export_fasta(db_path)
         media_type, extension = "text/x-fasta", "fasta"
+    elif fmt == "clustal":
+        body = job_db.export_clustal(db_path)
+        media_type, extension = "text/plain", "aln"
+    elif fmt == "phylip":
+        body = job_db.export_phylip(db_path)
+        media_type, extension = "text/plain", "phy"
+    elif fmt == "stockholm":
+        body = job_db.export_stockholm(db_path)
+        media_type, extension = "text/plain", "sto"
+    elif fmt == "nexus":
+        body = job_db.export_nexus(db_path)
+        media_type, extension = "text/plain", "nex"
+    elif fmt == "html":
+        body = job_db.export_report_html(db_path)
+        media_type, extension = "text/html", "html"
     else:  # csv
         body = job_db.export_variants_csv(db_path)
         media_type, extension = "text/csv", "csv"
@@ -1087,6 +1490,930 @@ async def get_pipeline_job_export(
         headers={
             "Content-Disposition": f'attachment; filename="{base_name}.{extension}"'
         },
+    )
+
+
+class BatchExportRequest(BaseModel):
+    uuids: list[UUID]
+    format: Literal["db", "json", "fasta", "csv", "clustal", "phylip", "stockholm", "nexus", "html"] = "db"
+
+
+_BATCH_EXTENSIONS: dict[str, str] = {
+    "db": "db",
+    "json": "json",
+    "fasta": "fasta",
+    "csv": "csv",
+    "clustal": "aln",
+    "phylip": "phy",
+    "stockholm": "sto",
+    "nexus": "nex",
+    "html": "html",
+}
+
+
+@router.post(
+    "/pipeline-job/batch-export",
+    responses={
+        400: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def batch_export_pipeline_jobs(body: BatchExportRequest) -> StreamingResponse:  # noqa: C901 — batch-export fan-out across per-format writers + streaming ZIP is inherent to the handler shape
+    """
+    Download multiple finished jobs as a single zip archive.
+
+    Each job becomes ``pavi-job-<uuid>.<ext>`` inside the zip. Jobs whose
+    DB cannot be found are skipped and recorded in ``_missing.txt`` inside
+    the archive — a partial download beats failing the whole batch.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Batch export is currently only available in local pipeline mode.",
+        )
+    if not body.uuids:
+        raise HTTPException(status_code=400, detail="No job UUIDs provided.")
+
+    import io as _io
+    import zipfile
+
+    job_service = get_job_service()
+    results_root = Path(job_service.local_results_path)
+    fmt = body.format
+    ext = _BATCH_EXTENSIONS[fmt]
+
+    def _render(db_path: Path) -> bytes | None:
+        if fmt == "db":
+            return db_path.read_bytes()
+        if fmt == "json":
+            return job_db.export_bundle_json(db_path).encode("utf-8")
+        if fmt == "fasta":
+            return job_db.export_fasta(db_path).encode("utf-8")
+        if fmt == "csv":
+            return job_db.export_variants_csv(db_path).encode("utf-8")
+        if fmt == "clustal":
+            return job_db.export_clustal(db_path).encode("utf-8")
+        if fmt == "phylip":
+            return job_db.export_phylip(db_path).encode("utf-8")
+        if fmt == "stockholm":
+            return job_db.export_stockholm(db_path).encode("utf-8")
+        if fmt == "nexus":
+            return job_db.export_nexus(db_path).encode("utf-8")
+        if fmt == "html":
+            return job_db.export_report_html(db_path).encode("utf-8")
+        return None
+
+    buf = _io.BytesIO()
+    missing: list[str] = []
+    with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for uuid in body.uuids:
+            db_path = job_db.db_path_for_job(results_root, str(uuid))
+            if not db_path.exists():
+                missing.append(str(uuid))
+                continue
+            try:
+                data = _render(db_path)
+            except Exception as e:  # per-job failure shouldn't kill the batch
+                logger.warning(f"Batch export failed for job {uuid} ({fmt}): {e}")
+                missing.append(f"{uuid} ({e.__class__.__name__})")
+                continue
+            if data is None:
+                continue
+            zf.writestr(f"pavi-job-{uuid}.{ext}", data)
+        if missing:
+            zf.writestr(
+                "_missing.txt",
+                "The following job UUIDs were skipped (DB not found or render failed):\n"
+                + "\n".join(missing)
+                + "\n",
+            )
+
+    buf.seek(0)
+    stamp = str(body.uuids[0])[:8] if len(body.uuids) == 1 else f"{len(body.uuids)}jobs"
+    filename = f"pavi-batch-{stamp}-{fmt}.zip"
+
+    def _iter() -> Any:
+        yield from buf
+
+    return StreamingResponse(
+        _iter(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+class ImportResponse(BaseModel):
+    job_id: str
+    source_format: Literal["db", "json"]
+    source_job_id: Optional[str] = None
+    sequence_count: int
+    variant_count: int
+
+
+MAX_IMPORT_SIZE = 100 * 1024 * 1024  # 100 MB
+
+
+def _looks_like_sqlite(blob: bytes) -> bool:
+    """SQLite databases always start with the magic string 'SQLite format 3\\x00'."""
+    return blob.startswith(b"SQLite format 3\x00")
+
+
+def _extract_from_sqlite(blob: bytes) -> dict[str, Any]:
+    """Open an uploaded .db blob (via a temp file) and extract the pieces we need."""
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
+        tmp.write(blob)
+        tmp_path = Path(tmp.name)
+    try:
+        metadata = job_db.read_metadata(tmp_path)
+        seq_regions = job_db.read_input_seq_regions(tmp_path) or []
+        results = job_db.read_results(tmp_path)
+        return {
+            "source_job_id": metadata.get("job_id"),
+            "seq_regions": seq_regions,
+            "alignment_bytes": results.get("alignment", b""),
+            "seq_info_bytes": results.get("seq_info", b""),
+        }
+    finally:
+        try:
+            tmp_path.unlink()
+        except OSError:
+            pass
+
+
+def _extract_from_json(blob: bytes) -> dict[str, Any]:
+    """Parse an uploaded export_bundle_json() payload."""
+    try:
+        bundle = json.loads(blob.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON bundle: {e}") from e
+    if not isinstance(bundle, dict):
+        raise HTTPException(status_code=400, detail="JSON bundle must be an object.")
+
+    seq_info = bundle.get("seq_info")
+    seq_info_bytes = (
+        json.dumps(seq_info).encode("utf-8") if seq_info is not None else b""
+    )
+    alignment = bundle.get("alignment", "")
+    if not isinstance(alignment, str):
+        raise HTTPException(status_code=400, detail="`alignment` must be a string.")
+    seq_regions = bundle.get("input_seq_regions", []) or []
+    if not isinstance(seq_regions, list):
+        raise HTTPException(status_code=400, detail="`input_seq_regions` must be a list.")
+    return {
+        "source_job_id": bundle.get("job_id"),
+        "seq_regions": seq_regions,
+        "alignment_bytes": alignment.encode("utf-8"),
+        "seq_info_bytes": seq_info_bytes,
+    }
+
+
+def _count_variants(seq_info_bytes: bytes) -> int:
+    try:
+        obj = json.loads(seq_info_bytes.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return 0
+    total = 0
+    if isinstance(obj, dict):
+        for info in obj.values():
+            if isinstance(info, dict):
+                total += len(info.get("embedded_variants", []) or [])
+    return total
+
+
+@router.post(
+    "/pipeline-job/import",
+    response_model=ImportResponse,
+    responses={
+        400: {"model": HTTP_exception_response},
+        413: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def import_pipeline_job(
+    file: UploadFile = File(..., description="Previously-exported .db or .json bundle"),
+) -> ImportResponse:
+    """
+    Re-import a job from a .db or JSON bundle produced by the export endpoint.
+
+    A new job_id is minted so the imported record never collides with an
+    existing one. The uploaded alignment and seq-info are written as a
+    completed job that /result?uuid=... can render immediately.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Job import is currently only available in local pipeline mode.",
+        )
+
+    blob = await file.read()
+    if not blob:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(blob) > MAX_IMPORT_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Uploaded file exceeds {MAX_IMPORT_SIZE // (1024 * 1024)} MB limit.",
+        )
+
+    # Detect format by magic bytes first; fall back to filename hint.
+    source_format: Literal["db", "json"]
+    if _looks_like_sqlite(blob):
+        source_format = "db"
+        extracted = _extract_from_sqlite(blob)
+    elif blob.lstrip().startswith(b"{"):
+        source_format = "json"
+        extracted = _extract_from_json(blob)
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Unrecognised file; expected a PAVI .db or JSON bundle.",
+        )
+
+    if not extracted["alignment_bytes"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file is missing the alignment payload.",
+        )
+
+    # Mint a fresh UUID so the imported job doesn't collide with the
+    # original. Record the source UUID in the per-job DB metadata so the
+    # provenance survives the round trip.
+    new_uuid = uuid1()
+    new_job_id = str(new_uuid)
+
+    job_service = get_job_service()
+    results_root = Path(job_service.local_results_path)
+    db_path = job_db.db_path_for_job(results_root, new_job_id)
+
+    job_db.write_finished_job(
+        db_path=db_path,
+        job_id=new_job_id,
+        seq_regions=extracted["seq_regions"],
+        alignment_bytes=extracted["alignment_bytes"],
+        seq_info_bytes=extracted["seq_info_bytes"],
+    )
+
+    # The /pipeline-job/{uuid}/result/* endpoints read alignment-output.aln
+    # and aligned_seq_info.json as files on disk — the per-job DB is a
+    # secondary artifact, not the canonical source. Mirror the pipeline's
+    # layout so the imported job is viewable the same way a freshly-run
+    # one is.
+    job_results_dir = db_path.parent
+    alignment_file = job_results_dir / "alignment-output.aln"
+    seqinfo_file = job_results_dir / "aligned_seq_info.json"
+    alignment_file.write_bytes(extracted["alignment_bytes"])
+    if extracted["seq_info_bytes"]:
+        seqinfo_file.write_bytes(extracted["seq_info_bytes"])
+
+    # Register in the jobs store so /jobs sees it and /pipeline-job/{uuid}
+    # polling returns COMPLETED immediately. stage must be a valid JobStage
+    # enum value (DONE), not COMPLETED — mixing the two blows up get_job's
+    # enum parse with a cryptic 500.
+    from job_service import JobStage
+    local_store = job_service.local_store
+    local_store.create_job(
+        job_id=new_job_id,
+        input_data=extracted["seq_regions"],
+        input_count=len(extracted["seq_regions"]),
+    )
+    local_store.update_job(
+        new_job_id,
+        status=SFJobStatus.COMPLETED.value,
+        stage=JobStage.DONE.value,
+        completed_at=datetime.utcnow().isoformat() + "Z",
+        sequences_processed=len(extracted["seq_regions"]),
+        result_path=str(alignment_file),
+    )
+
+    sequence_count = len(extracted["seq_regions"])
+    variant_count = _count_variants(extracted["seq_info_bytes"])
+
+    logger.info(
+        f"Imported {source_format} job as {new_job_id} "
+        f"(source={extracted.get('source_job_id')}, "
+        f"{sequence_count} regions, {variant_count} variants)"
+    )
+
+    return ImportResponse(
+        job_id=new_job_id,
+        source_format=source_format,
+        source_job_id=extracted.get("source_job_id"),
+        sequence_count=sequence_count,
+        variant_count=variant_count,
+    )
+
+
+class CreateShareTokenRequest(BaseModel):
+    ttl_hours: Optional[int] = None  # None = no expiration
+
+
+class ShareTokenResponse(BaseModel):
+    token: str
+    job_id: str
+    created_at: Optional[str] = None
+    expires_at: Optional[str] = None
+    revoked_at: Optional[str] = None
+    use_count: Optional[int] = None
+
+
+def _generate_share_token() -> str:
+    """URL-safe token with ~160 bits of entropy."""
+    import secrets
+    return secrets.token_urlsafe(24)
+
+
+@router.post(
+    "/pipeline-job/{uuid}/share",
+    response_model=ShareTokenResponse,
+    responses={
+        404: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def create_share_token(uuid: UUID, body: CreateShareTokenRequest) -> ShareTokenResponse:
+    """
+    Issue a share token for a completed job. The token grants anonymous
+    read-only access to the job's results and exports via /shared/{token}.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Share tokens are currently only available in local pipeline mode.",
+        )
+    job_service = get_job_service()
+    # Verify the job exists before issuing a token.
+    if job_service.get_job(str(uuid)) is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+
+    expires_at: Optional[str] = None
+    if body.ttl_hours is not None and body.ttl_hours > 0:
+        from datetime import datetime, timedelta
+        expires_at = (datetime.utcnow() + timedelta(hours=body.ttl_hours)).isoformat()
+
+    token = _generate_share_token()
+    row = job_service.local_store.create_share_token(token, str(uuid), expires_at)
+    return ShareTokenResponse(
+        token=row["token"],
+        job_id=row["job_id"],
+        expires_at=row["expires_at"],
+    )
+
+
+@router.get(
+    "/pipeline-job/{uuid}/share",
+    response_model=list[ShareTokenResponse],
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def list_share_tokens(uuid: UUID) -> list[ShareTokenResponse]:
+    """List all share tokens issued for a job (active + revoked)."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Share tokens are currently only available in local pipeline mode.",
+        )
+    job_service = get_job_service()
+    rows = job_service.local_store.list_share_tokens(str(uuid))
+    return [ShareTokenResponse(**r) for r in rows]
+
+
+@router.delete(
+    "/pipeline-job/share/{token}",
+    responses={
+        404: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def revoke_share_token(token: str) -> dict[str, bool]:
+    """Revoke a share token so it can no longer be used."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Share tokens are currently only available in local pipeline mode.",
+        )
+    job_service = get_job_service()
+    ok = job_service.local_store.revoke_share_token(token)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Share token not found or already revoked.")
+    return {"revoked": True}
+
+
+def _resolve_share_or_404(token: str) -> str:
+    """Look up a share token and return the job_id, or raise 404/501."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Share tokens are currently only available in local pipeline mode.",
+        )
+    job_service = get_job_service()
+    row = job_service.local_store.resolve_share_token(token)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Share token invalid, revoked, or expired.")
+    return str(row["job_id"])
+
+
+@router.get(
+    "/shared/{token}",
+    responses={404: {"model": HTTP_exception_response}},
+)
+async def get_shared_job(token: str) -> dict[str, Any]:
+    """
+    Public (unauthenticated) read of a shared job: returns the minimal
+    metadata plus a direct link to the shared result endpoints.
+    """
+    job_id = _resolve_share_or_404(token)
+    job_service = get_job_service()
+    info = job_service.get_job(job_id)
+    if info is None:
+        raise HTTPException(status_code=404, detail="Underlying job no longer exists.")
+    return {
+        "token": token,
+        "job_id": job_id,
+        "status": info.status.value.lower(),
+        "stage": info.stage.value if info.stage else None,
+        "completed_at": getattr(info, "completed_at", None),
+    }
+
+
+@router.get(
+    "/shared/{token}/export",
+    responses={
+        404: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def get_shared_job_export(
+    token: str,
+    fmt: Literal["db", "json", "fasta", "csv", "clustal", "phylip", "stockholm", "nexus", "html"] = Query("db", alias="format"),
+) -> Response:
+    """Download the shared job in the requested format. Mirrors /pipeline-job/{uuid}/export."""
+    job_id = _resolve_share_or_404(token)
+    # Reuse the main export implementation by delegating via UUID conversion.
+    return await get_pipeline_job_export(UUID(job_id), fmt=fmt)
+
+
+# ----------------------------------------------------------------------
+# Usage stats — operator view
+# ----------------------------------------------------------------------
+
+class StatsTotals(BaseModel):
+    today: int
+    week: int
+    all_time: int
+
+
+class StatsRequestsPerDay(BaseModel):
+    date: str  # YYYY-MM-DD
+    count: int
+
+
+class StatsEndpoint(BaseModel):
+    path_template: str
+    count: int
+
+
+class StatsPopularJob(BaseModel):
+    job_uuid: str
+    count: int
+
+
+class StatsExportFormat(BaseModel):
+    export_format: str
+    count: int
+
+
+class StatsLatency(BaseModel):
+    """Percentile latency numbers, in milliseconds."""
+    count: int
+    p50: float
+    p95: float
+    p99: float
+    max: float
+
+
+class StatsEndpointLatency(BaseModel):
+    path_template: str
+    latency: StatsLatency
+
+
+class StatsResponse(BaseModel):
+    window_days: int
+    totals: StatsTotals
+    requests_per_day: list[StatsRequestsPerDay]
+    top_endpoints: list[StatsEndpoint]
+    popular_jobs: list[StatsPopularJob]
+    export_formats: list[StatsExportFormat]
+    overall_latency: StatsLatency
+    slow_endpoints: list[StatsEndpointLatency]
+
+
+@router.get(
+    "/stats",
+    response_model=StatsResponse,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def get_usage_stats(
+    days: int = Query(30, ge=1, le=365, description="Lookback window for per-day volume"),
+    top_n: int = Query(10, ge=1, le=100, description="Top-N cap for endpoint and job rankings"),
+) -> StatsResponse:
+    """
+    Aggregate request stats for the /admin/usage page.
+
+    - ``totals``: raw counts for today, last 7 days, and all time.
+    - ``requests_per_day``: last N days (default 30), zero-filled.
+    - ``top_endpoints``: top-N normalised path templates by count.
+    - ``popular_jobs``: top-N job UUIDs by access count.
+    - ``export_formats``: breakdown of /export calls by format.
+
+    All numbers come from the ``access_log`` table in jobs.db, written
+    by the HTTP middleware on every /api/* request.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Usage stats are currently only available in local pipeline mode.",
+        )
+
+    import sqlite3
+    from datetime import date, timedelta
+
+    store = get_job_service().local_store
+    conn: sqlite3.Connection = store._get_connection()  # noqa: SLF001 — intra-module access
+
+    today = date.today()
+    week_cutoff = (today - timedelta(days=7)).isoformat()
+    today_prefix = today.isoformat()
+
+    totals = StatsTotals(
+        today=conn.execute(
+            "SELECT COUNT(*) FROM access_log WHERE ts >= ?",
+            (today_prefix,),
+        ).fetchone()[0],
+        week=conn.execute(
+            "SELECT COUNT(*) FROM access_log WHERE ts >= ?",
+            (week_cutoff,),
+        ).fetchone()[0],
+        all_time=conn.execute("SELECT COUNT(*) FROM access_log").fetchone()[0],
+    )
+
+    # Per-day volume, zero-filled over the full window so the chart has
+    # a point for days with no traffic (otherwise an idle weekend looks
+    # like a gap).
+    cutoff = (today - timedelta(days=days - 1)).isoformat()
+    raw = {
+        row[0]: row[1]
+        for row in conn.execute(
+            "SELECT substr(ts, 1, 10) AS day, COUNT(*) FROM access_log "
+            "WHERE ts >= ? GROUP BY day",
+            (cutoff,),
+        ).fetchall()
+    }
+    requests_per_day = []
+    for i in range(days):
+        d = (today - timedelta(days=days - 1 - i)).isoformat()
+        requests_per_day.append(StatsRequestsPerDay(date=d, count=raw.get(d, 0)))
+
+    top_endpoints = [
+        StatsEndpoint(path_template=r[0], count=r[1])
+        for r in conn.execute(
+            "SELECT path_template, COUNT(*) AS c FROM access_log "
+            "GROUP BY path_template ORDER BY c DESC LIMIT ?",
+            (top_n,),
+        ).fetchall()
+    ]
+
+    popular_jobs = [
+        StatsPopularJob(job_uuid=r[0], count=r[1])
+        for r in conn.execute(
+            "SELECT job_uuid, COUNT(*) AS c FROM access_log "
+            "WHERE job_uuid IS NOT NULL "
+            "GROUP BY job_uuid ORDER BY c DESC LIMIT ?",
+            (top_n,),
+        ).fetchall()
+    ]
+
+    export_formats = [
+        StatsExportFormat(export_format=r[0], count=r[1])
+        for r in conn.execute(
+            "SELECT export_format, COUNT(*) AS c FROM access_log "
+            "WHERE export_format IS NOT NULL "
+            "GROUP BY export_format ORDER BY c DESC"
+        ).fetchall()
+    ]
+
+    # Latency percentiles. Sort in Python once per route — the access
+    # log is small enough (one row per request on a dev box) that
+    # pulling the full duration vector and computing locally is
+    # cheaper and simpler than SQLite percentile-approximation SQL.
+    def _percentiles(values: list[float]) -> StatsLatency:
+        if not values:
+            return StatsLatency(count=0, p50=0.0, p95=0.0, p99=0.0, max=0.0)
+        vs = sorted(values)
+        n = len(vs)
+
+        def _pick(p: float) -> float:
+            # Nearest-rank method. Fine for sub-ms accuracy at these volumes.
+            idx = max(0, min(n - 1, int(round(p * (n - 1)))))
+            return vs[idx]
+        return StatsLatency(
+            count=n,
+            p50=_pick(0.50),
+            p95=_pick(0.95),
+            p99=_pick(0.99),
+            max=vs[-1],
+        )
+
+    all_durations = [
+        r[0] for r in conn.execute(
+            "SELECT duration_ms FROM access_log WHERE duration_ms IS NOT NULL"
+        ).fetchall()
+    ]
+    overall_latency = _percentiles(all_durations)
+
+    # Per-endpoint latency, ranked by p95 descending so slow endpoints
+    # bubble to the top. Only include endpoints with >= 5 samples so a
+    # single-digit sample doesn't dominate (p99 of 1 sample = that
+    # sample, which is noise).
+    per_endpoint: dict[str, list[float]] = {}
+    for template, duration in conn.execute(
+        "SELECT path_template, duration_ms FROM access_log "
+        "WHERE duration_ms IS NOT NULL"
+    ).fetchall():
+        per_endpoint.setdefault(template, []).append(duration)
+    slow_endpoints_raw = [
+        (template, _percentiles(durations))
+        for template, durations in per_endpoint.items()
+        if len(durations) >= 5
+    ]
+    slow_endpoints_raw.sort(key=lambda x: x[1].p95, reverse=True)
+    slow_endpoints = [
+        StatsEndpointLatency(path_template=t, latency=lat)
+        for t, lat in slow_endpoints_raw[:top_n]
+    ]
+
+    return StatsResponse(
+        window_days=days,
+        totals=totals,
+        requests_per_day=requests_per_day,
+        top_endpoints=top_endpoints,
+        popular_jobs=popular_jobs,
+        export_formats=export_formats,
+        overall_latency=overall_latency,
+        slow_endpoints=slow_endpoints,
+    )
+
+
+# ----------------------------------------------------------------------
+# Disk-usage audit — operator view
+# ----------------------------------------------------------------------
+
+class DiskUsageJob(BaseModel):
+    job_uuid: str
+    bytes: int
+    modified_at: str
+    known: bool  # True if also in jobs.db
+
+
+class DiskUsageResponse(BaseModel):
+    results_path: str
+    total_bytes: int
+    job_count: int
+    orphan_count: int
+    jobs: list[DiskUsageJob]
+
+
+@router.get(
+    "/stats/disk",
+    response_model=DiskUsageResponse,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def get_disk_usage() -> DiskUsageResponse:
+    """
+    Walk the local-pipeline results tree and report per-job disk use.
+
+    Also marks jobs as `known=False` when the on-disk directory has no
+    row in jobs.db — those are orphans from manual deletes or interrupted
+    runs that the Usage Stats UI lets the operator clean up.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Disk-usage audit is currently only available in local pipeline mode.",
+        )
+
+    job_service = get_job_service()
+    results_root = Path(job_service.local_results_path)
+    local_store = job_service.local_store
+
+    # Known jobs from jobs.db, by UUID. Lets us flag orphan directories
+    # without a round trip per directory.
+    known_uuids: set[str] = set()
+    try:
+        for row in local_store._get_connection().execute("SELECT job_id FROM jobs"):  # noqa: SLF001
+            known_uuids.add(str(row[0]))
+    except Exception as e:
+        logger.warning(f"Disk audit: failed to list jobs.db rows: {e}")
+
+    def _dir_size(path: Path) -> int:
+        total = 0
+        for p in path.rglob("*"):
+            if p.is_file():
+                try:
+                    total += p.stat().st_size
+                except OSError:
+                    pass
+        return total
+
+    jobs: list[DiskUsageJob] = []
+    if results_root.exists():
+        for entry in results_root.iterdir():
+            if not entry.is_dir():
+                continue
+            try:
+                size = _dir_size(entry)
+                mtime = datetime.fromtimestamp(entry.stat().st_mtime).isoformat() + "Z"
+            except OSError:
+                continue
+            jobs.append(DiskUsageJob(
+                job_uuid=entry.name,
+                bytes=size,
+                modified_at=mtime,
+                known=entry.name in known_uuids,
+            ))
+
+    jobs.sort(key=lambda j: j.bytes, reverse=True)
+    total_bytes = sum(j.bytes for j in jobs)
+    orphan_count = sum(1 for j in jobs if not j.known)
+
+    return DiskUsageResponse(
+        results_path=str(results_root),
+        total_bytes=total_bytes,
+        job_count=len(jobs),
+        orphan_count=orphan_count,
+        jobs=jobs,
+    )
+
+
+class DeleteJobsRequest(BaseModel):
+    job_uuids: list[str]
+
+
+class DeleteJobsResponse(BaseModel):
+    deleted: int
+    bytes_freed: int
+    skipped: list[str]  # UUIDs that couldn't be deleted
+
+
+class SnapshotMeta(BaseModel):
+    name: str
+    bytes: int
+    created_at: str
+
+
+class SnapshotListResponse(BaseModel):
+    backup_dir: str
+    keep: int
+    interval_seconds: int
+    snapshots: list[SnapshotMeta]
+
+
+@router.get(
+    "/stats/snapshots",
+    response_model=SnapshotListResponse,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def list_snapshots() -> SnapshotListResponse:
+    """List jobs.db snapshots the backup loop has produced."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Snapshot listing is currently only available in local pipeline mode.",
+        )
+    store = get_job_service().local_store
+    backup_dir = _backup_dir()
+    snaps = [SnapshotMeta(**s) for s in store.list_snapshots(backup_dir)]
+    return SnapshotListResponse(
+        backup_dir=str(backup_dir),
+        keep=_BACKUP_KEEP,
+        interval_seconds=_BACKUP_INTERVAL_SECONDS,
+        snapshots=snaps,
+    )
+
+
+@router.post(
+    "/stats/snapshots/now",
+    response_model=SnapshotMeta,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def take_snapshot_now() -> SnapshotMeta:
+    """Force an immediate jobs.db snapshot. Useful before a risky operation."""
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Snapshot is currently only available in local pipeline mode.",
+        )
+    meta = _run_single_backup()
+    # _run_single_backup returns an extra `pruned` key we don't surface here.
+    return SnapshotMeta(name=meta["name"], bytes=meta["bytes"], created_at=meta["created_at"])
+
+
+class TrimAccessLogRequest(BaseModel):
+    retention_days: Optional[int] = None
+
+
+class TrimAccessLogResponse(BaseModel):
+    deleted: int
+    retention_days: int
+
+
+@router.post(
+    "/stats/trim-access-log",
+    response_model=TrimAccessLogResponse,
+    responses={501: {"model": HTTP_exception_response}},
+)
+async def trim_access_log(body: TrimAccessLogRequest) -> TrimAccessLogResponse:
+    """
+    Manual sweep of access_log rows older than `retention_days`
+    (default 90). The regular opportunistic trim runs on ~1% of
+    writes; this endpoint forces one for an operator who just wants
+    the table pruned now.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Access log trim is currently only available in local pipeline mode.",
+        )
+    store = get_job_service().local_store
+    days = body.retention_days if body.retention_days is not None else store.ACCESS_LOG_RETENTION_DAYS
+    deleted = store.trim_access_log(retention_days=days)
+    return TrimAccessLogResponse(deleted=deleted, retention_days=days)
+
+
+@router.post(
+    "/stats/disk/delete",
+    response_model=DeleteJobsResponse,
+    responses={
+        400: {"model": HTTP_exception_response},
+        501: {"model": HTTP_exception_response},
+    },
+)
+async def delete_jobs_from_disk(body: DeleteJobsRequest) -> DeleteJobsResponse:
+    """
+    Remove per-job directories under results_path *and* their jobs.db
+    rows. Safe to call for either known jobs or orphan directories.
+    """
+    if not USE_LOCAL_PIPELINE:
+        raise HTTPException(
+            status_code=501,
+            detail="Disk cleanup is currently only available in local pipeline mode.",
+        )
+    if not body.job_uuids:
+        raise HTTPException(status_code=400, detail="No job UUIDs provided.")
+
+    import shutil
+
+    job_service = get_job_service()
+    results_root = Path(job_service.local_results_path)
+    local_store = job_service.local_store
+
+    deleted = 0
+    bytes_freed = 0
+    skipped: list[str] = []
+
+    for uuid_str in body.job_uuids:
+        # Guard against path traversal — only accept bare UUID-shaped
+        # names so a bogus value like "../etc" can't escape results_root.
+        if not _UUID_RE.fullmatch(uuid_str):
+            skipped.append(uuid_str)
+            continue
+
+        target = results_root / uuid_str
+        if target.exists():
+            try:
+                size_before = sum(
+                    p.stat().st_size for p in target.rglob("*") if p.is_file()
+                )
+                shutil.rmtree(target)
+                bytes_freed += size_before
+                deleted += 1
+            except Exception as e:
+                logger.warning(f"Failed to delete {target}: {e}")
+                skipped.append(uuid_str)
+                continue
+
+        # Remove the jobs.db row if present (orphans may not have one).
+        try:
+            local_store._get_connection().execute(  # noqa: SLF001
+                "DELETE FROM jobs WHERE job_id = ?",
+                (uuid_str,),
+            )
+            local_store._get_connection().commit()  # noqa: SLF001
+        except Exception as e:
+            logger.warning(f"Failed to delete jobs.db row for {uuid_str}: {e}")
+
+    return DeleteJobsResponse(
+        deleted=deleted,
+        bytes_freed=bytes_freed,
+        skipped=skipped,
     )
 
 

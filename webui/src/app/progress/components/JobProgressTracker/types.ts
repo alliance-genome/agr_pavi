@@ -13,6 +13,8 @@ export interface JobStatusResponse {
     stage?: string;  // sequence_retrieval, alignment, done
     error_message?: string;
     task_events?: string[];  // List of completed task descriptions
+    input_count?: number;    // Total expected sequences for the job
+    sequences_processed?: number;  // How many have finished retrieval
 }
 
 export interface ProgressStep {

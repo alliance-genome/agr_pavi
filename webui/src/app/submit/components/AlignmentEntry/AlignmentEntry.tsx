@@ -448,10 +448,40 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
         });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Canonical-transcript matcher set. Alliance's VariantConsequence.transcriptId
+    // is either a curie (`RefSeq:NM_007294.4`) or a bare accession, while the
+    // GFF-sourced transcriptList carries .id / .curie / .name — match against
+    // the union plus the colon-stripped tail so either format resolves.
+    const canonicalMatcher = useMemo(() => {
+        const canonical = transcriptSelection.transcriptList.find(t => t.isCanonical)
+        if (!canonical) return null
+        const ids = new Set<string>()
+        const add = (s?: string) => { if (s) { ids.add(s); const i = s.indexOf(':'); if (i > 0) ids.add(s.slice(i + 1)) } }
+        add(canonical.id)
+        add(canonical.curie)
+        add(canonical.name)
+        return { ids, label: canonical.canonicalLabel ?? 'canonical' }
+    }, [transcriptSelection.transcriptList])
+
+    const alleleTouchesCanonical = useCallback((alleleInfo: AlleleInfo): boolean => {
+        if (!canonicalMatcher) return false
+        for (const variant of alleleInfo.variants.values()) {
+            for (const c of variant.consequences) {
+                const tx = c.transcriptId
+                if (!tx) continue
+                if (canonicalMatcher.ids.has(tx)) return true
+                const tail = tx.includes(':') ? tx.slice(tx.indexOf(':') + 1) : null
+                if (tail && canonicalMatcher.ids.has(tail)) return true
+            }
+        }
+        return false
+    }, [canonicalMatcher])
+
     // Allele option template for dropdown
     const alleleOptionTemplate = (option: { allele: AlleleInfo }) => {
         const alleleInfo = option.allele;
         const variantCount = getVariantCount(alleleInfo.variants);
+        const onCanonical = alleleTouchesCanonical(alleleInfo);
         const variantLabel = variantCount === 1
             ? getVariantValues(alleleInfo.variants)[0]?.displayName
             : `${variantCount} variants`;
@@ -491,6 +521,18 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                     }}>
                         {variantLabel}
                     </span>
+                    {onCanonical && canonicalMatcher && (
+                        <Tag
+                            value={canonicalMatcher.label}
+                            severity="info"
+                            style={{
+                                fontSize: '0.7rem',
+                                padding: '0.05rem 0.4rem',
+                                flexShrink: 0,
+                            }}
+                            title={`At least one variant on this allele has a consequence on the canonical transcript (${canonicalMatcher.label})`}
+                        />
+                    )}
                 </span>
             </div>
         );
@@ -675,7 +717,7 @@ export const AlignmentEntry: FunctionComponent<AlignmentEntryProps> = (props: Al
                         options={alleleOptions}
                     />
                     <label htmlFor={`alleles-${props.index}`}>
-                        Alleles
+                        Alleles / Variants
                         <span style={{
                             marginLeft: '0.5rem',
                             fontSize: '0.75rem',

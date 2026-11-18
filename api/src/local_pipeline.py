@@ -63,6 +63,10 @@ class LocalPipelineRunner:
         self.results_dir = Path(results_dir)
         self.max_workers = max_workers
         self.progress_callback = progress_callback
+        # Separate from progress_callback so a scalar update (stage, N
+        # done) is cheap even when the detailed per-entry callback is
+        # swapped in. JobService wires both at start_job time.
+        self.task_event_callback: Optional[Callable[[str, str, Optional[str]], None]] = None
 
         # Ensure directories exist
         self.work_dir.mkdir(parents=True, exist_ok=True)
@@ -75,6 +79,14 @@ class LocalPipelineRunner:
                 self.progress_callback(job_id, stage, sequences_processed)
             except Exception as e:
                 log.warning(f"Progress callback error: {e}")
+
+    def _emit_task_event(self, job_id: str, message: str, entry_id: Optional[str] = None) -> None:
+        """Record a timeline event (per-sequence, per-stage) via callback."""
+        if self.task_event_callback:
+            try:
+                self.task_event_callback(job_id, message, entry_id)
+            except Exception as e:
+                log.warning(f"Task event callback error: {e}")
 
     def run_pipeline(
         self,
@@ -106,6 +118,7 @@ class LocalPipelineRunner:
         try:
             # Stage 1: Parallel sequence retrieval
             self._update_progress(job_id, "SEQUENCE_RETRIEVAL", 0)
+            self._emit_task_event(job_id, f"Fetching {len(seq_regions)} sequence region(s)")
             fasta_files, seqinfo_files = self._run_sequence_retrieval(
                 job_id, seq_regions, job_work_dir
             )
@@ -118,11 +131,13 @@ class LocalPipelineRunner:
 
             # Stage 2: Merge FASTAs and run alignment
             self._update_progress(job_id, "ALIGNMENT", len(seq_regions))
+            self._emit_task_event(job_id, "Running Clustal Omega alignment")
             merged_fasta = self._merge_fastas(fasta_files, job_work_dir)
             alignment_file = self._run_clustal(merged_fasta, job_work_dir)
 
             # Stage 3: Collect and align sequence info
             self._update_progress(job_id, "COLLECTING_RESULTS", len(seq_regions))
+            self._emit_task_event(job_id, "Merging seq-info with alignment coordinates")
             seq_info_file = self._run_collect_seq_info(
                 seqinfo_files, alignment_file, job_work_dir
             )
@@ -152,6 +167,7 @@ class LocalPipelineRunner:
                 log.warning(f"Per-job DB write failed for {job_id}: {e}")
 
             self._update_progress(job_id, "DONE", len(seq_regions))
+            self._emit_task_event(job_id, "Pipeline complete")
 
             log.info(f"Pipeline completed successfully for job {job_id}")
 
@@ -232,11 +248,21 @@ class LocalPipelineRunner:
 
                     sequences_completed += 1
                     self._update_progress(job_id, "SEQUENCE_RETRIEVAL", sequences_completed)
+                    self._emit_task_event(
+                        job_id,
+                        f"Retrieved sequence for {unique_entry_id}",
+                        entry_id=unique_entry_id,
+                    )
 
                 except Exception as e:
                     detail = e.cause if isinstance(e, LocalPipelineError) and e.cause else str(e)
                     log.error(f"Sequence retrieval failed for {unique_entry_id}: {detail}")
                     errors.append(f"{unique_entry_id}: {detail}")
+                    self._emit_task_event(
+                        job_id,
+                        f"FAILED: {unique_entry_id}",
+                        entry_id=unique_entry_id,
+                    )
 
         # An alignment silently missing some of the requested sequences is worse
         # than a failed job, so any failed retrieval fails the whole job.

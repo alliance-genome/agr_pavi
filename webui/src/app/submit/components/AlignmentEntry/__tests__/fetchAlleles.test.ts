@@ -1,4 +1,5 @@
-import { fetchAlleles } from '../serverActions';
+import { fetchAlleles, __resetFetchAllelesCacheForTest } from '../serverActions';
+import { clearAllianceCache } from '@/utils/allianceCache';
 
 // Regression lock for Jennifer Smith's ADCY3 report (2026-11-06): her missense
 // NC_000002.12:g.24918626A>T sits at row 27177 in Alliance's unfiltered
@@ -20,9 +21,14 @@ describe('fetchAlleles query construction', () => {
     const originalDebug = console.debug;
     const originalLog = console.log;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         console.debug = jest.fn();
         console.log = jest.fn();
+        // allianceCache memoizes fetchAlleles by (geneId, requiredAlleleIds),
+        // so without a reset the second test on the same gene reads the first
+        // test's cached (mocked) result and global.fetch is never re-hit.
+        await __resetFetchAllelesCacheForTest();
+        clearAllianceCache();
     });
 
     afterEach(() => {

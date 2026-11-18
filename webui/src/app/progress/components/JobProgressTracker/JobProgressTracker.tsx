@@ -7,11 +7,12 @@ import { Button } from 'primereact/button';
 import { useRouter } from 'next/navigation'
 
 import { fetchJobStatusFull } from './serverActions';
-import { ProgressStep } from './types';
+import { JobStatusResponse, ProgressStep } from './types';
 import styles from './JobProgressTracker.module.css';
 import { dataCache, CACHE_CONFIGS } from '@/utils/dataCache';
 import { useJobHistory } from '@/hooks/useJobHistory';
 import { fetchAlignmentResults, fetchAlignmentSeqInfo } from '@/app/result/components/AlignmentResultView/serverActions';
+import { withBasePath } from '@/utils/basePath';
 
 interface LogEntry {
     timestamp: Date;
@@ -40,6 +41,12 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
     const [lastStatus, setLastStatus] = useState<string>('')
     const [errorMessage, setErrorMessage] = useState<string>('')
     const [lastChecked, setLastChecked] = useState<Date | null>(null)
+    // Per-sequence/per-stage events the backend streamed via SSE
+    // (or returned on each poll). Shown as a running timeline so the
+    // user sees progress at entry granularity, not just stage boundaries.
+    const [taskEvents, setTaskEvents] = useState<string[]>([])
+    const [inputCount, setInputCount] = useState<number>(0)
+    const [sequencesProcessed, setSequencesProcessed] = useState<number>(0)
     const isPollingRef = useRef<boolean>(true)
     const [logs, setLogs] = useState<LogEntry[]>([])
     const logContainerRef = useRef<HTMLDivElement>(null)
@@ -114,17 +121,11 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         setIsPolling(false)
     }, [])
 
-    const pollJobStatus = useCallback(async () => {
-        const response = await fetchJobStatusFull(props.uuidStr)
+    // Shared handler for a job-status response — called from both polling
+    // and SSE paths. All the logging / step / history / redirect side
+    // effects live here so the two transports stay interchangeable.
+    const handleStatusResponse = useCallback((response: JobStatusResponse) => {
         setLastChecked(new Date())
-
-        if (!response) {
-            setErrorMessage(`Failed to fetch job status. Please check the job UUID.`)
-            setLogs(prev => [...prev, { timestamp: new Date(), level: 'error', message: 'Failed to fetch job status from server' }])
-            stopPolling()
-            updateStepsForStatus('failed', undefined, 'Could not connect to server')
-            return
-        }
 
         // Track status and stage changes for logging
         const stageKey = `${response.status}_${response.stage || 'none'}`
@@ -179,7 +180,17 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             if (newEvents.length > 0) {
                 setLogs(prev => [...prev, ...newEvents])
             }
+            // Mirror the task_events into a dedicated state slot so the
+            // per-sequence timeline below the step list has access to
+            // the full ordered list (not just newly-added ones).
+            setTaskEvents(response.task_events)
         }
+
+        // Mirror sequence counts for the per-entry progress bar. Both
+        // SSE and polling push the same shape, so this stays in sync
+        // regardless of transport.
+        if (typeof response.input_count === 'number') setInputCount(response.input_count)
+        if (typeof response.sequences_processed === 'number') setSequencesProcessed(response.sequences_processed)
 
         setLastStatus(response.status)
         updateStepsForStatus(response.status, response.stage, response.error_message)
@@ -241,6 +252,21 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         }
     }, [props.uuidStr, router, updateStepsForStatus, stopPolling, updateJob])
 
+    // Thin polling wrapper — kept for the EventSource-unavailable
+    // fallback path. Fetches the current status and hands it to the
+    // shared handler. On fetch failure, surfaces the error and stops.
+    const pollJobStatus = useCallback(async () => {
+        const response = await fetchJobStatusFull(props.uuidStr)
+        if (!response) {
+            setErrorMessage(`Failed to fetch job status. Please check the job UUID.`)
+            setLogs(prev => [...prev, { timestamp: new Date(), level: 'error', message: 'Failed to fetch job status from server' }])
+            stopPolling()
+            updateStepsForStatus('failed', undefined, 'Could not connect to server')
+            return
+        }
+        handleStatusResponse(response)
+    }, [props.uuidStr, handleStatusResponse, stopPolling, updateStepsForStatus])
+
     // Auto-scroll logs to bottom when new entries are added
     useEffect(() => {
         if (logContainerRef.current) {
@@ -266,28 +292,29 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
         }
     }, [props.uuidStr])
 
-    // Single consolidated polling effect
+    // Prefer SSE over polling. The server pushes `job-status` on each
+    // change; we only fall back to 5s polling if EventSource isn't
+    // available or the stream errors out before `done`. The two paths
+    // call the same handleStatusResponse so the state machinery below
+    // doesn't care which transport fed it.
     useEffect(() => {
-        // Clear any existing interval from previous mount (handles client-side navigation)
         if (intervalIdRef.current) {
             clearInterval(intervalIdRef.current)
             intervalIdRef.current = null
         }
-
-        // Reset polling state for fresh start
         isPollingRef.current = true
         setIsPolling(true)
 
         let mounted = true
+        let eventSource: EventSource | null = null
+        let gotFirstEvent = false
 
-        const startPolling = async () => {
-            // Initial poll
-            await pollJobStatus()
-
-            // Only set up interval if still mounted and should be polling
+        const startPolling = () => {
+            // Initial sync fetch so the UI has something to render while
+            // the first interval tick waits 5s.
+            pollJobStatus()
             if (mounted && isPollingRef.current) {
                 intervalIdRef.current = setInterval(() => {
-                    // Check ref before each poll to ensure we should still be polling
                     if (isPollingRef.current) {
                         pollJobStatus()
                     } else if (intervalIdRef.current) {
@@ -298,7 +325,53 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             }
         }
 
-        startPolling()
+        const tryEventSource = (): boolean => {
+            if (typeof EventSource === 'undefined') return false
+            try {
+                const url = withBasePath(`/api/pipeline-job/${props.uuidStr}/events`)
+                eventSource = new EventSource(url)
+
+                eventSource.addEventListener('job-status', (ev) => {
+                    gotFirstEvent = true
+                    try {
+                        const data = JSON.parse((ev as MessageEvent).data) as JobStatusResponse
+                        handleStatusResponse(data)
+                    } catch (e) {
+                        console.error('Bad job-status payload:', e)
+                    }
+                })
+
+                eventSource.addEventListener('done', () => {
+                    // Server told us it's done streaming (terminal state or
+                    // timeout). handleStatusResponse already triggered any
+                    // redirect/history update; we just close.
+                    eventSource?.close()
+                    eventSource = null
+                })
+
+                eventSource.onerror = () => {
+                    // If we never received even one event, the stream
+                    // likely never worked (middlebox, CORS, etc.) — fall
+                    // back to polling. If we DID get events, errors here
+                    // are usually just the normal close after `done`, so
+                    // we don't need to do anything.
+                    if (!gotFirstEvent && mounted) {
+                        eventSource?.close()
+                        eventSource = null
+                        console.warn('EventSource failed before first event; falling back to polling')
+                        startPolling()
+                    }
+                }
+                return true
+            } catch (e) {
+                console.warn('EventSource threw synchronously; falling back to polling:', e)
+                return false
+            }
+        }
+
+        if (!tryEventSource()) {
+            startPolling()
+        }
 
         return () => {
             mounted = false
@@ -306,6 +379,10 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
             if (intervalIdRef.current) {
                 clearInterval(intervalIdRef.current)
                 intervalIdRef.current = null
+            }
+            if (eventSource) {
+                eventSource.close()
+                eventSource = null
             }
         }
     }, [props.uuidStr]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -465,6 +542,69 @@ export const JobProgressTracker: FunctionComponent<JobProgressTrackerProps> = (p
                                 <p style={{ margin: '0.5rem 0 0 0', color: 'var(--agr-success-dark, #166534)' }}>
                                     Redirecting to results page...
                                 </p>
+                            </div>
+                        )}
+
+                        {/* Per-sequence timeline (local-pipeline mode).
+                            Falls back to invisibility if no task_events have
+                            been published yet or if we're running under a
+                            backend that doesn't emit them. */}
+                        {inputCount > 0 && (
+                            <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--agr-gray-200, #e5e7eb)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
+                                    <strong style={{ fontSize: '0.9rem' }}>Sequences</strong>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--agr-gray-600)' }}>
+                                        {sequencesProcessed} / {inputCount} retrieved
+                                    </span>
+                                </div>
+                                <div
+                                    role="progressbar"
+                                    aria-valuenow={sequencesProcessed}
+                                    aria-valuemin={0}
+                                    aria-valuemax={inputCount}
+                                    style={{
+                                        height: 8,
+                                        borderRadius: 4,
+                                        background: 'var(--agr-gray-200, #e5e7eb)',
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            width: `${Math.round((sequencesProcessed / inputCount) * 100)}%`,
+                                            height: '100%',
+                                            background: 'var(--agr-primary, #2563eb)',
+                                            transition: 'width 200ms ease',
+                                        }}
+                                    />
+                                </div>
+
+                                {taskEvents.length > 0 && (
+                                    <ol style={{
+                                        margin: '0.75rem 0 0',
+                                        paddingLeft: '1.25rem',
+                                        maxHeight: 220,
+                                        overflowY: 'auto',
+                                        fontSize: '0.8rem',
+                                        color: 'var(--agr-gray-700, #374151)',
+                                    }}>
+                                        {taskEvents.map((ev, i) => {
+                                            const failed = ev.startsWith('FAILED:')
+                                            return (
+                                                <li
+                                                    key={`${i}-${ev}`}
+                                                    style={{
+                                                        padding: '0.125rem 0',
+                                                        color: failed ? 'var(--agr-error, #ef4444)' : 'inherit',
+                                                        fontWeight: failed ? 600 : 400,
+                                                    }}
+                                                >
+                                                    {ev}
+                                                </li>
+                                            )
+                                        })}
+                                    </ol>
+                                )}
                             </div>
                         )}
                     </Card>

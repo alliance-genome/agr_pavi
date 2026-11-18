@@ -9,7 +9,7 @@ import json
 import os
 import sqlite3
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -75,6 +75,14 @@ class LocalJobStore:
             )
         """
         )
+        # task_events is append-only JSON of per-stage/per-sequence
+        # progress events for the /progress UI timeline. Added via
+        # ALTER so existing jobs.db files keep working (SQLite ignores
+        # the duplicate add on re-init via try/except).
+        try:
+            cursor.execute("ALTER TABLE jobs ADD COLUMN task_events TEXT")
+        except sqlite3.OperationalError:
+            pass  # Column already exists — fresh schemas get it from CREATE too in future
 
         # Create index for faster status queries
         cursor.execute(
@@ -89,8 +97,296 @@ class LocalJobStore:
         """
         )
 
+        # Share tokens: a short URL-safe token that grants read-only access
+        # to a specific job's results without needing the UUID. The job UUID
+        # is kept out of the public URL to avoid letting someone sweep /jobs.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS share_tokens (
+                token       TEXT PRIMARY KEY,
+                job_id      TEXT NOT NULL,
+                created_at  TEXT NOT NULL,
+                expires_at  TEXT,
+                revoked_at  TEXT,
+                last_used   TEXT,
+                use_count   INTEGER DEFAULT 0,
+                FOREIGN KEY (job_id) REFERENCES jobs(job_id)
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_share_tokens_job_id ON share_tokens(job_id)"
+        )
+
+        # Access log: one row per API request, written by the HTTP
+        # middleware. `path_template` is the UUID-normalised route
+        # ("/api/pipeline-job/{uuid}/export") so Top-N aggregates don't
+        # fragment per job; `job_uuid` and `export_format` are extracted
+        # when present so the stats endpoint can group without re-parsing
+        # path strings every query.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS access_log (
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                ts             TEXT NOT NULL,
+                method         TEXT NOT NULL,
+                path           TEXT NOT NULL,
+                path_template  TEXT NOT NULL,
+                status         INTEGER NOT NULL,
+                duration_ms    REAL,
+                job_uuid       TEXT,
+                export_format  TEXT
+            )
+            """
+        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_access_log_ts ON access_log(ts)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_access_log_job_uuid ON access_log(job_uuid)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_access_log_path_template ON access_log(path_template)")
+
         conn.commit()
         log.info(f"Initialized local job store at {self.db_path}")
+
+    # ------------------------------------------------------------------
+    # Access-log methods
+    # ------------------------------------------------------------------
+
+    # Access-log retention: rows older than this get swept on write.
+    # ~90 days is enough history for weekly review while bounding the
+    # table at roughly `requests_per_day * 90` — on the dev box with
+    # a few hundred req/day that's at most tens of thousands of rows.
+    ACCESS_LOG_RETENTION_DAYS = 90
+    # Probability of running the sweep on any given write. Keeps the
+    # amortised cost of logging near-zero (one DELETE per ~100 writes
+    # instead of one per write) while still trimming regularly on a
+    # live system.
+    ACCESS_LOG_SWEEP_PROBABILITY = 0.01
+
+    def log_access(
+        self,
+        ts: str,
+        method: str,
+        path: str,
+        path_template: str,
+        status: int,
+        duration_ms: float,
+        job_uuid: Optional[str] = None,
+        export_format: Optional[str] = None,
+    ) -> None:
+        """Append one row to the access log. Must be cheap: called on
+        every request. Errors are logged and swallowed — losing a telemetry
+        row must never surface as a 500 to the user."""
+        try:
+            conn = self._get_connection()
+            conn.execute(
+                "INSERT INTO access_log "
+                "(ts, method, path, path_template, status, duration_ms, job_uuid, export_format) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (ts, method, path, path_template, status, duration_ms, job_uuid, export_format),
+            )
+            conn.commit()
+        except Exception as e:  # intentionally broad: never crash the hot path
+            log.warning(f"Failed to persist access log row: {e}")
+            return
+
+        # Opportunistic retention sweep: cheap on average, keeps the table
+        # bounded without needing a separate scheduler process.
+        import random
+        if random.random() < self.ACCESS_LOG_SWEEP_PROBABILITY:
+            try:
+                self.trim_access_log()
+            except Exception as e:
+                log.warning(f"Access log trim failed: {e}")
+
+    # ------------------------------------------------------------------
+    # Task events (per-sequence progress timeline)
+    # ------------------------------------------------------------------
+
+    def append_task_event(self, job_id: str, message: str, entry_id: Optional[str] = None) -> None:
+        """
+        Append a task event to a job's running timeline. Each event is
+        {ts, message, entry_id?}. Stored as the full JSON list so a
+        single UPDATE replaces the whole value — tiny lists (one per
+        sequence), so cost is negligible vs. a separate events table.
+        """
+        try:
+            conn = self._get_connection()
+            row = conn.execute(
+                "SELECT task_events FROM jobs WHERE job_id = ?",
+                (job_id,),
+            ).fetchone()
+            if row is None:
+                return
+            existing: list[dict[str, Any]] = []
+            raw = row[0]
+            if raw:
+                try:
+                    existing = json.loads(raw)
+                    if not isinstance(existing, list):
+                        existing = []
+                except (ValueError, TypeError):
+                    existing = []
+            event: dict[str, Any] = {
+                "ts": datetime.utcnow().isoformat() + "Z",
+                "message": message,
+            }
+            if entry_id is not None:
+                event["entry_id"] = entry_id
+            existing.append(event)
+            conn.execute(
+                "UPDATE jobs SET task_events = ? WHERE job_id = ?",
+                (json.dumps(existing), job_id),
+            )
+            conn.commit()
+        except Exception as e:
+            # Telemetry failure must never crash the pipeline.
+            log.warning(f"Failed to append task event for {job_id}: {e}")
+
+    def get_task_events(self, job_id: str) -> list[dict[str, Any]]:
+        """Return the task-event list for a job, or [] if none."""
+        try:
+            conn = self._get_connection()
+            row = conn.execute(
+                "SELECT task_events FROM jobs WHERE job_id = ?",
+                (job_id,),
+            ).fetchone()
+            if row is None or not row[0]:
+                return []
+            parsed = json.loads(row[0])
+            return parsed if isinstance(parsed, list) else []
+        except Exception:
+            return []
+
+    # ------------------------------------------------------------------
+    # Backup
+    # ------------------------------------------------------------------
+
+    def snapshot(self, out_path: Path) -> int:
+        """
+        Online SQLite backup to `out_path`. Safe to call while the DB
+        is live — SQLite's backup API locks pages one at a time instead
+        of taking the whole DB. Returns the on-disk size of the snapshot.
+        """
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        src = self._get_connection()
+        with sqlite3.connect(str(out_path)) as dst:
+            src.backup(dst)
+        return out_path.stat().st_size
+
+    def list_snapshots(self, snapshot_dir: Path) -> list[dict[str, Any]]:
+        """Return metadata for every *.sqlite file in `snapshot_dir`."""
+        if not snapshot_dir.exists():
+            return []
+        rows = []
+        for p in sorted(snapshot_dir.glob("jobs-*.sqlite")):
+            try:
+                st = p.stat()
+            except OSError:
+                continue
+            rows.append({
+                "name": p.name,
+                "bytes": st.st_size,
+                "created_at": datetime.fromtimestamp(st.st_mtime).isoformat() + "Z",
+            })
+        return rows
+
+    def prune_snapshots(self, snapshot_dir: Path, keep: int) -> int:
+        """Delete all but the `keep` most recent snapshots. Returns the
+        number removed. Keeps the newest files by mtime, which matches
+        the backup script's intent (latest history takes precedence)."""
+        if not snapshot_dir.exists() or keep < 0:
+            return 0
+        snaps = sorted(
+            snapshot_dir.glob("jobs-*.sqlite"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        removed = 0
+        for p in snaps[keep:]:
+            try:
+                p.unlink()
+                removed += 1
+            except OSError as e:
+                log.warning(f"Failed to prune snapshot {p}: {e}")
+        return removed
+
+    def trim_access_log(self, retention_days: Optional[int] = None) -> int:
+        """Delete access_log rows older than `retention_days`. Returns
+        the number of rows removed. Safe to call manually from an admin
+        endpoint for a forced sweep."""
+        days = retention_days if retention_days is not None else self.ACCESS_LOG_RETENTION_DAYS
+        cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat() + "Z"
+        conn = self._get_connection()
+        cur = conn.execute("DELETE FROM access_log WHERE ts < ?", (cutoff,))
+        conn.commit()
+        return cur.rowcount
+
+    # ------------------------------------------------------------------
+    # Share-token methods
+    # ------------------------------------------------------------------
+
+    def create_share_token(
+        self, token: str, job_id: str, expires_at: Optional[str] = None
+    ) -> dict[str, Any]:
+        """Store a new share token for a job."""
+        conn = self._get_connection()
+        conn.execute(
+            "INSERT INTO share_tokens (token, job_id, created_at, expires_at) "
+            "VALUES (?, ?, ?, ?)",
+            (token, job_id, datetime.utcnow().isoformat(), expires_at),
+        )
+        conn.commit()
+        return {"token": token, "job_id": job_id, "expires_at": expires_at}
+
+    def resolve_share_token(self, token: str) -> Optional[dict[str, Any]]:
+        """
+        Resolve a share token to its job_id. Returns None if the token is
+        unknown, revoked, or expired. Also bumps last_used / use_count.
+        """
+        conn = self._get_connection()
+        row = conn.execute(
+            "SELECT token, job_id, created_at, expires_at, revoked_at "
+            "FROM share_tokens WHERE token = ?",
+            (token,),
+        ).fetchone()
+        if row is None:
+            return None
+        if row["revoked_at"] is not None:
+            return None
+        if row["expires_at"]:
+            try:
+                if datetime.fromisoformat(row["expires_at"]) < datetime.utcnow():
+                    return None
+            except ValueError:
+                pass
+        conn.execute(
+            "UPDATE share_tokens SET last_used = ?, use_count = use_count + 1 "
+            "WHERE token = ?",
+            (datetime.utcnow().isoformat(), token),
+        )
+        conn.commit()
+        return dict(row)
+
+    def list_share_tokens(self, job_id: str) -> list[dict[str, Any]]:
+        """Return all share tokens issued for a job (including revoked)."""
+        conn = self._get_connection()
+        rows = conn.execute(
+            "SELECT token, job_id, created_at, expires_at, revoked_at, "
+            "last_used, use_count FROM share_tokens WHERE job_id = ? "
+            "ORDER BY created_at DESC",
+            (job_id,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def revoke_share_token(self, token: str) -> bool:
+        """Revoke a share token. Returns True if a row was updated."""
+        conn = self._get_connection()
+        cur = conn.execute(
+            "UPDATE share_tokens SET revoked_at = ? "
+            "WHERE token = ? AND revoked_at IS NULL",
+            (datetime.utcnow().isoformat(), token),
+        )
+        conn.commit()
+        return cur.rowcount > 0
 
     def create_job(
         self, job_id: str, input_data: list[dict[str, Any]], input_count: int = 0
