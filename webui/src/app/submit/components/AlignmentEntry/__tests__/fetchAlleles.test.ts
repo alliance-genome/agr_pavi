@@ -21,13 +21,13 @@ describe('fetchAlleles query construction', () => {
     const originalDebug = console.debug;
     const originalLog = console.log;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         console.debug = jest.fn();
         console.log = jest.fn();
         // allianceCache memoizes fetchAlleles by (geneId, requiredAlleleIds),
         // so without a reset the second test on the same gene reads the first
         // test's cached (mocked) result and global.fetch is never re-hit.
-        __resetFetchAllelesCacheForTest();
+        await __resetFetchAllelesCacheForTest();
         clearAllianceCache();
     });
 

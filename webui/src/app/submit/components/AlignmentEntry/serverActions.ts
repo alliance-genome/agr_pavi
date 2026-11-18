@@ -392,8 +392,9 @@ export async function fetchAlleles(geneId: string, requiredAlleleIds: string[] =
 }
 
 /** Escape hatch for tests: drop the per-gene allele cache so the next
- *  call re-hits fetch(). Not exported for app code. */
-export function __resetFetchAllelesCacheForTest(): void {
+ *  call re-hits fetch(). Async because this module is `"use server"` —
+ *  every exported function must return a Promise. Not for app code. */
+export async function __resetFetchAllelesCacheForTest(): Promise<void> {
     _fetchAllelesCached.clear()
 }
 
