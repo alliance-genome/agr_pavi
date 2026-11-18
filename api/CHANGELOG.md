@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.4...api-v0.7.0) (2026-11-18)
+
+
+### Features
+
+* **result:** replace Nightingale viewer with msa-canvas + preserve sibling panels ([#1098](https://github.com/alliance-genome/agr_pavi/issues/1098)) ([c9671ae](https://github.com/alliance-genome/agr_pavi/commit/c9671ae3117e81a3455755422cc45a105d774163))
+
 ## [0.6.4](https://github.com/alliance-genome/agr_pavi/compare/api-v0.6.3...api-v0.6.4) (2026-10-09)
 
 
