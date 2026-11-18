@@ -22,10 +22,14 @@ test.describe('dark mode', () => {
         await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
         expect(await page.evaluate(() => window.localStorage.getItem('pavi_theme'))).toBe('dark');
 
-        // Cycle 3: Dark → Auto — data-theme attribute cleared.
+        // Cycle 3: Dark → Auto — data-theme resolves to the OS preference.
+        // useTheme() deliberately keeps the attribute set to the resolved value
+        // ('light' or 'dark') in Auto mode so CSS rules keyed off [data-theme="dark"]
+        // keep firing; the user's choice is tracked separately on data-theme-mode.
         await toggle.click();
-        const dataTheme = await page.locator('html').getAttribute('data-theme');
-        expect(dataTheme).toBeNull();
+        await expect(page.locator('html')).toHaveAttribute('data-theme-mode', 'auto');
+        const autoResolved = await page.locator('html').getAttribute('data-theme');
+        expect(autoResolved).toMatch(/^(light|dark)$/);
         expect(await page.evaluate(() => window.localStorage.getItem('pavi_theme'))).toBe('auto');
     });
 

@@ -41,22 +41,21 @@ export const mockJobStatusFailed = {
     error_message: 'Mock error: Sequence retrieval failed',
 };
 
+// Two blocks of exactly 60 columns each. Both sequences must have the
+// same column count — the msa-canvas adapter (fromPavi) rejects uneven
+// rows at runtime ("Sequence lengths differ inside an alignment block").
+// clustal-js parses more tolerantly, so the previous cosmetic mock went
+// undetected until the viewer swap.
 export const mockAlignmentResult = `CLUSTAL O(1.2.4) multiple sequence alignment
 
 
-BRCA1_HUMAN         MDLSALRVEEVQNVINAMQKILECPICLELIKEPVSTKCDHIFCKFCMLKLLNQKKGPS 60
-BRCA1_MOUSE         MDLSALRIEEVQNVVNAMQKILECPICLELIKEPVSTKCDHIFCKFCMLKLLNQKNGPN 60
-                    ********:*****:*************************.************.*:*
+BRCA1_HUMAN         MDLSALRVEEVQNVINAMQKILECPICLELIKEPVSTKCDHIFCKFCMLKLLNQKKGPST  60
+BRCA1_MOUSE         MDLSALRIEEVQNVVNAMQKILECPICLELIKEPVSTKCDHIFCKFCMLKLLNQKNGPNT  60
+                    ********:*****:*************************************.*:*:*
 
-BRCA1_HUMAN         QCPLCKNDITKRSLQESTRFSQLVEELLKIICAFQLDTGLEYANSYNFAKKENNSPEHL 120
-BRCA1_MOUSE         QCPLCKNDITK-SLQESTRFSQIVEELLKIICAFQLDTGLEYANSYNFAKKENNNPEHL 119
-                    ***********:********:*****************.
-
-************:** :***
-
-BRCA1_HUMAN         KDEVSIIQSMGYRNRAKRLLQSEPENPSLQETSLSVQLSNLGTVRTLRTKQRIQPQKTL 180
-BRCA1_MOUSE         NDEVSIIQSMGYRNRAKRLLQSEPENPSLQETSQSVQLSNLGTVRTLRTKQRIQPQKTL 179
-                    :**********************************:*************************
+BRCA1_HUMAN         QCPLCKNDITKRSLQESTRFSQLVEELLKIICAFQLDTGLEYANSYNFAKKENNSPEHLK 119
+BRCA1_MOUSE         QCPLCKNDITK-SLQESTRFSQIVEELLKIICAFQLDTGLEYANSYNFAKKENNNPEHLN 118
+                    ***********:**********:*****************************:****:
 `;
 
 // Aligned sequence info, keyed by the sequence names used in the alignment
