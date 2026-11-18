@@ -136,8 +136,8 @@ export default function GuidePage() {
                             <li>
                                 <h4 className={styles.stepTitle}>(Optional) Add variants</h4>
                                 <p>
-                                    Open the <strong>Alleles</strong> box to include variants; paste a full
-                                    HGVS to add a specific one.
+                                    Open the <strong>Alleles / Variants</strong> box to include known sequence changes
+                                    at this gene; paste a full HGVS to add a specific one.
                                 </p>
                             </li>
                             <li>
@@ -220,12 +220,17 @@ export default function GuidePage() {
                             </figcaption>
                         </figure>
 
-                        <h3>Adding variants (the Alleles box)</h3>
+                        <h3>Adding variants (the Alleles / Variants box)</h3>
                         <p>
-                            The <strong>Alleles (optional)</strong> box adds known variants. It loads the
-                            gene&rsquo;s variant-bearing alleles the first time you open it; each option shows
-                            the allele name, its ID, and the variant name or a <em>&ldquo;{'{n}'} variants&rdquo;</em>{' '}
-                            badge.
+                            The <strong>Alleles / Variants (optional)</strong> box adds known sequence changes
+                            at this gene. Alliance exposes both concepts under one feed: named <em>alleles</em>
+                            (mutant lines curated by SGD, MGI, FlyBase, ZFIN, WormBase) and bare{' '}
+                            <em>variants</em> (HGVS-identified changes, dominant on RGD and human data) &mdash;
+                            which one you see depends on the gene&rsquo;s source MOD. It loads on first open;
+                            each option shows the name, ID, and the variant name or a{' '}
+                            <em>&ldquo;{'{n}'} variants&rdquo;</em> badge. A blue <strong>MANE Select</strong>{' '}
+                            (or <em>canonical</em>) chip on a row means at least one of its variants lands
+                            on the gene&rsquo;s canonical transcript.
                         </p>
                         <div className={`${styles.callout} ${styles.calloutWarn}`}>
                             <span className={styles.calloutLabel}>Not every variant is listed</span>
