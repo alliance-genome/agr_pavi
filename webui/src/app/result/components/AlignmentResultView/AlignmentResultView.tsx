@@ -1,6 +1,7 @@
 'use client';
 
-import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react';
+import React, { FunctionComponent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { parse as parseClustal } from 'clustal-js';
 
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -24,11 +25,16 @@ import { useJobHistory } from '@/hooks/useJobHistory';
 import { deduplicateSequences } from '../../utils/deduplicateSequences';
 import { PublicationFigureDialog } from '../PublicationFigure/PublicationFigureDialog';
 
-const InteractiveAlignment = dynamic(() => import('../InteractiveAlignment/InteractiveAlignment'), { ssr: false })
-const VirtualizedAlignment = dynamic(() => import('../InteractiveAlignment/VirtualizedAlignment'), { ssr: false })
-// Prototype: swap-in of @nuin/msa-canvas via its React component + fromPavi
-// adapter. See InteractiveAlignment/CanvasAlignment.tsx for the bridge.
+// Canvas MSA viewer via @nuin/msa-canvas (fromPavi adapter inside).
+// Replaces the previous two Nightingale-based wrappers that lived in
+// this file (VirtualizedAlignment + InteractiveAlignment, both deleted
+// on the feat/msa-canvas-replace branch).
 const CanvasAlignment = dynamic(() => import('../InteractiveAlignment/CanvasAlignment'), { ssr: false })
+// Sibling panels under the canvas — PAVI-specific context the canvas kit
+// doesn't know about. Rendered only in 'canvas' display mode; hidden in
+// plain text mode because they only make sense against the visual grid.
+const HotspotPanel = dynamic(() => import('../InteractiveAlignment/HotspotPanel').then(m => m.HotspotPanel), { ssr: false })
+const ProteinDomainsPanel = dynamic(() => import('../InteractiveAlignment/ProteinDomainsPanel').then(m => m.ProteinDomainsPanel), { ssr: false })
 
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
@@ -37,15 +43,13 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const router = useRouter()
     const { getJob } = useJobHistory()
 
-    const [displayMode, setDisplayMode] = useState('virtualized' as displayModeType)
+    const [displayMode, setDisplayMode] = useState('canvas' as displayModeType)
     type displayModeOptionsType = {
         label: string,
         value: displayModeType
     }
     const displayModeOptions: displayModeOptionsType[] = [
-        {label: 'Interactive (Virtualized)', value: 'virtualized'},
-        {label: 'Interactive (Legacy)', value: 'interactive'},
-        {label: 'Canvas (msa-canvas, preview)', value: 'canvas'},
+        {label: 'Interactive', value: 'canvas'},
         {label: 'Text', value: 'text'}
     ]
 
@@ -56,6 +60,20 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const [loadError, setLoadError] = useState<ResultsUnavailable | null>(null)
     const [loadedAt, setLoadedAt] = useState<Date | undefined>(undefined)
     const [figureDialogVisible, setFigureDialogVisible] = useState<boolean>(false)
+
+    // Parse the Clustal alignment once per payload. The sibling panels under
+    // the canvas (HotspotPanel + ProteinDomainsPanel) both need {name,sequence}
+    // tuples to map alignment columns and (in the domains panel) to walk the
+    // gapped sequence for InterPro residue-to-column mapping.
+    const parsedAlignment = useMemo<Array<{ name: string; sequence: string }>>(() => {
+        if (!alignmentResult) return []
+        try {
+            const parsed = parseClustal(alignmentResult) as { alns: Array<{ id: string; seq: string }> }
+            return (parsed.alns ?? []).map(a => ({ name: a.id, sequence: a.seq }))
+        } catch {
+            return []
+        }
+    }, [alignmentResult])
 
     const downloadMenuRef = useRef<Menu>(null)
     const downloadExport = useCallback((format: string) => {
@@ -68,18 +86,10 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     // in; for very wide alignments the file gets big but still opens in
     // any browser and is trivially convertible to PNG.
     const downloadAlignmentSvg = useCallback(async () => {
-        if (!alignmentResult) return
-        const [{ parse }, { renderAlignmentSvg }] = await Promise.all([
-            import('clustal-js'),
-            import('@/utils/alignmentSvg'),
-        ])
-        const parsed = parse(alignmentResult)
-        const sequences = (parsed['alns'] as Array<{ id: string; seq: string }>).map(a => ({
-            name: a.id,
-            sequence: a.seq,
-        }))
+        if (!alignmentResult || parsedAlignment.length === 0) return
+        const { renderAlignmentSvg } = await import('@/utils/alignmentSvg')
         const svg = renderAlignmentSvg({
-            sequences,
+            sequences: parsedAlignment,
             title: `PAVI alignment ${props.uuidStr}`,
         })
         const blob = new Blob([svg], { type: 'image/svg+xml' })
@@ -91,7 +101,7 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
         a.click()
         a.remove()
         URL.revokeObjectURL(url)
-    }, [alignmentResult, props.uuidStr])
+    }, [alignmentResult, parsedAlignment, props.uuidStr])
 
     const downloadMenuItems = [
         { label: 'HTML report', icon: 'pi pi-file-pdf', command: () => downloadExport('html') },
@@ -449,9 +459,17 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                             </div>
                         ) : alignmentResult ? (
                             <>
-                                {displayMode === 'virtualized' && <VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />}
-                                {displayMode === 'interactive' && <InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} />}
-                                {displayMode === 'canvas' && <CanvasAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />}
+                                {displayMode === 'canvas' && (
+                                    <>
+                                        <CanvasAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />
+                                        {parsedAlignment.length > 0 && (
+                                            <>
+                                                <HotspotPanel alignmentData={parsedAlignment} seqInfoDict={alignmentSeqInfo} />
+                                                <ProteinDomainsPanel alignmentData={parsedAlignment} seqInfoDict={alignmentSeqInfo} />
+                                            </>
+                                        )}
+                                    </>
+                                )}
                                 {displayMode === 'text' && <TextAlignment alignmentResult={alignmentResult} />}
                             </>
                         ) : (
