@@ -1154,16 +1154,19 @@ async def stream_pipeline_job_events(uuid: UUID) -> StreamingResponse:
     def _snapshot() -> Optional[dict[str, Any]]:
         """Return the same shape the GET /pipeline-job/{uuid} endpoint sends."""
         try:
+            job: Pipeline_job
             if USE_STEP_FUNCTIONS or USE_LOCAL_PIPELINE:
                 info = get_job_service().get_job(uuid_str)
                 if info is None:
                     return None
                 job = Pipeline_job.from_job_info(info)
             else:
-                job = get_pipeline_job(uuid)
-                if job is None:
+                maybe_job = get_pipeline_job(uuid)
+                if maybe_job is None:
                     return None
-            return job.model_dump(mode="json", exclude_none=True)
+                job = maybe_job
+            dumped: dict[str, Any] = job.model_dump(mode="json", exclude_none=True)
+            return dumped
         except Exception as e:
             logger.warning(f"SSE snapshot failed for {uuid_str}: {e}")
             return None
