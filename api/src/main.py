@@ -316,7 +316,7 @@ async def _backup_loop() -> None:
 
 
 @asynccontextmanager
-async def _lifespan(_app: Any) -> Any:
+async def _lifespan(_app: Any) -> Any:  # noqa: U101 — FastAPI lifespan signature requires the app arg
     """Start the background snapshot loop at process startup. The task is
     long-lived and gets cancelled on shutdown — any in-flight backup will
     be interrupted but the next startup will catch up."""
@@ -1120,7 +1120,7 @@ async def get_pipeline_job_handler(uuid: UUID) -> Pipeline_job:
     "/pipeline-job/{uuid}/events",
     responses={404: {"model": HTTP_exception_response}},
 )
-async def stream_pipeline_job_events(uuid: UUID) -> StreamingResponse:
+async def stream_pipeline_job_events(uuid: UUID) -> StreamingResponse:  # noqa: C901 — SSE protocol state machine (snapshot/diff/heartbeat/timeout branches) is inherent to the handler shape
     """
     Server-Sent Events stream of job status.
 
@@ -1518,7 +1518,7 @@ _BATCH_EXTENSIONS: dict[str, str] = {
         501: {"model": HTTP_exception_response},
     },
 )
-async def batch_export_pipeline_jobs(body: BatchExportRequest) -> StreamingResponse:
+async def batch_export_pipeline_jobs(body: BatchExportRequest) -> StreamingResponse:  # noqa: C901 — batch-export fan-out across per-format writers + streaming ZIP is inherent to the handler shape
     """
     Download multiple finished jobs as a single zip archive.
 
