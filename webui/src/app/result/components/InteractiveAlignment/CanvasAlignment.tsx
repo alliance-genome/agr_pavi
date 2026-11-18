@@ -10,10 +10,9 @@
 // data race that forced our hasAutoZoomed workaround for the fullscreen
 // viewer doesn't apply here.
 
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AlignmentViewer } from '@nuin/msa-canvas/react';
 import { fromPavi, type PaviSequenceInfo } from '@nuin/msa-canvas/pavi';
-import type { Viewport } from '@nuin/msa-canvas';
 import '@nuin/msa-canvas/style.css';
 
 import type { SeqInfoDict } from './types';
@@ -70,88 +69,77 @@ export function CanvasAlignment({ alignmentResult, seqInfoDict }: CanvasAlignmen
         [alignmentResult, seqInfoDict],
     );
 
-    // Track the current viewport purely for diagnostics / future overlay
-    // sync (ProteinDomainsPanel + hotspot track need to listen to this
-    // once they coexist with the canvas viewer).
-    const [viewport, setViewport] = useState<Viewport | null>(null);
-    const handleViewportChange = useCallback((v: Viewport) => setViewport(v), []);
+    // IMPORTANT: memoize the options object. The React wrapper
+    // (`mountViewer.update`) calls `viewer.setOptions(options)` whenever
+    // the options prop's identity changes, and setOptions internally
+    // closes any open popup menu AND overrides the current colorScheme.
+    // An inline `{...}` literal would be a new reference every render,
+    // which turned the Color-scheme / Export / Order dropdowns into
+    // no-ops (they opened then closed in the same tick).
+    const options = useMemo(
+        () => ({
+            theme,
+            height: 820,
+            colorScheme: 'clustal2',
+            labelWidth: 240,
+            visibility: {
+                overview: true,
+                tracks: true,
+                inspector: true,
+                inspectorTabs: true,
+                toolbar: true,
+                search: true,
+                goTo: true,
+                motif: true,
+                order: true,
+                colorScheme: true,
+                colorMode: true,
+                zoom: true,
+                fit: true,
+                fullscreen: true,
+                export: true,
+                theme: true,
+                logo: true,
+                logoToggle: true,
+                modalFrequency: true,
+                gapFraction: true,
+                consensus: true,
+                reference: true,
+                pinReference: true,
+                rowSelection: true,
+                rowPinning: true,
+                rowNames: true,
+                rowSpecies: true,
+                residueLetters: true,
+                annotationMarks: true,
+                selectionOverlay: true,
+                positionTab: true,
+                featuresTab: true,
+                compareTab: true,
+                colorsTab: true,
+                statisticsScope: true,
+                alphabet: true,
+                ruler: true,
+                labels: true,
+                labelResize: true,
+                status: true,
+                statusSummary: true,
+                statusDetails: true,
+                // Suppress the kit's "+ Open alignment" button — PAVI
+                // supplies the alignment from the API, so the file-upload
+                // widget is confusing dead weight here.
+                open: false,
+            },
+        }),
+        [theme],
+    );
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <AlignmentViewer
-                alignment={alignment}
-                options={{
-                    theme,
-                    // Larger surface — the previous 600 clipped to 8 rows
-                    // on a 17-sequence alignment. 820 shows ~13 at the
-                    // default row height while leaving the stats row + the
-                    // inspector panel readable.
-                    height: 820,
-                    // Protein alignment → default to the kit's Clustal2
-                    // palette so the visual read matches the existing
-                    // Nightingale viewer when a user flips engines.
-                    colorScheme: 'clustal2',
-                    // Wider label gutter so full species-tagged row names
-                    // (e.g. "APL1_WB:C42D8.8a.1_REF") don't ellipsise.
-                    labelWidth: 240,
-                    visibility: {
-                        // Turn on every feature the kit ships with that
-                        // our Nightingale wrapper doesn't currently
-                        // expose. Users can hide individual pieces from
-                        // the kit's own toolbar at runtime.
-                        overview: true,
-                        tracks: true,
-                        inspector: true,
-                        inspectorTabs: true,
-                        toolbar: true,
-                        search: true,
-                        goTo: true,
-                        motif: true,
-                        order: true,
-                        colorScheme: true,
-                        colorMode: true,
-                        zoom: true,
-                        fit: true,
-                        fullscreen: true,
-                        export: true,
-                        theme: true,
-                        logo: true,                 // sequence-logo overlay
-                        logoToggle: true,
-                        modalFrequency: true,       // per-column stat bars
-                        gapFraction: true,
-                        consensus: true,
-                        reference: true,            // highlight the pinned reference row
-                        pinReference: true,
-                        rowSelection: true,
-                        rowPinning: true,
-                        rowNames: true,
-                        rowSpecies: true,
-                        residueLetters: true,
-                        annotationMarks: true,
-                        selectionOverlay: true,
-                        positionTab: true,
-                        featuresTab: true,
-                        compareTab: true,
-                        colorsTab: true,
-                        statisticsScope: true,
-                        alphabet: true,
-                        ruler: true,
-                        labels: true,
-                        labelResize: true,
-                        status: true,
-                        statusSummary: true,
-                        statusDetails: true,
-                    },
-                }}
-                onViewportChange={handleViewportChange}
-                className="ak-viewer"
-            />
-            {viewport && (
-                <div style={{ fontSize: '0.7rem', color: 'var(--agr-text-muted)', fontFamily: 'ui-monospace, monospace' }}>
-                    canvas viewport: cols {viewport.start}-{viewport.end} · rows {viewport.firstRow}-{viewport.lastRow}
-                </div>
-            )}
-        </div>
+        <AlignmentViewer
+            alignment={alignment}
+            options={options}
+            className="ak-viewer"
+        />
     );
 }
 
