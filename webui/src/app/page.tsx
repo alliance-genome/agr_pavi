@@ -74,7 +74,7 @@ export default function HomePage() {
                     <div className={styles.step}>
                         <div className={styles.stepNumber}>1</div>
                         <h3>Submit Sequences</h3>
-                        <p>Enter gene IDs or paste protein sequences in FASTA format.</p>
+                        <p>Enter gene IDs or symbols, pick transcripts, and add known variants (HGVS or allele names).</p>
                     </div>
                     <div className={styles.stepConnector} aria-hidden="true" />
                     <div className={styles.step}>

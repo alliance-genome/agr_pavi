@@ -19,7 +19,7 @@ export const FormIntroduction: React.FC = () => {
                         <span className={styles.stepNumber}>1</span>
                         <div className={styles.stepContent}>
                             <strong>Add Sequences</strong>
-                            <span>Search for genes by ID or symbol, or paste FASTA sequences</span>
+                            <span>Search for genes by ID or symbol and add known variants (HGVS or allele names)</span>
                         </div>
                     </div>
                     <div className={styles.step}>
