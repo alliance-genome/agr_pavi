@@ -83,16 +83,6 @@ export const HELP_CONTENT = {
             <p>This allows comparison of mutant sequences against wild-type.</p>
         </div>
     ),
-    fastaInput: (
-        <div>
-            <strong>FASTA Sequence</strong>
-            <p>Paste a protein sequence in FASTA format:</p>
-            <code style={{ display: 'block', marginTop: '0.5rem', fontSize: '0.75rem' }}>
-                &gt;sequence_name<br />
-                MTEYKLVVVGAGGVGKSALT...
-            </code>
-        </div>
-    ),
     alignmentName: (
         <div>
             <strong>Alignment Name</strong>
