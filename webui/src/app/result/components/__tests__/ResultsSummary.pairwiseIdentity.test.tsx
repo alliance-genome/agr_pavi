@@ -24,9 +24,21 @@ const ALN = [
     '',
 ].join('\n')
 
+// Minimal embedded_variants row carrying only the fields the linkback
+// extractor reads (gene_id). seq-info in prod carries much more; the
+// resolver only looks at embedded_variants[].gene_id.
+const EMBEDDED = (gene_id: string) => ([{
+    gene_id,
+    alignment_start_pos: 1, alignment_end_pos: 1, seq_start_pos: 1,
+    seq_end_pos: 1, seq_length: 3, variant_id: 'v1',
+    genomic_seq_id: 'x', genomic_start_pos: 1, genomic_end_pos: 1,
+    genomic_ref_seq: 'A', genomic_alt_seq: 'T',
+    seq_substitution_type: 'SNV',
+}])
+
 const SEQ_INFO: SeqInfoDict = {
-    'ADCY3_ENST00000679454.1_ref':         { species: 'Homo sapiens' },
-    'Adcy3_ENSRNOT00000005389.8_ref':      { species: 'Rattus norvegicus' },
+    'ADCY3_ENST00000679454.1_ref':         { species: 'Homo sapiens',           embedded_variants: EMBEDDED('HGNC:234') },
+    'Adcy3_ENSRNOT00000005389.8_ref':      { species: 'Rattus norvegicus',      embedded_variants: EMBEDDED('RGD:71009') },
     'Adcy3_ENSMUST00000127756':            { species: 'Mus musculus' },
     'Ac3_FB:FBtr0085897':                  { species: 'Drosophila melanogaster' },
 }
@@ -58,5 +70,24 @@ describe('ResultsSummary pairwise identity table — ortholog label collision', 
         // (rat + mouse). Before the fix one of them was dropped.
         const adcy3Headers = screen.getAllByText('Adcy3')
         expect(adcy3Headers.length).toBeGreaterThanOrEqual(2)
+
+        // Rows whose sequence has a gene_id in seq-info render as a link to
+        // the Alliance /gene/{curie} page. The HGNC:234 row (ADCY3 Hsa)
+        // should be a link; its rat sibling picks up RGD:71009 via the
+        // propagation path; mouse has no gene_id of its own but also
+        // starts with the symbol "Adcy3", so it inherits RGD:71009 via the
+        // sibling-symbol fallback. Dme has no gene_id and no sibling,
+        // so it remains plain text.
+        const adcy3LinkRat = screen.getAllByRole('link', { name: 'Adcy3' })
+        expect(adcy3LinkRat.length).toBeGreaterThanOrEqual(2)  // Rno + Mmu via sibling
+        const hsLink = screen.getAllByRole('link', { name: 'ADCY3' })[0]
+        expect(hsLink).toHaveAttribute('href', expect.stringMatching(/\/gene\/HGNC%3A234$/))
+        expect(hsLink).toHaveAttribute('target', '_blank')
+        // Dme row has no gene_id and no sibling with the "Ac3" symbol —
+        // it must stay plain text.
+        const ac3Nodes = screen.getAllByText('Ac3')
+        for (const node of ac3Nodes) {
+            expect(node.tagName).not.toBe('A')
+        }
     })
 })

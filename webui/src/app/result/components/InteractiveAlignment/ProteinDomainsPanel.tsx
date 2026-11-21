@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { SeqInfoDict } from './types';
 import { fetchProteinDomains, resolveUniProtForGene, resolveGeneBySymbol, ProteinDomain } from './domains';
+import { allianceGeneUrl } from '@/utils/allianceLinks';
 
 export interface ProteinDomainsPanelProps {
     readonly seqInfoDict: SeqInfoDict;
@@ -16,6 +17,7 @@ interface SeqDomains {
     seqName: string;
     ungappedLength: number;
     uniprot: string | null;
+    geneId: string | null;
     domains: ProteinDomain[];
     status: 'loading' | 'no-gene-id' | 'no-uniprot' | 'ok' | 'empty' | 'error';
     error?: string;
@@ -103,6 +105,10 @@ export function ProteinDomainsPanel({ seqInfoDict, alignmentData }: ProteinDomai
             seqName: s.name,
             ungappedLength: s.ungappedLength,
             uniprot: null,
+            // Prime geneId from the explicit / sibling-propagated value so
+            // the Alliance linkback can light up before the async UniProt
+            // resolve finishes.
+            geneId: s.geneId ?? null,
             domains: [],
             status: 'loading',
         })));
@@ -127,6 +133,9 @@ export function ProteinDomainsPanel({ seqInfoDict, alignmentData }: ProteinDomai
                             setPerSeq(prev => prev.map(r => r.seqName === s.name ? { ...r, status: 'no-gene-id' } : r));
                             return;
                         }
+                    }
+                    if (geneId) {
+                        setPerSeq(prev => prev.map(r => r.seqName === s.name && !r.geneId ? { ...r, geneId: geneId! } : r));
                     }
                     const uniprot = await resolveUniProtForGene(geneId);
                     if (!uniprot) {
@@ -216,7 +225,14 @@ export function ProteinDomainsPanel({ seqInfoDict, alignmentData }: ProteinDomai
                 >
                     <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.75rem' }}>
                         <div style={{ color: 'var(--agr-primary, #2563eb)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={row.seqName}>
-                            {row.seqName}
+                            {(() => {
+                                const href = allianceGeneUrl(row.geneId);
+                                return href ? (
+                                    <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px dotted currentColor' }}>
+                                        {row.seqName}
+                                    </a>
+                                ) : row.seqName;
+                            })()}
                         </div>
                         <div style={{ color: 'var(--agr-text-secondary, #6b7280)', fontSize: '0.68rem' }}>
                             {row.status === 'ok' && row.uniprot && (
