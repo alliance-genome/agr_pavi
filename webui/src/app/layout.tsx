@@ -11,6 +11,7 @@ import { Footer } from './components/Footer/Footer';
 import { Ribbon } from './components/Ribbon/Ribbon';
 import { SkipLinks, LiveRegionProvider, KeyboardShortcuts } from './components/Accessibility';
 import { LayoutWrapper } from './components/LayoutWrapper';
+import { StaleBuildBanner } from './components/StaleBuildBanner';
 import { withBasePath } from '@/utils/basePath';
 import { NO_FLASH_SCRIPT } from '@/hooks/useTheme';
 
@@ -46,6 +47,7 @@ export default function RootLayout({
             <script dangerouslySetInnerHTML={{ __html: NO_FLASH_SCRIPT }} />
         </head>
         <body className={lato.className}>
+            <StaleBuildBanner />
             <Ribbon />
             <PrimeReactProvider>
                 <LiveRegionProvider>

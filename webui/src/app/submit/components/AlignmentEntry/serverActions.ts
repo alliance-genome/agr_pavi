@@ -71,7 +71,15 @@ export async function fetchGeneInfo (geneId: string): Promise<GeneInfo|undefined
     } catch (e) {
         // 4xx/5xx come back as thrown errors with .status; treat all failures
         // as "no gene info" and let the caller display the missing-gene UI.
-        console.error('Error caught while requesting gene info:', e)
+        // Downgrade 4xx to debug-only — the autocomplete field calls this
+        // on every keystroke, and Alliance returns 400 for bare symbols /
+        // partials (`tb`, `tbx20`). Those are signal, not errors.
+        const status = (e as { status?: number })?.status
+        if (status && status >= 400 && status < 500) {
+            console.debug(`fetchGeneInfo: ${status} for ${geneId} (likely not a curie); falling through`)
+        } else {
+            console.error('Error caught while requesting gene info:', e)
+        }
         return undefined
     }
 }
@@ -90,6 +98,15 @@ export async function fetchGeneSuggestionsAutocomplete (query: string): Promise<
     try {
         body = await fetchAllianceJson<any>(url, 'search')
     } catch (e) {
+        // 4xx on search almost always means the query isn't well-formed yet
+        // (early-keystroke character sequences Alliance rejects). Return an
+        // empty suggestion list quietly; keep 5xx loud so real upstream
+        // outages still surface.
+        const status = (e as { status?: number })?.status
+        if (status && status >= 400 && status < 500) {
+            console.debug(`fetchGeneSuggestionsAutocomplete: ${status} for '${query}' (treated as empty)`)
+            return []
+        }
         console.error('Error caught while requesting gene autocomplete:', e)
         throw e
     }
