@@ -7,6 +7,7 @@ import { Tag } from 'primereact/tag';
 import { Tooltip } from 'primereact/tooltip';
 import { parse } from 'clustal-js';
 import { SeqInfoDict } from '../InteractiveAlignment/types';
+import { allianceGeneUrl } from '@/utils/allianceLinks';
 import styles from './ResultsSummary.module.css';
 
 export interface PairwiseIdentity {
@@ -533,16 +534,38 @@ export function ResultsSummary({
                     // 0x1f separator plus the species, see where
                     // pairwiseIdentities are pushed above). `label` is the
                     // gene symbol alone — what we actually want on-screen.
-                    const meta = new Map<string, { label: string, fullName?: string, species?: string }>()
+                    const meta = new Map<string, { label: string, fullName?: string, species?: string, geneId?: string }>()
+                    // Explicit gene_id per sequence comes from the pipeline's
+                    // embedded_variants[i].gene_id. Sequences without variants
+                    // don't carry one, so propagate from siblings sharing the
+                    // leading symbol (PAVI naming convention) as a fallback.
+                    const geneIdByFullName = new Map<string, string>()
+                    const geneIdBySymbol = new Map<string, string>()
+                    if (seqInfoDict) {
+                        for (const [seqName, info] of Object.entries(seqInfoDict)) {
+                            const gid = info?.embedded_variants?.find(v => v.gene_id)?.gene_id
+                            if (gid) {
+                                geneIdByFullName.set(seqName, gid)
+                                const sym = seqName.split('_')[0]
+                                if (sym && !geneIdBySymbol.has(sym)) geneIdBySymbol.set(sym, gid)
+                            }
+                        }
+                    }
+                    const resolveGeneId = (fullName?: string): string | undefined => {
+                        if (!fullName) return undefined
+                        return geneIdByFullName.get(fullName) ?? geneIdBySymbol.get(fullName.split('_')[0])
+                    }
                     const remember = (name: string, fullName?: string, species?: string) => {
                         if (!seen.has(name)) { seen.add(name); order.push(name) }
                         const label = name.split('\x1f')[0]
                         const existing = meta.get(name)
-                        if (!existing || (!existing.species && species) || (!existing.fullName && fullName)) {
+                        const geneId = resolveGeneId(fullName) ?? existing?.geneId
+                        if (!existing || (!existing.species && species) || (!existing.fullName && fullName) || (!existing.geneId && geneId)) {
                             meta.set(name, {
                                 label,
                                 fullName: fullName ?? existing?.fullName,
                                 species: species ?? existing?.species,
+                                geneId: geneId ?? existing?.geneId,
                             })
                         }
                     }
@@ -618,9 +641,17 @@ export function ResultsSummary({
                                             <th />
                                             {order.map(n => {
                                                 const m = meta.get(n)
+                                                const href = allianceGeneUrl(m?.geneId)
+                                                const labelText = m?.label ?? n
                                                 return (
                                                     <th key={n} className={styles.matrixHeader} title={headerTitle(n)}>
-                                                        <div className={styles.headerLabel}>{m?.label ?? n}</div>
+                                                        <div className={styles.headerLabel}>
+                                                            {href ? (
+                                                                <a href={href} target="_blank" rel="noopener noreferrer" className={styles.geneLink}>
+                                                                    {labelText}
+                                                                </a>
+                                                            ) : labelText}
+                                                        </div>
                                                         {m?.species && (
                                                             <div className={styles.headerSpecies}>
                                                                 {speciesAbbr(m.species)}
@@ -634,10 +665,18 @@ export function ResultsSummary({
                                     <tbody>
                                         {order.map((rowName) => {
                                             const m = meta.get(rowName)
+                                            const href = allianceGeneUrl(m?.geneId)
+                                            const labelText = m?.label ?? rowName
                                             return (
                                                 <tr key={rowName}>
                                                     <th className={styles.matrixHeader} title={headerTitle(rowName)}>
-                                                        <div className={styles.headerLabel}>{m?.label ?? rowName}</div>
+                                                        <div className={styles.headerLabel}>
+                                                            {href ? (
+                                                                <a href={href} target="_blank" rel="noopener noreferrer" className={styles.geneLink}>
+                                                                    {labelText}
+                                                                </a>
+                                                            ) : labelText}
+                                                        </div>
                                                         {m?.species && (
                                                             <div className={styles.headerSpecies}>
                                                                 {speciesAbbr(m.species)}
