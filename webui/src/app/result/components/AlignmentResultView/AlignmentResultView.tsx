@@ -46,7 +46,15 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
     const router = useRouter()
     const { getJob } = useJobHistory()
 
-    const [displayMode, setDisplayMode] = useState('virtualized' as displayModeType)
+    // Build-time default, picked by NEXT_PUBLIC_DEFAULT_DISPLAY_MODE:
+    // prod sets it to 'virtualized' (Nightingale), dev to 'canvas'. Falls
+    // back to 'virtualized' when the var is unset or unrecognised.
+    const defaultDisplayMode: displayModeType = (() => {
+        const raw = process.env.NEXT_PUBLIC_DEFAULT_DISPLAY_MODE as string | undefined
+        if (raw === 'canvas' || raw === 'virtualized' || raw === 'interactive' || raw === 'text') return raw
+        return 'virtualized'
+    })()
+    const [displayMode, setDisplayMode] = useState<displayModeType>(defaultDisplayMode)
     type displayModeOptionsType = {
         label: string,
         value: displayModeType
@@ -468,10 +476,12 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                                 {displayMode === 'interactive' && <InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} />}
                                 {displayMode === 'canvas' && <CanvasAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />}
                                 {displayMode === 'text' && <TextAlignment alignmentResult={alignmentResult} />}
-                                {/* Sibling panels: render under every interactive viewer (not text).
-                                    PAVI-specific context — none of the three viewers know about
-                                    embedded_variants or InterPro domains. */}
-                                {displayMode !== 'text' && parsedAlignment.length > 0 && (
+                                {/* Sibling panels render ONLY under the canvas viewer.
+                                    Nightingale ships its own Protein Domains, Conservation,
+                                    Variant Locations and CONSEQUENCE track toggles in-viewer,
+                                    so showing the sibling panels alongside would duplicate
+                                    those controls and make the page feel cluttered. */}
+                                {displayMode === 'canvas' && parsedAlignment.length > 0 && (
                                     <>
                                         <HotspotPanel alignmentData={parsedAlignment} seqInfoDict={alignmentSeqInfo} />
                                         <ProteinDomainsPanel alignmentData={parsedAlignment} seqInfoDict={alignmentSeqInfo} />
