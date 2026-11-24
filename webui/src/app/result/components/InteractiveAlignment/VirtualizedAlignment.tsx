@@ -504,24 +504,39 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
     }, []);
 
     // Initial-view policy:
-    //   - Short alignments (≤300 columns): show the whole alignment.
-    //   - Longer ones: show the whole alignment too — the user sees the
-    //     full comparative shape first and zooms in via the position
-    //     navigator or the +/- controls. The old "window ±25 around the
-    //     first variant" default produced a 50-column slice on a 1 200-
-    //     column alignment which read as empty and made short rows
-    //     (e.g. Drosophila orthologs) look misaligned.
+    //   - Short alignments (≤300 columns): show the whole alignment — fits
+    //     the viewer's pixel width with readable residues.
+    //   - Longer ones: show a readable ~150-column window, centered on the
+    //     first variant when there is one (or starting at column 1 when
+    //     the alignment has no variants). Showing the WHOLE 1 200+ column
+    //     ADCY3 alignment at mount made each column 0.8 px wide, which
+    //     read as an empty alignment on prod — the regression this policy
+    //     is explicitly avoiding.
     //
     // Deferred via requestAnimationFrame so Nightingale's own init burst
     // runs first and doesn't overwrite our setting.
     useEffect(() => {
         if (hasAutoZoomed.current || seqLength === 0) return;
         hasAutoZoomed.current = true;
+        const FIT_ALL_THRESHOLD = 300;
+        const INITIAL_WIDE_WINDOW = 150;
         requestAnimationFrame(() => {
-            setDisplayStart(1);
-            setDisplayEnd(seqLength);
+            if (seqLength <= FIT_ALL_THRESHOLD) {
+                setDisplayStart(1);
+                setDisplayEnd(seqLength);
+                return;
+            }
+            const half = Math.floor(INITIAL_WIDE_WINDOW / 2);
+            const variantPositions = allVariantsTrackData.map(v => v.start ?? 0).filter(p => p > 0);
+            const centerCol = variantPositions.length > 0
+                ? Math.min(...variantPositions)
+                : half + 1;
+            const start = Math.max(1, centerCol - half);
+            const end = Math.min(seqLength, start + INITIAL_WIDE_WINDOW - 1);
+            setDisplayStart(start);
+            setDisplayEnd(end);
         });
-    }, [seqLength]);
+    }, [seqLength, allVariantsTrackData]);
 
     const updateAlignmentColorScheme = useCallback((newColorScheme: string) => {
         setAlignmentColorScheme(newColorScheme);
