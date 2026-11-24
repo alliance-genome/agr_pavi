@@ -482,9 +482,13 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
         }];
     }, [fullAlignmentData, seqLength]);
 
-    // Display range state
+    // Display range state. Start wide-open: first impression should be
+    // "I can see the whole alignment at a glance" — users zoom in via the
+    // position navigator afterwards. (100-column initial window on a 1 200-
+    // column alignment made the viewer look empty and the Dme row look
+    // unaligned because its residues scrolled past the visible window.)
     const [displayStart, setDisplayStart] = useState<number>(1);
-    const [displayEnd, setDisplayEnd] = useState<number>(100); // Default to reasonable value
+    const [displayEnd, setDisplayEnd] = useState<number>(100);
 
     type updateRangeArgs = {
         displayStart?: number;
@@ -499,25 +503,25 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
         }
     }, []);
 
-    // Auto-zoom to include all variant positions on first load.
-    // Uses requestAnimationFrame to defer until AFTER Nightingale's initial
-    // onChange burst has settled — avoids the race condition where Nightingale
-    // overwrites our display range during its initialization cycle.
+    // Initial-view policy:
+    //   - Short alignments (≤300 columns): show the whole alignment.
+    //   - Longer ones: show the whole alignment too — the user sees the
+    //     full comparative shape first and zooms in via the position
+    //     navigator or the +/- controls. The old "window ±25 around the
+    //     first variant" default produced a 50-column slice on a 1 200-
+    //     column alignment which read as empty and made short rows
+    //     (e.g. Drosophila orthologs) look misaligned.
+    //
+    // Deferred via requestAnimationFrame so Nightingale's own init burst
+    // runs first and doesn't overwrite our setting.
     useEffect(() => {
-        if (hasAutoZoomed.current || allVariantsTrackData.length === 0 || seqLength === 0) return;
+        if (hasAutoZoomed.current || seqLength === 0) return;
         hasAutoZoomed.current = true;
-
         requestAnimationFrame(() => {
-            // Center on first variant, keeping ~50-residue window for readability
-            const positions = allVariantsTrackData.map(v => v.start ?? 1);
-            const firstVariantPos = Math.min(...positions);
-            const windowSize = 50;
-            const halfWindow = Math.floor(windowSize / 2);
-
-            setDisplayStart(Math.max(1, firstVariantPos - halfWindow));
-            setDisplayEnd(Math.min(seqLength, firstVariantPos + halfWindow));
+            setDisplayStart(1);
+            setDisplayEnd(seqLength);
         });
-    }, [allVariantsTrackData, seqLength]);
+    }, [seqLength]);
 
     const updateAlignmentColorScheme = useCallback((newColorScheme: string) => {
         setAlignmentColorScheme(newColorScheme);
