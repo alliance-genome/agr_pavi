@@ -24,6 +24,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 
 import { fetchVariantAnnotations } from './serverActions';
+import { allianceAlleleUrl } from '@/utils/allianceLinks';
 import { SeqInfoDict, VariantAnnotationMap } from './types';
 import styles from './VirtualizedAlignment.module.css';
 import { PositionInfoPanel } from '../PositionInfoPanel/PositionInfoPanel';
@@ -820,6 +821,27 @@ const VirtualizedAlignment: FunctionComponent<VirtualizedAlignmentProps> = (
                                               title={`Impact: ${allele.impact.toLowerCase()}`} />
                                     )}
                                     {allele.variantId}
+                                    {(() => {
+                                        const href = allianceAlleleUrl(allele.variantId)
+                                        if (!href) return null
+                                        return (
+                                            <a
+                                                href={href}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                title="View this variant on Alliance"
+                                                style={{
+                                                    marginLeft: '0.4rem',
+                                                    color: 'var(--agr-primary, #2563eb)',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <i className="pi pi-external-link" style={{ fontSize: '0.7rem' }} aria-hidden="true" />
+                                            </a>
+                                        )
+                                    })()}
                                 </div>
                                 {allele.species && (
                                     <div className={styles.variantSpecies}>{allele.species}</div>

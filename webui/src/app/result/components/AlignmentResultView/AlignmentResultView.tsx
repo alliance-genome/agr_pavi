@@ -38,6 +38,10 @@ const CanvasAlignment = dynamic(() => import('../InteractiveAlignment/CanvasAlig
 // because they only make sense against a visual grid.
 const HotspotPanel = dynamic(() => import('../InteractiveAlignment/HotspotPanel').then(m => m.HotspotPanel), { ssr: false })
 const ProteinDomainsPanel = dynamic(() => import('../InteractiveAlignment/ProteinDomainsPanel').then(m => m.ProteinDomainsPanel), { ssr: false })
+// Thin strip above the viewer linking each sequence row back to its
+// Alliance gene page. Works under every viewer because it renders DOM
+// anchors — independent of what the viewer below is drawing.
+const SequenceLinkbackStrip = dynamic(() => import('../InteractiveAlignment/SequenceLinkbackStrip').then(m => m.SequenceLinkbackStrip), { ssr: false })
 
 export interface AlignmentResultViewProps {
     readonly uuidStr: string
@@ -472,6 +476,9 @@ export const AlignmentResultView: FunctionComponent<AlignmentResultViewProps> = 
                             </div>
                         ) : alignmentResult ? (
                             <>
+                                {displayMode !== 'text' && parsedAlignment.length > 0 && (
+                                    <SequenceLinkbackStrip alignmentData={parsedAlignment} seqInfoDict={alignmentSeqInfo} />
+                                )}
                                 {displayMode === 'virtualized' && <VirtualizedAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />}
                                 {displayMode === 'interactive' && <InteractiveAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} />}
                                 {displayMode === 'canvas' && <CanvasAlignment alignmentResult={alignmentResult} seqInfoDict={alignmentSeqInfo} jobUuid={props.uuidStr} />}

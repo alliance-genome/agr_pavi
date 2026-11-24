@@ -10,12 +10,13 @@
 // data race that forced our hasAutoZoomed workaround for the fullscreen
 // viewer doesn't apply here.
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { AlignmentViewer } from '@nuin/msa-canvas/react';
 import { fromPavi, type PaviSequenceInfo } from '@nuin/msa-canvas/pavi';
 import '@nuin/msa-canvas/style.css';
 
 import type { SeqInfoDict } from './types';
+import { allianceAlleleUrl, allianceGeneUrl } from '@/utils/allianceLinks';
 
 export interface CanvasAlignmentProps {
     readonly alignmentResult: string;
@@ -53,6 +54,50 @@ function useAgrTheme(): 'light' | 'dark' {
 
 export function CanvasAlignment({ alignmentResult, seqInfoDict }: CanvasAlignmentProps) {
     const theme = useAgrTheme();
+
+    // Open the Alliance page for a variant when the user clicks a pin.
+    // fromPavi stuffs the raw PaviVariant into annotation.metadata, so
+    // metadata.variant_id is the authoritative value; fall back to the
+    // label (which is `hgvs_protein || variant_id`) when it's missing.
+    const onAnnotationClick = useCallback((annotation: { label?: string; metadata?: Record<string, unknown> }) => {
+        const vid = (annotation?.metadata?.['variant_id'] as string | undefined) ?? annotation?.label
+        const href = allianceAlleleUrl(vid)
+        if (href) window.open(href, '_blank', 'noopener,noreferrer')
+    }, [])
+
+    // Build a rowId → gene_id map so clicking the row-name label opens
+    // the Alliance gene page. The kit emits onCellClick with the clicked
+    // row's id, and fromPavi uses the sequence name as the rowId.
+    const geneIdByRowId = useMemo<Map<string, string>>(() => {
+        const m = new Map<string, string>()
+        for (const [seqName, info] of Object.entries(seqInfoDict)) {
+            const gid = info?.embedded_variants?.find(v => v.gene_id)?.gene_id
+            if (gid) m.set(seqName, gid)
+        }
+        // Sibling-symbol propagation for rows without their own variants.
+        const bySymbol = new Map<string, string>()
+        for (const [seqName, gid] of m) {
+            const sym = seqName.split('_')[0]
+            if (sym && !bySymbol.has(sym)) bySymbol.set(sym, gid)
+        }
+        for (const seqName of Object.keys(seqInfoDict)) {
+            if (m.has(seqName)) continue
+            const sym = seqName.split('_')[0]
+            const gid = bySymbol.get(sym)
+            if (gid) m.set(seqName, gid)
+        }
+        return m
+    }, [seqInfoDict])
+
+    // Shift+click on any cell opens that row's Alliance gene page.
+    // The kit's CellClick exposes a `shiftKey` flag (not the raw event),
+    // so modifier-gating uses that. A plain click stays available for
+    // the kit's own column-selection / go-to-position UX.
+    const onCellClick = useCallback((click: { rowId?: string; shiftKey?: boolean }) => {
+        if (!click.shiftKey) return
+        const href = allianceGeneUrl(geneIdByRowId.get(click.rowId ?? ''))
+        if (href) window.open(href, '_blank', 'noopener,noreferrer')
+    }, [geneIdByRowId])
 
     // Build the kit's Alignment object once per alignment payload. The
     // fromPavi() adapter does the heavy lifting: parse Clustal text, map
@@ -138,6 +183,8 @@ export function CanvasAlignment({ alignmentResult, seqInfoDict }: CanvasAlignmen
         <AlignmentViewer
             alignment={alignment}
             options={options}
+            onAnnotationClick={onAnnotationClick}
+            onCellClick={onCellClick}
             className="ak-viewer"
         />
     );
