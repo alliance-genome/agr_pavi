@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.11.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.10.0...webui-v0.11.0) (2026-11-23)
+
+
+### Features
+
+* **result:** link pairwise identity + domain labels back to Alliance gene pages ([66d462a](https://github.com/alliance-genome/agr_pavi/commit/66d462ae18311efecdd1bf73e254ea9fa5ca6f52))
+* **result:** link pairwise identity + domain labels back to Alliance gene pages ([62ea8e5](https://github.com/alliance-genome/agr_pavi/commit/62ea8e536f2b2a98ee556e7ecf723ea3f8a6dea9))
+
+
+### Bug Fixes
+
+* **webui:** quiet expected prod log noise + offer reload on stale server actions ([0f0de30](https://github.com/alliance-genome/agr_pavi/commit/0f0de30116d7b3586e46a88aa5bd1c3da0c46cd9))
+* **webui:** quiet expected prod log noise + offer reload on stale server actions ([#1102](https://github.com/alliance-genome/agr_pavi/issues/1102)) ([0b14fdf](https://github.com/alliance-genome/agr_pavi/commit/0b14fdfccfa2f3be85ad2f3d45678d903adc3b7f))
+
+
+### Reverts
+
+* **result:** restore Nightingale as default viewer, keep canvas as opt-in ([8375651](https://github.com/alliance-genome/agr_pavi/commit/83756513e3fcc4bba15f3551963e30a0bb761d61))
+* **result:** restore Nightingale as default viewer, keep canvas as opt-in ([f8561cd](https://github.com/alliance-genome/agr_pavi/commit/f8561cdd78b00e0c238a8eba70f1dacbf4ac078e))
+
 ## [0.10.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.9.1...webui-v0.10.0) (2026-11-18)
 
 
