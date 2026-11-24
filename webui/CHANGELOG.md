@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.1](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.11.0...webui-v0.11.1) (2026-11-24)
+
+
+### Reverts
+
+* **result:** restore original ±25 Nightingale initial viewport ([d25d18c](https://github.com/alliance-genome/agr_pavi/commit/d25d18c0ab1dc57c6088e8cefe4c0cb03d1b20e7))
+* **result:** restore original ±25 Nightingale initial viewport ([5dc0e2d](https://github.com/alliance-genome/agr_pavi/commit/5dc0e2dff0312f302846908b3d37707e8347db40))
+
 ## [0.11.0](https://github.com/alliance-genome/agr_pavi/compare/webui-v0.10.0...webui-v0.11.0) (2026-11-23)
 
 
